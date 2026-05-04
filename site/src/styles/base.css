@@ -19,7 +19,8 @@ h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
   font-weight: 100 900;
   font-stretch: 75% 100%;
   font-optical-sizing: auto;
-  font-display: block;
+  text-rendering: geometricPrecision;
+  font-display: swap;
 }
 @font-face {
   font-family: "Antithesis mono";
@@ -27,7 +28,7 @@ h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
   font-style: normal;
   font-weight: 400 700;
   text-rendering: optimizeLegibility;
-  font-display: block;
+  font-display: swap;
 }
 @font-face {
   font-family: "Antithesis mono";
@@ -35,7 +36,7 @@ h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
   font-style: italic;
   font-weight: 400 700;
   text-rendering: optimizeLegibility;
-  font-display: block;
+  font-display: swap;
 }
 
 /* Brand variable overrides */
@@ -56,7 +57,23 @@ html {
   scroll-padding-top: var(--scroll-padding-top);
 }
 
-html, body { font-family: var(--sans-serif); }
+html, body {
+  font-family: var(--sans-serif);
+  /* "Antithesis sans" has a `slnt` axis whose default inside the
+     file isn't 0. Chrome normalizes it when `font-style: normal` is
+     in effect; Safari leaves it at the file default, which renders
+     the entire body slanted. Pinning the axis explicitly forces
+     upright on every browser. */
+  font-variation-settings: "slnt" 0, "ital" 0;
+}
+/* Italic markup drives the slant axis manually, since the global
+   pin above would otherwise keep them upright too. `-10deg` is a
+   reasonable starting value; tune once the file's actual range is
+   known. `ital 1` is set defensively in case the file exposes that
+   axis as well. */
+:is(em, i, address) {
+  font-variation-settings: "slnt" -10, "ital" 1;
+}
 
 /* Anta's global stylesheet provides the `a` defaults (color, underline,
    thickness, hover bump). Sidebar nav and header anchors below are the
