@@ -3,7 +3,7 @@
   --monospace: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 
   font-size: 15px;
-  font-weight: 390;
+  font-weight: 400;
   font-feature-settings: 'ss02' on, 'ss05' on;
 
   /* Colors imported from Figma library "Anta 0.2" → "Dynamic colors" collection.
@@ -198,7 +198,7 @@ a:active {
 }
 
 .dark {
-  font-weight: 350;
+  font-weight: 400;
 
   /* Backgrounds — dark, neutral */
   --bg-base: #100e11; --bg-base: oklch(0.168 0.007 315);

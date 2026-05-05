@@ -16,6 +16,7 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 
 ### Changed
 - **Convention strengthened (no API impact):** ARIA wiring (`role`, `aria-*`, `tabindex`, etc.) lives in `src/components/<Name>.tsx` JSX wrappers as attribute pass-through, never inside the web component class. Web components stay pure declarative DOM — neither the constructor nor `attributeChangedCallback` mutates host attributes or inline styles. Documented in `CLAUDE.md`.
+- Default body `font-weight` in `anta_global_tokens.css` changed to `400` for both `:root, .light` (was `390`) and `.dark` (was `350`). The previous values applied a small optical-compensation offset so dark-mode text was rendered slightly thinner; the new values are uniform regular weight. Apps that override `font-weight` on `:root` or `.dark` are unaffected.
 
 ## 0.1.1-dev.1 — May 3, 2026
 
