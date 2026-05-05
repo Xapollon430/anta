@@ -6,6 +6,14 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## 0.1.1-dev.3 — May 5, 2026
+
+### Changed
+- Dark-mode text tokens `--text-{3,4,5}-{success,critical,warning}` re-anchored to their level-2 base hue (matching the light-mode pattern and the source-of-truth in the Figma "Anta 0.2" library). Visual effect in dark mode: success / critical / warning text at tertiary, quaternary, and quinary priorities shifts slightly toward the level-2 hue. Light-mode tokens are unchanged. All `bg-*` and `border-*` tokens were also audited against the same Figma source — no drift, no changes.
+
+### Removed
+- `--text-white` token. It was declared in `anta_global_tokens.css` but referenced nowhere in the package and is not part of the Figma "Anta 0.2" source-of-truth. Consumers relying on `var(--text-white)` should switch to `#ffffff` (or `white`) directly, or define their own variable.
+
 ## 0.1.1-dev.2 — May 3, 2026
 
 ### Added
