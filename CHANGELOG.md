@@ -6,6 +6,14 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## 0.1.1-dev.4 — May 6, 2026
+
+### Changed
+- Progress component colors realigned with the "Anta 0.2" Figma library (frame `1313:1219`). All four states (light × dark × neutral × info) updated. Every Progress colour now resolves through an existing global token: `--bg-block` / `--bg-spot` / `--border-2` / `--text-2` / `--text-3` and their `-info` variants.
+- `--progress-indicator-edge` is now declared once at the base level and derives from `--progress-border-color` via CSS relative-colour syntax (`rgb(from … r g b / 0) → var(…)`). The right-edge gradient automatically tracks the border colour in every state.
+- `<a-progress-number>` color anchor moved from `--text-1` / `--text-1-info` to `--text-2` / `--text-2-info`, matching Figma's `component/progress/text-{neutral,info}` tokens.
+- `<a-progress-text>` and `<a-progress-hint>` are now tone-aware: in `tone="info"` they pick up `--text-2-info` / `--text-3-info` instead of staying on neutral. Previously this was a visual bug — the descriptive label and hint stayed grey even when the rest of the component shifted to info-blue.
+
 ## 0.1.1-dev.3 — May 5, 2026
 
 ### Changed
