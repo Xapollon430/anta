@@ -1,4 +1,4 @@
-export declare const ICON_SHAPES: readonly ["arrow-left-to-line", "arrow-left", "arrow-narrow-down", "arrow-narrow-up-down", "arrow-narrow-up", "arrow-right", "arrow-top-right", "asterisk", "book-open", "braces", "bug", "calendar", "case-sensitive", "chat", "check", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "chevrons-right", "circle-check", "circle-large", "circle", "click", "clock", "cloud-upload", "copy", "corner-down-right", "cube", "dots-vertical", "download", "edit", "education-disk", "external-link", "file-down", "file", "filter", "folder-close", "folder-open", "folder-tree", "github-logo", "gitlab-logo", "hat-glasses", "heart-handshake", "help-disk", "history-tree", "history", "home", "hourglass", "info", "jira-logo", "linear-logo", "link", "list-detail-view", "maximize", "megaphone", "menu", "minimize", "minus", "more", "move-horizontal", "not-equal", "play", "plus", "presentation", "refresh", "regex", "repeat", "rss", "runs-history", "scroll-text", "search-check", "search", "send", "sparkles", "swatch-book", "text-highlight", "text-initial", "timer", "trash", "trello-logo", "view", "warning-triangle", "webhook", "workflow", "x"];
+export declare const ICON_SHAPES: readonly ["arrow-left-to-line", "arrow-left", "arrow-narrow-down", "arrow-narrow-up-down", "arrow-narrow-up", "arrow-right", "arrow-top-right", "asterisk", "book-open", "braces", "bug", "calendar", "case-sensitive", "chat", "check", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "chevrons-right", "circle-check", "circle-large", "circle", "click", "clock", "cloud-upload", "copy", "corner-down-right", "cube", "dots-vertical", "download", "edit", "education-disk", "external-link", "file-down", "file", "filter", "folder-close", "folder-open", "folder-tree", "github-logo", "gitlab-logo", "hat-glasses", "heart-handshake", "help-disk", "history-tree", "history", "home", "hourglass", "info", "jira-logo", "linear-logo", "link", "list-detail-view", "maximize", "megaphone", "menu", "minimize", "minus", "more", "move-horizontal", "not-equal", "play", "plus", "presentation", "refresh", "regex", "repeat", "rss", "runs-history", "scroll-text", "search-check", "search", "send", "sparkles", "swatch-book", "table-2", "text-highlight", "text-initial", "timer", "trash", "trello-logo", "view", "warning-triangle", "webhook", "workflow", "x"];
 export declare const ICON_SYNONYMS: Readonly<Record<string, readonly string[]>>;
 declare module '@antadesign/anta' {
     interface IconShapes {
@@ -78,6 +78,7 @@ declare module '@antadesign/anta' {
         'send': true;
         'sparkles': true;
         'swatch-book': true;
+        'table-2': true;
         'text-highlight': true;
         'text-initial': true;
         'timer': true;
