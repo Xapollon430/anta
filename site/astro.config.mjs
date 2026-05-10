@@ -11,6 +11,7 @@ import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeMathjax from 'rehype-mathjax';
 import rehypeTableWrap from './lib/rehype-table-wrap.mjs';
+import rehypeChangelogSections from './lib/rehype-changelog-sections.mjs';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -95,6 +96,7 @@ export default defineConfig({
         },
       ],
       rehypeMathjax,
+      rehypeChangelogSections,
       rehypeTableWrap,
     ],
   },
