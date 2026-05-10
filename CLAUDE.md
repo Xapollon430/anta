@@ -20,7 +20,7 @@ The tiers are decoupled — JSX wrappers emit `<a-*>` tags but never import elem
 
 ## Build & dev
 
-Source lives in `src/`. Build output goes to `dist/`. The `dist/` directory is **committed to git** so the package can be consumed directly from GitHub (`github:antithesishq/anta#tag`).
+Source lives in `src/`. Build output goes to `dist/`. `dist/` is gitignored — `pnpm install` regenerates it via the `prepare` lifecycle script, and `npm publish` regenerates it via `prepublishOnly` so the published tarball is always fresh. The package is distributed only through npm; the GitHub-URL install path is not supported.
 
 ```sh
 pnpm run build        # Full build: JS + CSS + types
@@ -34,23 +34,17 @@ pnpm run typecheck    # Type check without emit
 
 Uses `jsx: "react-jsx"` with `jsxImportSource: "@antadesign/anta"` (automatic transform). The compiled output self-references the package via the exports map: `import { jsx } from "@antadesign/anta/jsx-runtime"`.
 
-### Pre-commit hook
-
-A git pre-commit hook (`/.git/hooks/pre-commit`) auto-rebuilds `dist/` when source files are staged. If the build fails, it warns but does not block the commit — CI catches build failures on PR merge.
-
 ### CI
 
 `.github/workflows/ci.yml` runs on pull requests to main:
 1. `pnpm run build` — build anta
 2. `pnpm run typecheck` — type check
-3. Verify `dist/` is up to date (no uncommitted build output drift)
-4. `pnpm --filter anta-site build` — build the docs site
+3. `pnpm --filter anta-site build` — build the docs site
 
 ## Package consumption
 
 Consumers can use anta via:
 - **npm**: `"@antadesign/anta": "dev"` (prerelease) or a specific version
-- **GitHub**: `"@antadesign/anta": "github:antithesishq/anta#v0.1.0"`
 - **Local link**: `"@antadesign/anta": "link:/path/to/anta"` (for development)
 
 The `exports` map handles all subpath imports. Explicit entries exist for `.`, `./jsx-runtime`, `./elements`, `./elements/*`, plus a `"./*"` wildcard fallback. `main` and `types` fields provide fallback for classic `moduleResolution: "node"`.

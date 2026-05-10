@@ -164,6 +164,31 @@ pre code { background: none; padding: 0; }
   100% { opacity: 0; transform: translate(0, -24px); }
 }
 
+/* Wraps every <table> in MDX/markdown content (injected by the
+   site/lib/rehype-table-wrap.mjs plugin). When the inner table is
+   wider than `.content`'s max-width, the wrap scrolls horizontally
+   *inside* the column instead of the whole page picking up a
+   horizontal scrollbar. The table itself keeps default `display:
+   table` semantics. */
+.table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  margin: 0 0 24px;
+}
+.table-wrap > table {
+  margin: 0;
+}
+
+/* Changelog stream filter. The /changelog/ page wraps each version
+   block in <section data-stream="dev|main"> via the
+   rehype-changelog-sections plugin. The ChangelogStreamTabs component
+   sets html[data-stream="dev"|"main"] from the ?stream=… URL param
+   (or removes it for "all"). These rules hide the inverse stream's
+   sections; default (no html[data-stream]) shows everything. */
+html[data-stream="dev"]  .changelog section[data-stream="main"] { display: none; }
+html[data-stream="main"] .changelog section[data-stream="dev"]  { display: none; }
+
 table {
   width: 100%;
   border-collapse: collapse;

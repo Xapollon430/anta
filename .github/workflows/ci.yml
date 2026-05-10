@@ -16,11 +16,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
       - run: pnpm run typecheck
-      - name: Check dist/ is up to date
-        run: |
-          git diff --exit-code dist/ || {
-            echo "dist/ is out of date — rebuild locally and commit"
-            exit 1
-          }
       - name: Build site
         run: pnpm --filter anta-site build
