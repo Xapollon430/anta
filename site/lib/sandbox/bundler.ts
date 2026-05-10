@@ -55,10 +55,15 @@ export async function bundle(userCode: string): Promise<BundleResult> {
 
   const moduleNamespace = 'demo-modules'
 
+  const wrapped = wrapWithRender(userCode)
+  if (wrapped == null) {
+    return { ok: false, message: 'No JSX expression found in code. End the file with a JSX element to render (e.g. `<Progress value={50} />`).' }
+  }
+
   try {
     const result = await esbuild.build({
       stdin: {
-        contents: userCode,
+        contents: wrapped,
         loader: 'tsx',
         sourcefile: 'user.tsx',
       },
@@ -146,4 +151,29 @@ function formatErrors(errors: any[]): string {
       return loc ? `${loc} — ${e.text}` : e.text
     })
     .join('\n')
+}
+
+/**
+ * Pre-process user code so the bundled output auto-renders the trailing
+ * JSX expression. Find the last line that *starts* with `<` (after
+ * leading whitespace) and treat everything from there to the end of
+ * the file as one JSX expression. Wrap it in a `render()` call. Returns
+ * `null` if no trailing JSX expression is found.
+ */
+function wrapWithRender(code: string): string | null {
+  const lines = code.split('\n')
+  let jsxStart = -1
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trimStart().startsWith('<')) {
+      jsxStart = i
+    }
+  }
+  if (jsxStart === -1) return null
+  const before = lines.slice(0, jsxStart).join('\n').trimEnd()
+  const jsxBlock = lines.slice(jsxStart).join('\n').trim().replace(/;?\s*$/, '')
+  return `${before}
+import { render as __demo_render__ } from 'preact'
+const __demo_content__ = (${jsxBlock})
+__demo_render__(__demo_content__, document.getElementById('root'))
+`
 }

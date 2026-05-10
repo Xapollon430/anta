@@ -104,18 +104,38 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
     return () => window.removeEventListener('message', onMessage)
   }, [])
 
-  // Mirror the parent's .dark class onto the iframe's <html>. Set up once
-  // the iframe finishes loading.
-  function onIframeLoad() {
+  // Initialise the iframe (clone stylesheets, seed __demo_modules__,
+  // register custom elements, set up dark-mode mirror). srcdoc iframes
+  // can `load` before the Preact reconciler attaches `onLoad`, so we
+  // poll readyState here and fall back to a `load` listener.
+  useEffect(() => {
     const iframe = iframeRef.current
-    if (!iframe?.contentDocument || !iframe.contentWindow) return
-    setupIframe(iframe)
-    iframeReadyRef.current = true
-    // If a bundle is already ready, push it now.
-    if (bundleState && (bundleState as BundleResult).ok) {
-      pushBundleToIframe(iframe, (bundleState as BundleResult).code)
+    if (!iframe) return
+    let cancelled = false
+    function init() {
+      if (cancelled) return
+      const doc = iframe.contentDocument
+      if (!doc || !iframe.contentWindow) return
+      setupIframe(iframe)
+      iframeReadyRef.current = true
+      // If a bundle is already compiled, push it now.
+      if (bundleState && (bundleState as any).ok) {
+        pushBundleToIframe(iframe, (bundleState as BundleResult & { code: string }).code)
+      }
     }
-  }
+    const doc = iframe.contentDocument
+    if (doc && (doc.readyState === 'complete' || doc.readyState === 'interactive')) {
+      init()
+      return () => { cancelled = true }
+    }
+    iframe.addEventListener('load', init)
+    return () => {
+      cancelled = true
+      iframe.removeEventListener('load', init)
+    }
+    // The iframe is mounted exactly once per component instance.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Push a code change into Monaco (when the form rewrites code).
   // We avoid a feedback loop by marking codeFromFormRef and ignoring
@@ -154,7 +174,6 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
           ref={iframeRef}
           class={s.previewFrame}
           srcDoc={IFRAME_SRCDOC}
-          onLoad={onIframeLoad}
           title={`${component} interactive demo preview`}
         />
       </div>
@@ -462,8 +481,9 @@ function getElementsModuleUrl(): string {
 // Monaco mount: load Anta's .d.ts files into Monaco's TS service so
 // the editor knows about Progress / Text / Icon types.
 
-// Vite glob: pull every .d.ts file from anta's dist as a raw string at
-// build time. Cheap (~20 KB of strings).
+// Vite glob: pull every .d.ts file from anta's dist + preact at build
+// time. The package.json files come along too so Monaco's TS service
+// can do NodeJS-style module resolution (exports / types / main).
 const antaTypeDefs = import.meta.glob(
   '/node_modules/@antadesign/anta/dist/**/*.d.ts',
   { eager: true, query: '?raw', import: 'default' }
@@ -471,6 +491,15 @@ const antaTypeDefs = import.meta.glob(
 
 const preactTypeDefs = import.meta.glob(
   '/node_modules/preact/**/*.d.ts',
+  { eager: true, query: '?raw', import: 'default' }
+) as Record<string, string>
+
+const packageJsons = import.meta.glob(
+  [
+    '/node_modules/@antadesign/anta/package.json',
+    '/node_modules/preact/package.json',
+    '/node_modules/preact/*/package.json',
+  ],
   { eager: true, query: '?raw', import: 'default' }
 ) as Record<string, string>
 
@@ -499,6 +528,9 @@ function onMonacoMount(_editor: unknown, monaco: any) {
     ts.typescriptDefaults.addExtraLib(contents, 'file://' + absPath)
   }
   for (const [absPath, contents] of Object.entries(preactTypeDefs)) {
+    ts.typescriptDefaults.addExtraLib(contents, 'file://' + absPath)
+  }
+  for (const [absPath, contents] of Object.entries(packageJsons)) {
     ts.typescriptDefaults.addExtraLib(contents, 'file://' + absPath)
   }
 }
