@@ -77,6 +77,7 @@ export const ICON_SHAPES = [
   'send',
   'sparkles',
   'swatch-book',
+  'table-2',
   'text-highlight',
   'text-initial',
   'timer',
@@ -136,6 +137,7 @@ export const ICON_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   'case-sensitive': ['aA', 'capitalize', 'case'],
   'text-highlight': ['mark', 'highlight'],
   'list-detail-view': ['list', 'items'],
+  'table-2': ['table', 'grid', 'data', 'spreadsheet', 'rows', 'columns'],
   'folder-open': ['directory', 'browse'],
   'folder-close': ['directory'],
   'folder-tree': ['hierarchy', 'structure', 'tree'],
@@ -255,6 +257,7 @@ declare module '@antadesign/anta' {
     'send': true
     'sparkles': true
     'swatch-book': true
+    'table-2': true
     'text-highlight': true
     'text-initial': true
     'timer': true
