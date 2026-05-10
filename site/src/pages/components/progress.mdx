@@ -2,6 +2,7 @@
 layout: ../../layouts/DocsLayout.astro
 title: Progress
 ---
+import InteractiveDemo from '../../components/InteractiveDemo'
 import ProgressDemo from '../../components/ProgressDemo'
 import PropsTable from '../../components/PropsTable.astro'
 
@@ -9,6 +10,17 @@ import PropsTable from '../../components/PropsTable.astro'
 
 A progress indicator for displaying task completion. Consists of a track
 (background bar), an indicator (filled portion), and an optional label area.
+
+## Playground
+
+<InteractiveDemo
+  client:load
+  component="Progress"
+  initialCode={`import { Progress } from '@antadesign/anta'
+
+<Progress value={42} label="Uploading files…" hint="3 of 7" />
+`}
+/>
 
 ## Props
 

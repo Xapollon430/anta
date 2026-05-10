@@ -1,0 +1,233 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 32px;
+  /* `.full-bleed` on the host gives the demo widget the available
+     width to the right of the sidebar; this rule is the inner
+     layout. */
+}
+
+.preview {
+  border: 1px solid var(--border-1);
+  border-radius: 8px;
+  background: var(--bg-pane);
+  overflow: hidden;
+}
+
+.previewFrame {
+  display: block;
+  width: 100%;
+  height: 220px;
+  border: none;
+  background: var(--bg-base);
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.panel {
+  border: 1px solid var(--border-1);
+  border-radius: 8px;
+  background: var(--bg-pane);
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+}
+
+.panelHeader {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-1);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.form {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 450;
+}
+
+.fieldHint {
+  font-size: 12px;
+  color: var(--text-4);
+}
+
+.fieldValueLabel {
+  font-family: var(--monospace);
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.fieldExpressionBadge {
+  font-size: 11px;
+  color: var(--text-4);
+  font-style: italic;
+}
+
+.slider, .number, .text {
+  width: 100%;
+  border: 1px solid var(--border-2);
+  background: var(--bg-section);
+  color: var(--text-1);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.slider {
+  padding: 0;
+  appearance: none;
+  background: transparent;
+  border: none;
+}
+
+.disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.segment {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg-block);
+  border-radius: 6px;
+  align-self: flex-start;
+}
+
+.segBtn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-3);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 150ms ease-out, color 150ms ease-out;
+}
+
+.segBtn:hover, .segBtn:focus {
+  color: var(--text-2);
+}
+
+.segBtnActive,
+.segBtnActive:hover,
+.segBtnActive:focus {
+  background: var(--bg-section);
+  color: var(--text-1);
+  box-shadow: 0 0 2px var(--border-3);
+}
+
+.editorHost {
+  flex: 1;
+  min-height: 280px;
+  position: relative;
+}
+
+.editorLoading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.error {
+  border: 1px solid var(--border-2-critical);
+  background: var(--bg-pane-critical);
+  color: var(--text-1-critical);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: var(--monospace);
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.errorKind {
+  display: inline-block;
+  font-weight: 600;
+  margin-right: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+/* Mobile tab strip — flips Props ↔ Code on narrow viewports. The
+   .panel above stretches; here we toggle which one is visible. */
+.tabs {
+  display: none;
+  flex-wrap: nowrap;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-block);
+  border-radius: 6px;
+  margin-bottom: 4px;
+  align-self: flex-start;
+}
+
+.tabBtn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-3);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 150ms ease-out, color 150ms ease-out;
+}
+
+.tabBtnActive {
+  background: var(--bg-section);
+  color: var(--text-1);
+  box-shadow: 0 0 2px var(--border-3);
+}
+
+@media (max-width: 900px) {
+  .tabs {
+    display: inline-flex;
+  }
+  .hiddenOnMobile {
+    display: none !important;
+  }
+}
