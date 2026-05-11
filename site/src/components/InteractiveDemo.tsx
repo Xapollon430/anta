@@ -563,7 +563,7 @@ function FieldControl({
 // over and the iframe lands on the correct mode's value.
 const IFRAME_SRCDOC = `<!DOCTYPE html><html class="dark"><head><meta charset="utf-8"><style>
   html, body { margin: 0; background: var(--bg-base, #100e11); font-family: var(--sans-serif, sans-serif); }
-  body { padding: 16px; overflow: auto; box-sizing: border-box; min-height: 100%; }
+  body { padding: 24px; overflow: auto; box-sizing: border-box; min-height: 100%; }
   #root { display: block; }
 </style></head><body><div id="root"></div></body></html>`
 
