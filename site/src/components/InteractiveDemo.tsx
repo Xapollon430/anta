@@ -268,7 +268,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
               class={tab === 'props' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
               onClick={() => setTab('props')}
             >
-              Props
+              <span class={s.tabLabel}>Props</span>
             </button>
             <button
               type="button"
@@ -277,7 +277,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
               class={tab === 'code' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
               onClick={() => setTab('code')}
             >
-              Code
+              <span class={s.tabLabel}>Code</span>
             </button>
           </div>
           {/* Both panels are stacked in the same grid cell so the

@@ -100,8 +100,14 @@
      preview pane and the tabbed panel. */
   padding: 10px 14px 9px;
   cursor: pointer;
-  position: relative;
   transition: color 120ms ease-out;
+}
+
+/* First tab gets a doubled left padding so the strip-to-first-label
+   gap visually matches the gap between adjacent labels (which is
+   14px right padding + 14px left padding = 28px). */
+.tabBtn:first-child {
+  padding-left: 28px;
 }
 
 .tabBtn:hover,
@@ -110,12 +116,21 @@
   outline: none;
 }
 
-/* Underline overlays the strip's bottom border. `inset: auto 0 -1px`
-   pulls it down one pixel so it sits on top of the 1px border. */
-.tabBtnActive::after {
+/* The label wrapper lets the active underline track the word width
+   instead of the full button. The underline drops below the span
+   to sit on top of the strip's border-bottom (1px line at the
+   strip's edge): span-bottom + 9px padding + 1px border = 10px. */
+.tabLabel {
+  position: relative;
+  display: inline-block;
+}
+
+.tabBtnActive .tabLabel::after {
   content: "";
   position: absolute;
-  inset: auto 0 -1px;
+  left: 0;
+  right: 0;
+  bottom: -10px;
   height: 1px;
   background: var(--text-2);
 }
