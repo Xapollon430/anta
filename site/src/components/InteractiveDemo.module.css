@@ -122,6 +122,13 @@
   outline: none;
 }
 
+/* Pressed state: drop back down to the active-tab color so the
+   click reads as committal. Declared after :hover so the equal-
+   specificity `:active` rule wins by source order. */
+.tabBtn:active {
+  color: var(--text-2);
+}
+
 /* The label wrapper lets the active underline track the word width
    instead of the full button. The underline drops below the span
    to sit on top of the strip's border-bottom (1px line at the
