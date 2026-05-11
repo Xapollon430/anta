@@ -510,8 +510,14 @@ function FieldControl({
 // ──────────────────────────────────────────────────────────────────
 // Iframe lifecycle helpers
 
-const IFRAME_SRCDOC = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-  html, body { margin: 0; background: var(--bg-base, #fff); font-family: var(--sans-serif, sans-serif); }
+// Fallback bg-base for the iframe before the parent's stylesheets get
+// cloned in. We use the dark-mode value (--bg-base in `.dark`) so the
+// preview never flashes white — dark→light is a far less jarring
+// transition than white→anything. Once setupIframe mirrors the
+// parent's actual `.dark` state, the cloned stylesheet rules take
+// over and the iframe lands on the correct mode's value.
+const IFRAME_SRCDOC = `<!DOCTYPE html><html class="dark"><head><meta charset="utf-8"><style>
+  html, body { margin: 0; background: var(--bg-base, #100e11); font-family: var(--sans-serif, sans-serif); }
   body { padding: 16px; overflow: auto; box-sizing: border-box; min-height: 100%; }
   #root { display: block; }
 </style></head><body><div id="root"></div></body></html>`
