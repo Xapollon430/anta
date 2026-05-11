@@ -111,6 +111,11 @@
   padding-left: 12px;
 }
 
+.tabBtnActive {
+  color: var(--text-2);
+}
+
+/* Hover wins so only the tab under the cursor reads at full intensity. */
 .tabBtn:hover,
 .tabBtn:focus-visible {
   color: var(--text-1);
