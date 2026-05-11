@@ -39,7 +39,7 @@
    halves visually symmetric. Uses text-2 (matches the active-tab
    color) since it's just a single label. */
 .previewHeader {
-  padding: 10px 14px 9px;
+  padding: 10px 12px 9px;
   border-bottom: 1px solid var(--border-1);
   font-size: 12px;
   font-weight: 500;
@@ -96,18 +96,19 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-3);
-  /* Mirrors `.previewHeader` so the strips line up across the
-     preview pane and the tabbed panel. */
-  padding: 10px 14px 9px;
+  /* Vertical padding mirrors `.previewHeader` so the strips line up.
+     Side padding is 6px on each tab so the visual gap between
+     adjacent labels (6 + 6 = 12px) matches the form's 12px padding. */
+  padding: 10px 6px 9px;
   cursor: pointer;
   transition: color 120ms ease-out;
 }
 
-/* First tab gets a doubled left padding so the strip-to-first-label
-   gap visually matches the gap between adjacent labels (which is
-   14px right padding + 14px left padding = 28px). */
+/* First tab's left padding is doubled (12px) so the gap from the
+   strip edge to the first label matches the gap between adjacent
+   labels and the form's left padding. */
 .tabBtn:first-child {
-  padding-left: 28px;
+  padding-left: 12px;
 }
 
 .tabBtn:hover,
