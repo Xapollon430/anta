@@ -39,7 +39,7 @@
    halves visually symmetric. Uses text-2 (matches the active-tab
    color) since it's just a single label. */
 .previewHeader {
-  padding: 10px 12px 9px;
+  padding: 7px 12px 6px;
   border-bottom: 1px solid var(--border-1);
   font-size: 12px;
   font-weight: 500;
@@ -99,7 +99,7 @@
   /* Vertical padding mirrors `.previewHeader` so the strips line up.
      Side padding is 6px on each tab so the visual gap between
      adjacent labels (6 + 6 = 12px) matches the form's 12px padding. */
-  padding: 10px 6px 9px;
+  padding: 7px 6px 6px;
   cursor: pointer;
   transition: color 120ms ease-out;
 }
@@ -132,7 +132,7 @@
 /* The label wrapper lets the active underline track the word width
    instead of the full button. The underline drops below the span
    to sit on top of the strip's border-bottom (1px line at the
-   strip's edge): span-bottom + 9px padding + 1px border = 10px. */
+   strip's edge): span-bottom + 6px padding + 1px border = 7px. */
 .tabLabel {
   position: relative;
   display: inline-block;
@@ -143,7 +143,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -10px;
+  bottom: -7px;
   height: 1px;
   background: var(--text-2);
 }
