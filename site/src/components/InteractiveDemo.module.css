@@ -131,7 +131,7 @@
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-3);
+  color: var(--text-4);
   /* Vertical padding mirrors `.previewHeader` so the strips line up.
      Side padding is 6px on each tab so the visual gap between
      adjacent labels (6 + 6 = 12px) matches the form's 12px padding. */
