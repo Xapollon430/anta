@@ -15,6 +15,7 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 - `<a-progress-text>` and `<a-progress-hint>` are now tone-aware: in `tone="info"` they pick up `--text-2-info` / `--text-3-info` instead of staying on neutral. Previously this was a visual bug — the descriptive label and hint stayed grey even when the rest of the component shifted to info-blue.
 ### Added
 - New `table-2` icon on `<a-icon>` (Lucide-derived). `synonyms.json` updated with search aliases (`table`, `grid`, `data`, `spreadsheet`, `rows`, `columns`); `a-icon.shapes.{ts,css}` regenerated.
+- New `sun` and `moon` icons on `<a-icon>` (Lucide-derived) for theme-toggle UIs.
 
 ## 0.1.1-dev.3 — May 5, 2026
 
