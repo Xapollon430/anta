@@ -64,6 +64,9 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
   const [monacoLib, setMonacoLib] = useState<MonacoEditorLib | null>(null)
   const [tab, setTab] = useState<Tab>('props')
   const [previewHeight, setPreviewHeight] = useState(96)
+  const [panelWidth, setPanelWidth] = useState(400)
+  const draggingRef = useRef(false)
+  const bodyRef = useRef<HTMLDivElement | null>(null)
   const [isDark, setIsDark] = useState<boolean>(() =>
     typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
   )
@@ -222,6 +225,31 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     updateCode(next, true)
   }
 
+  // ────────────────────────────────────────────────────────────────
+  // Resize handle (side layout only). Pointer-capture lets the
+  // pointermove keep firing on the handle element even when the
+  // cursor outruns the slim hit area during a fast drag.
+
+  function startResize(e: any) {
+    if (layout !== 'side') return
+    e.preventDefault()
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
+    draggingRef.current = true
+  }
+  function onResizeMove(e: any) {
+    if (!draggingRef.current || !bodyRef.current) return
+    const r = bodyRef.current.getBoundingClientRect()
+    // The panel is on the right; its width is the distance from the
+    // cursor to the body's right edge, clamped so neither side
+    // collapses below a usable minimum.
+    const next = Math.max(240, Math.min(r.width - 240, r.right - e.clientX))
+    setPanelWidth(next)
+  }
+  function endResize(e: any) {
+    draggingRef.current = false
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch {}
+  }
+
   function handleEditorChange(next: string | undefined) {
     if (next == null) return
     if (codeFromFormRef.current) {
@@ -242,7 +270,11 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
 
   return (
     <section class={`${s.root} full-bleed`}>
-      <div class={bodyClass}>
+      <div
+        class={bodyClass}
+        ref={bodyRef}
+        style={layout === 'side' ? ({ '--demo-panel-w': `${panelWidth}px` } as any) : undefined}
+      >
         <div class={s.preview}>
           <div class={s.previewHeader}>Preview</div>
           <iframe
@@ -258,6 +290,19 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
             style={layout === 'side' ? undefined : { height: `${previewHeight}px` }}
           />
         </div>
+
+        {layout === 'side' && (
+          <div
+            class={s.resizeHandle}
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize playground panel"
+            onPointerDown={startResize}
+            onPointerMove={onResizeMove}
+            onPointerUp={endResize}
+            onPointerCancel={endResize}
+          />
+        )}
 
         <div class={s.panel} style={{ '--demo-panel-min': `${panelHeight}px` } as any}>
           <div class={s.tabs} role="tablist">

@@ -20,9 +20,45 @@
 @media (min-width: 901px) {
   .bodySide {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
-    gap: 16px;
+    /* preview | handle | panel — handle replaces the gap and serves
+       as the drag affordance. Panel width is driven by the
+       `--demo-panel-w` inline var (state). */
+    grid-template-columns: minmax(0, 1fr) 16px var(--demo-panel-w, 400px);
+    gap: 0;
     align-items: stretch;
+  }
+}
+
+/* Resize handle: 16px-wide hit area with a centred 1px rail that
+   shows up only on hover / active so it stays calm at rest. */
+.resizeHandle {
+  position: relative;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.resizeHandle::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  width: 1px;
+  background: transparent;
+  border-radius: 1px;
+  transition: background 120ms ease-out;
+}
+
+.resizeHandle:hover::after,
+.resizeHandle:active::after {
+  background: var(--border-3);
+}
+
+/* Hide the handle in stacked layout and on mobile. */
+@media (max-width: 900px) {
+  .resizeHandle {
+    display: none;
   }
 }
 
