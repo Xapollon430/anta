@@ -55,23 +55,32 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
   const [monacoLib, setMonacoLib] = useState<MonacoEditorLib | null>(null)
   const [mobileTab, setMobileTab] = useState<Mobiletab>('code')
   const [previewHeight, setPreviewHeight] = useState(96)
-  const [monacoTheme, setMonacoTheme] = useState<'vs' | 'vs-dark'>(() =>
-    typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs',
+  const [isDark, setIsDark] = useState<boolean>(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
   )
   const [monoFontFamily, setMonoFontFamily] = useState<string>('')
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const iframeReadyRef = useRef(false)
   const codeFromFormRef = useRef(false)
+  const monacoRef = useRef<any>(null)
+  const monacoTheme = isDark ? 'anta-dark' : 'anta-light'
 
-  // Mirror the parent's dark-mode class into Monaco's theme.
+  // Track the parent's dark-mode state — drives both Monaco's theme
+  // and the resolved value of --bg-section.
   useEffect(() => {
-    const apply = () =>
-      setMonacoTheme(document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs')
+    const apply = () => setIsDark(document.documentElement.classList.contains('dark'))
     apply()
     const obs = new MutationObserver(apply)
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
     return () => obs.disconnect()
   }, [])
+
+  // (Re)define the anta-* Monaco themes whenever the dark class flips
+  // so editor.background tracks --bg-section's currently-resolved value.
+  useEffect(() => {
+    if (!monacoRef.current) return
+    defineAntaThemes(monacoRef.current)
+  }, [isDark])
 
   // Resolve Anta's --monospace token for Monaco's fontFamily option —
   // Monaco doesn't read CSS variables itself.
@@ -254,7 +263,11 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
                 value={code}
                 theme={monacoTheme}
                 onChange={handleEditorChange}
-                onMount={(editor, monaco) => onMonacoMount(editor, monaco)}
+                onMount={(editor, monaco) => {
+                  monacoRef.current = monaco
+                  defineAntaThemes(monaco)
+                  onMonacoMount(editor, monaco)
+                }}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 12,
@@ -533,6 +546,46 @@ function pushBundleToIframe(iframe: HTMLIFrameElement, code: string) {
  *  `about:srcdoc` and can't resolve relative paths. */
 function getElementsModuleUrl(): string {
   return new URL(IFRAME_RUNTIME_URL, window.location.href).href
+}
+
+// ──────────────────────────────────────────────────────────────────
+// Theme bridge: define `anta-light` / `anta-dark` so the editor's
+// background tracks Anta's --bg-section. Monaco's defineTheme accepts
+// only hex (#rrggbb[aa]); --bg-section resolves to oklch(...), so we
+// paint via a 1×1 canvas to extract sRGB bytes the browser already
+// computed for us.
+
+function defineAntaThemes(monaco: any) {
+  const bg = resolveCssColorToHex('--bg-section')
+  if (!bg) return
+  monaco.editor.defineTheme('anta-light', {
+    base: 'vs',
+    inherit: true,
+    rules: [],
+    colors: { 'editor.background': bg, 'editorGutter.background': bg },
+  })
+  monaco.editor.defineTheme('anta-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [],
+    colors: { 'editor.background': bg, 'editorGutter.background': bg },
+  })
+}
+
+function resolveCssColorToHex(varName: string): string | null {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+  if (!v) return null
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = 1
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  ctx.fillStyle = v
+  ctx.fillRect(0, 0, 1, 1)
+  const d = ctx.getImageData(0, 0, 1, 1).data
+  return (
+    '#' +
+    [d[0], d[1], d[2]].map((c) => c.toString(16).padStart(2, '0')).join('')
+  )
 }
 
 // ──────────────────────────────────────────────────────────────────
