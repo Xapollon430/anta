@@ -20,9 +20,9 @@
 @media (min-width: 901px) {
   .bodySide {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
     gap: 16px;
-    align-items: start;
+    align-items: stretch;
   }
 }
 
@@ -31,13 +31,17 @@
   border-radius: 8px;
   background: var(--bg-pane);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .previewFrame {
   display: block;
   width: 100%;
-  /* height is driven by the iframe's ResizeObserver via inline style;
-     min provides a floor so an empty bundle doesn't collapse the box. */
+  /* In stacked layout, height comes from the iframe's ResizeObserver
+     via inline style (content-driven). In side layout we flex it to
+     fill the grid row; the iframe body itself scrolls. */
+  flex: 1;
   min-height: 64px;
   border: none;
   background: var(--bg-base);

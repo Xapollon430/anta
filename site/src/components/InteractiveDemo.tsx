@@ -68,6 +68,8 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
   const iframeReadyRef = useRef(false)
   const codeFromFormRef = useRef(false)
   const monacoRef = useRef<any>(null)
+  const editorRef = useRef<any>(null)
+  const editorHostRef = useRef<HTMLDivElement | null>(null)
 
   // Track the parent's dark-mode state — drives both Monaco's theme
   // and the resolved value of --bg-section.
@@ -90,6 +92,31 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     defineAntaTheme(monaco, isDark)
     monaco.editor.setTheme('anta')
   }, [isDark])
+
+  // Observe the editor host and tell Monaco to relayout. Monaco's
+  // `automaticLayout` polls at ~100ms and frequently misses the first
+  // settle of a tab-swapped flex container, leaving the editor stuck
+  // at a few pixels wide. A ResizeObserver on the host is reliable.
+  useEffect(() => {
+    const host = editorHostRef.current
+    if (!host) return
+    const ro = new ResizeObserver(() => {
+      const ed = editorRef.current
+      if (!ed) return
+      const r = host.getBoundingClientRect()
+      ed.layout({ width: r.width, height: r.height })
+    })
+    ro.observe(host)
+    return () => ro.disconnect()
+  }, [monacoLib])
+
+  // Relayout when the user flips back to the Code tab — Monaco was
+  // hidden (display: none) so its last measured size was 0.
+  useEffect(() => {
+    if (tab !== 'code') return
+    const ed = editorRef.current
+    if (ed) ed.layout()
+  }, [tab])
 
   // Resolve Anta's --monospace token for Monaco's fontFamily option —
   // Monaco doesn't read CSS variables itself.
@@ -225,7 +252,12 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
             class={s.previewFrame}
             srcDoc={IFRAME_SRCDOC}
             title={`${component} interactive demo preview`}
-            style={{ height: `${previewHeight}px` }}
+            // In `side` layout the preview fills the grid row (its
+            // sibling panel drives the height); we let the iframe
+            // body scroll on overflow. In `stacked` layout the
+            // iframe's content-height observer drives the height so
+            // the demo sits as tall as its rendered preview.
+            style={layout === 'side' ? undefined : { height: `${previewHeight}px` }}
           />
         </div>
 
@@ -270,7 +302,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
             </div>
           </div>
           <div class={tab === 'code' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}>
-            <div class={s.editorHost}>
+            <div class={s.editorHost} ref={editorHostRef}>
               {monacoLib ? (
                 <monacoLib.Editor
                   height="100%"
@@ -288,7 +320,12 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
                     defineAntaTheme(monaco, isDark)
                   }}
                   onMount={(editor, monaco) => {
+                    editorRef.current = editor
                     onMonacoMount(editor, monaco)
+                    // Force an immediate layout — the host may have
+                    // settled to its real width only after Monaco's
+                    // initial paint.
+                    editor.layout()
                   }}
                   options={{
                     minimap: { enabled: false },
@@ -464,7 +501,8 @@ function FieldControl({
 // Iframe lifecycle helpers
 
 const IFRAME_SRCDOC = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-  html, body { margin: 0; padding: 16px; background: var(--bg-base, #fff); font-family: var(--sans-serif, sans-serif); }
+  html, body { margin: 0; background: var(--bg-base, #fff); font-family: var(--sans-serif, sans-serif); }
+  body { padding: 16px; overflow: auto; box-sizing: border-box; min-height: 100%; }
   #root { display: block; }
 </style></head><body><div id="root"></div></body></html>`
 
