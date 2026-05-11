@@ -285,12 +285,15 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
                   automaticLayout: true,
                   tabSize: 2,
                   wordWrap: 'on',
-                  // Hide the line-number gutter entirely.
+                  // Hide line numbers but keep folding on — its gutter
+                  // gives a natural left margin (without it Monaco's
+                  // text crashes into the panel border).
                   lineNumbers: 'off',
-                  lineDecorationsWidth: 0,
                   lineNumbersMinChars: 0,
+                  lineDecorationsWidth: 8,
                   glyphMargin: false,
-                  folding: false,
+                  folding: true,
+                  padding: { top: 12, bottom: 12 },
                   // Render hover / suggestion popups into <body> so the
                   // panel's overflow:hidden clip (used to round the
                   // bottom corners) doesn't truncate them.
