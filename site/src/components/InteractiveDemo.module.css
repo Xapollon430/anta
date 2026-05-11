@@ -67,10 +67,10 @@
   background: var(--bg-pane);
   display: flex;
   flex-direction: column;
-  /* Height is fixed via inline style (panelHeight prop, default 400).
-     Both tab panels live within this cap so switching tabs doesn't
-     reflow the page, and overflowing form content scrolls
-     internally. */
+  /* Floor on the panel height (the `--demo-panel-min` inline var is
+     set from the panelHeight prop, default 400). The panel grows
+     past this floor when its content needs more space. */
+  min-height: var(--demo-panel-min, 400px);
   /* Clip Monaco's canvas to the rounded corners. Hover / suggestion
      popups escape via `fixedOverflowWidgets` in the editor options. */
   overflow: hidden;
@@ -103,29 +103,41 @@
   transition: color 120ms ease-out, border-color 120ms ease-out;
 }
 
+/* Active label uses the same color as the default tab — the
+   underline alone signals which tab is open. Hover still wins to
+   draw the eye to the tab under the cursor. */
 .tabBtnActive {
-  color: var(--text-2);
   border-bottom-color: var(--text-2);
 }
 
-/* Hover wins over the active color — only the tab under the cursor
-   reads at full intensity. The underline stays on the active tab
-   regardless of hover. */
 .tabBtn:hover,
 .tabBtn:focus-visible {
   color: var(--text-1);
   outline: none;
 }
 
-.tabPanel {
+/* Stacking container — both tab panels share the same grid cell so
+   the panel sizes to the taller of the two. Switching tabs never
+   shrinks the box. */
+.tabStack {
   flex: 1;
+  display: grid;
+  grid-template-areas: "stack";
+  min-height: 0;
+}
+
+.tabPanel {
+  grid-area: stack;
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
+/* The inactive panel still participates in layout so it contributes
+   to height; we just hide it visually and disable interaction. */
 .tabPanelHidden {
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .form {
@@ -133,7 +145,6 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  overflow-y: auto;
 }
 
 .field {

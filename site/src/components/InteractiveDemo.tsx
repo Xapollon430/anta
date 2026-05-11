@@ -63,7 +63,6 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
   const [runtimeError, setRuntimeError] = useState<string | null>(null)
   const [monacoLib, setMonacoLib] = useState<MonacoEditorLib | null>(null)
   const [tab, setTab] = useState<Tab>('props')
-  const [codeMounted, setCodeMounted] = useState(false)
   const [previewHeight, setPreviewHeight] = useState(96)
   const [isDark, setIsDark] = useState<boolean>(() =>
     typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
@@ -115,14 +114,6 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     return () => ro.disconnect()
   }, [monacoLib])
 
-  // Mount Monaco the first time the Code tab becomes visible. If we
-  // mounted it eagerly under a display:none ancestor, its internal
-  // measurements would settle at 0 and a later layout() call doesn't
-  // fully recover. Once mounted we keep it so future tab flips
-  // preserve cursor / scroll state.
-  useEffect(() => {
-    if (tab === 'code' && !codeMounted) setCodeMounted(true)
-  }, [tab, codeMounted])
 
   // Resolve Anta's --monospace token for Monaco's fontFamily option —
   // Monaco doesn't read CSS variables itself.
@@ -268,7 +259,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
           />
         </div>
 
-        <div class={s.panel} style={{ height: `${panelHeight}px` }}>
+        <div class={s.panel} style={{ '--demo-panel-min': `${panelHeight}px` } as any}>
           <div class={s.tabs} role="tablist">
             <button
               type="button"
@@ -289,28 +280,39 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
               Code
             </button>
           </div>
-          {/* Both panels stay mounted — only one is shown — so Monaco
-              keeps its editor model (and cursor / scroll state) when the
-              user flips tabs. */}
-          <div class={tab === 'props' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}>
-            <div class={s.form}>
-              {controls.length === 0 && (
-                <div class={s.fieldHint}>No props detected for {component}. Check api.json.</div>
-              )}
-              {controls.map((entry) => (
-                <FormField
-                  key={entry.control.name}
-                  entry={entry}
-                  code={code}
-                  componentName={component}
-                  onChange={(v) => handleFormChange(entry, v)}
-                />
-              ))}
+          {/* Both panels are stacked in the same grid cell so the
+              panel sizes to the taller of the two — switching tabs
+              never shrinks the box. The inactive one is hidden via
+              visibility (still contributes to layout) + inert so it
+              doesn't catch keyboard focus or pointer events. */}
+          <div class={s.tabStack}>
+            <div
+              class={tab === 'props' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}
+              aria-hidden={tab !== 'props'}
+              {...(tab !== 'props' ? { inert: '' } : {})}
+            >
+              <div class={s.form}>
+                {controls.length === 0 && (
+                  <div class={s.fieldHint}>No props detected for {component}. Check api.json.</div>
+                )}
+                {controls.map((entry) => (
+                  <FormField
+                    key={entry.control.name}
+                    entry={entry}
+                    code={code}
+                    componentName={component}
+                    onChange={(v) => handleFormChange(entry, v)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-          <div class={tab === 'code' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}>
-            <div class={s.editorHost} ref={editorHostRef}>
-              {monacoLib && codeMounted ? (
+            <div
+              class={tab === 'code' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}
+              aria-hidden={tab !== 'code'}
+              {...(tab !== 'code' ? { inert: '' } : {})}
+            >
+              <div class={s.editorHost} ref={editorHostRef}>
+                {monacoLib ? (
                 <monacoLib.Editor
                   height="100%"
                   defaultLanguage="typescript"
@@ -357,9 +359,10 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
                     fixedOverflowWidgets: true,
                   }}
                 />
-              ) : (
-                <div class={s.editorLoading}>Loading editor…</div>
-              )}
+                ) : (
+                  <div class={s.editorLoading}>Loading editor…</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
