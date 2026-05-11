@@ -45,11 +45,15 @@ interface Props {
    *  - `side`: preview on the left, tabbed panel on the right.
    *  Mobile (≤ 900 px) always collapses to `stacked`. */
   layout?: 'stacked' | 'side'
+  /** Fixed height of the props/code panel, in pixels. Set so the
+   *  playground doesn't grow with form content and so switching tabs
+   *  doesn't reflow. Defaults to 400. */
+  panelHeight?: number
 }
 
 type Tab = 'props' | 'code'
 
-export default function InteractiveDemo({ component, initialCode, layout = 'stacked' }: Props) {
+export default function InteractiveDemo({ component, initialCode, layout = 'stacked', panelHeight = 400 }: Props) {
   const [code, setCode] = useState(initialCode)
   const [bundleState, setBundleState] = useState<BundleResult | { ok: false; message: string; pending: true } | null>({
     ok: false,
@@ -58,7 +62,8 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
   } as any)
   const [runtimeError, setRuntimeError] = useState<string | null>(null)
   const [monacoLib, setMonacoLib] = useState<MonacoEditorLib | null>(null)
-  const [tab, setTab] = useState<Tab>('code')
+  const [tab, setTab] = useState<Tab>('props')
+  const [codeMounted, setCodeMounted] = useState(false)
   const [previewHeight, setPreviewHeight] = useState(96)
   const [isDark, setIsDark] = useState<boolean>(() =>
     typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
@@ -110,13 +115,14 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     return () => ro.disconnect()
   }, [monacoLib])
 
-  // Relayout when the user flips back to the Code tab — Monaco was
-  // hidden (display: none) so its last measured size was 0.
+  // Mount Monaco the first time the Code tab becomes visible. If we
+  // mounted it eagerly under a display:none ancestor, its internal
+  // measurements would settle at 0 and a later layout() call doesn't
+  // fully recover. Once mounted we keep it so future tab flips
+  // preserve cursor / scroll state.
   useEffect(() => {
-    if (tab !== 'code') return
-    const ed = editorRef.current
-    if (ed) ed.layout()
-  }, [tab])
+    if (tab === 'code' && !codeMounted) setCodeMounted(true)
+  }, [tab, codeMounted])
 
   // Resolve Anta's --monospace token for Monaco's fontFamily option —
   // Monaco doesn't read CSS variables itself.
@@ -247,6 +253,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     <section class={`${s.root} full-bleed`}>
       <div class={bodyClass}>
         <div class={s.preview}>
+          <div class={s.previewHeader}>Preview</div>
           <iframe
             ref={iframeRef}
             class={s.previewFrame}
@@ -261,7 +268,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
           />
         </div>
 
-        <div class={s.panel}>
+        <div class={s.panel} style={{ height: `${panelHeight}px` }}>
           <div class={s.tabs} role="tablist">
             <button
               type="button"
@@ -303,7 +310,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
           </div>
           <div class={tab === 'code' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}>
             <div class={s.editorHost} ref={editorHostRef}>
-              {monacoLib ? (
+              {monacoLib && codeMounted ? (
                 <monacoLib.Editor
                   height="100%"
                   defaultLanguage="typescript"

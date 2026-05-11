@@ -35,6 +35,19 @@
   flex-direction: column;
 }
 
+/* Static label that mirrors the panel's tab strip — keeps the two
+   halves visually symmetric. Uses text-2 (matches the active-tab
+   color) since it's just a single label. */
+.previewHeader {
+  padding: 10px 14px 9px;
+  border-bottom: 1px solid var(--border-1);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
 .previewFrame {
   display: block;
   width: 100%;
@@ -54,7 +67,10 @@
   background: var(--bg-pane);
   display: flex;
   flex-direction: column;
-  min-height: 320px;
+  /* Height is fixed via inline style (panelHeight prop, default 400).
+     Both tab panels live within this cap so switching tabs doesn't
+     reflow the page, and overflowing form content scrolls
+     internally. */
   /* Clip Monaco's canvas to the rounded corners. Hover / suggestion
      popups escape via `fixedOverflowWidgets` in the editor options. */
   overflow: hidden;
@@ -213,7 +229,7 @@
 
 .editorHost {
   flex: 1;
-  min-height: 280px;
+  min-height: 0;
   position: relative;
 }
 
