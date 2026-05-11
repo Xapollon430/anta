@@ -137,6 +137,8 @@
      adjacent labels (6 + 6 = 12px) matches the form's 12px padding. */
   padding: 7px 6px 6px;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
   transition: color 120ms ease-out;
 }
 
