@@ -53,15 +53,10 @@ function controlFor(p: any): PropEntry | null {
   // `intrinsic` types: string / number / boolean.
   if (t.type === 'intrinsic') {
     if (t.name === 'number') {
-      // Treat any number-prop named `value` as a slider 0..100.
-      // We could read `max` sibling later to set the range; for v1 the
-      // 0..100 default works for the existing components (Progress, ...).
-      if (name === 'value') {
-        return {
-          prop: { name, kind: 'number' },
-          control: { kind: 'slider', name, min: 0, max: 100, step: 1, description },
-        }
-      }
+      // All numeric props render as a plain number input. A slider
+      // variant lived here for `value`-style props, but we can't yet
+      // infer min/max from sibling props (e.g. Progress's `max`), and
+      // a slider with hardcoded 0..100 misled users on other ranges.
       return {
         prop: { name, kind: 'number' },
         control: { kind: 'number', name, description },
