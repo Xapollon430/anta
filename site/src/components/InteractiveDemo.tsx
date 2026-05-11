@@ -54,6 +54,7 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
   const [runtimeError, setRuntimeError] = useState<string | null>(null)
   const [monacoLib, setMonacoLib] = useState<MonacoEditorLib | null>(null)
   const [mobileTab, setMobileTab] = useState<Mobiletab>('code')
+  const [previewHeight, setPreviewHeight] = useState(96)
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const iframeReadyRef = useRef(false)
   const codeFromFormRef = useRef(false)
@@ -90,7 +91,7 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
     }
   }, [code])
 
-  // Listen for runtime errors from the iframe.
+  // Listen for runtime errors + content-height updates from the iframe.
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (!e.data || typeof e.data !== 'object') return
@@ -98,6 +99,11 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
         setRuntimeError(String(e.data.message ?? 'Unknown runtime error'))
       } else if (e.data.__demo === 'runtime-clear') {
         setRuntimeError(null)
+      } else if (e.data.__demo === 'content-height') {
+        // Clamp to a sensible range so a runaway render can't grow the
+        // demo to fill the viewport.
+        const h = Math.max(64, Math.min(800, Number(e.data.height) || 96))
+        setPreviewHeight(h)
       }
     }
     window.addEventListener('message', onMessage)
@@ -175,6 +181,7 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
           class={s.previewFrame}
           srcDoc={IFRAME_SRCDOC}
           title={`${component} interactive demo preview`}
+          style={{ height: `${previewHeight}px` }}
         />
       </div>
 
@@ -449,6 +456,24 @@ function setupIframe(iframe: HTMLIFrameElement) {
   win.addEventListener('unhandledrejection', (e: any) => {
     window.postMessage({ __demo: 'runtime-error', message: String(e?.reason ?? e) }, '*')
   })
+
+  // 6) Auto-resize: observe the iframe body's height and tell the parent
+  //    to size the iframe element accordingly. Avoids a fixed-height
+  //    iframe with the demo content lost in empty space.
+  const observed = doc.body
+  const report = () => {
+    // scrollHeight + a little breathing room for padding.
+    const h = observed.scrollHeight + 24
+    window.postMessage({ __demo: 'content-height', height: h }, '*')
+  }
+  const ResizeObserverCtor = (win as any).ResizeObserver
+  if (ResizeObserverCtor) {
+    const ro = new ResizeObserverCtor(report)
+    ro.observe(observed)
+    iframe.addEventListener('unload', () => ro.disconnect(), { once: true })
+  }
+  // Initial report after a microtask so the first render lands first.
+  setTimeout(report, 0)
 }
 
 function pushBundleToIframe(iframe: HTMLIFrameElement, code: string) {
@@ -468,6 +493,14 @@ function pushBundleToIframe(iframe: HTMLIFrameElement, code: string) {
   script.id = 'user-bundle'
   script.textContent = code
   doc.body.appendChild(script)
+  // ResizeObserver will pick up the new content size; a one-shot
+  // post here covers the gap before the observer fires.
+  setTimeout(() => {
+    window.postMessage(
+      { __demo: 'content-height', height: doc.body.scrollHeight + 24 },
+      '*',
+    )
+  }, 50)
 }
 
 /** Return an absolute URL pointing at the prebuilt iframe runtime

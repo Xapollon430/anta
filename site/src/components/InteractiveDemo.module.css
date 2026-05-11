@@ -18,9 +18,12 @@
 .previewFrame {
   display: block;
   width: 100%;
-  height: 220px;
+  /* height is driven by the iframe's ResizeObserver via inline style;
+     min provides a floor so an empty bundle doesn't collapse the box. */
+  min-height: 64px;
   border: none;
   background: var(--bg-base);
+  transition: height 200ms ease-out;
 }
 
 .panels {
