@@ -83,22 +83,18 @@
   transition: color 120ms ease-out, border-color 120ms ease-out;
 }
 
+.tabBtnActive {
+  color: var(--text-2);
+  border-bottom-color: var(--text-2);
+}
+
+/* Hover wins over the active color — only the tab under the cursor
+   reads at full intensity. The underline stays on the active tab
+   regardless of hover. */
 .tabBtn:hover,
 .tabBtn:focus-visible {
   color: var(--text-1);
   outline: none;
-}
-
-.tabBtnActive {
-  color: var(--text-1);
-  border-bottom-color: var(--text-1);
-}
-
-/* When the user hovers a different tab, dim the active one so only
-   the element under the cursor reads at full intensity. */
-.tabs:has(.tabBtn:hover) .tabBtnActive:not(:hover) {
-  color: var(--text-3);
-  border-bottom-color: transparent;
 }
 
 .tabPanel {
