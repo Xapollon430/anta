@@ -63,7 +63,6 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
   const iframeReadyRef = useRef(false)
   const codeFromFormRef = useRef(false)
   const monacoRef = useRef<any>(null)
-  const monacoTheme = isDark ? 'anta-dark' : 'anta-light'
 
   // Track the parent's dark-mode state — drives both Monaco's theme
   // and the resolved value of --bg-section.
@@ -75,15 +74,16 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
     return () => obs.disconnect()
   }, [])
 
-  // (Re)define the anta-* Monaco themes whenever the dark class flips
-  // so editor.background tracks --bg-section's currently-resolved
-  // value. Redefining alone doesn't repaint — Monaco only re-applies
-  // colors when setTheme is called, so we do both atomically here.
+  // (Re)define the single `anta` Monaco theme whenever the dark class
+  // flips. We rebuild rather than keeping two separate themes because
+  // --bg-section can only be resolved in whichever mode is currently
+  // active, and Monaco caches resolved colors per theme name — so we
+  // always rewrite this one and call setTheme to force a repaint.
   useEffect(() => {
     const monaco = monacoRef.current
     if (!monaco) return
-    defineAntaThemes(monaco)
-    monaco.editor.setTheme(isDark ? 'anta-dark' : 'anta-light')
+    defineAntaTheme(monaco, isDark)
+    monaco.editor.setTheme('anta')
   }, [isDark])
 
   // Resolve Anta's --monospace token for Monaco's fontFamily option —
@@ -265,11 +265,16 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
                 defaultLanguage="typescript"
                 path="user.tsx"
                 value={code}
-                theme={monacoTheme}
+                theme="anta"
                 onChange={handleEditorChange}
-                onMount={(editor, monaco) => {
+                beforeMount={(monaco) => {
+                  // Register the theme BEFORE Monaco creates the editor.
+                  // If it doesn't exist at creation time Monaco falls back
+                  // to `vs` (white) and won't pick up our redefinition.
                   monacoRef.current = monaco
-                  defineAntaThemes(monaco)
+                  defineAntaTheme(monaco, isDark)
+                }}
+                onMount={(editor, monaco) => {
                   onMonacoMount(editor, monaco)
                 }}
                 options={{
@@ -280,6 +285,12 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
                   automaticLayout: true,
                   tabSize: 2,
                   wordWrap: 'on',
+                  // Hide the line-number gutter entirely.
+                  lineNumbers: 'off',
+                  lineDecorationsWidth: 0,
+                  lineNumbersMinChars: 0,
+                  glyphMargin: false,
+                  folding: false,
                   // Render hover / suggestion popups into <body> so the
                   // panel's overflow:hidden clip (used to round the
                   // bottom corners) doesn't truncate them.
@@ -528,9 +539,12 @@ function pushBundleToIframe(iframe: HTMLIFrameElement, code: string) {
   // Remove previous user bundle.
   const prev = doc.getElementById('user-bundle')
   if (prev) prev.remove()
-  // Clear the render root before re-running.
-  const root = doc.getElementById('root')
-  if (root) root.innerHTML = ''
+  // Do NOT clear `#root` here. Preact tracks its previous render via a
+  // `_children` property on the parent DOM node; clearing innerHTML
+  // removes the visible nodes but leaves preact's bookkeeping pointing
+  // at stale references, so the next `render()` call silently does
+  // nothing. Letting preact diff in place is also the right behaviour
+  // — typical "re-render with new props" patches the existing tree.
   // Clear last runtime error.
   window.postMessage({ __demo: 'runtime-clear' }, '*')
   // Append new script as a module so user-code imports resolve.
@@ -563,17 +577,11 @@ function getElementsModuleUrl(): string {
 // paint via a 1×1 canvas to extract sRGB bytes the browser already
 // computed for us.
 
-function defineAntaThemes(monaco: any) {
+function defineAntaTheme(monaco: any, isDark: boolean) {
   const bg = resolveCssColorToHex('--bg-section')
   if (!bg) return
-  monaco.editor.defineTheme('anta-light', {
-    base: 'vs',
-    inherit: true,
-    rules: [],
-    colors: { 'editor.background': bg, 'editorGutter.background': bg },
-  })
-  monaco.editor.defineTheme('anta-dark', {
-    base: 'vs-dark',
+  monaco.editor.defineTheme('anta', {
+    base: isDark ? 'vs-dark' : 'vs',
     inherit: true,
     rules: [],
     colors: { 'editor.background': bg, 'editorGutter.background': bg },
