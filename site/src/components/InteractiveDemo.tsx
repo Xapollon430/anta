@@ -766,6 +766,12 @@ function onMonacoMount(_editor: unknown, monaco: any) {
   ts.typescriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,
     noSyntaxValidation: false,
+    // 2657 — "JSX expressions must have one parent element". The
+    // playground wraps the user's trailing JSX in a Fragment at
+    // bundle time, so the user is free to write sibling roots (e.g.
+    // a `<style>` next to the component). Silence the squiggle to
+    // match that contract.
+    diagnosticCodesToIgnore: [2657],
   })
   for (const [absPath, contents] of Object.entries(antaTypeDefs)) {
     ts.typescriptDefaults.addExtraLib(contents, 'file://' + absPath)

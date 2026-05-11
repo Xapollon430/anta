@@ -154,11 +154,13 @@ function formatErrors(errors: any[]): string {
 }
 
 /**
- * Pre-process user code so the bundled output auto-renders the trailing
- * JSX expression. Find the last line that *starts* with `<` (after
- * leading whitespace) and treat everything from there to the end of
- * the file as one JSX expression. Wrap it in a `render()` call. Returns
- * `null` if no trailing JSX expression is found.
+ * Pre-process user code so the bundled output auto-renders the
+ * trailing JSX block. Find the FIRST line that *starts* with `<`
+ * (after leading whitespace) and treat everything from there to the
+ * end as one JSX block. Wrap the block in a `<>…</>` fragment so the
+ * user can have multiple sibling roots (e.g. a `<style>` sibling to
+ * the component) without needing to add their own wrapper. Returns
+ * `null` if no JSX block is found.
  */
 function wrapWithRender(code: string): string | null {
   const lines = code.split('\n')
@@ -166,6 +168,7 @@ function wrapWithRender(code: string): string | null {
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].trimStart().startsWith('<')) {
       jsxStart = i
+      break
     }
   }
   if (jsxStart === -1) return null
@@ -173,7 +176,7 @@ function wrapWithRender(code: string): string | null {
   const jsxBlock = lines.slice(jsxStart).join('\n').trim().replace(/;?\s*$/, '')
   return `${before}
 import { render as __demo_render__ } from 'preact'
-const __demo_content__ = (${jsxBlock})
+const __demo_content__ = (<>${jsxBlock}</>)
 __demo_render__(__demo_content__, document.getElementById('root'))
 `
 }
