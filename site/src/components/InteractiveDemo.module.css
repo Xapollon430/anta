@@ -190,8 +190,13 @@
 .tabStack {
   flex: 1;
   display: grid;
+  /* `minmax(0, 1fr)` overrides the default `min-width: auto` so the
+     grid item can shrink below its content's intrinsic width — needed
+     for the form to fit when the user drags the resize handle in. */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "stack";
   min-height: 0;
+  min-width: 0;
 }
 
 .tabPanel {
@@ -199,6 +204,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
 }
 
 /* The inactive panel still participates in layout so it contributes
@@ -213,21 +219,32 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .fieldLabel {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: 8px;
   font-size: 13px;
   color: var(--text-2);
   font-weight: 450;
+  min-width: 0;
+}
+
+/* Inside the label, the prop name + description can be longer than
+   the panel when the user resizes narrow. Let it wrap. */
+.fieldLabel > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .fieldHint {
