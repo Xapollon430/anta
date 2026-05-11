@@ -55,9 +55,32 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
   const [monacoLib, setMonacoLib] = useState<MonacoEditorLib | null>(null)
   const [mobileTab, setMobileTab] = useState<Mobiletab>('code')
   const [previewHeight, setPreviewHeight] = useState(96)
+  const [monacoTheme, setMonacoTheme] = useState<'vs' | 'vs-dark'>(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs',
+  )
+  const [monoFontFamily, setMonoFontFamily] = useState<string>('')
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const iframeReadyRef = useRef(false)
   const codeFromFormRef = useRef(false)
+
+  // Mirror the parent's dark-mode class into Monaco's theme.
+  useEffect(() => {
+    const apply = () =>
+      setMonacoTheme(document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs')
+    apply()
+    const obs = new MutationObserver(apply)
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => obs.disconnect()
+  }, [])
+
+  // Resolve Anta's --monospace token for Monaco's fontFamily option —
+  // Monaco doesn't read CSS variables itself.
+  useEffect(() => {
+    const v = getComputedStyle(document.documentElement)
+      .getPropertyValue('--monospace')
+      .trim()
+    if (v) setMonoFontFamily(v)
+  }, [])
 
   const controls = useMemo(() => controlsFor(component), [component])
 
@@ -229,11 +252,13 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
                 defaultLanguage="typescript"
                 path="user.tsx"
                 value={code}
+                theme={monacoTheme}
                 onChange={handleEditorChange}
                 onMount={(editor, monaco) => onMonacoMount(editor, monaco)}
                 options={{
                   minimap: { enabled: false },
-                  fontSize: 13,
+                  fontSize: 12,
+                  fontFamily: monoFontFamily || undefined,
                   scrollBeyondLastLine: false,
                   automaticLayout: true,
                   tabSize: 2,

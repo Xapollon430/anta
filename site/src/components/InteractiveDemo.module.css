@@ -163,6 +163,23 @@
   position: relative;
 }
 
+/* Monaco renders its own link-like elements (suggestion widget,
+   hover docs, peek view) and styles them itself. The docs site's
+   global `<a>` rules would otherwise repaint them as underlined
+   doc links. Neutralise just inside the editor. */
+.editorHost a,
+.editorHost a:link,
+.editorHost a:visited,
+.editorHost a:hover,
+.editorHost a:focus,
+.editorHost a:active {
+  color: inherit;
+  text-decoration: none;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0;
+  border: none;
+}
+
 .editorLoading {
   position: absolute;
   inset: 0;
