@@ -76,13 +76,13 @@
   overflow: hidden;
 }
 
-/* Minimal tab strip: text only, dim by default, brighten the one
-   under the cursor. When something is being hovered, the active tab
-   dims so the cursor leads the visual emphasis. */
+/* Minimal tab strip: each tab fills the full strip height (matches
+   the preview header so the two halves of the playground align) and
+   has comfortable left / right padding so the hit area is generous.
+   The active tab is signalled by a 1px underline drawn over the
+   strip's bottom border. */
 .tabs {
   display: flex;
-  gap: 18px;
-  padding: 10px 14px 0;
   border-bottom: 1px solid var(--border-1);
 }
 
@@ -96,24 +96,28 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-3);
-  padding: 6px 0 8px;
-  margin-bottom: -1px;
+  /* Mirrors `.previewHeader` so the strips line up across the
+     preview pane and the tabbed panel. */
+  padding: 10px 14px 9px;
   cursor: pointer;
-  border-bottom: 1px solid transparent;
-  transition: color 120ms ease-out, border-color 120ms ease-out;
-}
-
-/* Active label uses the same color as the default tab — the
-   underline alone signals which tab is open. Hover still wins to
-   draw the eye to the tab under the cursor. */
-.tabBtnActive {
-  border-bottom-color: var(--text-2);
+  position: relative;
+  transition: color 120ms ease-out;
 }
 
 .tabBtn:hover,
 .tabBtn:focus-visible {
   color: var(--text-1);
   outline: none;
+}
+
+/* Underline overlays the strip's bottom border. `inset: auto 0 -1px`
+   pulls it down one pixel so it sits on top of the 1px border. */
+.tabBtnActive::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 1px;
+  background: var(--text-2);
 }
 
 /* Stacking container — both tab panels share the same grid cell so
