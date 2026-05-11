@@ -8,6 +8,24 @@
      layout. */
 }
 
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Side layout: preview left, tabbed panel right. Falls back to the
+   stacked column on mobile so the panel sits underneath the preview
+   at narrow widths. */
+@media (min-width: 901px) {
+  .bodySide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+    gap: 16px;
+    align-items: start;
+  }
+}
+
 .preview {
   border: 1px solid var(--border-1);
   border-radius: 8px;
@@ -26,19 +44,6 @@
   transition: height 200ms ease-out;
 }
 
-.panels {
-  display: grid;
-  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
-  gap: 12px;
-  align-items: stretch;
-}
-
-@media (max-width: 900px) {
-  .panels {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 .panel {
   border: 1px solid var(--border-1);
   border-radius: 8px;
@@ -51,14 +56,60 @@
   overflow: hidden;
 }
 
-.panelHeader {
-  padding: 8px 12px;
+/* Minimal tab strip: text only, dim by default, brighten the one
+   under the cursor. When something is being hovered, the active tab
+   dims so the cursor leads the visual emphasis. */
+.tabs {
+  display: flex;
+  gap: 18px;
+  padding: 10px 14px 0;
   border-bottom: 1px solid var(--border-1);
+}
+
+.tabBtn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-3);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: var(--text-3);
+  padding: 6px 0 8px;
+  margin-bottom: -1px;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: color 120ms ease-out, border-color 120ms ease-out;
+}
+
+.tabBtn:hover,
+.tabBtn:focus-visible {
+  color: var(--text-1);
+  outline: none;
+}
+
+.tabBtnActive {
+  color: var(--text-1);
+  border-bottom-color: var(--text-1);
+}
+
+/* When the user hovers a different tab, dim the active one so only
+   the element under the cursor reads at full intensity. */
+.tabs:has(.tabBtn:hover) .tabBtnActive:not(:hover) {
+  color: var(--text-3);
+  border-bottom-color: transparent;
+}
+
+.tabPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tabPanelHidden {
+  display: none;
 }
 
 .form {
@@ -211,46 +262,4 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: 11px;
-}
-
-/* Mobile tab strip — flips Props ↔ Code on narrow viewports. The
-   .panel above stretches; here we toggle which one is visible. */
-.tabs {
-  display: none;
-  flex-wrap: nowrap;
-  gap: 4px;
-  padding: 4px;
-  background: var(--bg-block);
-  border-radius: 6px;
-  margin-bottom: 4px;
-  align-self: flex-start;
-}
-
-.tabBtn {
-  appearance: none;
-  border: none;
-  background: transparent;
-  font: inherit;
-  font-size: 12px;
-  color: var(--text-3);
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  letter-spacing: 0.02em;
-  transition: background 150ms ease-out, color 150ms ease-out;
-}
-
-.tabBtnActive {
-  background: var(--bg-section);
-  color: var(--text-1);
-  box-shadow: 0 0 2px var(--border-3);
-}
-
-@media (max-width: 900px) {
-  .tabs {
-    display: inline-flex;
-  }
-  .hiddenOnMobile {
-    display: none !important;
-  }
 }

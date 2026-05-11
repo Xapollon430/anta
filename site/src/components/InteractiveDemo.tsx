@@ -40,11 +40,16 @@ interface Props {
   component: string
   /** Initial code (TSX) shown in the editor and run in the iframe. */
   initialCode: string
+  /** Visual arrangement.
+   *  - `stacked` (default): preview on top, tabbed panel underneath.
+   *  - `side`: preview on the left, tabbed panel on the right.
+   *  Mobile (≤ 900 px) always collapses to `stacked`. */
+  layout?: 'stacked' | 'side'
 }
 
-type Mobiletab = 'props' | 'code'
+type Tab = 'props' | 'code'
 
-export default function InteractiveDemo({ component, initialCode }: Props) {
+export default function InteractiveDemo({ component, initialCode, layout = 'stacked' }: Props) {
   const [code, setCode] = useState(initialCode)
   const [bundleState, setBundleState] = useState<BundleResult | { ok: false; message: string; pending: true } | null>({
     ok: false,
@@ -53,7 +58,7 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
   } as any)
   const [runtimeError, setRuntimeError] = useState<string | null>(null)
   const [monacoLib, setMonacoLib] = useState<MonacoEditorLib | null>(null)
-  const [mobileTab, setMobileTab] = useState<Mobiletab>('code')
+  const [tab, setTab] = useState<Tab>('code')
   const [previewHeight, setPreviewHeight] = useState(96)
   const [isDark, setIsDark] = useState<boolean>(() =>
     typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
@@ -209,100 +214,109 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
     ? (bundleState as { ok: false; message: string }).message
     : null
 
+  const bodyClass = layout === 'side' ? `${s.body} ${s.bodySide}` : s.body
+
   return (
     <section class={`${s.root} full-bleed`}>
-      <div class={s.preview}>
-        <iframe
-          ref={iframeRef}
-          class={s.previewFrame}
-          srcDoc={IFRAME_SRCDOC}
-          title={`${component} interactive demo preview`}
-          style={{ height: `${previewHeight}px` }}
-        />
-      </div>
-
-      <div class={s.tabs}>
-        <button
-          type="button"
-          class={mobileTab === 'props' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
-          onClick={() => setMobileTab('props')}
-        >
-          Props
-        </button>
-        <button
-          type="button"
-          class={mobileTab === 'code' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
-          onClick={() => setMobileTab('code')}
-        >
-          Code
-        </button>
-      </div>
-
-      <div class={s.panels}>
-        <div class={`${s.panel} ${mobileTab !== 'props' ? s.hiddenOnMobile : ''}`}>
-          <div class={s.panelHeader}>Props</div>
-          <div class={s.form}>
-            {controls.length === 0 && (
-              <div class={s.fieldHint}>No props detected for {component}. Check api.json.</div>
-            )}
-            {controls.map((entry) => (
-              <FormField
-                key={entry.control.name}
-                entry={entry}
-                code={code}
-                componentName={component}
-                onChange={(v) => handleFormChange(entry, v)}
-              />
-            ))}
-          </div>
+      <div class={bodyClass}>
+        <div class={s.preview}>
+          <iframe
+            ref={iframeRef}
+            class={s.previewFrame}
+            srcDoc={IFRAME_SRCDOC}
+            title={`${component} interactive demo preview`}
+            style={{ height: `${previewHeight}px` }}
+          />
         </div>
-        <div class={`${s.panel} ${mobileTab !== 'code' ? s.hiddenOnMobile : ''}`}>
-          <div class={s.panelHeader}>Code</div>
-          <div class={s.editorHost}>
-            {monacoLib ? (
-              <monacoLib.Editor
-                height="100%"
-                defaultLanguage="typescript"
-                path="user.tsx"
-                value={code}
-                theme="anta"
-                onChange={handleEditorChange}
-                beforeMount={(monaco) => {
-                  // Register the theme BEFORE Monaco creates the editor.
-                  // If it doesn't exist at creation time Monaco falls back
-                  // to `vs` (white) and won't pick up our redefinition.
-                  monacoRef.current = monaco
-                  defineAntaTheme(monaco, isDark)
-                }}
-                onMount={(editor, monaco) => {
-                  onMonacoMount(editor, monaco)
-                }}
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 12,
-                  fontFamily: monoFontFamily || undefined,
-                  scrollBeyondLastLine: false,
-                  automaticLayout: true,
-                  tabSize: 2,
-                  wordWrap: 'on',
-                  // Hide line numbers but keep folding on — its gutter
-                  // gives a natural left margin (without it Monaco's
-                  // text crashes into the panel border).
-                  lineNumbers: 'off',
-                  lineNumbersMinChars: 0,
-                  lineDecorationsWidth: 8,
-                  glyphMargin: false,
-                  folding: true,
-                  padding: { top: 12, bottom: 12 },
-                  // Render hover / suggestion popups into <body> so the
-                  // panel's overflow:hidden clip (used to round the
-                  // bottom corners) doesn't truncate them.
-                  fixedOverflowWidgets: true,
-                }}
-              />
-            ) : (
-              <div class={s.editorLoading}>Loading editor…</div>
-            )}
+
+        <div class={s.panel}>
+          <div class={s.tabs} role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'props'}
+              class={tab === 'props' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
+              onClick={() => setTab('props')}
+            >
+              Props
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'code'}
+              class={tab === 'code' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
+              onClick={() => setTab('code')}
+            >
+              Code
+            </button>
+          </div>
+          {/* Both panels stay mounted — only one is shown — so Monaco
+              keeps its editor model (and cursor / scroll state) when the
+              user flips tabs. */}
+          <div class={tab === 'props' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}>
+            <div class={s.form}>
+              {controls.length === 0 && (
+                <div class={s.fieldHint}>No props detected for {component}. Check api.json.</div>
+              )}
+              {controls.map((entry) => (
+                <FormField
+                  key={entry.control.name}
+                  entry={entry}
+                  code={code}
+                  componentName={component}
+                  onChange={(v) => handleFormChange(entry, v)}
+                />
+              ))}
+            </div>
+          </div>
+          <div class={tab === 'code' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}>
+            <div class={s.editorHost}>
+              {monacoLib ? (
+                <monacoLib.Editor
+                  height="100%"
+                  defaultLanguage="typescript"
+                  path="user.tsx"
+                  value={code}
+                  theme="anta"
+                  onChange={handleEditorChange}
+                  beforeMount={(monaco) => {
+                    // Register the theme BEFORE Monaco creates the editor.
+                    // If it doesn't exist at creation time Monaco falls
+                    // back to `vs` (white) and won't pick up our
+                    // redefinition.
+                    monacoRef.current = monaco
+                    defineAntaTheme(monaco, isDark)
+                  }}
+                  onMount={(editor, monaco) => {
+                    onMonacoMount(editor, monaco)
+                  }}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 12,
+                    fontFamily: monoFontFamily || undefined,
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    tabSize: 2,
+                    wordWrap: 'on',
+                    // Hide line numbers but keep folding on — its
+                    // gutter gives a natural left margin (without it
+                    // Monaco's text crashes into the panel border).
+                    lineNumbers: 'off',
+                    lineNumbersMinChars: 0,
+                    lineDecorationsWidth: 8,
+                    glyphMargin: false,
+                    folding: true,
+                    padding: { top: 12, bottom: 12 },
+                    // Render hover / suggestion popups into <body> so
+                    // the panel's overflow:hidden clip (used to round
+                    // the bottom corners) doesn't truncate them.
+                    fixedOverflowWidgets: true,
+                  }}
+                />
+              ) : (
+                <div class={s.editorLoading}>Loading editor…</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
