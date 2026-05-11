@@ -76,10 +76,14 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
   }, [])
 
   // (Re)define the anta-* Monaco themes whenever the dark class flips
-  // so editor.background tracks --bg-section's currently-resolved value.
+  // so editor.background tracks --bg-section's currently-resolved
+  // value. Redefining alone doesn't repaint — Monaco only re-applies
+  // colors when setTheme is called, so we do both atomically here.
   useEffect(() => {
-    if (!monacoRef.current) return
-    defineAntaThemes(monacoRef.current)
+    const monaco = monacoRef.current
+    if (!monaco) return
+    defineAntaThemes(monaco)
+    monaco.editor.setTheme(isDark ? 'anta-dark' : 'anta-light')
   }, [isDark])
 
   // Resolve Anta's --monospace token for Monaco's fontFamily option —
@@ -276,6 +280,10 @@ export default function InteractiveDemo({ component, initialCode }: Props) {
                   automaticLayout: true,
                   tabSize: 2,
                   wordWrap: 'on',
+                  // Render hover / suggestion popups into <body> so the
+                  // panel's overflow:hidden clip (used to round the
+                  // bottom corners) doesn't truncate them.
+                  fixedOverflowWidgets: true,
                 }}
               />
             ) : (
