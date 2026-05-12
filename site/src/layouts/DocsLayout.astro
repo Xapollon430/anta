@@ -195,19 +195,13 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
   .sidebar {
     width: 240px;
     flex-shrink: 0;
-    background: color-mix(in oklch, var(--bg-section) 50%, var(--bg-base));
+    background: var(--bg-pane);
     border-right: 1px solid var(--border-1);
     padding: 24px;
     position: sticky;
     top: 0;
     height: 100vh;
     overflow-y: auto;
-    transition: background 200ms ease-out;
-  }
-
-  .sidebar:hover,
-  .sidebar:focus-within {
-    background: var(--bg-section);
   }
 
   .logo {
