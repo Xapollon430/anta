@@ -65,6 +65,12 @@ function readClassNameLiteral(code: string, component: string): string | null {
   return null
 }
 
+/** Escape regex metacharacters so a className like `foo.bar` can be
+ *  used as a literal pattern. */
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 export default function InteractiveDemo({ component, initialCode, layout = 'stacked', panelHeight = 400 }: Props) {
   const [code, setCode] = useState(initialCode)
   // CSS state is independent of the code. We seed it once on mount
@@ -111,16 +117,35 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     if (!hasClassName && tab === 'css') setTab('props')
   }, [hasClassName, tab])
 
-  // First-time seeding when className appears later (user types it
-  // into the Props form). Once the user has touched the CSS, we
-  // never auto-rewrite — they own it from then on.
-  const seededOnceRef = useRef(styles !== '')
+  // Keep the CSS selector synced to the className. Two cases:
+  //   • First-time set (last was empty, current is non-empty) — seed
+  //     the CSS with `.<current> { }` if it's still empty. If the
+  //     user already has CSS content, leave it alone (probably
+  //     pre-existing from a previous className).
+  //   • Rename (both last and current non-empty) — find every
+  //     `.<last>` selector in the CSS and rewrite to `.<current>`.
+  //     A `(?<![\w-])…(?![\w-])` word-ish boundary keeps us from
+  //     mangling overlapping names like `.foo` vs `.foo-bar`.
+  // The CSS *body* is never touched — only the leading `.` selector.
+  // If the user clears className entirely, we hold onto the last
+  // known name so a later re-add resumes the rename trail.
+  const lastClassRef = useRef<string>(readClassNameLiteral(initialCode, component) ?? '')
   useEffect(() => {
-    if (seededOnceRef.current) return
-    const name = readClassNameLiteral(code, component)
-    if (!name) return
-    setStyles(`.${name} {\n  \n}\n`)
-    seededOnceRef.current = true
+    const current = readClassNameLiteral(code, component) ?? ''
+    const last = lastClassRef.current
+    if (current === last) return
+    if (!last && current) {
+      // First-time seed only when CSS is empty — otherwise we'd
+      // erase the user's existing rules.
+      if (styles === '') setStyles(`.${current} {\n  \n}\n`)
+    } else if (last && current) {
+      const re = new RegExp(`(?<![\\w-])\\.${escapeRegExp(last)}(?![\\w-])`, 'g')
+      const next = styles.replace(re, `.${current}`)
+      if (next !== styles) setStyles(next)
+    }
+    // last && !current → className was cleared. Keep CSS as-is and
+    // hold onto `last` so a later re-add knows what to rename.
+    if (current) lastClassRef.current = current
   }, [code, component])
 
   // Track the parent's dark-mode state — drives both Monaco's theme
