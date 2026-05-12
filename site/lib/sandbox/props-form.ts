@@ -32,7 +32,12 @@ export function controlsFor(componentName: string): PropEntry[] {
   const iface = root.children?.find((c: any) => c.name === ifaceName)
   if (!iface) return []
 
-  const props = (iface.children ?? []).filter((p: any) => !p.inheritedFrom)
+  // Component-own props come first; `className` rides along even
+  // though it's inherited from BaseProps, because typing into it is
+  // how the playground unlocks the CSS tab.
+  const props = (iface.children ?? []).filter(
+    (p: any) => !p.inheritedFrom || p.name === 'className',
+  )
 
   const entries: PropEntry[] = []
   for (const p of props) {

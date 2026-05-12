@@ -44,8 +44,11 @@ export interface BundleFailure {
 export type BundleResult = BundleSuccess | BundleFailure
 
 /** Compile a user code string. Imports are resolved against
- *  `moduleManifest`; anything else becomes a friendly compile error. */
-export async function bundle(userCode: string): Promise<BundleResult> {
+ *  `moduleManifest`; anything else becomes a friendly compile error.
+ *  If `userStyles` is provided (non-empty), the bundle prepends a
+ *  small preamble that injects the styles as a `<style id="user-
+ *  styles">` element in the iframe head — replacing any previous one. */
+export async function bundle(userCode: string, userStyles?: string): Promise<BundleResult> {
   let esbuild: typeof import('esbuild-wasm')
   try {
     esbuild = await ensureInit()
@@ -135,13 +138,30 @@ export async function bundle(userCode: string): Promise<BundleResult> {
     }
     const out = result.outputFiles?.[0]
     if (!out) return { ok: false, message: 'esbuild produced no output' }
-    return { ok: true, code: out.text }
+    const finalCode = (userStyles && userStyles.trim())
+      ? `${stylesPreamble(userStyles)}\n${out.text}`
+      : out.text
+    return { ok: true, code: finalCode }
   } catch (err: any) {
     if (err?.errors && Array.isArray(err.errors)) {
       return { ok: false, message: formatErrors(err.errors) }
     }
     return { ok: false, message: err?.message ?? String(err) }
   }
+}
+
+/** Emit the runtime snippet that swaps the iframe's `<style id="user-
+ *  styles">` element with the latest CSS. We inline the CSS as a JSON-
+ *  stringified literal so any quotes / newlines round-trip safely. */
+function stylesPreamble(css: string): string {
+  return `;(() => {
+  const prev = document.getElementById('user-styles')
+  if (prev) prev.remove()
+  const el = document.createElement('style')
+  el.id = 'user-styles'
+  el.textContent = ${JSON.stringify(css)}
+  document.head.appendChild(el)
+})()`
 }
 
 function formatErrors(errors: any[]): string {
@@ -178,5 +198,29 @@ function wrapWithRender(code: string): string | null {
 import { render as __demo_render__ } from 'preact'
 const __demo_content__ = (<>${jsxBlock}</>)
 __demo_render__(__demo_content__, document.getElementById('root'))
+// Preact (like React) renders <script> as an inert DOM node — the
+// browser only executes scripts inserted via fresh appendChild, not
+// via the JSX diff path. Walk the just-rendered tree, clone each
+// <script> to a fresh element, and append to <head> so it loads.
+// Dedup by src so re-renders don't refetch.
+;(() => {
+  const root = document.getElementById('root')
+  if (!root) return
+  for (const orig of Array.from(root.querySelectorAll('script'))) {
+    const src = orig.getAttribute('src')
+    if (src) {
+      const sel = 'script[src=' + JSON.stringify(src) + ']'
+      if (document.head.querySelector(sel)) {
+        orig.remove()
+        continue
+      }
+    }
+    const fresh = document.createElement('script')
+    for (const a of Array.from(orig.attributes)) fresh.setAttribute(a.name, a.value)
+    if (!src && orig.textContent) fresh.textContent = orig.textContent
+    orig.remove()
+    document.head.appendChild(fresh)
+  }
+})()
 `
 }

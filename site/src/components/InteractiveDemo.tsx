@@ -51,10 +51,29 @@ interface Props {
   panelHeight?: number
 }
 
-type Tab = 'props' | 'code'
+type Tab = 'props' | 'code' | 'css'
+
+/** Read the bound component's `className` attribute from the user's
+ *  source. If it's a non-empty literal string, return that name —
+ *  used to (a) decide whether to surface the CSS tab and (b) seed
+ *  the CSS editor with a `.<name> { }` skeleton on first appearance. */
+function readClassNameLiteral(code: string, component: string): string | null {
+  const r = readProp(code, component, { name: 'className', kind: 'string' })
+  if (r?.kind === 'literal' && typeof r.value === 'string' && r.value.trim()) {
+    return r.value.trim()
+  }
+  return null
+}
 
 export default function InteractiveDemo({ component, initialCode, layout = 'stacked', panelHeight = 400 }: Props) {
   const [code, setCode] = useState(initialCode)
+  // CSS state is independent of the code. We seed it once on mount
+  // from whatever className the initialCode already declares, then
+  // the user owns it.
+  const [styles, setStyles] = useState<string>(() => {
+    const name = readClassNameLiteral(initialCode, component)
+    return name ? `.${name} {\n  \n}\n` : ''
+  })
   const [bundleState, setBundleState] = useState<BundleResult | { ok: false; message: string; pending: true } | null>({
     ok: false,
     message: 'Compiling…',
@@ -76,7 +95,33 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
   const codeFromFormRef = useRef(false)
   const monacoRef = useRef<any>(null)
   const editorRef = useRef<any>(null)
-  const editorHostRef = useRef<HTMLDivElement | null>(null)
+  const cssEditorRef = useRef<any>(null)
+  const tsxHostRef = useRef<HTMLDivElement | null>(null)
+  const cssHostRef = useRef<HTMLDivElement | null>(null)
+
+  // Whether the bound component currently has a non-empty
+  // className. Drives CSS tab visibility — the tab only exists
+  // while the rule it'd be styling has a selector to target.
+  const hasClassName = readClassNameLiteral(code, component) !== null
+
+  // If the className disappears (user clears it via Props or by hand
+  // in Code) while the CSS tab was active, snap back to Props so we
+  // don't end up showing a hidden tab.
+  useEffect(() => {
+    if (!hasClassName && tab === 'css') setTab('props')
+  }, [hasClassName, tab])
+
+  // First-time seeding when className appears later (user types it
+  // into the Props form). Once the user has touched the CSS, we
+  // never auto-rewrite — they own it from then on.
+  const seededOnceRef = useRef(styles !== '')
+  useEffect(() => {
+    if (seededOnceRef.current) return
+    const name = readClassNameLiteral(code, component)
+    if (!name) return
+    setStyles(`.${name} {\n  \n}\n`)
+    seededOnceRef.current = true
+  }, [code, component])
 
   // Track the parent's dark-mode state — drives both Monaco's theme
   // and the resolved value of --bg-section.
@@ -100,22 +145,26 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     monaco.editor.setTheme('anta')
   }, [isDark])
 
-  // Observe the editor host and tell Monaco to relayout. Monaco's
-  // `automaticLayout` polls at ~100ms and frequently misses the first
-  // settle of a tab-swapped flex container, leaving the editor stuck
-  // at a few pixels wide. A ResizeObserver on the host is reliable.
+  // Observe each editor's host and tell its editor to relayout.
+  // Monaco's `automaticLayout` polls at ~100ms and frequently misses
+  // the first settle of a tab-swapped flex container; a
+  // ResizeObserver on the host is reliable. Both editors (TSX and
+  // CSS) share this hook.
   useEffect(() => {
-    const host = editorHostRef.current
-    if (!host) return
-    const ro = new ResizeObserver(() => {
-      const ed = editorRef.current
-      if (!ed) return
-      const r = host.getBoundingClientRect()
-      ed.layout({ width: r.width, height: r.height })
+    const tsxHost = tsxHostRef.current
+    const cssHost = cssHostRef.current
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const ed = entry.target === tsxHost ? editorRef.current : cssEditorRef.current
+        if (!ed) continue
+        const r = (entry.target as HTMLElement).getBoundingClientRect()
+        ed.layout({ width: r.width, height: r.height })
+      }
     })
-    ro.observe(host)
+    if (tsxHost) ro.observe(tsxHost)
+    if (cssHost) ro.observe(cssHost)
     return () => ro.disconnect()
-  }, [monacoLib])
+  }, [monacoLib, hasClassName])
 
 
   // Resolve Anta's --monospace token for Monaco's fontFamily option —
@@ -145,7 +194,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
   useEffect(() => {
     let cancelled = false
     const timer = setTimeout(async () => {
-      const result = await bundle(code)
+      const result = await bundle(code, styles)
       if (cancelled) return
       setBundleState(result)
       if (result.ok && iframeRef.current && iframeReadyRef.current) {
@@ -157,7 +206,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
       cancelled = true
       clearTimeout(timer)
     }
-  }, [code])
+  }, [code, styles])
 
   // Listen for runtime errors + content-height updates from the iframe.
   useEffect(() => {
@@ -324,6 +373,17 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
             >
               <span class={s.tabLabel}>Code</span>
             </button>
+            {hasClassName && (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'css'}
+                class={tab === 'css' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
+                onClick={() => setTab('css')}
+              >
+                <span class={s.tabLabel}>CSS</span>
+              </button>
+            )}
           </div>
           {/* Both panels are stacked in the same grid cell so the
               panel sizes to the taller of the two — switching tabs
@@ -356,7 +416,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
               aria-hidden={tab !== 'code'}
               {...(tab !== 'code' ? { inert: '' } : {})}
             >
-              <div class={s.editorHost} ref={editorHostRef}>
+              <div class={s.editorHost} ref={tsxHostRef}>
                 {monacoLib ? (
                 <monacoLib.Editor
                   height="100%"
@@ -376,39 +436,47 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
                   onMount={(editor, monaco) => {
                     editorRef.current = editor
                     onMonacoMount(editor, monaco)
-                    // Force an immediate layout — the host may have
-                    // settled to its real width only after Monaco's
-                    // initial paint.
+                    installJsxAwareCommentToggle(editor, monaco)
                     editor.layout()
                   }}
-                  options={{
-                    minimap: { enabled: false },
-                    fontSize: 12,
-                    fontFamily: monoFontFamily || undefined,
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    tabSize: 2,
-                    wordWrap: 'on',
-                    // Hide line numbers but keep folding on — its
-                    // gutter gives a natural left margin (without it
-                    // Monaco's text crashes into the panel border).
-                    lineNumbers: 'off',
-                    lineNumbersMinChars: 0,
-                    lineDecorationsWidth: 8,
-                    glyphMargin: false,
-                    folding: true,
-                    padding: { top: 12, bottom: 12 },
-                    // Render hover / suggestion popups into <body> so
-                    // the panel's overflow:hidden clip (used to round
-                    // the bottom corners) doesn't truncate them.
-                    fixedOverflowWidgets: true,
-                  }}
+                  options={editorOptions(monoFontFamily)}
                 />
                 ) : (
                   <div class={s.editorLoading}>Loading editor…</div>
                 )}
               </div>
             </div>
+            {hasClassName && (
+              <div
+                class={tab === 'css' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}
+                aria-hidden={tab !== 'css'}
+                {...(tab !== 'css' ? { inert: '' } : {})}
+              >
+                <div class={s.editorHost} ref={cssHostRef}>
+                  {monacoLib ? (
+                    <monacoLib.Editor
+                      height="100%"
+                      defaultLanguage="css"
+                      path="user.css"
+                      value={styles}
+                      theme="anta"
+                      onChange={(v) => setStyles(v ?? '')}
+                      beforeMount={(monaco) => {
+                        monacoRef.current = monaco
+                        defineAntaTheme(monaco, isDark)
+                      }}
+                      onMount={(editor) => {
+                        cssEditorRef.current = editor
+                        editor.layout()
+                      }}
+                      options={editorOptions(monoFontFamily)}
+                    />
+                  ) : (
+                    <div class={s.editorLoading}>Loading editor…</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -718,6 +786,112 @@ function resolveCssColorToHex(varName: string): string | null {
     '#' +
     [d[0], d[1], d[2]].map((c) => c.toString(16).padStart(2, '0')).join('')
   )
+}
+
+// ──────────────────────────────────────────────────────────────────
+// Shared editor options — TSX and CSS instances use the same look.
+
+function editorOptions(fontFamily: string): any {
+  return {
+    minimap: { enabled: false },
+    fontSize: 12,
+    fontFamily: fontFamily || undefined,
+    scrollBeyondLastLine: false,
+    automaticLayout: true,
+    tabSize: 2,
+    wordWrap: 'on',
+    lineNumbers: 'off',
+    lineNumbersMinChars: 0,
+    lineDecorationsWidth: 8,
+    glyphMargin: false,
+    folding: true,
+    padding: { top: 12, bottom: 12 },
+    fixedOverflowWidgets: true,
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────
+// JSX-aware comment toggle. Cmd+/ (Ctrl+/ on non-mac) usually maps
+// to `editor.action.commentLine`, which prepends `// ` — fine for
+// plain JS / TS lines, broken for JSX where `//` shows up as a
+// literal text node. We swap in `{/* … */}` when the cursor is on a
+// JSX token and otherwise defer to Monaco's default.
+
+function installJsxAwareCommentToggle(editor: any, monaco: any) {
+  editor.addAction({
+    id: 'anta-jsx-comment-toggle',
+    label: 'Toggle JSX-aware comment',
+    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash],
+    run: (ed: any) => {
+      if (isInsideJsx(ed, monaco)) {
+        wrapJsxComment(ed)
+      } else {
+        ed.getAction('editor.action.commentLine')?.run()
+      }
+    },
+  })
+}
+
+/** Decide whether the cursor is parked inside JSX markup vs.
+ *  regular TS code. We tokenize the current line via the public
+ *  `monaco.editor.tokenize` API (the per-model `getLineTokens` is
+ *  not exposed) and pick the latest token that starts at or before
+ *  the cursor column. Monaco's TS tokenizer tags JSX with token
+ *  types like `tag`, `delimiter.angle`, `meta.tag`, `jsx`. */
+function isInsideJsx(editor: any, monaco: any): boolean {
+  const model = editor.getModel()
+  const pos = editor.getPosition()
+  if (!model || !pos) return false
+  const line = model.getLineContent(pos.lineNumber)
+  // Cheap pre-check: a line whose first non-whitespace char is `<`
+  // is JSX with overwhelming probability.
+  if (line.trimStart().startsWith('<')) return true
+  // Already-commented JSX (`{/* … */}`): treat as JSX so toggle-off
+  // routes through the JSX wrapper and unwraps cleanly.
+  const t = line.trim()
+  if (t.startsWith('{/*') && t.endsWith('*/}')) return true
+  const tokens = monaco.editor.tokenize(line, model.getLanguageId())[0]
+  if (!tokens?.length) return false
+  const col = pos.column - 1
+  for (let i = tokens.length - 1; i >= 0; i--) {
+    if (tokens[i].offset <= col) {
+      const t: string = tokens[i].type || ''
+      return /(?:^|\.)(?:tag|jsx|meta\.tag|delimiter\.angle)/.test(t)
+    }
+  }
+  return false
+}
+
+function wrapJsxComment(editor: any) {
+  const model = editor.getModel()
+  if (!model) return
+  const sel = editor.getSelection()
+  if (!sel) return
+  const open = '{/* '
+  const close = ' */}'
+
+  // Build the range to operate on:
+  // - non-empty selection: that selection
+  // - caret only: the trimmed contents of the current line (matches
+  //   the default "toggle line comment" intent — comment-out the
+  //   line, don't sprinkle an empty comment at the caret).
+  let range = sel
+  if (sel.isEmpty()) {
+    const line = sel.startLineNumber
+    const text = model.getLineContent(line)
+    const leading = text.length - text.trimStart().length + 1
+    const trailing = text.trimEnd().length + 1
+    range = { startLineNumber: line, startColumn: leading, endLineNumber: line, endColumn: trailing }
+  }
+  const text = model.getValueInRange(range)
+  const trimmed = text.trim()
+  if (trimmed.startsWith('{/*') && trimmed.endsWith('*/}')) {
+    // Toggle off — strip the wrapper and its inner padding.
+    const unwrapped = trimmed.slice(3, -3).trim()
+    editor.executeEdits('jsx-comment', [{ range, text: unwrapped, forceMoveMarkers: true }])
+  } else {
+    editor.executeEdits('jsx-comment', [{ range, text: open + text + close, forceMoveMarkers: true }])
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────
