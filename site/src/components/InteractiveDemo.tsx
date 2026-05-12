@@ -446,37 +446,41 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
                 )}
               </div>
             </div>
-            {hasClassName && (
-              <div
-                class={tab === 'css' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}
-                aria-hidden={tab !== 'css'}
-                {...(tab !== 'css' ? { inert: '' } : {})}
-              >
-                <div class={s.editorHost} ref={cssHostRef}>
-                  {monacoLib ? (
-                    <monacoLib.Editor
-                      height="100%"
-                      defaultLanguage="css"
-                      path="user.css"
-                      value={styles}
-                      theme="anta"
-                      onChange={(v) => setStyles(v ?? '')}
-                      beforeMount={(monaco) => {
-                        monacoRef.current = monaco
-                        defineAntaTheme(monaco, isDark)
-                      }}
-                      onMount={(editor) => {
-                        cssEditorRef.current = editor
-                        editor.layout()
-                      }}
-                      options={editorOptions(monoFontFamily)}
-                    />
-                  ) : (
-                    <div class={s.editorLoading}>Loading editor…</div>
-                  )}
-                </div>
+            {/* CSS panel is always mounted so its Monaco editor never
+                initialises during user typing (Monaco init blocks the
+                main thread and was eating keystrokes the first time
+                the className field changed). The tab button stays
+                conditional — the panel just hides + inert when not
+                in use. */}
+            <div
+              class={tab === 'css' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}
+              aria-hidden={tab !== 'css'}
+              {...(tab !== 'css' ? { inert: '' } : {})}
+            >
+              <div class={s.editorHost} ref={cssHostRef}>
+                {monacoLib ? (
+                  <monacoLib.Editor
+                    height="100%"
+                    defaultLanguage="css"
+                    path="user.css"
+                    value={styles}
+                    theme="anta"
+                    onChange={(v) => setStyles(v ?? '')}
+                    beforeMount={(monaco) => {
+                      monacoRef.current = monaco
+                      defineAntaTheme(monaco, isDark)
+                    }}
+                    onMount={(editor) => {
+                      cssEditorRef.current = editor
+                      editor.layout()
+                    }}
+                    options={editorOptions(monoFontFamily)}
+                  />
+                ) : (
+                  <div class={s.editorLoading}>Loading editor…</div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
