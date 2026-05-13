@@ -111,7 +111,6 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
   const [monoFontFamily, setMonoFontFamily] = useState<string>('')
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const iframeReadyRef = useRef(false)
-  const codeFromFormRef = useRef(false)
   const monacoRef = useRef<any>(null)
   const editorRef = useRef<any>(null)
   const cssEditorRef = useRef<any>(null)
@@ -286,18 +285,13 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Push a code change into Monaco (when the form rewrites code).
-  // We avoid a feedback loop by marking codeFromFormRef and ignoring
-  // the next editor-onChange.
-  function updateCode(next: string, fromForm = false) {
-    if (next === code) return
-    codeFromFormRef.current = fromForm
-    setCode(next)
-  }
-
   function handleFormChange(prop: PropEntry, value: string | number | boolean | null) {
-    const next = replaceProp(code, component, prop.prop, value)
-    updateCode(next, true)
+    // Compute the next code from the LATEST committed state via the
+    // functional setter form. A stale closure (e.g. the user pasted
+    // into Monaco while React had not yet committed the resulting
+    // state) would otherwise resurrect an older source and wipe the
+    // paste.
+    setCode((prev) => replaceProp(prev, component, prop.prop, value))
   }
 
   // ────────────────────────────────────────────────────────────────
@@ -327,11 +321,11 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
 
   function handleEditorChange(next: string | undefined) {
     if (next == null) return
-    if (codeFromFormRef.current) {
-      codeFromFormRef.current = false
-      return
-    }
-    updateCode(next, false)
+    // Update only if the model's value drifted from React state. When
+    // we push state into Monaco via the `value` prop the wrapper
+    // echoes a change event with the same string — bail in that case
+    // so React doesn't re-render unnecessarily.
+    setCode((prev) => prev === next ? prev : next)
   }
 
   // ────────────────────────────────────────────────────────────────
