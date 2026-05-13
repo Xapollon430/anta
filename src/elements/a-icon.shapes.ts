@@ -67,6 +67,7 @@ export const ICON_SHAPES = [
   'play',
   'plus',
   'presentation',
+  'refresh-ccw-dot',
   'refresh',
   'regex',
   'repeat',
@@ -249,6 +250,7 @@ declare module '@antadesign/anta' {
     'play': true
     'plus': true
     'presentation': true
+    'refresh-ccw-dot': true
     'refresh': true
     'regex': true
     'repeat': true

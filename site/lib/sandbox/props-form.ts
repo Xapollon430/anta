@@ -22,6 +22,9 @@ export type Control =
 export interface PropEntry {
   control: Control
   prop: PropDescriptor
+  /** TypeScript-style optional flag — surfaced in the form label as
+   *  `name?` so users see at a glance which props can be omitted. */
+  optional: boolean
 }
 
 /** Walk api.json for a component's prop schema. Returns `[]` if the
@@ -51,9 +54,14 @@ export function controlsFor(componentName: string): PropEntry[] {
 function controlFor(p: any): PropEntry | null {
   const name: string = p.name
   const description = renderComment(p.comment)
+  const optional = !!p.flags?.isOptional
 
   const t = p.type
   if (!t) return null
+
+  const wrap = (control: Control, prop: PropDescriptor): PropEntry => ({
+    control, prop, optional,
+  })
 
   // `intrinsic` types: string / number / boolean.
   if (t.type === 'intrinsic') {
@@ -62,22 +70,22 @@ function controlFor(p: any): PropEntry | null {
       // variant lived here for `value`-style props, but we can't yet
       // infer min/max from sibling props (e.g. Progress's `max`), and
       // a slider with hardcoded 0..100 misled users on other ranges.
-      return {
-        prop: { name, kind: 'number' },
-        control: { kind: 'number', name, description },
-      }
+      return wrap(
+        { kind: 'number', name, description },
+        { name, kind: 'number' },
+      )
     }
     if (t.name === 'string') {
-      return {
-        prop: { name, kind: 'string' },
-        control: { kind: 'text', name, description },
-      }
+      return wrap(
+        { kind: 'text', name, description },
+        { name, kind: 'string' },
+      )
     }
     if (t.name === 'boolean') {
-      return {
-        prop: { name, kind: 'boolean' },
-        control: { kind: 'boolean', name, description },
-      }
+      return wrap(
+        { kind: 'boolean', name, description },
+        { name, kind: 'boolean' },
+      )
     }
     return null
   }
@@ -90,10 +98,10 @@ function controlFor(p: any): PropEntry | null {
       // Heuristic: first option is typically the default (matches Anta's
       // pattern of `tone?: 'neutral' | 'info'` — neutral first).
       const defaultValue = options[0]
-      return {
-        prop: { name, kind: 'literal-union', defaultValue },
-        control: { kind: 'segmented', name, options, defaultValue, description },
-      }
+      return wrap(
+        { kind: 'segmented', name, options, defaultValue, description },
+        { name, kind: 'literal-union', defaultValue },
+      )
     }
     return null
   }

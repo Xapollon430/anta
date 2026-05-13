@@ -65,10 +65,23 @@ function readClassNameLiteral(code: string, component: string): string | null {
   return null
 }
 
-/** Escape regex metacharacters so a className like `foo.bar` can be
- *  used as a literal pattern. */
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+/** Make sure the CSS source contains a rule whose selector is
+ *  `.<className>` — the first class rule we find is repointed to
+ *  this name (preserving its body), and if no class rule exists at
+ *  all we prepend an empty one. The rest of the CSS is left
+ *  untouched. */
+function ensureClassRule(css: string, className: string): string {
+  // Match the FIRST `.<ident> {` selector in the source. CSS class
+  // names can contain word chars and hyphens, can't start with a digit.
+  const re = /\.([a-zA-Z_][\w-]*)(\s*\{)/
+  const m = re.exec(css)
+  if (m) {
+    if (m[1] === className) return css
+    const start = m.index
+    const tail = css.slice(start + m[0].length)
+    return css.slice(0, start) + `.${className}${m[2]}` + tail
+  }
+  return `.${className} {\n  \n}\n${css}`
 }
 
 export default function InteractiveDemo({ component, initialCode, layout = 'stacked', panelHeight = 400 }: Props) {
@@ -105,48 +118,36 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
   const tsxHostRef = useRef<HTMLDivElement | null>(null)
   const cssHostRef = useRef<HTMLDivElement | null>(null)
 
-  // Whether the bound component currently has a non-empty
-  // className. Drives CSS tab visibility — the tab only exists
-  // while the rule it'd be styling has a selector to target.
-  const hasClassName = readClassNameLiteral(code, component) !== null
+  // First class token of the bound component's `className`. We only
+  // ever pay attention to the first whitespace-separated class —
+  // any others the user lists are ignored by the CSS surface.
+  const firstClass = (readClassNameLiteral(code, component) ?? '').split(/\s+/)[0] ?? ''
+  const hasClassName = firstClass !== ''
 
-  // If the className disappears (user clears it via Props or by hand
-  // in Code) while the CSS tab was active, snap back to Props so we
-  // don't end up showing a hidden tab.
+  // If the className disappears while the CSS tab was active, snap
+  // back to Props so we don't end up showing a hidden tab.
   useEffect(() => {
     if (!hasClassName && tab === 'css') setTab('props')
   }, [hasClassName, tab])
 
-  // Keep the CSS selector synced to the className. Two cases:
-  //   • First-time set (last was empty, current is non-empty) — seed
-  //     the CSS with `.<current> { }` if it's still empty. If the
-  //     user already has CSS content, leave it alone (probably
-  //     pre-existing from a previous className).
-  //   • Rename (both last and current non-empty) — find every
-  //     `.<last>` selector in the CSS and rewrite to `.<current>`.
-  //     A `(?<![\w-])…(?![\w-])` word-ish boundary keeps us from
-  //     mangling overlapping names like `.foo` vs `.foo-bar`.
-  // The CSS *body* is never touched — only the leading `.` selector.
-  // If the user clears className entirely, we hold onto the last
-  // known name so a later re-add resumes the rename trail.
-  const lastClassRef = useRef<string>(readClassNameLiteral(initialCode, component) ?? '')
+  // Track CSS in a ref so the className-watcher effect can read the
+  // latest value without re-running on every CSS edit.
+  const stylesRef = useRef(styles)
+  useEffect(() => { stylesRef.current = styles }, [styles])
+
+  // One-directional sync: when the className (first token) changes,
+  // make sure a `.<className>` rule exists in the CSS. If the CSS
+  // already has a first class rule, repoint its selector to the new
+  // name (body preserved). If there's no class rule at all, prepend
+  // an empty one. We never touch any other CSS the user wrote.
+  const prevClassRef = useRef<string>(firstClass)
   useEffect(() => {
-    const current = readClassNameLiteral(code, component) ?? ''
-    const last = lastClassRef.current
-    if (current === last) return
-    if (!last && current) {
-      // First-time seed only when CSS is empty — otherwise we'd
-      // erase the user's existing rules.
-      if (styles === '') setStyles(`.${current} {\n  \n}\n`)
-    } else if (last && current) {
-      const re = new RegExp(`(?<![\\w-])\\.${escapeRegExp(last)}(?![\\w-])`, 'g')
-      const next = styles.replace(re, `.${current}`)
-      if (next !== styles) setStyles(next)
-    }
-    // last && !current → className was cleared. Keep CSS as-is and
-    // hold onto `last` so a later re-add knows what to rename.
-    if (current) lastClassRef.current = current
-  }, [code, component])
+    if (firstClass === prevClassRef.current) return
+    prevClassRef.current = firstClass
+    if (!firstClass) return
+    const next = ensureClassRule(stylesRef.current, firstClass)
+    if (next !== stylesRef.current) setStyles(next)
+  }, [firstClass])
 
   // Track the parent's dark-mode state — drives both Monaco's theme
   // and the resolved value of --bg-section.
@@ -409,6 +410,17 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
                 <span class={s.tabLabel}>CSS</span>
               </button>
             )}
+            {/* Reset edits to props / code. CSS is intentionally
+                preserved — the user owns it independently. */}
+            <button
+              type="button"
+              class={s.resetBtn}
+              aria-label="Reset props and code"
+              title="Reset props and code"
+              onClick={() => setCode(initialCode)}
+            >
+              <a-icon shape="refresh-ccw-dot" style={{ '--icon-size': '14px' } as any} />
+            </button>
           </div>
           {/* Both panels are stacked in the same grid cell so the
               panel sizes to the taller of the two — switching tabs
@@ -543,13 +555,16 @@ function FormField({
   const c = entry.control
   const read = readProp(code, componentName, entry.prop)
   const fromExpression = read?.kind === 'expression'
-  const current = read?.kind === 'literal' ? read.value : c.defaultValue
+  // Only the literal in code populates the input; the default is
+  // shown as a placeholder instead so the user can tell what Anta
+  // would do if they leave the field blank.
+  const current = read?.kind === 'literal' ? read.value : undefined
 
   return (
     <div class={s.field}>
       <div class={s.fieldLabel}>
         <span>
-          <code>{c.name}</code>
+          <code>{c.name}{entry.optional ? '?' : ''}</code>
           {c.description ? <span class={s.fieldHint}> — {c.description}</span> : null}
         </span>
         {fromExpression
@@ -600,6 +615,7 @@ function FieldControl({
           type="number"
           class={`${s.number} ${cls}`}
           value={typeof value === 'number' ? value : ''}
+          placeholder={control.defaultValue != null ? String(control.defaultValue) : ''}
           onInput={(e) => {
             const v = (e.currentTarget as HTMLInputElement).value
             onChange(v === '' ? null : Number(v))
@@ -613,6 +629,7 @@ function FieldControl({
           type="text"
           class={`${s.text} ${cls}`}
           value={typeof value === 'string' ? value : ''}
+          placeholder={control.defaultValue ?? ''}
           onInput={(e) => onChange((e.currentTarget as HTMLInputElement).value)}
           disabled={disabled}
         />

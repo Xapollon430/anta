@@ -153,6 +153,33 @@
   color: var(--text-2);
 }
 
+/* Reset button anchored to the right edge of the tab strip. Same
+   vertical metrics as a tab so its hit area matches the strip
+   height; just an icon, no label. */
+.resetBtn {
+  margin-left: auto;
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-4);
+  cursor: pointer;
+  transition: color 120ms ease-out;
+}
+
+.resetBtn:hover,
+.resetBtn:focus-visible {
+  color: var(--text-1);
+  outline: none;
+}
+
+.resetBtn:active {
+  color: var(--text-2);
+}
+
 /* Hover wins so only the tab under the cursor reads at full intensity. */
 .tabBtn:hover,
 .tabBtn:focus-visible {

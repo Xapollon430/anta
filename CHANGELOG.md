@@ -21,6 +21,7 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 ### Added
 - New `table-2` icon on `<a-icon>` (Lucide-derived). `synonyms.json` updated with search aliases (`table`, `grid`, `data`, `spreadsheet`, `rows`, `columns`); `a-icon.shapes.{ts,css}` regenerated.
 - New `sun` and `moon` icons on `<a-icon>` (Lucide-derived) for theme-toggle UIs.
+- New `refresh-ccw-dot` icon on `<a-icon>` (Lucide-derived) — used by the playground's reset button and useful for any "revert to defaults" affordance.
 
 
 ## 0.1.1-dev.3 — May 5, 2026
