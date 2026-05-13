@@ -164,6 +164,32 @@ pre code { background: none; padding: 0; }
   100% { opacity: 0; transform: translate(0, -24px); }
 }
 
+/* Sidebar / content padding tokens used by `.full-bleed`. Default
+   values match DocsLayout.astro's desktop sidebar (240px) and
+   .content's padding-inline (32px). The mobile @media block below
+   overrides them when the sidebar slides off-screen. */
+:root {
+  --page-sidebar-width: 240px;
+  --page-content-pad: 32px;
+}
+@media (max-width: 900px) {
+  :root {
+    --page-sidebar-width: 0px;
+    --page-content-pad: 16px;
+  }
+}
+
+/* Escape `.content`'s 900px max-width to fill the available width
+   to the right of the sidebar. Used by widgets that need real
+   estate (the InteractiveDemo playground, future wide visualisations).
+   `.content` has `overflow: visible` (default), so children with
+   width > 900px are allowed to extend right; they cap at the
+   viewport's right edge minus the same gutter the prose uses. */
+.full-bleed {
+  width: calc(100vw - var(--page-sidebar-width) - 2 * var(--page-content-pad));
+  max-width: none;
+}
+
 /* Wraps every <table> in MDX/markdown content (injected by the
    site/lib/rehype-table-wrap.mjs plugin). When the inner table is
    wider than `.content`'s max-width, the wrap scrolls horizontally

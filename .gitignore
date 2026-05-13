@@ -6,5 +6,7 @@ site/dist/
 site/.astro/
 site/src/api.json
 site/src/pages/index.mdx
+site/public/esbuild.wasm
+site/public/iframe-anta-runtime.js
 .DS_Store
 **/.DS_Store

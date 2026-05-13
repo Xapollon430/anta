@@ -60,12 +60,14 @@ export const ICON_SHAPES = [
   'menu',
   'minimize',
   'minus',
+  'moon',
   'more',
   'move-horizontal',
   'not-equal',
   'play',
   'plus',
   'presentation',
+  'refresh-ccw-dot',
   'refresh',
   'regex',
   'repeat',
@@ -76,6 +78,7 @@ export const ICON_SHAPES = [
   'search',
   'send',
   'sparkles',
+  'sun',
   'swatch-book',
   'table-2',
   'text-highlight',
@@ -240,12 +243,14 @@ declare module '@antadesign/anta' {
     'menu': true
     'minimize': true
     'minus': true
+    'moon': true
     'more': true
     'move-horizontal': true
     'not-equal': true
     'play': true
     'plus': true
     'presentation': true
+    'refresh-ccw-dot': true
     'refresh': true
     'regex': true
     'repeat': true
@@ -256,6 +261,7 @@ declare module '@antadesign/anta' {
     'search': true
     'send': true
     'sparkles': true
+    'sun': true
     'swatch-book': true
     'table-2': true
     'text-highlight': true

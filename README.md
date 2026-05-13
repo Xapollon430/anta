@@ -15,8 +15,9 @@ Since Anta is in active development we suggest using the latest dev version: `"@
 ### Usage
 
 ```tsx
-import '@antadesign/anta/anta_global_tokens.css'  // defines color, border, font tokens
-import '@antadesign/anta/elements'                // registers <a-progress> et al.
+import '@antadesign/anta/tokens.css'  // CSS custom properties (colors, sizes, fonts)
+import '@antadesign/anta/reset.css'   // small reset + Anta's typography opinions
+import '@antadesign/anta/elements'    // registers <a-progress> et al.
 import { Progress } from '@antadesign/anta'
 
 <Progress value={42} label="uploaded.." hint="3 of 7" />
@@ -24,15 +25,29 @@ import { Progress } from '@antadesign/anta'
 
 ### What you import (and why)
 
-Anta exposes three independent imports. All three are needed for the components to look right; you can omit any of them if you have a specific reason.
+Anta exposes four independent imports. Tokens + elements + the JSX layer are the minimum to render a styled component; the reset is recommended but skippable.
 
 | Import | Provides | Skip if… |
 |---|---|---|
-| `@antadesign/anta/anta_global_tokens.css` | The CSS custom properties — `--bg-base`, `--text-1…5`, `--border-1…5`, the `.dark`-ancestor toggling, the base `font-size: 15px`. | You're applying your own design tokens at the same variable names. |
-| `@antadesign/anta/elements` | Side-effect import that registers `<a-progress>`, `<a-text>`, `<a-icon>` as custom elements *and* attaches their per-element CSS (`a-progress.css`, `a-text.css`, `a-icon.css`). | You're rendering Anta only on the server (no DOM) and never hydrating. |
+| `@antadesign/anta/tokens.css` | The CSS custom properties — `--bg-base`, `--text-1…5`, `--border-1…5`, the `.dark`-ancestor toggling, the base `font-size: 15px`. Also declares the `@layer base, anta, components, utilities;` cascade order. | You're applying your own design tokens at the same variable names. |
+| `@antadesign/anta/reset.css` | Modern small reset (box-sizing, margin reset, replaced-element block, form-control font inheritance, text-wrap defaults) plus Anta's typography opinions for `h1-h6`, `strong`, `ul / ol / menu`, `a` / link states. Lives in `@layer anta`. | You already have a reset and don't want Anta's typography defaults. |
+| `@antadesign/anta/elements` | Side-effect import that registers `<a-progress>`, `<a-text>`, `<a-icon>` as custom elements *and* attaches their per-element CSS (also in `@layer anta`). | You're rendering Anta only on the server (no DOM) and never hydrating. |
 | `@antadesign/anta` | The JSX wrappers (`Progress`, `Text`, `Icon`) — typed React/Preact components that emit `<a-*>` tags. | You're writing the `<a-*>` elements by hand and don't need a JSX layer. |
 
-The chain matters: the per-element CSS that ships with `/elements` references variables like `var(--text-1)` and `var(--bg-base)`. Those variables are *only defined* by `anta_global_tokens.css`. Skip the tokens import and the components render with whatever the surrounding cascade provides — usually nothing styled at all.
+The chain matters: the per-element CSS that ships with `/elements` references variables like `var(--text-1)` and `var(--bg-base)`. Those variables are *only defined* by `tokens.css`. Skip the tokens import and the components render with whatever the surrounding cascade provides — usually nothing styled at all.
+
+### Cascade layers
+
+Anta's reset and element CSS live in `@layer anta`. `tokens.css` pre-declares an order of `@layer base, anta, components, utilities;`, which keeps Anta's defaults above any preflight resets (Tailwind's `@layer base`, Normalize, etc.) while letting your own `@layer components` rules and utility-class frameworks like Tailwind (`@layer utilities`) override Anta when you ask them to.
+
+If you need a different order, declare it in your *own* CSS file that loads **before** `tokens.css`. The first mention of each layer name fixes its position:
+
+```css
+/* your global.css, loaded before anta */
+@layer reset, anta, my-components, utilities;
+```
+
+CSS custom properties (the `:root { --… }` declarations in `tokens.css`) stay unlayered so they take effect everywhere unconditionally.
 
 ## Registering elements
 
@@ -109,7 +124,7 @@ Add the `dark` class to any ancestor element:
 
 ## Fonts
 
-Anta is designed with a customized version of <a href="https://typetype.org/fonts/tt-interphases-pro" target="_blank" rel="noopener noreferrer">TT Interphases Pro</a> in mind, but it doesn't ship any font binaries. Components reference families through the `--sans-serif` and `--monospace` CSS variables and fall back to native system stacks when no font is registered. The base size is `font-size: 15px` on `:root` (so `1rem = 15px`), intentionally diverging from the browser default of 16px to match Antithesis's information-dense layouts — both the variables and the base size live in `anta_global_tokens.css`.
+Anta is designed with a customized version of <a href="https://typetype.org/fonts/tt-interphases-pro" target="_blank" rel="noopener noreferrer">TT Interphases Pro</a> in mind, but it doesn't ship any font binaries. Components reference families through the `--sans-serif` and `--monospace` CSS variables and fall back to native system stacks when no font is registered. The base size is `font-size: 15px` on `:root` (so `1rem = 15px`), intentionally diverging from the browser default of 16px to match Antithesis's information-dense layouts — both the variables and the base size live in `tokens.css`.
 
 To use the Antithesis fonts, register your own `@font-face` declarations and override the variables:
 
