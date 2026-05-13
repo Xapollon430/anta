@@ -193,34 +193,91 @@ function wrapWithRender(code: string): string | null {
   }
   if (jsxStart === -1) return null
   const before = lines.slice(0, jsxStart).join('\n').trimEnd()
-  const jsxBlock = lines.slice(jsxStart).join('\n').trim().replace(/;?\s*$/, '')
+  let jsxBlock = lines.slice(jsxStart).join('\n').trim().replace(/;?\s*$/, '')
+
+  // Strip `<script>` tags from the user's JSX block — Preact (like
+  // React) renders them as inert DOM nodes the browser refuses to
+  // execute. We emit explicit `document.createElement('script')`
+  // calls into <head> instead, which is the only spec-correct way
+  // to trigger fetch + execution programmatically.
+  const { cleaned, scripts } = extractScripts(jsxBlock)
+  jsxBlock = cleaned || '<></>'
+
   return `${before}
+${scriptInjections(scripts)}
 import { render as __demo_render__ } from 'preact'
 const __demo_content__ = (<>${jsxBlock}</>)
 __demo_render__(__demo_content__, document.getElementById('root'))
-// Preact (like React) renders <script> as an inert DOM node — the
-// browser only executes scripts inserted via fresh appendChild, not
-// via the JSX diff path. Walk the just-rendered tree, clone each
-// <script> to a fresh element, and append to <head> so it loads.
-// Dedup by src so re-renders don't refetch.
-;(() => {
-  const root = document.getElementById('root')
-  if (!root) return
-  for (const orig of Array.from(root.querySelectorAll('script'))) {
-    const src = orig.getAttribute('src')
-    if (src) {
-      const sel = 'script[src=' + JSON.stringify(src) + ']'
-      if (document.head.querySelector(sel)) {
-        orig.remove()
-        continue
-      }
-    }
-    const fresh = document.createElement('script')
-    for (const a of Array.from(orig.attributes)) fresh.setAttribute(a.name, a.value)
-    if (!src && orig.textContent) fresh.textContent = orig.textContent
-    orig.remove()
-    document.head.appendChild(fresh)
-  }
-})()
 `
+}
+
+interface ExtractedScript {
+  /** External script URL. */
+  src?: string
+  /** Inline JS body (no src). */
+  body?: string
+}
+
+/** Pull `<script>` tags out of the user's JSX block. Matches both
+ *  src-bearing (`<script src="…"></script>` / `<script src="…" />`)
+ *  and inline (`<script>{`…js…`}</script>`) forms. Anything we
+ *  don't recognise is left in place. */
+function extractScripts(jsxBlock: string): { cleaned: string; scripts: ExtractedScript[] } {
+  const scripts: ExtractedScript[] = []
+  // 1) Self-closing or empty-body src form: <script src="…" /> or <script src="…"></script>
+  let cleaned = jsxBlock.replace(
+    /<script\b([^>]*?)\s*(?:\/>|>\s*<\/script>)/g,
+    (m, attrs) => {
+      const srcMatch = attrs.match(/\bsrc\s*=\s*["']([^"']+)["']/)
+      if (srcMatch) {
+        scripts.push({ src: srcMatch[1] })
+        return ''
+      }
+      return m
+    },
+  )
+  // 2) Inline `<script>{`…`}</script>` form — extract the template
+  //    literal between the braces.
+  cleaned = cleaned.replace(
+    /<script\b[^>]*>\s*\{\s*`([\s\S]*?)`\s*\}\s*<\/script>/g,
+    (_m, body) => {
+      scripts.push({ body })
+      return ''
+    },
+  )
+  return { cleaned, scripts }
+}
+
+function scriptInjections(scripts: ExtractedScript[]): string {
+  if (scripts.length === 0) return ''
+  const lines: string[] = ['// Demo: inject user-supplied <script> tags into <head> so the']
+  lines.push('// browser actually fetches / executes them. Dedup by src across')
+  lines.push('// recompiles so a re-render doesn\'t re-load.')
+  for (const s of scripts) {
+    if (s.src) {
+      const sel = `script[src=${JSON.stringify(s.src)}]`
+      lines.push(
+        `if (!document.head.querySelector(${JSON.stringify(sel)})) {`,
+        `  const __s = document.createElement('script')`,
+        `  __s.src = ${JSON.stringify(s.src)}`,
+        `  document.head.appendChild(__s)`,
+        `}`,
+      )
+    } else if (s.body) {
+      // Inline scripts aren't deduped — every recompile would re-run
+      // them otherwise, which is probably what the user wants for a
+      // body of side-effect code. Tag with a `data-demo` so a future
+      // bundle can clear stale ones if we ever need to.
+      lines.push(
+        `{`,
+        `  for (const old of document.querySelectorAll('script[data-demo-inline]')) old.remove()`,
+        `  const __s = document.createElement('script')`,
+        `  __s.dataset.demoInline = 'true'`,
+        `  __s.textContent = ${JSON.stringify(s.body)}`,
+        `  document.head.appendChild(__s)`,
+        `}`,
+      )
+    }
+  }
+  return lines.join('\n')
 }
