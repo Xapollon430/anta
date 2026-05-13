@@ -203,7 +203,13 @@
   display: inline-block;
 }
 
-.tabBtnActive .tabLabel::after {
+/* Render the same 1px underline on both the active tab and any tab
+   the cursor is on, so hover gives the same visual affordance as
+   the active state — selection is "rendered" whenever a tab is
+   focused-by-pointer or selected. */
+.tabBtnActive .tabLabel::after,
+.tabBtn:hover .tabLabel::after,
+.tabBtn:focus-visible .tabLabel::after {
   content: "";
   position: absolute;
   left: 0;
@@ -211,6 +217,14 @@
   bottom: -7px;
   height: 1px;
   background: var(--text-2);
+}
+
+/* When a non-active tab is hovered, the underline picks up the
+   text-1 hover colour so it tracks the brightened label. The active
+   tab keeps text-2 (set above) — that's the rest state. */
+.tabBtn:hover .tabLabel::after,
+.tabBtn:focus-visible .tabLabel::after {
+  background: var(--text-1);
 }
 
 /* Stacking container — both tab panels share the same grid cell so
