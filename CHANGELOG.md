@@ -17,8 +17,6 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 - New `table-2` icon on `<a-icon>` (Lucide-derived). `synonyms.json` updated with search aliases (`table`, `grid`, `data`, `spreadsheet`, `rows`, `columns`); `a-icon.shapes.{ts,css}` regenerated.
 - New `sun` and `moon` icons on `<a-icon>` (Lucide-derived) for theme-toggle UIs.
 
-### Changed
-- `<a-progress>` no longer declares `border-width` or `border-style` on the host. The previous `border: 0px solid var(--progress-border-color)` was a no-op visually (width 0) but blocked utility-class overrides — consumers couldn't apply `.border-4` from Tailwind (or any other CSS framework whose utilities live in a cascade layer) because unlayered Anta rules always beat layered ones regardless of specificity. With nothing declared, the browser's `border-style: none` default keeps the box invisible by default *and* any consumer-supplied `border-width` / `border-style` / `border-color` class wins cleanly. The `--progress-border-color` variable is still defined and still drives the indicator-edge gradient.
 
 ## 0.1.1-dev.3 — May 5, 2026
 

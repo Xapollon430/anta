@@ -21,17 +21,13 @@ a-progress {
   padding: 4px 8px;
   min-height: 8px;
   background: var(--progress-bg);
-  /* No border by default. We deliberately don't declare
-     border-width / border-style on the host: with `border-style:
-     none` (the browser default) the box stays invisible regardless
-     of width, and with nothing about the border declared by Anta
-     a consumer can layer in `.border-4 .border-solid
-     .border-red-500` (or hand-write `border: 2px solid …`) without
-     fighting Anta's unlayered defaults. The `--progress-border-
-     color` token is still here for any rules that want to opt into
-     the Anta-themed colour (e.g. a `<style>{`a-progress {
-     border-width: 2px; border-color: var(--progress-border-color);
-     }`}</style>` block). */
+  /* Per-component reset, same spirit as Tailwind preflight: declare
+     width / style / colour at a known state so a consumer only has
+     to change ONE property to opt in. Writing `border-width: 4px`
+     in your own CSS (or via the Anta playground's CSS tab) gives a
+     4px solid themed border immediately — no need to also specify
+     `border-style: solid` or `border-color`. */
+  border: 0px solid var(--progress-border-color);
   border-radius: 0;
 }
 
