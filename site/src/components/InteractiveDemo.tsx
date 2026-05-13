@@ -674,19 +674,30 @@ function setupIframe(iframe: HTMLIFrameElement) {
 
   // 2) Clone Anta-related <link rel="stylesheet"> + <style> tags from
   //    the parent into the iframe so the rendered preview gets the
-  //    same look as the docs site.
+  //    same look as the docs site. We wrap them in `@layer anta` so
+  //    they lose to anything unlayered (the user's pasted CSS) and
+  //    to higher-priority layers (Tailwind's `@layer utilities`,
+  //    etc.). Without this, Anta's element-level rules like
+  //    `a-progress { border: 0px solid … }` permanently beat any
+  //    Tailwind utility — layered rules always lose to unlayered
+  //    rules per the CSS Cascade Layers spec, so the *only* way to
+  //    let utilities override Anta is to put Anta in a layer.
+  const layerDecl = doc.createElement('style')
+  layerDecl.textContent = '@layer anta;'
+  doc.head.appendChild(layerDecl)
+
   for (const link of Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'))) {
-    const clone = doc.createElement('link')
-    clone.rel = 'stylesheet'
-    clone.href = link.href
-    doc.head.appendChild(clone)
+    const wrapper = doc.createElement('style')
+    wrapper.textContent = `@import url(${JSON.stringify(link.href)}) layer(anta);`
+    doc.head.appendChild(wrapper)
   }
-  // Also clone any inline <style> from the head that's likely tokens.
-  // (Astro inlines a small reset; this picks it up if present.)
+  // Inline <style> blocks that look like Anta tokens (Astro sometimes
+  // inlines anta_global_tokens.css). Wrap in the same layer so they
+  // sort with the cloned external stylesheets.
   for (const style of Array.from(document.head.querySelectorAll('style'))) {
     if (style.textContent && style.textContent.includes('--bg-base')) {
       const clone = doc.createElement('style')
-      clone.textContent = style.textContent
+      clone.textContent = `@layer anta { ${style.textContent} }`
       doc.head.appendChild(clone)
     }
   }

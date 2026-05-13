@@ -43,11 +43,18 @@ await build({
       setup(b) {
         b.onLoad({ filter: /\.css$/ }, async (args) => {
           const css = await readFile(args.path, 'utf8')
+          // Wrap each emitted block in `@layer anta` so user-supplied
+          // CSS (and library utilities like Tailwind's `@layer
+          // utilities`) wins. Per CSS Cascade Layers, layered rules
+          // always lose to unlayered rules and to rules in
+          // later-declared layers, so without this `a-progress {
+          // border: 0 solid … }` would beat any utility.
+          const layered = `@layer anta {\n${css}\n}`
           return {
             contents: `
               if (typeof document !== 'undefined') {
                 const __s = document.createElement('style');
-                __s.textContent = ${JSON.stringify(css)};
+                __s.textContent = ${JSON.stringify(layered)};
                 document.head.appendChild(__s);
               }
             `,
