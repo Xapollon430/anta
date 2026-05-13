@@ -203,13 +203,7 @@
   display: inline-block;
 }
 
-/* Render the same 1px underline on both the active tab and any tab
-   the cursor is on, so hover gives the same visual affordance as
-   the active state — selection is "rendered" whenever a tab is
-   focused-by-pointer or selected. */
-.tabBtnActive .tabLabel::after,
-.tabBtn:hover .tabLabel::after,
-.tabBtn:focus-visible .tabLabel::after {
+.tabBtnActive .tabLabel::after {
   content: "";
   position: absolute;
   left: 0;
@@ -217,14 +211,6 @@
   bottom: -7px;
   height: 1px;
   background: var(--text-2);
-}
-
-/* When a non-active tab is hovered, the underline picks up the
-   text-1 hover colour so it tracks the brightened label. The active
-   tab keeps text-2 (set above) — that's the rest state. */
-.tabBtn:hover .tabLabel::after,
-.tabBtn:focus-visible .tabLabel::after {
-  background: var(--text-1);
 }
 
 /* Stacking container — both tab panels share the same grid cell so
@@ -354,16 +340,19 @@
   transition: background 150ms ease-out, color 150ms ease-out;
 }
 
-.segBtn:hover, .segBtn:focus {
-  color: var(--text-2);
-}
-
+/* Hover renders the same pill affordance as the active state so the
+   tab-like control previews on hover and commits on click. The
+   default rest state stays "no selection rendered" when the prop
+   isn't yet set in code, matching the form contract. */
+.segBtn:hover,
+.segBtn:focus-visible,
 .segBtnActive,
 .segBtnActive:hover,
-.segBtnActive:focus {
+.segBtnActive:focus-visible {
   background: var(--bg-section);
   color: var(--text-1);
   box-shadow: 0 0 2px var(--border-3);
+  outline: none;
 }
 
 .editorHost {
