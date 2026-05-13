@@ -33,6 +33,37 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     <link rel="icon" type="image/svg+xml" href="/anta-favicon.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
+    {/*
+      Preload the brand fonts so the browser starts fetching them in
+      parallel with HTML parsing — without this the font requests
+      don't fire until the CSS rule is parsed, by which point the page
+      has already painted with the fallback and `font-display: swap`
+      visibly re-renders. `crossorigin` is required for fetch-credentials
+      to match @font-face requests; without it the preloaded resource
+      doesn't get reused by the @font-face fetch and we'd preload twice.
+    */}
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="https://ucarecdn.com/af38fa86-199f-44f5-82d2-3ea2a690dd6c/"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="https://ucarecdn.com/61bd3320-3787-4a92-887e-a5ff7bd6e051/"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="https://ucarecdn.com/03e90df9-d945-4837-b177-cdc408e94bb4/"
+    />
+
     <meta property="og:type" content="website" />
     <meta property="og:url" content={pageUrl} />
     <meta property="og:title" content={pageTitle} />
