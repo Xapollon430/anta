@@ -645,7 +645,12 @@ function FieldControl({
           />
         </label>
       )
-    case 'segmented':
+    case 'segmented': {
+      // When no literal is set in code, fall back to the control's
+      // default so the "implicit" choice still reads as active —
+      // unlike text/number inputs, segmented buttons need a visible
+      // selection to convey state.
+      const selected = value !== undefined ? value : control.defaultValue
       return (
         <div class={`${s.segment} ${cls}`} role="radiogroup" aria-label={control.name}>
           {control.options.map((opt) => (
@@ -653,8 +658,8 @@ function FieldControl({
               key={opt}
               type="button"
               role="radio"
-              aria-checked={value === opt}
-              class={value === opt ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
+              aria-checked={selected === opt}
+              class={selected === opt ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
               onClick={() => onChange(opt)}
               disabled={disabled}
             >
@@ -663,6 +668,7 @@ function FieldControl({
           ))}
         </div>
       )
+    }
   }
 }
 
