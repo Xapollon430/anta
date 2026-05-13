@@ -682,8 +682,13 @@ function setupIframe(iframe: HTMLIFrameElement) {
   //    Tailwind utility — layered rules always lose to unlayered
   //    rules per the CSS Cascade Layers spec, so the *only* way to
   //    let utilities override Anta is to put Anta in a layer.
+  // Layer order: anything in `theme` / `base` / `components` loses
+  // to Anta (so Tailwind's preflight reset doesn't wipe Anta's
+  // internal paddings), but Anta loses to `utilities` (so Tailwind's
+  // class-based overrides like `.border-4` still win). User CSS
+  // remains unlayered → highest priority.
   const layerDecl = doc.createElement('style')
-  layerDecl.textContent = '@layer anta;'
+  layerDecl.textContent = '@layer theme, base, components, anta, utilities;'
   doc.head.appendChild(layerDecl)
 
   for (const link of Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'))) {
