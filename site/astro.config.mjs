@@ -55,6 +55,15 @@ export default defineConfig({
     preact({ compat: true }),
     astroExpressiveCode({
       themes: ['github-light', 'tokyo-night'],
+      // Switch themes by the docs site's `.dark` class on <html>,
+      // not by `prefers-color-scheme`. The theme toggle in the
+      // sidebar lives in user-space — the OS preference is only the
+      // fallback when the user has never toggled — so binding code-
+      // block themes to the media query made them lag behind the
+      // explicit choice. github-light (first in the array) stays as
+      // the unscoped default; tokyo-night applies under `.dark`.
+      useDarkModeMediaQuery: false,
+      themeCssSelector: (theme) => theme.type === 'dark' ? '.dark' : '',
       styleOverrides: {
         borderWidth: '1px',
         borderColor: 'var(--border-1)',
