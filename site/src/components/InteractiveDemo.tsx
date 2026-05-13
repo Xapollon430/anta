@@ -674,35 +674,26 @@ function setupIframe(iframe: HTMLIFrameElement) {
 
   // 2) Clone Anta-related <link rel="stylesheet"> + <style> tags from
   //    the parent into the iframe so the rendered preview gets the
-  //    same look as the docs site. We wrap them in `@layer anta` so
-  //    they lose to anything unlayered (the user's pasted CSS) and
-  //    to higher-priority layers (Tailwind's `@layer utilities`,
-  //    etc.). Without this, Anta's element-level rules like
-  //    `a-progress { border: 0px solid … }` permanently beat any
-  //    Tailwind utility — layered rules always lose to unlayered
-  //    rules per the CSS Cascade Layers spec, so the *only* way to
-  //    let utilities override Anta is to put Anta in a layer.
-  // Layer order: anything in `theme` / `base` / `components` loses
-  // to Anta (so Tailwind's preflight reset doesn't wipe Anta's
-  // internal paddings), but Anta loses to `utilities` (so Tailwind's
-  // class-based overrides like `.border-4` still win). User CSS
-  // remains unlayered → highest priority.
-  const layerDecl = doc.createElement('style')
-  layerDecl.textContent = '@layer theme, base, components, anta, utilities;'
-  doc.head.appendChild(layerDecl)
-
+  //    same look as the docs site. Anta CSS stays unlayered — its
+  //    component defaults beat anything in a cascade layer
+  //    (including Tailwind's `@layer utilities`), and consumers can
+  //    override via higher-specificity unlayered class selectors
+  //    written in their own CSS (which always tie-break in their
+  //    favour at unlayered tier). Tailwind utility classes WILL NOT
+  //    override Anta declarations — that's an accepted tradeoff for
+  //    keeping the library's defaults sticky.
   for (const link of Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'))) {
-    const wrapper = doc.createElement('style')
-    wrapper.textContent = `@import url(${JSON.stringify(link.href)}) layer(anta);`
-    doc.head.appendChild(wrapper)
+    const clone = doc.createElement('link')
+    clone.rel = 'stylesheet'
+    clone.href = link.href
+    doc.head.appendChild(clone)
   }
-  // Inline <style> blocks that look like Anta tokens (Astro sometimes
-  // inlines anta_global_tokens.css). Wrap in the same layer so they
-  // sort with the cloned external stylesheets.
+  // Also clone any inline <style> from the head that's likely tokens.
+  // (Astro inlines a small reset; this picks it up if present.)
   for (const style of Array.from(document.head.querySelectorAll('style'))) {
     if (style.textContent && style.textContent.includes('--bg-base')) {
       const clone = doc.createElement('style')
-      clone.textContent = `@layer anta { ${style.textContent} }`
+      clone.textContent = style.textContent
       doc.head.appendChild(clone)
     }
   }

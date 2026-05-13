@@ -21,7 +21,17 @@ a-progress {
   padding: 4px 8px;
   min-height: 8px;
   background: var(--progress-bg);
-  border: 0px solid var(--progress-border-color);
+  /* No border by default. We deliberately don't declare
+     border-width / border-style on the host: with `border-style:
+     none` (the browser default) the box stays invisible regardless
+     of width, and with nothing about the border declared by Anta
+     a consumer can layer in `.border-4 .border-solid
+     .border-red-500` (or hand-write `border: 2px solid …`) without
+     fighting Anta's unlayered defaults. The `--progress-border-
+     color` token is still here for any rules that want to opt into
+     the Anta-themed colour (e.g. a `<style>{`a-progress {
+     border-width: 2px; border-color: var(--progress-border-color);
+     }`}</style>` block). */
   border-radius: 0;
 }
 
