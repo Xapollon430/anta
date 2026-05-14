@@ -26,29 +26,63 @@ export interface PropDescriptor {
  * Replace (or insert or remove) a single attribute of the target
  * element. Returns the new source. If the target element can't be
  * located the original source is returned unchanged.
+ *
+ * When `range` is supplied, the locator is constrained to that slice
+ * of the source — used by the multi-example playground so a form
+ * tied to one example only edits that example's JSX.
  */
 export function replaceProp(
   source: string,
   componentName: string,
   prop: PropDescriptor,
   nextValue: string | number | boolean | null | undefined,
+  range?: { start: number; end: number },
 ): string {
+  if (range) {
+    const slice = source.slice(range.start, range.end)
+    const open = locateOpeningTag(slice, componentName)
+    if (!open) return source
+    const offsetOpen = shiftOpenTag(open, range.start)
+    const existing = findAttribute(source, offsetOpen, prop.name)
+    return applyEdit(source, prop, nextValue, offsetOpen, existing)
+  }
   const open = locateOpeningTag(source, componentName)
   if (!open) return source
-
   const existing = findAttribute(source, open, prop.name)
-  const shouldRemove = isAtDefault(nextValue, prop) || nextValue === '' || nextValue == null
+  return applyEdit(source, prop, nextValue, open, existing)
+}
 
+function applyEdit(
+  source: string,
+  prop: PropDescriptor,
+  nextValue: string | number | boolean | null | undefined,
+  open: ReturnType<typeof locateOpeningTag> & object,
+  existing: ReturnType<typeof findAttribute>,
+): string {
+  const shouldRemove = isAtDefault(nextValue, prop) || nextValue === '' || nextValue == null
   if (shouldRemove) {
     if (!existing) return source
     return removeAttribute(source, existing.start, existing.end)
   }
-
-  const serialized = serializeAttribute(prop, nextValue)
+  const serialized = serializeAttribute(prop, nextValue!)
   if (existing) {
     return source.slice(0, existing.start) + serialized + source.slice(existing.end)
   }
   return insertAttribute(source, open, serialized)
+}
+
+function shiftOpenTag(
+  open: NonNullable<ReturnType<typeof locateOpeningTag>>,
+  delta: number,
+): NonNullable<ReturnType<typeof locateOpeningTag>> {
+  return {
+    start: open.start + delta,
+    end: open.end + delta,
+    selfClosing: open.selfClosing,
+    text: open.text,
+    attrsStart: open.attrsStart + delta,
+    attrsEnd: open.attrsEnd + delta,
+  }
 }
 
 function isAtDefault(value: unknown, prop: PropDescriptor): boolean {

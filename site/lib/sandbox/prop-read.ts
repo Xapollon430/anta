@@ -21,9 +21,29 @@ export type ReadResult = { kind: 'literal'; value: string | number | boolean } |
  *   - undefined if the attribute isn't present at all — the form should
  *     show its default value.
  */
-export function readProp(source: string, componentName: string, prop: PropDescriptor): ReadResult {
-  const open = locateOpeningTag(source, componentName)
-  if (!open) return undefined
+export function readProp(
+  source: string,
+  componentName: string,
+  prop: PropDescriptor,
+  range?: { start: number; end: number },
+): ReadResult {
+  let open
+  if (range) {
+    const slice = source.slice(range.start, range.end)
+    const localOpen = locateOpeningTag(slice, componentName)
+    if (!localOpen) return undefined
+    open = {
+      start: localOpen.start + range.start,
+      end: localOpen.end + range.start,
+      selfClosing: localOpen.selfClosing,
+      text: localOpen.text,
+      attrsStart: localOpen.attrsStart + range.start,
+      attrsEnd: localOpen.attrsEnd + range.start,
+    }
+  } else {
+    open = locateOpeningTag(source, componentName)
+    if (!open) return undefined
+  }
   const attr = findAttribute(source, open, prop.name)
   if (!attr) return undefined
 
