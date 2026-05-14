@@ -66,7 +66,7 @@ export function locateOpeningTag(source: string, componentName: string): OpenTag
  * and `{…}` nesting. Returns `null` if the source ends without a
  * closer (malformed JSX during typing — caller will leave code alone).
  */
-function findOpenTagClose(
+export function findOpenTagClose(
   source: string,
   from: number,
 ): { end: number; selfClosing: boolean; markerStart: number } | null {
@@ -103,7 +103,7 @@ function findOpenTagClose(
 }
 
 /** Skip a `{…}` block starting at `i` (which must be `{`). Handles nested braces, strings, templates. */
-function skipBraced(source: string, start: number): number | null {
+export function skipBraced(source: string, start: number): number | null {
   let i = start + 1
   let depth = 1
   while (i < source.length && depth > 0) {
@@ -254,4 +254,46 @@ export function findAttribute(
     return null
   }
   return null
+}
+
+/**
+ * Enumerate the attribute names present on the opening tag in source
+ * order. Skips spread attributes (`{...rest}`), unquoted forms we
+ * don't understand, and obviously malformed cases.
+ */
+export function listAttributes(source: string, open: OpenTagRange): string[] {
+  const names: string[] = []
+  let i = open.attrsStart
+  while (i < open.attrsEnd) {
+    const c = source[i]
+    if (c === ' ' || c === '\t' || c === '\n' || c === '\r') { i++; continue }
+    if (c === '{') {
+      const j = skipBraced(source, i)
+      if (j == null) break
+      i = j
+      continue
+    }
+    // Identifier characters per JSX attribute names.
+    let nameEnd = i
+    while (nameEnd < open.attrsEnd && /[A-Za-z0-9_$\-:]/.test(source[nameEnd])) nameEnd++
+    if (nameEnd === i) { i++; continue }
+    names.push(source.slice(i, nameEnd))
+    i = nameEnd
+    while (i < open.attrsEnd && (source[i] === ' ' || source[i] === '\t')) i++
+    if (source[i] === '=') {
+      i++
+      while (i < open.attrsEnd && (source[i] === ' ' || source[i] === '\t')) i++
+      const v = source[i]
+      if (v === '"' || v === "'") {
+        const j = skipQuoted(source, i, v)
+        if (j == null) break
+        i = j
+      } else if (v === '{') {
+        const j = skipBraced(source, i)
+        if (j == null) break
+        i = j
+      }
+    }
+  }
+  return names
 }

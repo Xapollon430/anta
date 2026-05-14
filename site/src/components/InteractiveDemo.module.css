@@ -103,10 +103,11 @@
   background: var(--bg-pane);
   display: flex;
   flex-direction: column;
-  /* Floor on the panel height (the `--demo-panel-min` inline var is
-     set from the panelHeight prop, default 400). The panel grows
-     past this floor when its content needs more space. */
-  min-height: var(--demo-panel-min, 400px);
+  /* Fixed height (the `--demo-panel-h` inline var is set from the
+     panelHeight prop, default 400). Content that exceeds this height
+     scrolls internally — no special handling, just regular HTML
+     overflow rules. */
+  height: var(--demo-panel-h, 400px);
   /* Clip Monaco's canvas to the rounded corners. Hover / suggestion
      popups escape via `fixedOverflowWidgets` in the editor options. */
   overflow: hidden;
@@ -243,6 +244,82 @@
   pointer-events: none;
 }
 
+/* List of JSDoc-headed examples. Scrolls when there's more than the
+   panel can show; section dividers come from each example's
+   border-bottom. */
+.examplesList {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.example {
+  border-bottom: 1px solid var(--border-1);
+}
+.example:last-child {
+  border-bottom: none;
+}
+
+/* Header is the whole clickable strip — chevron + label, takes the
+   full width so the hit area covers the row. Matches the tab strip's
+   visual rhythm (12px font, uppercase, 0.06em tracking). */
+.exampleHeader {
+  appearance: none;
+  border: none;
+  background: transparent;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px 10px 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  text-align: left;
+  transition: color 120ms ease-out;
+}
+
+.exampleHeader:hover,
+.exampleHeader:focus-visible {
+  color: var(--text-1);
+  outline: none;
+}
+
+.exampleHeaderOpen {
+  color: var(--text-2);
+}
+
+/* Chevron shape is swapped between `chevron-right` (collapsed) and
+   `chevron-down` (expanded) by the JSX, so no rotation needed. */
+.exampleChevron {
+  flex-shrink: 0;
+}
+
+.exampleLabel {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.exampleBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 4px;
+}
+
+.exampleDescription {
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--text-3);
+  white-space: pre-wrap;
+}
+
 .form {
   padding: 12px;
   display: flex;
@@ -282,6 +359,14 @@
 }
 
 .fieldValueLabel {
+  font-family: var(--monospace);
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* Documentation row — read-only type for complex props (children,
+   style, ReactNode, …). Renders the type in monospace; no input. */
+.docType {
   font-family: var(--monospace);
   font-size: 12px;
   color: var(--text-3);

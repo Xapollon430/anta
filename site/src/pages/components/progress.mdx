@@ -3,8 +3,12 @@ layout: ../../layouts/DocsLayout.astro
 title: Progress
 ---
 import InteractiveDemo from '../../components/InteractiveDemo'
-import ProgressDemo from '../../components/ProgressDemo'
-import PropsTable from '../../components/PropsTable.astro'
+// The demo source lives in a sibling `.ts` file rather than inline
+// here because Astro's MDX pipeline trims leading whitespace from
+// JSX-attribute template literals, which scrambles the indentation
+// Monaco needs for folding ranges. A regular module import preserves
+// the template literal's bytes verbatim.
+import progressDemoCode from './progress.demo.ts'
 
 # Progress
 
@@ -15,52 +19,8 @@ A progress indicator for displaying task completion. Consists of a track
   client:load
   component="Progress"
   layout="side"
-  initialCode={`import { Progress } from '@antadesign/anta'
-
-<Progress value={42} label="Uploading files…" hint="3 of 7" />
-`}
+  initialCode={progressDemoCode}
 />
-
-## Props
-
-<PropsTable component="Progress" />
-
-## Examples
-
-### Basic
-
-```tsx
-<Progress value={60} />
-```
-
-### With label and hint
-
-```tsx
-<Progress value={42} label="Uploading files..." hint="3 of 7" />
-```
-
-### Info tone
-
-```tsx
-<Progress value={75} tone="info" label="Processing" />
-```
-
-### With a border
-
-The host element pre-declares `border: 0px solid var(--progress-border-color)` — the colour and style are already wired, only the width is zero. To enable a border on any side, just give it a width. The border colour automatically tracks `--progress-border-color`, so it retones (e.g. `border-2-info` for `tone="info"`) without any extra CSS.
-
-```tsx
-<Progress
-  value={60}
-  label="Uploading"
-  hint="3 of 5"
-  style={{ borderBottomWidth: '1px' }}
-/>
-```
-
-## Interactive demo
-
-<ProgressDemo client:load />
 
 ## Component tokens
 

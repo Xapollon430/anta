@@ -19,11 +19,12 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import s from './InteractiveDemo.module.css'
 
-import { controlsFor, type Control, type PropEntry } from '../../lib/sandbox/props-form.ts'
+import { controlsFor, controlsForExample, type Control, type PropEntry } from '../../lib/sandbox/props-form.ts'
 import { bundle, type BundleResult } from '../../lib/sandbox/bundler.ts'
 import { getDemoModules } from '../../lib/sandbox/modules.ts'
 import { replaceProp } from '../../lib/sandbox/prop-patch.ts'
 import { readProp } from '../../lib/sandbox/prop-read.ts'
+import { parseExamples, type Example } from '../../lib/sandbox/parse-examples.ts'
 
 /** Path served from `site/public/`. The script is a self-contained
  *  browser ESM bundle of @antadesign/anta/elements + per-element CSS;
@@ -53,46 +54,13 @@ interface Props {
 
 type Tab = 'props' | 'code' | 'css'
 
-/** Read the bound component's `className` attribute from the user's
- *  source. If it's a non-empty literal string, return that name —
- *  used to (a) decide whether to surface the CSS tab and (b) seed
- *  the CSS editor with a `.<name> { }` skeleton on first appearance. */
-function readClassNameLiteral(code: string, component: string): string | null {
-  const r = readProp(code, component, { name: 'className', kind: 'string' })
-  if (r?.kind === 'literal' && typeof r.value === 'string' && r.value.trim()) {
-    return r.value.trim()
-  }
-  return null
-}
-
-/** Make sure the CSS source contains a rule whose selector is
- *  `.<className>` — the first class rule we find is repointed to
- *  this name (preserving its body), and if no class rule exists at
- *  all we prepend an empty one. The rest of the CSS is left
- *  untouched. */
-function ensureClassRule(css: string, className: string): string {
-  // Match the FIRST `.<ident> {` selector in the source. CSS class
-  // names can contain word chars and hyphens, can't start with a digit.
-  const re = /\.([a-zA-Z_][\w-]*)(\s*\{)/
-  const m = re.exec(css)
-  if (m) {
-    if (m[1] === className) return css
-    const start = m.index
-    const tail = css.slice(start + m[0].length)
-    return css.slice(0, start) + `.${className}${m[2]}` + tail
-  }
-  return `.${className} {\n  \n}\n${css}`
-}
-
 export default function InteractiveDemo({ component, initialCode, layout = 'stacked', panelHeight = 400 }: Props) {
   const [code, setCode] = useState(initialCode)
-  // CSS state is independent of the code. We seed it once on mount
-  // from whatever className the initialCode already declares, then
-  // the user owns it.
-  const [styles, setStyles] = useState<string>(() => {
-    const name = readClassNameLiteral(initialCode, component)
-    return name ? `.${name} {\n  \n}\n` : ''
-  })
+  // CSS state is independent of the code — the user owns it. The CSS
+  // tab is unconditionally available; no auto-seed from any className
+  // in the JSX. If a user wants to style a class, they write the rule
+  // by hand and add `className="…"` themselves.
+  const [styles, setStyles] = useState<string>('')
   const [bundleState, setBundleState] = useState<BundleResult | { ok: false; message: string; pending: true } | null>({
     ok: false,
     message: 'Compiling…',
@@ -117,36 +85,11 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
   const tsxHostRef = useRef<HTMLDivElement | null>(null)
   const cssHostRef = useRef<HTMLDivElement | null>(null)
 
-  // First class token of the bound component's `className`. We only
-  // ever pay attention to the first whitespace-separated class —
-  // any others the user lists are ignored by the CSS surface.
-  const firstClass = (readClassNameLiteral(code, component) ?? '').split(/\s+/)[0] ?? ''
-  const hasClassName = firstClass !== ''
-
-  // If the className disappears while the CSS tab was active, snap
-  // back to Props so we don't end up showing a hidden tab.
-  useEffect(() => {
-    if (!hasClassName && tab === 'css') setTab('props')
-  }, [hasClassName, tab])
-
-  // Track CSS in a ref so the className-watcher effect can read the
-  // latest value without re-running on every CSS edit.
-  const stylesRef = useRef(styles)
-  useEffect(() => { stylesRef.current = styles }, [styles])
-
-  // One-directional sync: when the className (first token) changes,
-  // make sure a `.<className>` rule exists in the CSS. If the CSS
-  // already has a first class rule, repoint its selector to the new
-  // name (body preserved). If there's no class rule at all, prepend
-  // an empty one. We never touch any other CSS the user wrote.
-  const prevClassRef = useRef<string>(firstClass)
-  useEffect(() => {
-    if (firstClass === prevClassRef.current) return
-    prevClassRef.current = firstClass
-    if (!firstClass) return
-    const next = ensureClassRule(stylesRef.current, firstClass)
-    if (next !== stylesRef.current) setStyles(next)
-  }, [firstClass])
+  // Parse JSDoc-headed JSX blocks out of the user's source. Each
+  // headed block becomes one entry in the Props accordion; the
+  // bundler also receives this list so it can strip JSDocs before
+  // wrapping the JSX in a Fragment.
+  const examples = useMemo(() => parseExamples(code), [code])
 
   // Track the parent's dark-mode state — drives both Monaco's theme
   // and the resolved value of --bg-section.
@@ -189,7 +132,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     if (tsxHost) ro.observe(tsxHost)
     if (cssHost) ro.observe(cssHost)
     return () => ro.disconnect()
-  }, [monacoLib, hasClassName])
+  }, [monacoLib])
 
 
   // Resolve Anta's --monospace token for Monaco's fontFamily option —
@@ -285,13 +228,33 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function handleFormChange(prop: PropEntry, value: string | number | boolean | null) {
+  function handleFormChange(
+    prop: PropEntry,
+    value: string | number | boolean | null,
+    exampleId?: string,
+  ) {
     // Compute the next code from the LATEST committed state via the
     // functional setter form. A stale closure (e.g. the user pasted
     // into Monaco while React had not yet committed the resulting
     // state) would otherwise resurrect an older source and wipe the
-    // paste.
-    setCode((prev) => replaceProp(prev, component, prop.prop, value))
+    // paste. When an exampleId is supplied, re-parse inside the
+    // updater so the range we patch is up-to-date with whatever the
+    // latest source looks like — example boundaries shift as the
+    // file grows. The bound tag name comes from the example itself,
+    // not the global `component` prop — examples can use any tag
+    // (`Progress`, `AnimatedProgress`, …) and the form binds to
+    // whichever one the example declared.
+    setCode((prev) => {
+      if (!exampleId) {
+        return replaceProp(prev, component, prop.prop, value)
+      }
+      const latest = parseExamples(prev).find((e) => e.id === exampleId)
+      if (!latest || !latest.tagName) return prev
+      return replaceProp(prev, latest.tagName, prop.prop, value, {
+        start: latest.jsxStart,
+        end: latest.jsxEnd,
+      })
+    })
   }
 
   // ────────────────────────────────────────────────────────────────
@@ -373,7 +336,7 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
           />
         )}
 
-        <div class={s.panel} style={{ '--demo-panel-min': `${panelHeight}px` } as any}>
+        <div class={s.panel} style={{ '--demo-panel-h': `${panelHeight}px` } as any}>
           <div class={s.tabs} role="tablist">
             <button
               type="button"
@@ -393,17 +356,15 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
             >
               <span class={s.tabLabel}>Code</span>
             </button>
-            {hasClassName && (
-              <button
-                type="button"
-                role="tab"
-                aria-selected={tab === 'css'}
-                class={tab === 'css' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
-                onClick={() => setTab('css')}
-              >
-                <span class={s.tabLabel}>CSS</span>
-              </button>
-            )}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'css'}
+              class={tab === 'css' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
+              onClick={() => setTab('css')}
+            >
+              <span class={s.tabLabel}>CSS</span>
+            </button>
             {/* Reset edits to props / code. CSS is intentionally
                 preserved — the user owns it independently. */}
             <button
@@ -427,20 +388,37 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
               aria-hidden={tab !== 'props'}
               {...(tab !== 'props' ? { inert: '' } : {})}
             >
-              <div class={s.form}>
-                {controls.length === 0 && (
-                  <div class={s.fieldHint}>No props detected for {component}. Check api.json.</div>
-                )}
-                {controls.map((entry) => (
-                  <FormField
-                    key={entry.control.name}
-                    entry={entry}
-                    code={code}
-                    componentName={component}
-                    onChange={(v) => handleFormChange(entry, v)}
-                  />
-                ))}
-              </div>
+              {examples.length === 0 ? (
+                /* No JSDoc-headed examples in source — render a single
+                   anonymous form bound to the whole code. Backwards-
+                   compatible with the previous single-example flow. */
+                <div class={s.form}>
+                  {controls.length === 0 && (
+                    <div class={s.fieldHint}>No props detected for {component}. Check api.json.</div>
+                  )}
+                  {controls.map((entry) => (
+                    <FormField
+                      key={entry.control.name}
+                      entry={entry}
+                      code={code}
+                      componentName={component}
+                      onChange={(v) => handleFormChange(entry, v)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div class={s.examplesList}>
+                  {examples.map((ex, i) => (
+                    <ExampleAccordion
+                      key={ex.id}
+                      example={ex}
+                      defaultOpen={i === 0}
+                      code={code}
+                      onChange={handleFormChange}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             <div
               class={tab === 'code' ? s.tabPanel : `${s.tabPanel} ${s.tabPanelHidden}`}
@@ -469,6 +447,16 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
                     onMonacoMount(editor, monaco)
                     installJsxAwareCommentToggle(editor, monaco)
                     editor.layout()
+                    // Collapse every foldable region on first mount.
+                    // The authoring convention is to put the `# Heading`
+                    // on the opening `/​**` line, which Monaco keeps
+                    // visible when the comment is folded — so the
+                    // example label stays readable while the body
+                    // collapses away. Deferred so the language service
+                    // has time to compute fold ranges before we run.
+                    setTimeout(() => {
+                      editor.getAction('editor.foldAll')?.run()
+                    }, 400)
                   }}
                   options={editorOptions(monoFontFamily)}
                 />
@@ -539,15 +527,17 @@ function FormField({
   entry,
   code,
   componentName,
+  range,
   onChange,
 }: {
   entry: PropEntry
   code: string
   componentName: string
+  range?: { start: number; end: number }
   onChange: (v: string | number | boolean | null) => void
 }) {
   const c = entry.control
-  const read = readProp(code, componentName, entry.prop)
+  const read = readProp(code, componentName, entry.prop, range)
   const fromExpression = read?.kind === 'expression'
   // Only the literal in code populates the input; the default is
   // shown as a placeholder instead so the user can tell what Anta
@@ -663,7 +653,91 @@ function FieldControl({
         </div>
       )
     }
+    case 'documentation':
+      // Read-only documentation row — no input, just the type
+      // string so the panel doubles as a prop reference.
+      return (
+        <div class={s.docType}>
+          <code>{control.type}</code>
+        </div>
+      )
   }
+}
+
+// One accordion entry in the Props panel — collapsible section
+// per JSDoc-headed example. Sections are independent (multiple can
+// be open at once). Each section's form is range-bound so its edits
+// only touch that example's JSX. We capture `example.id` in the
+// onChange closure and look up the latest range at edit time
+// (see `handleFormChange` for the re-parse-on-update flow).
+function ExampleAccordion({
+  example,
+  defaultOpen,
+  code,
+  onChange,
+}: {
+  example: Example
+  defaultOpen: boolean
+  code: string
+  onChange: (entry: PropEntry, value: string | number | boolean | null, exampleId: string) => void
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  // Per-example control schema. JSX examples introspect their tag:
+  // known components (api.json) get their full prop set; unknown
+  // tags fall back to attribute inference from the JSX itself.
+  // Expression examples don't drive a form.
+  const controls = useMemo(() => {
+    if (example.kind !== 'jsx' || !example.tagName) return []
+    return controlsForExample(example.tagName, code, {
+      start: example.jsxStart,
+      end: example.jsxEnd,
+    })
+  }, [example.tagName, example.kind, example.jsxStart, example.jsxEnd, code])
+
+  return (
+    <div class={s.example}>
+      <button
+        type="button"
+        class={open ? `${s.exampleHeader} ${s.exampleHeaderOpen}` : s.exampleHeader}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <a-icon
+          shape={open ? 'chevron-down' : 'chevron-right'}
+          class={s.exampleChevron}
+          style={{ '--icon-size': '14px' } as any}
+        />
+        <span class={s.exampleLabel}>{example.label}</span>
+      </button>
+      {open && (
+        <div class={s.exampleBody}>
+          {example.description && (
+            <div class={s.exampleDescription}>{example.description}</div>
+          )}
+          {/* The Props form binds only when the example body is a
+              plain `<Tag …>` element — `{}` expression bodies
+              (IIFEs, inline components) are too dynamic to bind to.
+              The accordion entry still shows heading + description
+              for documented examples; the user edits the JSX in the
+              Code tab if they want to change anything. */}
+          {example.kind === 'jsx' && controls.length > 0 && (
+            <div class={s.form}>
+              {controls.map((entry) => (
+                <FormField
+                  key={entry.control.name}
+                  entry={entry}
+                  code={code}
+                  componentName={example.tagName!}
+                  range={{ start: example.jsxStart, end: example.jsxEnd }}
+                  onChange={(v) => onChange(entry, v, example.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ──────────────────────────────────────────────────────────────────
@@ -678,8 +752,20 @@ function FieldControl({
 const IFRAME_SRCDOC = `<!DOCTYPE html><html class="dark"><head><meta charset="utf-8"><style>
   html, body { margin: 0; background: var(--bg-base, #100e11); font-family: var(--sans-serif, sans-serif); }
   body { padding: 24px; overflow: auto; box-sizing: border-box; min-height: 100%; }
-  #root { display: block; }
-</style></head><body><div id="root"></div></body></html>`
+  /* Preview default layout: a column-flex with 16px gap so multiple
+     examples stack vertically with consistent breathing room. The
+     rule lives under a .preview class so users can re-declare it
+     from their own CSS to change the layout. Single-example renders
+     are unaffected — one column-flex child looks identical to a
+     block child. Scoped to #root inside the iframe; never touches
+     the docs-site DOM. */
+  .preview {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+</style></head><body><div id="root" class="preview"></div></body></html>`
 
 function setupIframe(iframe: HTMLIFrameElement) {
   const doc = iframe.contentDocument

@@ -48,7 +48,10 @@ export type BundleResult = BundleSuccess | BundleFailure
  *  If `userStyles` is provided (non-empty), the bundle prepends a
  *  small preamble that injects the styles as a `<style id="user-
  *  styles">` element in the iframe head — replacing any previous one. */
-export async function bundle(userCode: string, userStyles?: string): Promise<BundleResult> {
+export async function bundle(
+  userCode: string,
+  userStyles?: string,
+): Promise<BundleResult> {
   let esbuild: typeof import('esbuild-wasm')
   try {
     esbuild = await ensureInit()
@@ -194,6 +197,17 @@ function wrapWithRender(code: string): string | null {
   if (jsxStart === -1) return null
   const before = lines.slice(0, jsxStart).join('\n').trimEnd()
   let jsxBlock = lines.slice(jsxStart).join('\n').trim().replace(/;?\s*$/, '')
+
+  // Strip every `/** … */` block comment from the JSX region. JSX
+  // treats anything between two sibling JSX nodes that isn't `{…}`
+  // as text — so a JSDoc that lives inside the Fragment would render
+  // as visible text in the preview, not as a JS comment. The
+  // playground uses these JSDocs as metadata for the Props panel and
+  // for source-code readers; they have no role at runtime, so drop
+  // them before the Fragment wrap. (JSDocs in the *preamble* — above
+  // the first `<` line — are left alone; they're regular JS comments
+  // documenting helper functions and never end up inside JSX.)
+  jsxBlock = jsxBlock.replace(/\/\*\*[\s\S]*?\*\//g, '')
 
   // Strip `<script>` tags from the user's JSX block — Preact (like
   // React) renders them as inert DOM nodes the browser refuses to
