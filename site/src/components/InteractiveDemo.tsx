@@ -447,37 +447,15 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
                     onMonacoMount(editor, monaco)
                     installJsxAwareCommentToggle(editor, monaco)
                     editor.layout()
-                    // Collapse every code fold region on first mount,
-                    // but keep JSDoc block comments expanded so
-                    // example labels + descriptions stay readable.
-                    // Monaco has `foldAllBlockComments` but no
-                    // symmetric `unfoldAllBlockComments`, so instead
-                    // of folding everything and un-folding comments,
-                    // talk to the folding controller directly: each
-                    // region exposes a `getType(i)` ('comment' for
-                    // JSDoc, undefined for code blocks). Collect the
-                    // non-comment regions and collapse them in one
-                    // `toggleCollapseState` call. Deferred so the
-                    // language service has time to compute ranges.
+                    // Collapse every foldable region on first mount.
+                    // The authoring convention is to put the `# Heading`
+                    // on the opening `/​**` line, which Monaco keeps
+                    // visible when the comment is folded — so the
+                    // example label stays readable while the body
+                    // collapses away. Deferred so the language service
+                    // has time to compute fold ranges before we run.
                     setTimeout(() => {
-                      const controller = editor.getContribution(
-                        'editor.contrib.folding',
-                      ) as any
-                      const promise = controller?.getFoldingModel?.()
-                      if (!promise) return
-                      Promise.resolve(promise).then((foldingModel: any) => {
-                        if (!foldingModel) return
-                        const regions = foldingModel.regions
-                        const toCollapse: any[] = []
-                        for (let i = 0; i < regions.length; i++) {
-                          if (regions.getType(i) === 'comment') continue
-                          if (regions.isCollapsed(i)) continue
-                          toCollapse.push(regions.toRegion(i))
-                        }
-                        if (toCollapse.length > 0) {
-                          foldingModel.toggleCollapseState(toCollapse)
-                        }
-                      })
+                      editor.getAction('editor.foldAll')?.run()
                     }, 400)
                   }}
                   options={editorOptions(monoFontFamily)}

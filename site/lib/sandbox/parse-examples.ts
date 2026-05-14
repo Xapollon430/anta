@@ -136,9 +136,15 @@ export function parseExamples(source: string): Example[] {
 }
 
 /** Find a `# Heading` line in the JSDoc body and split it into label
- *  + description. Returns null if there's no heading at all. */
+ *  + description. Returns null if there's no heading at all. The
+ *  heading may sit on the opening `/​**` line (so Monaco's fold range
+ *  keeps the heading visible when the comment is collapsed) or on a
+ *  subsequent ` * ` line — both shapes are recognised. */
 function extractHeading(body: string): { label: string; description: string } | null {
-  const lines = body.split('\n').map((l) => l.replace(/^\s*\*\s?/, ''))
+  // Strip the standard ` * ` JSDoc prefix; on the first line (no
+  // leading `*`) just strip leading whitespace so headings authored
+  // inline with `/​**` are still recognised.
+  const lines = body.split('\n').map((l) => l.replace(/^\s*\*?\s?/, ''))
   let headingIdx = -1
   for (let i = 0; i < lines.length; i++) {
     const m = lines[i].match(/^#\s+(.+?)\s*$/)
