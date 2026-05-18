@@ -2,48 +2,35 @@
 layout: ../../layouts/DocsLayout.astro
 title: Progress
 ---
-import ProgressDemo from '../../components/ProgressDemo'
-import PropsTable from '../../components/PropsTable.astro'
+import InteractiveDemo from '../../components/InteractiveDemo'
+// The demo source lives in a sibling `.ts` file rather than inline
+// here because Astro's MDX pipeline trims leading whitespace from
+// JSX-attribute template literals, which scrambles the indentation
+// Monaco needs for folding ranges. A regular module import preserves
+// the template literal's bytes verbatim.
+import progressDemoCode from './progress.demo.ts'
 
 # Progress
 
 A progress indicator for displaying task completion. Consists of a track
 (background bar), an indicator (filled portion), and an optional label area.
 
-## Props
-
-<PropsTable component="Progress" />
-
-## Examples
-
-### Basic
-
-```tsx
-<Progress value={60} />
-```
-
-### With label and hint
-
-```tsx
-<Progress value={42} label="Uploading files..." hint="3 of 7" />
-```
-
-### Info tone
-
-```tsx
-<Progress value={75} tone="info" label="Processing" />
-```
-
-## Interactive demo
-
-<ProgressDemo client:load />
+<InteractiveDemo
+  client:load
+  component="Progress"
+  layout="side"
+  initialCode={progressDemoCode}
+/>
 
 ## Component tokens
 
-Progress uses these CSS custom properties for theming:
+Progress exposes these CSS custom properties as its theming surface. Override any of them in consumer CSS to retint a single instance, or set them on a `[tone="…"]` selector to add a new tone variant. Tokens marked *(shadow-only API)* style elements inside the shadow DOM and can **only** be customized via these properties — consumer CSS can't reach those elements directly.
 
 | Token | Description |
 |-------|-------------|
-| `--progress-indicator-bg` | Indicator bar fill color |
-| `--progress-indicator-edge` | Gradient fade at the indicator's leading edge |
-| `--progress-label-color` | Color for the percentage number |
+| `--progress-bg` | Host background (the track behind the indicator). |
+| `--progress-border-color` | Host border colour. Also one endpoint of the indicator-edge gradient. |
+| `--progress-indicator-bg` *(shadow-only API)* | Indicator fill colour. Also the start endpoint of the indicator-edge gradient. |
+| `--progress-indicator-edge` *(shadow-only API)* | Gradient painted at the indicator's right edge. Defaults to `linear-gradient(90deg in oklch, var(--progress-indicator-bg), var(--progress-border-color))`. |
+| `--progress-text-color` | Colour of the percentage number and the label text. |
+| `--progress-hint-color` | Colour of the right-aligned hint text. |

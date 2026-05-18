@@ -62,31 +62,7 @@ const inherited = iface?.children
 ---
 
 {props.length > 0 && (
-  <table>
-    <thead>
-      <tr>
-        <th>Prop</th>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      {props.map((p: any) => (
-        <tr>
-          <td>
-            <code>{p.name}{p.flags?.isOptional ? '?' : ''}</code>
-          </td>
-          <td><code>{renderType(p.type)}</code></td>
-          <td>{renderComment(p.comment)}</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-)}
-
-{inherited.length > 0 && (
-  <details>
-    <summary>Inherited props ({inherited.map((p: any) => p.name).join(', ')})</summary>
+  <div class="table-wrap">
     <table>
       <thead>
         <tr>
@@ -96,14 +72,42 @@ const inherited = iface?.children
         </tr>
       </thead>
       <tbody>
-        {inherited.map((p: any) => (
+        {props.map((p: any) => (
           <tr>
-            <td><code>{p.name}?</code></td>
+            <td>
+              <code>{p.name}{p.flags?.isOptional ? '?' : ''}</code>
+            </td>
             <td><code>{renderType(p.type)}</code></td>
             <td>{renderComment(p.comment)}</td>
           </tr>
         ))}
       </tbody>
     </table>
+  </div>
+)}
+
+{inherited.length > 0 && (
+  <details>
+    <summary>Inherited props ({inherited.map((p: any) => p.name).join(', ')})</summary>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Prop</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {inherited.map((p: any) => (
+            <tr>
+              <td><code>{p.name}?</code></td>
+              <td><code>{renderType(p.type)}</code></td>
+              <td>{renderComment(p.comment)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   </details>
 )}

@@ -83,7 +83,7 @@ Confirmed via the dump on 2026-05-01:
 
 ## Where token values land in code
 
-- `src/anta_global_tokens.css` — exported as `@antadesign/anta/anta_global_tokens.css`.
+- `src/tokens.css` — exported as `@antadesign/anta/tokens.css`.
 - Each token is declared **twice**: hex first as a fallback, oklch second so capable browsers (Chrome 111+, Safari 15.4+, Firefox 113+) get perceptually-uniform values.
 
 ## Component conventions

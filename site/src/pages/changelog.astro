@@ -1,0 +1,25 @@
+---
+/**
+ * /changelog/ — single-URL changelog. Imports the repo-root CHANGELOG.md
+ * directly via Astro's markdown pipeline (Vite resolves the path; no
+ * intermediate generated .mdx file in version control).
+ *
+ * Two build-time transforms make this work:
+ *   1. rehype-changelog-sections wraps each <h2> version block plus its
+ *      siblings into <section data-stream="dev|main">.
+ *   2. base.css's html[data-stream] rules hide the inverse-stream
+ *      sections.
+ *
+ * Filter UX is provided by <ChangelogStreamTabs /> (URL ?stream=…).
+ */
+import DocsLayout from '../layouts/DocsLayout.astro'
+import ChangelogStreamTabs from '../components/ChangelogStreamTabs.astro'
+import { Content } from '../../../CHANGELOG.md'
+---
+
+<DocsLayout title="Changelog">
+  <ChangelogStreamTabs />
+  <div class="changelog">
+    <Content />
+  </div>
+</DocsLayout>

@@ -1,0 +1,108 @@
+---
+/**
+ * ChangelogStreamTabs.astro — three-button tab strip that filters the
+ * /changelog/ page client-side. Each button is just a UI control; the
+ * actual filter is applied by toggling html[data-stream="…"] (read by
+ * CSS rules in base.css that hide the inverse stream's <section>s).
+ *
+ * URL state: ?stream=dev or ?stream=main. Default (no param) shows all.
+ *
+ * Two scripts:
+ *
+ *  1. is:inline — runs synchronously in <head>, before <body> parses,
+ *     so the dataset attribute is on <html> by the time the changelog
+ *     sections paint. No flash on initial load with ?stream=… set.
+ *  2. defer (Astro default) — wires up tab clicks: updates the URL
+ *     (history.replaceState, no reload) and re-syncs the dataset +
+ *     aria-selected on the buttons.
+ */
+---
+
+<div class="changelog-tabs" role="tablist" aria-label="Changelog stream">
+  <button type="button" role="tab" data-stream-tab="all">All updates</button>
+  <button type="button" role="tab" data-stream-tab="dev">Dev releases</button>
+  <button type="button" role="tab" data-stream-tab="main">Main releases</button>
+</div>
+
+<script is:inline>
+  // Apply the URL filter before <body> parses → no flash.
+  (() => {
+    const s = new URLSearchParams(window.location.search).get('stream')
+    if (s === 'dev' || s === 'main') {
+      document.documentElement.dataset.stream = s
+    }
+  })()
+</script>
+
+<script>
+  const tabs = document.querySelector<HTMLElement>('.changelog-tabs')
+  if (tabs) {
+    const buttons = tabs.querySelectorAll<HTMLButtonElement>('[data-stream-tab]')
+
+    const sync = (stream: string) => {
+      if (stream === 'all') {
+        delete document.documentElement.dataset.stream
+      } else {
+        document.documentElement.dataset.stream = stream
+      }
+      buttons.forEach((b) => {
+        b.setAttribute('aria-selected', String(b.dataset.streamTab === stream))
+      })
+    }
+
+    // Initial state — script in <head> may have set the dataset; mirror
+    // that into the tab strip so the active button matches.
+    const initial = new URLSearchParams(window.location.search).get('stream') ?? 'all'
+    sync(initial === 'dev' || initial === 'main' ? initial : 'all')
+
+    tabs.addEventListener('click', (e) => {
+      const tab = (e.target as HTMLElement)?.closest<HTMLButtonElement>('[data-stream-tab]')
+      if (!tab) return
+      const stream = tab.dataset.streamTab ?? 'all'
+      const url = new URL(window.location.href)
+      if (stream === 'all') url.searchParams.delete('stream')
+      else url.searchParams.set('stream', stream)
+      window.history.replaceState({}, '', url.toString())
+      sync(stream)
+    })
+  }
+</script>
+
+<style is:global>
+  .changelog-tabs {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 4px;
+    border: 0.5px solid var(--border-2);
+    background: var(--bg-pane);
+    padding: 4px;
+    border-radius: 6px;
+    margin: 0 0 24px;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .changelog-tabs > button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font: inherit;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    color: var(--text-3);
+    padding: 4px 8px 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out;
+  }
+  .changelog-tabs > button:hover,
+  .changelog-tabs > button:focus {
+    color: var(--text-2);
+  }
+  .changelog-tabs > button[aria-selected="true"] {
+    background: var(--bg-section);
+    color: var(--text-1);
+    box-shadow: 0 0 2px var(--border-3);
+  }
+</style>

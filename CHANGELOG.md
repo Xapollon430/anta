@@ -6,6 +6,24 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## 0.1.1-dev.4 — May 6, 2026
+
+### Breaking
+- **`anta_global_tokens.css` renamed to `tokens.css`** and split. Consumers should update their import: `@antadesign/anta/anta_global_tokens.css` → `@antadesign/anta/tokens.css`. The new file contains *only* the CSS custom property declarations on `:root` / `:root.dark`, plus a one-line `@layer base, anta, components, utilities;` cascade-order declaration. Tokens stay unlayered (custom properties don't compete in the cascade).
+- **New `reset.css` import** carries the typography defaults that used to live alongside the tokens (`h1-h6 { font-weight: 600 }`, `strong`, `ul / ol / li / menu`, `a` link states) plus a modern small reset (universal box-sizing, margin reset, replaced-element block-display + max-width, form-control font inheritance, text-wrap defaults). All wrapped in `@layer anta`. Consumers who want Anta's previous out-of-the-box look add `import '@antadesign/anta/reset.css'` alongside the tokens import; consumers who have their own reset can skip it.
+- **All Anta CSS now lives in `@layer anta`** — element rules (`a-progress`, `a-text`, `a-icon`, `a-icon.shapes`), the reset, and the generate-icons output. Token property declarations (the `:root { --… }` blocks) remain unlayered so they're available everywhere unconditionally. The pre-declared layer order (`base, anta, components, utilities`) keeps Anta's defaults above any preflight resets (Tailwind's `@layer base`, etc.) while letting consumer components and utility classes override single properties when needed.
+
+### Changed
+- Progress component colors realigned with the "Anta 0.2" Figma library (frame `1313:1219`). All four states (light × dark × neutral × info) updated. Every Progress colour now resolves through an existing global token: `--bg-block` / `--bg-spot` / `--border-2` / `--text-2` / `--text-3` and their `-info` variants.
+- `--progress-indicator-edge` is now declared once at the base level and derives from `--progress-border-color` via CSS relative-colour syntax (`rgb(from … r g b / 0) → var(…)`). The right-edge gradient automatically tracks the border colour in every state.
+- `<a-progress-number>` color anchor moved from `--text-1` / `--text-1-info` to `--text-2` / `--text-2-info`, matching Figma's `component/progress/text-{neutral,info}` tokens.
+- `<a-progress-text>` and `<a-progress-hint>` are now tone-aware: in `tone="info"` they pick up `--text-2-info` / `--text-3-info` instead of staying on neutral. Previously this was a visual bug — the descriptive label and hint stayed grey even when the rest of the component shifted to info-blue.
+### Added
+- New `table-2` icon on `<a-icon>` (Lucide-derived). `synonyms.json` updated with search aliases (`table`, `grid`, `data`, `spreadsheet`, `rows`, `columns`); `a-icon.shapes.{ts,css}` regenerated.
+- New `sun` and `moon` icons on `<a-icon>` (Lucide-derived) for theme-toggle UIs.
+- New `refresh-ccw-dot` icon on `<a-icon>` (Lucide-derived) — used by the playground's reset button and useful for any "revert to defaults" affordance.
+
+
 ## 0.1.1-dev.3 — May 5, 2026
 
 ### Changed

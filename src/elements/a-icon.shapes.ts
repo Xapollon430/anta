@@ -60,12 +60,14 @@ export const ICON_SHAPES = [
   'menu',
   'minimize',
   'minus',
+  'moon',
   'more',
   'move-horizontal',
   'not-equal',
   'play',
   'plus',
   'presentation',
+  'refresh-ccw-dot',
   'refresh',
   'regex',
   'repeat',
@@ -76,7 +78,9 @@ export const ICON_SHAPES = [
   'search',
   'send',
   'sparkles',
+  'sun',
   'swatch-book',
+  'table-2',
   'text-highlight',
   'text-initial',
   'timer',
@@ -136,6 +140,7 @@ export const ICON_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   'case-sensitive': ['aA', 'capitalize', 'case'],
   'text-highlight': ['mark', 'highlight'],
   'list-detail-view': ['list', 'items'],
+  'table-2': ['table', 'grid', 'data', 'spreadsheet', 'rows', 'columns'],
   'folder-open': ['directory', 'browse'],
   'folder-close': ['directory'],
   'folder-tree': ['hierarchy', 'structure', 'tree'],
@@ -238,12 +243,14 @@ declare module '@antadesign/anta' {
     'menu': true
     'minimize': true
     'minus': true
+    'moon': true
     'more': true
     'move-horizontal': true
     'not-equal': true
     'play': true
     'plus': true
     'presentation': true
+    'refresh-ccw-dot': true
     'refresh': true
     'regex': true
     'repeat': true
@@ -254,7 +261,9 @@ declare module '@antadesign/anta' {
     'search': true
     'send': true
     'sparkles': true
+    'sun': true
     'swatch-book': true
+    'table-2': true
     'text-highlight': true
     'text-initial': true
     'timer': true
