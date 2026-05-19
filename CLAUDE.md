@@ -116,7 +116,7 @@ See `FIGMA.md` for rules when extracting tokens, components, or styles from the 
 text-decoration-color: color-mix(in oklch, currentColor 50%, transparent);
 
 /* token at 80% alpha */
-border-color: color-mix(in oklch, var(--border-2) 80%, transparent);
+border-color: color-mix(in oklch, var(--border-4) 80%, transparent);
 ```
 
 The same rule applies anywhere we lighten/darken/desaturate a color: prefer `color-mix(in oklch, <color> <p>%, <other-color>)` so all interpolation happens in a perceptually-uniform space.

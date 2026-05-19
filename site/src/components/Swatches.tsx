@@ -309,8 +309,8 @@ function BackgroundExample({ tone }: { tone: Tone }) {
     style['--bg-pane']  = `var(--bg-pane-${tone})`
     style['--bg-block'] = `var(--bg-block-${tone})`
     style['--bg-spot']  = `var(--bg-spot-${tone})`
-    style['--border-1'] = `var(--border-1-${tone})`
-    style['--border-2'] = `var(--border-2-${tone})`
+    style['--border-5'] = `var(--border-5-${tone})`
+    style['--border-4'] = `var(--border-4-${tone})`
     style['--text-1']   = `var(--text-1-${tone})`
   }
   return (

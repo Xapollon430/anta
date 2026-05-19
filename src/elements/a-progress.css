@@ -1,7 +1,7 @@
 @layer anta {
   a-progress {
     --progress-bg: var(--bg-block);
-    --progress-border-color: var(--border-2);
+    --progress-border-color: var(--border-4);
     --progress-indicator-bg: var(--bg-spot);
     /* Right-edge fade: from the indicator's own bg to the border
        colour, both opaque. Two opaque endpoints + `in oklch`
@@ -34,7 +34,7 @@
   
   a-progress[tone="info"] {
     --progress-bg: var(--bg-block-info);
-    --progress-border-color: var(--border-2-info);
+    --progress-border-color: var(--border-4-info);
     --progress-indicator-bg: var(--bg-spot-info);
     --progress-text-color: var(--text-2-info);
     --progress-hint-color: var(--text-3-info);

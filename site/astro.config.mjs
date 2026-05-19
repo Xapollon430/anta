@@ -66,7 +66,7 @@ export default defineConfig({
       themeCssSelector: (theme) => theme.type === 'dark' ? '.dark' : '',
       styleOverrides: {
         borderWidth: '1px',
-        borderColor: 'var(--border-1)',
+        borderColor: 'var(--border-5)',
         codeBackground: 'var(--bg-section)',
         codePaddingBlock: '0.75rem',
         codePaddingInline: '1rem',
@@ -77,7 +77,7 @@ export default defineConfig({
           editorActiveTabBackground: 'var(--bg-section)',
           terminalBackground: 'var(--bg-section)',
           terminalTitlebarBackground: 'var(--bg-pane)',
-          terminalTitlebarBorderBottomColor: 'var(--border-1)',
+          terminalTitlebarBorderBottomColor: 'var(--border-5)',
         },
       },
     }),
