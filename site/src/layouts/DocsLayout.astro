@@ -16,6 +16,22 @@ const isCurrent = (href: string) => {
   return h === path
 }
 
+// Fetch the latest published version from the npm registry at build time
+// so the sidebar shield labels the current release without a runtime call.
+// Prefer the `dev` dist-tag (this is what we publish under), fall back to
+// `latest`. Any failure (offline, registry hiccup) silently degrades to a
+// plain "npm" label.
+let npmVersion: string | null = null
+try {
+  const res = await fetch('https://registry.npmjs.org/@antadesign/anta', {
+    signal: AbortSignal.timeout(3000),
+  })
+  if (res.ok) {
+    const data = await res.json()
+    npmVersion = data?.['dist-tags']?.dev ?? data?.['dist-tags']?.latest ?? null
+  }
+} catch {}
+
 // Resolve URLs against the site config (https://antadesign.dev) so
 // Open Graph / Twitter crawlers receive absolute URLs.
 const ogImage = new URL('/og-image.png', Astro.site).href
@@ -119,6 +135,14 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
             <Icon shape="moon" size={18} />
           </button>
         </span>
+        <div class="brand-links">
+          <a href="https://github.com/antithesishq/anta" target="_blank" rel="noopener" aria-label="GitHub repository">
+            <Icon shape="github-logo" size={14} /> GitHub
+          </a>
+          <a href="https://www.npmjs.com/package/@antadesign/anta?activeTab=versions" target="_blank" rel="noopener" aria-label={npmVersion ? `npm package v${npmVersion}` : 'npm package'}>
+            <Icon shape="cube" size={14} /> {npmVersion ? `npm v${npmVersion}` : 'npm'}
+          </a>
+        </div>
         <menu>
           <li><a href="/" aria-current={isCurrent('/') ? 'page' : undefined}><Icon shape="info" size={18} /> Overview</a></li>
           <li><a href="/colors/" aria-current={isCurrent('/colors/') ? 'page' : undefined}><Icon shape="swatch-book" size={18} /> Colors</a></li>
@@ -229,7 +253,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     flex-shrink: 0;
     background: var(--bg-pane);
     border-right: 1px solid var(--border-5);
-    padding: 24px;
+    padding: 24px 12px 24px 24px;
     position: sticky;
     top: 0;
     height: 100vh;
@@ -286,6 +310,46 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
   .theme-toggle a-icon[shape="moon"] { display: none; }
   :global(html.dark) .theme-toggle a-icon[shape="sun"] { display: none; }
   :global(html.dark) .theme-toggle a-icon[shape="moon"] { display: inline-block; }
+
+  .brand-links {
+    display: flex;
+    gap: 6px;
+    margin: -20px 0 24px;
+    flex-wrap: wrap;
+  }
+
+  .brand-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border: 1px solid var(--border-5);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.03ch;
+    color: var(--text-3);
+    text-decoration: none;
+    transition: color 120ms ease-out, border-color 120ms ease-out, background 120ms ease-out;
+  }
+
+  .brand-links a > a-icon {
+    color: var(--text-4-brand);
+    transition: color 120ms ease-out;
+  }
+
+  .brand-links a:hover,
+  .brand-links a:focus-visible {
+    color: var(--text-1);
+    border-color: var(--border-3);
+    background: var(--bg-section);
+    outline: none;
+  }
+
+  .brand-links a:hover > a-icon,
+  .brand-links a:focus-visible > a-icon {
+    color: var(--text-1-brand);
+  }
 
   .sidebar h4 {
     font-size: 12px;
