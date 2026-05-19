@@ -102,46 +102,46 @@
   --text-5-info: #17508280; --text-5-info: oklch(0.422 0.101 249 / 0.50);
 
   /* Borders — light, neutral */
-  --border-1: #ece9ec; --border-1: oklch(0.937 0.005 326);
-  --border-2: #e0dce0; --border-2: oklch(0.899 0.007 326);
+  --border-1: #938d96; --border-1: oklch(0.651 0.015 315);
+  --border-2: #c1b9c1; --border-2: oklch(0.795 0.014 326);
   --border-3: #d4ced4; --border-3: oklch(0.858 0.010 326);
-  --border-4: #c1b9c1; --border-4: oklch(0.795 0.014 326);
-  --border-5: #938d96; --border-5: oklch(0.651 0.015 315);
+  --border-4: #e0dce0; --border-4: oklch(0.899 0.007 326);
+  --border-5: #ece9ec; --border-5: oklch(0.937 0.005 326);
 
   /* Borders — light, Brand */
-  --border-1-brand: #e9e5fa; --border-1-brand: oklch(0.931 0.028 295);
-  --border-2-brand: #ddd8f8; --border-2-brand: oklch(0.896 0.044 293);
+  --border-1-brand: #9081df; --border-1-brand: oklch(0.657 0.137 289);
+  --border-2-brand: #bcb1f1; --border-2-brand: oklch(0.792 0.090 292);
   --border-3-brand: #d2cbf6; --border-3-brand: oklch(0.862 0.060 293);
-  --border-4-brand: #bcb1f1; --border-4-brand: oklch(0.792 0.090 292);
-  --border-5-brand: #9081df; --border-5-brand: oklch(0.657 0.137 289);
+  --border-4-brand: #ddd8f8; --border-4-brand: oklch(0.896 0.044 293);
+  --border-5-brand: #e9e5fa; --border-5-brand: oklch(0.931 0.028 295);
 
   /* Borders — light, Success */
-  --border-1-success: #d9f2e0; --border-1-success: oklch(0.938 0.036 154);
-  --border-2-success: #c6ecd1; --border-2-success: oklch(0.909 0.054 154);
+  --border-1-success: #44c169; --border-1-success: oklch(0.721 0.167 150);
+  --border-2-success: #88d7a0; --border-2-success: oklch(0.813 0.110 153);
   --border-3-success: #b3e5c2; --border-3-success: oklch(0.878 0.071 154);
-  --border-4-success: #88d7a0; --border-4-success: oklch(0.813 0.110 153);
-  --border-5-success: #44c169; --border-5-success: oklch(0.721 0.167 150);
+  --border-4-success: #c6ecd1; --border-4-success: oklch(0.909 0.054 154);
+  --border-5-success: #d9f2e0; --border-5-success: oklch(0.938 0.036 154);
 
   /* Borders — light, Critical */
-  --border-1-critical: #fae5e5; --border-1-critical: oklch(0.939 0.023 18);
-  --border-2-critical: #f7d4d4; --border-2-critical: oklch(0.899 0.039 18);
+  --border-1-critical: #e56c6c; --border-1-critical: oklch(0.676 0.151 22);
+  --border-2-critical: #efa4a4; --border-2-critical: oklch(0.791 0.089 19);
   --border-3-critical: #f4c2c2; --border-3-critical: oklch(0.858 0.057 18);
-  --border-4-critical: #efa4a4; --border-4-critical: oklch(0.791 0.089 19);
-  --border-5-critical: #e56c6c; --border-5-critical: oklch(0.676 0.151 22);
+  --border-4-critical: #f7d4d4; --border-4-critical: oklch(0.899 0.039 18);
+  --border-5-critical: #fae5e5; --border-5-critical: oklch(0.939 0.023 18);
 
   /* Borders — light, Warning */
-  --border-1-warning: #f9e7cd; --border-1-warning: oklch(0.936 0.040 77);
-  --border-2-warning: #f6dbb1; --border-2-warning: oklch(0.903 0.062 79);
+  --border-1-warning: #d88118; --border-1-warning: oklch(0.682 0.149 63);
+  --border-2-warning: #edb25a; --border-2-warning: oklch(0.801 0.125 75);
   --border-3-warning: #f3cc91; --border-3-warning: oklch(0.865 0.087 78);
-  --border-4-warning: #edb25a; --border-4-warning: oklch(0.801 0.125 75);
-  --border-5-warning: #d88118; --border-5-warning: oklch(0.682 0.149 63);
+  --border-4-warning: #f6dbb1; --border-4-warning: oklch(0.903 0.062 79);
+  --border-5-warning: #f9e7cd; --border-5-warning: oklch(0.936 0.040 77);
 
   /* Borders — light, Info */
-  --border-1-info: #e1eefa; --border-1-info: oklch(0.943 0.021 246);
-  --border-2-info: #cfe3f7; --border-2-info: oklch(0.907 0.035 248);
+  --border-1-info: #56a1e1; --border-1-info: oklch(0.688 0.121 246);
+  --border-2-info: #93c5ec; --border-2-info: oklch(0.802 0.076 242);
   --border-3-info: #bad6f3; --border-3-info: oklch(0.865 0.050 249);
-  --border-4-info: #93c5ec; --border-4-info: oklch(0.802 0.076 242);
-  --border-5-info: #56a1e1; --border-5-info: oklch(0.688 0.121 246);
+  --border-4-info: #cfe3f7; --border-4-info: oklch(0.907 0.035 248);
+  --border-5-info: #e1eefa; --border-5-info: oklch(0.943 0.021 246);
 
   /* Prose link colors — used by <a-text> for priorities 1 & 2 and by
      consumers wiring their own prose contexts. */
@@ -233,46 +233,46 @@
   --text-5-info: #7db6e866; --text-5-info: oklch(0.756 0.094 246 / 0.40);
 
   /* Borders — dark, neutral */
-  --border-1: #272329; --border-1: oklch(0.263 0.012 315);
-  --border-2: #3e3941; --border-2: oklch(0.353 0.015 313);
+  --border-1: #776e77; --border-1: oklch(0.549 0.018 326);
+  --border-2: #534c57; --border-2: oklch(0.427 0.020 313);
   --border-3: #49424c; --border-3: oklch(0.390 0.019 316);
-  --border-4: #534c57; --border-4: oklch(0.427 0.020 313);
-  --border-5: #776e77; --border-5: oklch(0.549 0.018 326);
+  --border-4: #3e3941; --border-4: oklch(0.353 0.015 313);
+  --border-5: #272329; --border-5: oklch(0.263 0.012 315);
 
   /* Borders — dark, Brand */
-  --border-1-brand: #251f47; --border-1-brand: oklch(0.269 0.072 287);
-  --border-2-brand: #2d2556; --border-2-brand: oklch(0.302 0.085 288);
+  --border-1-brand: #7460d7; --border-1-brand: oklch(0.569 0.175 287);
+  --border-2-brand: #503cb4; --border-2-brand: oklch(0.453 0.181 284);
   --border-3-brand: #483493; --border-3-brand: oklch(0.405 0.149 287);
-  --border-4-brand: #503cb4; --border-4-brand: oklch(0.453 0.181 284);
-  --border-5-brand: #7460d7; --border-5-brand: oklch(0.569 0.175 287);
+  --border-4-brand: #2d2556; --border-4-brand: oklch(0.302 0.085 288);
+  --border-5-brand: #251f47; --border-5-brand: oklch(0.269 0.072 287);
 
   /* Borders — dark, Success */
-  --border-1-success: #0f321a; --border-1-success: oklch(0.284 0.060 151);
-  --border-2-success: #12391e; --border-2-success: oklch(0.309 0.065 151);
+  --border-1-success: #329550; --border-1-success: oklch(0.595 0.138 150);
+  --border-2-success: #226737; --border-2-success: oklch(0.458 0.103 150);
   --border-3-success: #1f5c31; --border-3-success: oklch(0.424 0.094 150);
-  --border-4-success: #226737; --border-4-success: oklch(0.458 0.103 150);
-  --border-5-success: #329550; --border-5-success: oklch(0.595 0.138 150);
+  --border-4-success: #12391e; --border-4-success: oklch(0.309 0.065 151);
+  --border-5-success: #0f321a; --border-5-success: oklch(0.284 0.060 151);
 
   /* Borders — dark, Critical */
-  --border-1-critical: #531314; --border-1-critical: oklch(0.298 0.095 24);
-  --border-2-critical: #5d1819; --border-2-critical: oklch(0.325 0.100 24);
+  --border-1-critical: #de4545; --border-1-critical: oklch(0.610 0.190 25);
+  --border-2-critical: #b02120; --border-2-critical: oklch(0.492 0.179 27);
   --border-3-critical: #a01c1c; --border-3-critical: oklch(0.458 0.167 27);
-  --border-4-critical: #b02120; --border-4-critical: oklch(0.492 0.179 27);
-  --border-5-critical: #de4545; --border-5-critical: oklch(0.610 0.190 25);
+  --border-4-critical: #5d1819; --border-4-critical: oklch(0.325 0.100 24);
+  --border-5-critical: #531314; --border-5-critical: oklch(0.298 0.095 24);
 
   /* Borders — dark, Warning */
-  --border-1-warning: #37200b; --border-1-warning: oklch(0.269 0.048 61);
-  --border-2-warning: #3e250e; --border-2-warning: oklch(0.291 0.052 61);
+  --border-1-warning: #ae6613; --border-1-warning: oklch(0.579 0.127 62);
+  --border-2-warning: #7f410b; --border-2-warning: oklch(0.445 0.105 54);
   --border-3-warning: #6a3b0c; --border-3-warning: oklch(0.403 0.087 60);
-  --border-4-warning: #7f410b; --border-4-warning: oklch(0.445 0.105 54);
-  --border-5-warning: #ae6613; --border-5-warning: oklch(0.579 0.127 62);
+  --border-4-warning: #3e250e; --border-4-warning: oklch(0.291 0.052 61);
+  --border-5-warning: #37200b; --border-5-warning: oklch(0.269 0.048 61);
 
   /* Borders — dark, Info */
-  --border-1-info: #0e2b44; --border-1-info: oklch(0.281 0.058 248);
-  --border-2-info: #12324f; --border-2-info: oklch(0.309 0.064 249);
+  --border-1-info: #2686d9; --border-1-info: oklch(0.608 0.152 250);
+  --border-2-info: #1a5b93; --border-2-info: oklch(0.461 0.111 249);
   --border-3-info: #175082; --border-3-info: oklch(0.422 0.101 249);
-  --border-4-info: #1a5b93; --border-4-info: oklch(0.461 0.111 249);
-  --border-5-info: #2686d9; --border-5-info: oklch(0.608 0.152 250);
+  --border-4-info: #12324f; --border-4-info: oklch(0.309 0.064 249);
+  --border-5-info: #0e2b44; --border-5-info: oklch(0.281 0.058 248);
 
   /* Prose link colors — dark mode */
   --link-color: oklch(0.72 0.15 248.65);

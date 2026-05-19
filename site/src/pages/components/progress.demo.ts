@@ -39,7 +39,7 @@ function AnimatedProgress({ speed = 1 }) {
 /** # With a border
  * The host pre-declares \`border: 0px solid var(--progress-border-color)\` — colour
  * and style are wired, width is zero. Give it any width to opt in. The colour
- * auto-tracks the tone (e.g. \`--border-2-info\` for \`tone="info"\`).
+ * auto-tracks the tone (e.g. \`--border-4-info\` for \`tone="info"\`).
  */
 <Progress value={60} label="Uploading" hint="3 of 5" style={{ borderBottomWidth: '1px' }} />
 

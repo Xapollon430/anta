@@ -115,7 +115,7 @@ code {
   font-size: 0.9em;
   color: inherit;
   background: var(--bg-section);
-  border: 0.5px solid var(--border-2);
+  border: 0.5px solid var(--border-4);
   padding: 3px 3px 2px;
   border-radius: 3px;
 }
@@ -127,7 +127,7 @@ pre code { background: none; padding: 0; }
   transition: box-shadow 150ms ease-out;
   position: relative;
 }
-:not(pre) > code:hover { box-shadow: 0 1px 5px color-mix(in oklch, var(--border-5) 50%, transparent); }
+:not(pre) > code:hover { box-shadow: 0 1px 5px color-mix(in oklch, var(--border-1) 50%, transparent); }
 :not(pre) > code:active { box-shadow: none; }
 
 .copyable {
@@ -225,7 +225,7 @@ table {
 th, td {
   text-align: left;
   padding: 8px 16px;
-  border-bottom: 1px solid var(--border-1);
+  border-bottom: 1px solid var(--border-5);
 }
 
 th {
@@ -255,7 +255,7 @@ th {
 
 .demoBox {
   max-width: 320px;
-  border: 1px dashed var(--border-2);
+  border: 1px dashed var(--border-4);
   padding: 8px;
 }
 
@@ -306,13 +306,13 @@ th {
   font-size: 0.9rem;
   color: var(--text-1);
   background: var(--bg-section);
-  border: 1px solid var(--border-4);
+  border: 1px solid var(--border-2);
   border-radius: 6px;
   outline: none;
   transition: border-color 150ms ease-out;
 }
 .iconFilter:focus {
-  border-color: var(--border-5);
+  border-color: var(--border-1);
 }
 
 /* On mobile the sticky topbar is 44px tall, so anchor-scrolls need to

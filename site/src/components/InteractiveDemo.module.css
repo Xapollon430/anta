@@ -63,7 +63,7 @@
 }
 
 .preview {
-  border: 1px solid var(--border-1);
+  border: 1px solid var(--border-5);
   border-radius: 8px;
   background: var(--bg-pane);
   overflow: hidden;
@@ -76,7 +76,7 @@
    color) since it's just a single label. */
 .previewHeader {
   padding: 7px 12px 6px;
-  border-bottom: 1px solid var(--border-1);
+  border-bottom: 1px solid var(--border-5);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.06em;
@@ -98,7 +98,7 @@
 }
 
 .panel {
-  border: 1px solid var(--border-1);
+  border: 1px solid var(--border-5);
   border-radius: 8px;
   background: var(--bg-pane);
   display: flex;
@@ -120,7 +120,7 @@
    strip's bottom border. */
 .tabs {
   display: flex;
-  border-bottom: 1px solid var(--border-1);
+  border-bottom: 1px solid var(--border-5);
 }
 
 .tabBtn {
@@ -255,7 +255,7 @@
 }
 
 .example {
-  border-bottom: 1px solid var(--border-1);
+  border-bottom: 1px solid var(--border-5);
 }
 .example:last-child {
   border-bottom: none;
@@ -380,7 +380,7 @@
 
 .slider, .number, .text {
   width: 100%;
-  border: 1px solid var(--border-2);
+  border: 1px solid var(--border-4);
   background: var(--bg-section);
   color: var(--text-1);
   border-radius: 6px;
@@ -474,7 +474,7 @@
 }
 
 .error {
-  border: 1px solid var(--border-2-critical);
+  border: 1px solid var(--border-4-critical);
   background: var(--bg-pane-critical);
   color: var(--text-1-critical);
   padding: 8px 12px;

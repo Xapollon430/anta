@@ -115,46 +115,46 @@ const TOKENS: Record<Kind, Partial<Record<Tone, TokenRow[]>>> = {
   },
   border: {
     neutral: [
-      { name: 'border-1', light: '#ece9ec', dark: '#272329' },
-      { name: 'border-2', light: '#e0dce0', dark: '#3e3941' },
+      { name: 'border-1', light: '#938d96', dark: '#776e77' },
+      { name: 'border-2', light: '#c1b9c1', dark: '#534c57' },
       { name: 'border-3', light: '#d4ced4', dark: '#49424c' },
-      { name: 'border-4', light: '#c1b9c1', dark: '#534c57' },
-      { name: 'border-5', light: '#938d96', dark: '#776e77' },
+      { name: 'border-4', light: '#e0dce0', dark: '#3e3941' },
+      { name: 'border-5', light: '#ece9ec', dark: '#272329' },
     ],
     brand: [
-      { name: 'border-1-brand', light: '#e9e5fa', dark: '#251f47' },
-      { name: 'border-2-brand', light: '#ddd8f8', dark: '#2d2556' },
+      { name: 'border-1-brand', light: '#9081df', dark: '#7460d7' },
+      { name: 'border-2-brand', light: '#bcb1f1', dark: '#503cb4' },
       { name: 'border-3-brand', light: '#d2cbf6', dark: '#483493' },
-      { name: 'border-4-brand', light: '#bcb1f1', dark: '#503cb4' },
-      { name: 'border-5-brand', light: '#9081df', dark: '#7460d7' },
+      { name: 'border-4-brand', light: '#ddd8f8', dark: '#2d2556' },
+      { name: 'border-5-brand', light: '#e9e5fa', dark: '#251f47' },
     ],
     info: [
-      { name: 'border-1-info', light: '#e1eefa', dark: '#0e2b44' },
-      { name: 'border-2-info', light: '#cfe3f7', dark: '#12324f' },
+      { name: 'border-1-info', light: '#56a1e1', dark: '#2686d9' },
+      { name: 'border-2-info', light: '#93c5ec', dark: '#1a5b93' },
       { name: 'border-3-info', light: '#bad6f3', dark: '#175082' },
-      { name: 'border-4-info', light: '#93c5ec', dark: '#1a5b93' },
-      { name: 'border-5-info', light: '#56a1e1', dark: '#2686d9' },
+      { name: 'border-4-info', light: '#cfe3f7', dark: '#12324f' },
+      { name: 'border-5-info', light: '#e1eefa', dark: '#0e2b44' },
     ],
     success: [
-      { name: 'border-1-success', light: '#d9f2e0', dark: '#0f321a' },
-      { name: 'border-2-success', light: '#c6ecd1', dark: '#12391e' },
+      { name: 'border-1-success', light: '#44c169', dark: '#329550' },
+      { name: 'border-2-success', light: '#88d7a0', dark: '#226737' },
       { name: 'border-3-success', light: '#b3e5c2', dark: '#1f5c31' },
-      { name: 'border-4-success', light: '#88d7a0', dark: '#226737' },
-      { name: 'border-5-success', light: '#44c169', dark: '#329550' },
+      { name: 'border-4-success', light: '#c6ecd1', dark: '#12391e' },
+      { name: 'border-5-success', light: '#d9f2e0', dark: '#0f321a' },
     ],
     critical: [
-      { name: 'border-1-critical', light: '#fae5e5', dark: '#531314' },
-      { name: 'border-2-critical', light: '#f7d4d4', dark: '#5d1819' },
+      { name: 'border-1-critical', light: '#e56c6c', dark: '#de4545' },
+      { name: 'border-2-critical', light: '#efa4a4', dark: '#b02120' },
       { name: 'border-3-critical', light: '#f4c2c2', dark: '#a01c1c' },
-      { name: 'border-4-critical', light: '#efa4a4', dark: '#b02120' },
-      { name: 'border-5-critical', light: '#e56c6c', dark: '#de4545' },
+      { name: 'border-4-critical', light: '#f7d4d4', dark: '#5d1819' },
+      { name: 'border-5-critical', light: '#fae5e5', dark: '#531314' },
     ],
     warning: [
-      { name: 'border-1-warning', light: '#f9e7cd', dark: '#37200b' },
-      { name: 'border-2-warning', light: '#f6dbb1', dark: '#3e250e' },
+      { name: 'border-1-warning', light: '#d88118', dark: '#ae6613' },
+      { name: 'border-2-warning', light: '#edb25a', dark: '#7f410b' },
       { name: 'border-3-warning', light: '#f3cc91', dark: '#6a3b0c' },
-      { name: 'border-4-warning', light: '#edb25a', dark: '#7f410b' },
-      { name: 'border-5-warning', light: '#d88118', dark: '#ae6613' },
+      { name: 'border-4-warning', light: '#f6dbb1', dark: '#3e250e' },
+      { name: 'border-5-warning', light: '#f9e7cd', dark: '#37200b' },
     ],
   },
 }
@@ -290,9 +290,10 @@ function BorderDescription() {
   return (
     <div class={s.description}>
       <p>Border colors are used depending on how much separation is needed and the background they appear on.</p>
-      <p><span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>border-1</span> is used on lighter surfaces. It works well between <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-base</span> and <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-section</span>, often appearing in spacing areas to subtly define boundaries.</p>
-      <p><span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>border-2</span> is used to separate <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-base</span> and <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-pane</span>, providing a slightly stronger level of contrast.</p>
-      <p><span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>border-3</span>, <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>border-4</span> and <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>border-5</span> are used when a container needs to be clearly defined or when separating elements on stronger backgrounds such as <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-block</span> and <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-spot</span>.</p>
+      <p><span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>border-1</span> and <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>border-2</span> are used when a container needs to be clearly defined or when separating elements on stronger backgrounds such as <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-block</span> and <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-spot</span>.</p>
+      <p><span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>border-3</span> sits in the middle. It provides a moderate level of contrast, useful when a boundary should be visible but not dominant.</p>
+      <p><span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>border-4</span> is used to separate <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-base</span> and <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-pane</span>, providing a slightly stronger level of contrast.</p>
+      <p><span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>border-5</span> is used on lighter surfaces. It works well between <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-base</span> and <span class="copyable" style={{ fontFamily: 'var(--monospace)' }}>bg-section</span>, often appearing in spacing areas to subtly define boundaries.</p>
     </div>
   )
 }
@@ -308,8 +309,8 @@ function BackgroundExample({ tone }: { tone: Tone }) {
     style['--bg-pane']  = `var(--bg-pane-${tone})`
     style['--bg-block'] = `var(--bg-block-${tone})`
     style['--bg-spot']  = `var(--bg-spot-${tone})`
-    style['--border-1'] = `var(--border-1-${tone})`
-    style['--border-2'] = `var(--border-2-${tone})`
+    style['--border-5'] = `var(--border-5-${tone})`
+    style['--border-4'] = `var(--border-4-${tone})`
     style['--text-1']   = `var(--text-1-${tone})`
   }
   return (
