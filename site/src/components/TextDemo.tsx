@@ -17,7 +17,7 @@ export default function TextDemo() {
           <div key={p} class="demoRow">
             <span class="demoLabel upper">priority="{p}"</span>
             <Text priority={p}>
-              The quick brown fox jumps over the lazy dog with a <a href="#">link inside</a> the sentence.
+              The quick brown fox jumps over the lazy dog with a <code>code pill</code> and a <a href="#">link inside</a> the sentence.
             </Text>
           </div>
         ))}
@@ -30,7 +30,7 @@ export default function TextDemo() {
             <div key={`${tone}-${p}`} class="demoRow">
               <span class="demoLabel upper">priority="{p}"</span>
               <Text tone={tone} priority={p}>
-                The quick brown fox jumps over the lazy dog with a <a href="#">link inside</a> the sentence.
+                The quick brown fox jumps over the lazy dog with a <code>code pill</code> and a <a href="#">link inside</a> the sentence.
               </Text>
             </div>
           ))}

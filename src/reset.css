@@ -112,4 +112,79 @@
   a:active {
     text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);
   }
+
+  /* Text selection — full-chroma brand color at 15% alpha. Using
+     OKLCH relative-color syntax (not `color-mix` with `transparent`)
+     keeps the chroma intact: mixing toward `transparent` interpolates
+     in OKLCH and pulls L/C toward zero, which washes the result out.
+     `calc(c * 1.5)` bumps the saturation modestly above the source
+     token so the highlight reads as clearly brand-coloured rather
+     than a neutral grey. No `color` override on the selection, so
+     the selected text keeps its original color and contrast is
+     preserved automatically. `--text-1-brand` inverts between light
+     and dark, so the effect tracks the active palette unaided. */
+  ::selection {
+    background: oklch(from var(--text-1-brand) l calc(c * 1.5) h / 0.15);
+  }
+
+  /* ───── Tables ───────────────────────────────────────────────── */
+
+  /* Polite, element-level baseline. Rules live in `@layer anta`, so
+     any consumer rule outside a layer — or in `components` /
+     `utilities` — overrides without effort. Width is intentionally
+     left untouched so app tables stay inline-sized; full-bleed is a
+     decision for the surrounding page. */
+  table {
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+
+  caption {
+    text-align: left;
+    color: var(--text-3);
+    padding-left: 10px;
+    margin-bottom: 0.25em;
+  }
+
+  th, td {
+    padding: 5px 10px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border-5);
+  }
+
+  thead th {
+    font-weight: 600;
+  }
+
+  /* Drop the trailing hairline under the table's last row so the
+     table doesn't end with an orphan line. Handles both "tbody is
+     the final section" and "tfoot is the final section". */
+  tfoot tr:last-child > :is(th, td),
+  table:not(:has(tfoot)) tbody tr:last-child > :is(th, td) {
+    border-bottom: none;
+  }
+
+  /* Opt-in: outer frame + vertical column dividers + 3px rounded
+     corners. Switches to separate borders because `border-radius`
+     doesn't render reliably under `border-collapse: collapse` — the
+     collapsed borders override the radius. Cells draw their own
+     right edges to build the internal grid; the last cell in each
+     row drops its right border so the table's own border supplies
+     the outer frame. Row separators come from the baseline
+     `border-bottom` and continue to work under separate-collapse. */
+  table[data-bordered] {
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--border-5);
+    border-radius: 3px;
+  }
+
+  table[data-bordered] :is(th, td) {
+    border-right: 1px solid var(--border-5);
+  }
+
+  table[data-bordered] tr > :is(th, td):last-child {
+    border-right: 0;
+  }
 }

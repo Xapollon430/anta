@@ -308,8 +308,8 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
   /* Show the icon that matches the current mode: sun in light mode,
      moon in dark mode. */
   .theme-toggle a-icon[shape="moon"] { display: none; }
-  :global(html.dark) .theme-toggle a-icon[shape="sun"] { display: none; }
-  :global(html.dark) .theme-toggle a-icon[shape="moon"] { display: inline-block; }
+  :global(.dark) .theme-toggle a-icon[shape="sun"] { display: none; }
+  :global(.dark) .theme-toggle a-icon[shape="moon"] { display: inline-block; }
 
   .brand-links {
     display: flex;
