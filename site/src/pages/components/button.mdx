@@ -1,0 +1,83 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Button
+---
+import InteractiveDemo from '../../components/InteractiveDemo'
+import buttonDemoCode from './button.demo.ts'
+
+# Button
+
+An action control. Renders an `<a-button>` web component (or `<a role="button">`
+in anchor mode) with a tone × priority matrix driven by attributes.
+
+The playground opens on **All states** — every tone × priority × state combo
+from the Figma component set (168 buttons). Switch examples in the Props
+panel on the right.
+
+<InteractiveDemo
+  client:load
+  component="Button"
+  layout="side"
+  initialCode={buttonDemoCode}
+/>
+
+## Tones and priorities
+
+The button surface is a matrix of **6 tones** (`neutral`, `brand`, `critical`,
+`info`, `success`, `warning`) crossed with **4 priorities**
+(`primary`, `secondary`, `tertiary`, `quaternary`). The default is
+`tone="brand" priority="primary"`.
+
+- **Primary** — saturated background, white/black text. The page's main call to action.
+- **Secondary** — pastel background + matching border. The everyday button.
+- **Tertiary** — background-less at rest, fills on hover. Useful in dense toolbars.
+- **Quaternary** — text only. No background, no border, no transitions.
+
+## Form submission
+
+Setting `type="submit"` on a button inside (or associated with via
+`form="id"`) a `<form>` triggers `form.requestSubmit()` on click. The
+element additionally dispatches a custom `submitdetailed` event on the
+form with `{ formData, submitter: { tag, attrs } }` in `detail`,
+which is useful for analytics or wiring up multi-button forms.
+
+`type="reset"` calls `form.reset()`.
+
+## Custom click events
+
+Adding `data-custom-event="some-name"` makes the button dispatch a
+bubbling `CustomEvent("some-name")` on click — handy for instrumenting
+analytics without taking ownership of `onClick`.
+
+## Anchor mode
+
+Setting `href` switches the rendered tag from `<a-button>` to
+`<a role="button">`. Styles are identical (both selectors share the
+CSS rule set). The form/submit/reset behaviour is no-op in anchor mode
+because navigation takes over.
+
+## Loading
+
+`loading={true}` adds a rotating conic-gradient overlay. It is
+**visual only** — clicks still fire. Pair with `disabled` when the
+action should be temporarily inert.
+
+## Component tokens
+
+The button exposes a set of CSS custom properties on its host element.
+Override any of them on a single instance (`style={{ '--button-padding-x': '12px' }}`)
+or on a selector that wraps the button (e.g. a tone priority of your own).
+
+| Token | Description |
+|-------|-------------|
+| `--button-fg-color` | Text and icon color. |
+| `--button-bg-color` | Background fill. |
+| `--button-br-color` | Border color. |
+| `--button-focus-color` | Focus-ring outline color. |
+| `--button-padding-x`, `--button-padding-y` | Inner spacing. |
+| `--button-br-radius`, `--button-br-width` | Border. |
+| `--button-font-size`, `--button-font-family`, `--button-font-weight`, `--button-line-height` | Type. |
+| `--button-gap` | Spacing between icon, label, and other children. |
+| `--button-timing-in`, `--button-timing-out`, `--button-timing-active` | State transition durations. |
+| `--button-loading-duration`, `--button-loading-blur` | Loading-spinner tuning. |
+| `--button-outline-offset` | Focus-ring offset from the edge (negative for inset). |

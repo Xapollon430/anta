@@ -1,0 +1,896 @@
+@layer anta {
+  /* ── Light-mode tokens ────────────────────────────────────────────
+     One declaration per (property × tone × priority × state). All
+     visible color in the button comes from these. The tone-resolver
+     rules at the bottom of the file just wire the resolved tokens
+     into `--button-fg/bg/br-color`; changing a colour means editing
+     a value here and nowhere else. Naming:
+
+       --{bg|br|fg}-{tone}-{priority}-{state}
+
+     `bg`  = background-color
+     `br`  = border-color
+     `fg`  = color (text + a-icon)
+     tone     = brand | neutral | critical | info | success | warning
+     priority = primary | secondary | tertiary | quaternary
+     state    = rest | hover | active
+
+     Values come straight from `Dynamic colors/Light.tokens.json` and
+     `Dark.tokens.json` (the Figma DTCG export under `component/button/*`).
+     For tones / states where Figma has no border or text-hover token,
+     the cell falls back to bg or rest as documented in the comments
+     under each block. */
+
+  a-button, a[role="button"] {
+    /* Primary text is fixed white in both modes (Figma
+       `component/button/primary/text`). The dark block doesn't
+       override this. */
+    --button-primary-fg: #ffffff;
+
+    /* Focus-ring colour (Figma `component/focus`). */
+    --button-focus-color: #503cb4;
+
+    /* ── BRAND ── */
+    --bg-brand-primary-rest:   #5f4bc3;
+    --bg-brand-primary-hover:  #503cb4;
+    --bg-brand-primary-active: #483493;
+    --br-brand-primary-rest:   #5f4bc3;
+    --fg-brand-primary-rest:   var(--button-primary-fg);
+
+    --bg-brand-secondary-rest:  #7460d7;
+    --bg-brand-secondary-hover: #7460d7;
+    --br-brand-secondary-rest:  #7460d7;
+    --br-brand-secondary-hover: #7460d7;
+    --fg-brand-secondary-rest:  #5f4bc3;
+    --fg-brand-secondary-hover: #503cb4;
+
+    --fg-brand-tertiary-rest:   #5f4bc3;
+    --fg-brand-tertiary-hover:  #503cb4;
+    --bg-brand-tertiary-hover:  #7460d7;
+    --bg-brand-tertiary-active: #7460d7;
+
+    --fg-brand-quaternary-rest:  #5f4bc3;
+    --fg-brand-quaternary-hover: #483493;
+
+    /* ── NEUTRAL ── */
+    --bg-neutral-primary-rest:   #635b65;
+    --bg-neutral-primary-hover:  #534c57;
+    --bg-neutral-primary-active: #49424c;
+    --br-neutral-primary-rest:   #635b65;
+    --fg-neutral-primary-rest:   var(--button-primary-fg);
+
+    --bg-neutral-secondary-rest:  #44374b;
+    --bg-neutral-secondary-hover: #44374b;
+    --br-neutral-secondary-rest:  #44374b;
+    --br-neutral-secondary-hover: #44374b;
+    --fg-neutral-secondary-rest:  #534c57;
+    --fg-neutral-secondary-hover: #49424c;
+
+    --fg-neutral-tertiary-rest:   #635b65;
+    --fg-neutral-tertiary-hover:  #534c57;
+    --bg-neutral-tertiary-hover:  #44374b;
+    --bg-neutral-tertiary-active: #44374b;
+
+    --fg-neutral-quaternary-rest:  #635b65;
+    --fg-neutral-quaternary-hover: #49424c;
+
+    /* ── CRITICAL ── */
+    --bg-critical-primary-rest:   #c9302c;
+    --bg-critical-primary-hover:  #b02120;
+    --bg-critical-primary-active: #a01c1c;
+    --br-critical-primary-rest:   #c9302c;
+    --fg-critical-primary-rest:   var(--button-primary-fg);
+
+    --bg-critical-secondary-rest:  #de4545;
+    --bg-critical-secondary-hover: #de4545;
+    --br-critical-secondary-rest:  #de4545;
+    --br-critical-secondary-hover: #de4545;
+    --fg-critical-secondary-rest:  #c9302c;
+    --fg-critical-secondary-hover: #b02120;
+
+    --fg-critical-tertiary-rest:   #c9302c;
+    --fg-critical-tertiary-hover:  #b02120;
+    --bg-critical-tertiary-hover:  #de4545;
+    --bg-critical-tertiary-active: #de4545;
+
+    --fg-critical-quaternary-rest:  #c9302c;
+    --fg-critical-quaternary-hover: #a01c1c;
+
+    /* ── INFO ── */
+    --bg-info-primary-rest:   #1f6eb2;
+    --bg-info-primary-hover:  #1a5b93;
+    --bg-info-primary-active: #175082;
+    --br-info-primary-rest:   #1f6eb2;
+    --fg-info-primary-rest:   var(--button-primary-fg);
+
+    --bg-info-secondary-rest:  #2686d9;
+    --bg-info-secondary-hover: #2686d9;
+    --br-info-secondary-rest:  #2686d9;
+    --br-info-secondary-hover: #2686d9;
+    --fg-info-secondary-rest:  #1f6eb2;
+    --fg-info-secondary-hover: #1a5b93;
+
+    --fg-info-tertiary-rest:   #1f6eb2;
+    --fg-info-tertiary-hover:  #1a5b93;
+    --bg-info-tertiary-hover:  #2686d9;
+    --bg-info-tertiary-active: #2686d9;
+
+    --fg-info-quaternary-rest:  #1f6eb2;
+    --fg-info-quaternary-hover: #175082;
+
+    /* ── SUCCESS ── */
+    --bg-success-primary-rest:   #2a7e43;
+    --bg-success-primary-hover:  #226737;
+    --bg-success-primary-active: #1f5c31;
+    --br-success-primary-rest:   #2a7e43;
+    --fg-success-primary-rest:   var(--button-primary-fg);
+
+    --bg-success-secondary-rest:  #329550;
+    --bg-success-secondary-hover: #329550;
+    --br-success-secondary-rest:  #329550;
+    --br-success-secondary-hover: #329550;
+    --fg-success-secondary-rest:  #2a7e43;
+    --fg-success-secondary-hover: #226737;
+
+    --fg-success-tertiary-rest:   #2a7e43;
+    --fg-success-tertiary-hover:  #226737;
+    --bg-success-tertiary-hover:  #329550;
+    --bg-success-tertiary-active: #329550;
+
+    --fg-success-quaternary-rest:  #2a7e43;
+    --fg-success-quaternary-hover: #1f5c31;
+
+    /* ── WARNING ── */
+    --bg-warning-primary-rest:   #c37416;
+    --bg-warning-primary-hover:  #ae6613;
+    --bg-warning-primary-active: #995200;
+    --br-warning-primary-rest:   #c37416;
+    --fg-warning-primary-rest:   var(--button-primary-fg);
+
+    --bg-warning-secondary-rest:  #c37416;
+    --bg-warning-secondary-hover: #c37416;
+    --br-warning-secondary-rest:  #c37416;
+    --br-warning-secondary-hover: #c37416;
+    --fg-warning-secondary-rest:  #995200;
+    --fg-warning-secondary-hover: #7f410b;
+
+    --fg-warning-tertiary-rest:   #995200;
+    --fg-warning-tertiary-hover:  #7f410b;
+    --bg-warning-tertiary-hover:  #c37416;
+    --bg-warning-tertiary-active: #c37416;
+
+    --fg-warning-quaternary-rest:  #995200;
+    --fg-warning-quaternary-hover: #6a3b0c;
+
+    /* Disabled — tone-agnostic. The bg differs by priority but text
+       and border are shared. Loading/disabled visually overlap; we
+       still keep the colors flat (opacity 1) rather than dimming so
+       the disabled bg matches the spec exactly. The underlying tone
+       tokens stay set on the element; they just lose to the disabled
+       rule, and reappear automatically when `disabled` lifts. */
+    --bg-primary-disabled: #ece9ec;
+    --bg-secondary-disabled: #f6f4f6;
+    --fg-disabled: #afa9b1;
+
+    /* Loading shimmer. The conic gradient uses an oklch lightness in
+       the 0.74 band so the highlight reads against any tone fill;
+       the hue is driven per-tone by `--loading-hue` set in the tone
+       block. Neutral uses the desaturated variant. */
+    --button-loading-gradient:
+      conic-gradient(from 90deg, transparent 60%,
+        oklch(0.74 0.14 var(--loading-hue) / 0.6) 100%);
+    --button-neutral-loading-gradient:
+      conic-gradient(from 90deg, transparent 60%,
+        oklch(0.74 0.01 var(--loading-hue) / 0.6) 100%);
+    --button-loading-blur: 4px;
+  }
+
+  /* ── Dark-mode tokens ──────────────────────────────────────────── */
+  .dark a-button, .dark a[role="button"] {
+    --button-focus-color: #a897fc;
+
+    /* ── BRAND ── */
+    --bg-brand-primary-rest:   #503cb4;
+    --bg-brand-primary-hover:  #5f4bc3;
+    --bg-brand-primary-active: #7460d7;
+    --br-brand-primary-rest:   #503cb4;
+
+    --bg-brand-secondary-rest:  #7460d7;
+    --bg-brand-secondary-hover: #7460d7;
+    --br-brand-secondary-rest:  #7460d7;
+    --br-brand-secondary-hover: #7460d7;
+    --fg-brand-secondary-rest:  #c5baff;
+    --fg-brand-secondary-hover: #d2cbf6;
+
+    --fg-brand-tertiary-rest:   #ada0ee;
+    --fg-brand-tertiary-hover:  #bcb1f1;
+    --bg-brand-tertiary-hover:  #7460d7;
+    --bg-brand-tertiary-active: #7460d7;
+
+    --fg-brand-quaternary-rest:  #ada0ee;
+    --fg-brand-quaternary-hover: #c7bef4;
+
+    /* ── NEUTRAL ── */
+    --bg-neutral-primary-rest:   #534c57;
+    --bg-neutral-primary-hover:  #635b65;
+    --bg-neutral-primary-active: #938d96;
+    --br-neutral-primary-rest:   #534c57;
+
+    --bg-neutral-secondary-rest:  #e4d1ef;
+    --bg-neutral-secondary-hover: #e4d1ef;
+    --br-neutral-secondary-rest:  #e4d1ef;
+    --br-neutral-secondary-hover: #e4d1ef;
+    --fg-neutral-secondary-rest:  #c1b9c1;
+    --fg-neutral-secondary-hover: #d4ced4;
+
+    --fg-neutral-tertiary-rest:   #afa9b1;
+    --fg-neutral-tertiary-hover:  #afa9b1;
+    --bg-neutral-tertiary-hover:  #e4d1ef;
+    --bg-neutral-tertiary-active: #e4d1ef;
+
+    --fg-neutral-quaternary-rest:  #afa9b1;
+    --fg-neutral-quaternary-hover: #cac4ca;
+
+    /* ── CRITICAL ── */
+    --bg-critical-primary-rest:   #b02120;
+    --bg-critical-primary-hover:  #c9302c;
+    --bg-critical-primary-active: #de4545;
+    --br-critical-primary-rest:   #b02120;
+
+    --bg-critical-secondary-rest:  #de4545;
+    --bg-critical-secondary-hover: #de4545;
+    --br-critical-secondary-rest:  #de4545;
+    --br-critical-secondary-hover: #de4545;
+    --fg-critical-secondary-rest:  #ffabac;
+    --fg-critical-secondary-hover: #f4c2c2;
+
+    --fg-critical-tertiary-rest:   #e78e90;
+    --fg-critical-tertiary-hover:  #efa4a4;
+    --bg-critical-tertiary-hover:  #de4545;
+    --bg-critical-tertiary-active: #de4545;
+
+    --fg-critical-quaternary-rest:  #e78e90;
+    --fg-critical-quaternary-hover: #ffabac;
+
+    /* ── INFO ── */
+    --bg-info-primary-rest:   #1a5b93;
+    --bg-info-primary-hover:  #1f6eb2;
+    --bg-info-primary-active: #2686d9;
+    --br-info-primary-rest:   #1a5b93;
+
+    --bg-info-secondary-rest:  #2686d9;
+    --bg-info-secondary-hover: #2686d9;
+    --br-info-secondary-rest:  #2686d9;
+    --br-info-secondary-hover: #2686d9;
+    --fg-info-secondary-rest:  #9ed2ff;
+    --fg-info-secondary-hover: #bad6f3;
+
+    --fg-info-tertiary-rest:   #7db6e8;
+    --fg-info-tertiary-hover:  #93c5ec;
+    --bg-info-tertiary-hover:  #2686d9;
+    --bg-info-tertiary-active: #2686d9;
+
+    --fg-info-quaternary-rest:  #7db6e8;
+    --fg-info-quaternary-hover: #a6cdef;
+
+    /* ── SUCCESS ── */
+    --bg-success-primary-rest:   #226737;
+    --bg-success-primary-hover:  #2a7e43;
+    --bg-success-primary-active: #329550;
+    --br-success-primary-rest:   #226737;
+
+    --bg-success-secondary-rest:  #329550;
+    --bg-success-secondary-hover: #329550;
+    --br-success-secondary-rest:  #329550;
+    --br-success-secondary-hover: #329550;
+    --fg-success-secondary-rest:  #8ceca9;
+    --fg-success-secondary-hover: #b3e5c2;
+
+    --fg-success-tertiary-rest:   #74cd8e;
+    --fg-success-tertiary-hover:  #88d7a0;
+    --bg-success-tertiary-hover:  #329550;
+    --bg-success-tertiary-active: #329550;
+
+    --fg-success-quaternary-rest:  #74cd8e;
+    --fg-success-quaternary-hover: #9ddeb1;
+
+    /* ── WARNING ── */
+    --bg-warning-primary-rest:   #7f410b;
+    --bg-warning-primary-hover:  #995200;
+    --bg-warning-primary-active: #ae6613;
+    --br-warning-primary-rest:   #7f410b;
+
+    --bg-warning-secondary-rest:  #c37416;
+    --bg-warning-secondary-hover: #c37416;
+    --br-warning-secondary-rest:  #c37416;
+    --br-warning-secondary-hover: #c37416;
+    --fg-warning-secondary-rest:  #f7c06e;
+    --fg-warning-secondary-hover: #f3cc91;
+
+    --fg-warning-tertiary-rest:   #e1a452;
+    --fg-warning-tertiary-hover:  #edb25a;
+    --bg-warning-tertiary-hover:  #c37416;
+    --bg-warning-tertiary-active: #c37416;
+
+    --fg-warning-quaternary-rest:  #e1a452;
+    --fg-warning-quaternary-hover: #f0bf75;
+
+    --button-loading-gradient:
+      conic-gradient(from 90deg, transparent 50%,
+        oklch(0.74 0.14 var(--loading-hue) / 0.5) 100%);
+    --button-neutral-loading-gradient:
+      conic-gradient(from 90deg, transparent 50%,
+        oklch(0.74 0.01 var(--loading-hue) / 0.5) 100%);
+    --button-loading-blur: 6px;
+
+    /* Dark-mode disabled. */
+    --bg-primary-disabled: #272329;
+    --bg-secondary-disabled: #1d1a1e;
+    --fg-disabled: #635b65;
+  }
+
+  /* ── Base rule + tone resolvers ───────────────────────────────────
+     Geometry, type, transitions, focus, loading. The tone × priority
+     blocks at the bottom just wire the resolved tokens into the
+     shared `--button-fg/bg/br-color` variables. */
+  a-button, a[role="button"] {
+    --button-padding-x: 8px;
+    --button-padding-y: 4px;
+    --button-br-radius: 4px;
+    --button-br-width: 1px;
+    --button-margin-x: 0;
+    --button-margin-y: 0;
+    --button-width: fit-content;
+    --button-max-width: 100%;
+    --button-height: fit-content;
+    --button-max-height: 100%;
+    --button-gap: 4px;
+
+    --button-font-size: 15px;
+    --button-font-family: var(--sans-serif);
+    --button-font-weight: 500;
+    --button-line-height: 20px;
+
+    --button-timing-in: 50ms ease-out;
+    --button-timing-active: 50ms linear;
+    --button-timing-out: 150ms ease-out;
+    --button-loading-duration: 1s;
+    --button-outline-offset: 1px;
+
+    color: var(--button-fg-color);
+    background-color: var(--button-bg-color);
+    border-color: var(--button-br-color);
+    border-style: solid;
+    border-width: var(--button-br-width);
+    border-radius: var(--button-br-radius);
+
+    &,
+    &:hover, &[data-state="hover"],
+    &:active, &[data-state="active"], &[selected] {
+      text-decoration: none;
+      text-decoration-color: none;
+      color: var(--button-fg-color);
+    }
+
+    font-size: var(--button-font-size);
+    font-family: var(--button-font-family);
+    font-weight: var(--button-font-weight);
+    line-height: var(--button-line-height);
+    letter-spacing: 0.4px;
+
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+    white-space: nowrap;
+
+    width: var(--button-width);
+    max-width: var(--button-max-width);
+    height: var(--button-height);
+    max-height: var(--button-max-height);
+    margin-inline: var(--button-margin-x);
+    margin-block: var(--button-margin-y);
+    padding-inline: var(--button-padding-x);
+    padding-block: var(--button-padding-y);
+
+    & > label {
+      text-overflow: ellipsis;
+      text-wrap: nowrap;
+      white-space: nowrap;
+      overflow: hidden;
+      min-width: 0;
+      display: inline-block;
+      &:has(> *) {
+        display: inline-flex;
+        gap: 0.25ch;
+      }
+    }
+
+    & a-icon {
+      color: var(--button-fg-color);
+      transition: color var(--button-timing-out);
+    }
+
+    transition: color var(--button-timing-out),
+                border-color var(--button-timing-out),
+                background-color var(--button-timing-out);
+
+    &:hover, &[data-state="hover"],
+    &:focus-visible, &[data-state="focus"] {
+      transition: color var(--button-timing-in),
+                  border-color var(--button-timing-in),
+                  background-color var(--button-timing-in);
+      & a-icon { transition: color var(--button-timing-in); }
+    }
+
+    &:active, &[data-state="active"], &[selected] {
+      transition: color var(--button-timing-active),
+                  border-color var(--button-timing-active),
+                  background-color var(--button-timing-active);
+      & a-icon { transition: color var(--button-timing-active); }
+    }
+
+    &[disabled="true"], &[data-state="disabled"], &:disabled {
+      pointer-events: none;
+      cursor: not-allowed;
+      user-select: none;
+    }
+
+    &:focus:not(:focus-visible) { outline: none; }
+    &:focus-visible, &[data-state="focus"] {
+      outline: 1px solid var(--button-focus-color);
+      outline-offset: var(--button-outline-offset);
+    }
+
+    &[priority="quaternary"] {
+      --button-timing-in: none;
+      --button-timing-active: none;
+      --button-timing-out: none;
+    }
+
+    &[size="small"] {
+      --button-padding-y: 2px;
+      --button-padding-x: 6px;
+    }
+    &[size="large"] {
+      --button-padding-y: 6px;
+      --button-padding-x: 12px;
+    }
+
+    &[decoration="underline"] { text-decoration: underline; }
+    &[decoration="bold"] { font-weight: 700; }
+    &[decoration="italic"] { font-style: italic; }
+
+    &[iconbutton="true"],
+    &:not(:has( > :not( a-icon, a-tooltip ))) {
+      --button-padding-y: 4px;
+      --button-padding-x: 4px;
+      &[size="small"] {
+        --button-padding-y: 2px;
+        --button-padding-x: 2px;
+      }
+      &[size="large"] {
+        --button-padding-y: 6px;
+        --button-padding-x: 6px;
+      }
+    }
+
+    &[loading="true"] {
+      position: relative;
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        margin: -50%;
+        background: var(--button-loading-gradient);
+        animation: btn-loading-spin var(--button-loading-duration) linear infinite;
+        animation-delay: -9999s;
+        display: flex;
+        filter: blur(var(--button-loading-blur));
+      }
+      &[tone="neutral"]::before {
+        background: var(--button-neutral-loading-gradient);
+      }
+    }
+
+    /* ── BRAND (default tone) ── */
+    &:where(:not([tone]), [tone="brand"]) {
+      --loading-hue: 280;
+
+      &:where(:not([priority]), [priority="primary"]) {
+        --button-fg-color: var(--fg-brand-primary-rest);
+        --button-bg-color: var(--bg-brand-primary-rest);
+        --button-br-color: var(--br-brand-primary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-bg-color: var(--bg-brand-primary-hover);
+          --button-br-color: var(--bg-brand-primary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-brand-primary-active);
+          --button-br-color: var(--bg-brand-primary-active);
+        }
+      }
+      &[priority="secondary"] {
+        --button-fg-color: var(--fg-brand-secondary-rest);
+        --button-bg-color: var(--bg-brand-secondary-rest);
+        --button-br-color: var(--br-brand-secondary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-brand-secondary-hover);
+          --button-bg-color: var(--bg-brand-secondary-hover);
+          --button-br-color: var(--br-brand-secondary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-brand-secondary-rest);
+          --button-bg-color: var(--bg-brand-secondary-rest);
+          --button-br-color: var(--br-brand-secondary-rest);
+        }
+      }
+      &[priority="tertiary"] {
+        --button-fg-color: var(--fg-brand-tertiary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-brand-tertiary-hover);
+          --button-bg-color: var(--bg-brand-tertiary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-brand-tertiary-active);
+        }
+      }
+      &[priority="quaternary"] {
+        --button-fg-color: var(--fg-brand-quaternary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-brand-quaternary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-brand-quaternary-rest);
+        }
+      }
+    }
+
+    /* ── NEUTRAL ── */
+    &[tone="neutral"] {
+      --loading-hue: 280;
+
+      &:where(:not([priority]), [priority="primary"]) {
+        --button-fg-color: var(--fg-neutral-primary-rest);
+        --button-bg-color: var(--bg-neutral-primary-rest);
+        --button-br-color: var(--br-neutral-primary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-bg-color: var(--bg-neutral-primary-hover);
+          --button-br-color: var(--bg-neutral-primary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-neutral-primary-active);
+          --button-br-color: var(--bg-neutral-primary-active);
+        }
+      }
+      &[priority="secondary"] {
+        --button-fg-color: var(--fg-neutral-secondary-rest);
+        --button-bg-color: var(--bg-neutral-secondary-rest);
+        --button-br-color: var(--br-neutral-secondary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-neutral-secondary-hover);
+          --button-bg-color: var(--bg-neutral-secondary-hover);
+          --button-br-color: var(--br-neutral-secondary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-neutral-secondary-rest);
+          --button-bg-color: var(--bg-neutral-secondary-rest);
+          --button-br-color: var(--br-neutral-secondary-rest);
+        }
+      }
+      &[priority="tertiary"] {
+        --button-fg-color: var(--fg-neutral-tertiary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-neutral-tertiary-hover);
+          --button-bg-color: var(--bg-neutral-tertiary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-neutral-tertiary-active);
+        }
+      }
+      &[priority="quaternary"] {
+        --button-fg-color: var(--fg-neutral-quaternary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-neutral-quaternary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-neutral-quaternary-rest);
+        }
+      }
+    }
+
+    /* ── CRITICAL ── */
+    &[tone="critical"] {
+      --loading-hue: 27;
+
+      &:where(:not([priority]), [priority="primary"]) {
+        --button-fg-color: var(--fg-critical-primary-rest);
+        --button-bg-color: var(--bg-critical-primary-rest);
+        --button-br-color: var(--br-critical-primary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-bg-color: var(--bg-critical-primary-hover);
+          --button-br-color: var(--bg-critical-primary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-critical-primary-active);
+          --button-br-color: var(--bg-critical-primary-active);
+        }
+      }
+      &[priority="secondary"] {
+        --button-fg-color: var(--fg-critical-secondary-rest);
+        --button-bg-color: var(--bg-critical-secondary-rest);
+        --button-br-color: var(--br-critical-secondary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-critical-secondary-hover);
+          --button-bg-color: var(--bg-critical-secondary-hover);
+          --button-br-color: var(--br-critical-secondary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-critical-secondary-rest);
+          --button-bg-color: var(--bg-critical-secondary-rest);
+          --button-br-color: var(--br-critical-secondary-rest);
+        }
+      }
+      &[priority="tertiary"] {
+        --button-fg-color: var(--fg-critical-tertiary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-critical-tertiary-hover);
+          --button-bg-color: var(--bg-critical-tertiary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-critical-tertiary-active);
+        }
+      }
+      &[priority="quaternary"] {
+        --button-fg-color: var(--fg-critical-quaternary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-critical-quaternary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-critical-quaternary-rest);
+        }
+      }
+    }
+
+    /* ── INFO ── */
+    &[tone="info"] {
+      --loading-hue: 240;
+
+      &:where(:not([priority]), [priority="primary"]) {
+        --button-fg-color: var(--fg-info-primary-rest);
+        --button-bg-color: var(--bg-info-primary-rest);
+        --button-br-color: var(--br-info-primary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-bg-color: var(--bg-info-primary-hover);
+          --button-br-color: var(--bg-info-primary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-info-primary-active);
+          --button-br-color: var(--bg-info-primary-active);
+        }
+      }
+      &[priority="secondary"] {
+        --button-fg-color: var(--fg-info-secondary-rest);
+        --button-bg-color: var(--bg-info-secondary-rest);
+        --button-br-color: var(--br-info-secondary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-info-secondary-hover);
+          --button-bg-color: var(--bg-info-secondary-hover);
+          --button-br-color: var(--br-info-secondary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-info-secondary-rest);
+          --button-bg-color: var(--bg-info-secondary-rest);
+          --button-br-color: var(--br-info-secondary-rest);
+        }
+      }
+      &[priority="tertiary"] {
+        --button-fg-color: var(--fg-info-tertiary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-info-tertiary-hover);
+          --button-bg-color: var(--bg-info-tertiary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-info-tertiary-active);
+        }
+      }
+      &[priority="quaternary"] {
+        --button-fg-color: var(--fg-info-quaternary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-info-quaternary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-info-quaternary-rest);
+        }
+      }
+    }
+
+    /* ── SUCCESS ── */
+    &[tone="success"] {
+      --loading-hue: 145;
+
+      &:where(:not([priority]), [priority="primary"]) {
+        --button-fg-color: var(--fg-success-primary-rest);
+        --button-bg-color: var(--bg-success-primary-rest);
+        --button-br-color: var(--br-success-primary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-bg-color: var(--bg-success-primary-hover);
+          --button-br-color: var(--bg-success-primary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-success-primary-active);
+          --button-br-color: var(--bg-success-primary-active);
+        }
+      }
+      &[priority="secondary"] {
+        --button-fg-color: var(--fg-success-secondary-rest);
+        --button-bg-color: var(--bg-success-secondary-rest);
+        --button-br-color: var(--br-success-secondary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-success-secondary-hover);
+          --button-bg-color: var(--bg-success-secondary-hover);
+          --button-br-color: var(--br-success-secondary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-success-secondary-rest);
+          --button-bg-color: var(--bg-success-secondary-rest);
+          --button-br-color: var(--br-success-secondary-rest);
+        }
+      }
+      &[priority="tertiary"] {
+        --button-fg-color: var(--fg-success-tertiary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-success-tertiary-hover);
+          --button-bg-color: var(--bg-success-tertiary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-success-tertiary-active);
+        }
+      }
+      &[priority="quaternary"] {
+        --button-fg-color: var(--fg-success-quaternary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-success-quaternary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-success-quaternary-rest);
+        }
+      }
+    }
+
+    /* ── WARNING ── */
+    &[tone="warning"] {
+      --loading-hue: 70;
+
+      &:where(:not([priority]), [priority="primary"]) {
+        --button-fg-color: var(--fg-warning-primary-rest);
+        --button-bg-color: var(--bg-warning-primary-rest);
+        --button-br-color: var(--br-warning-primary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-bg-color: var(--bg-warning-primary-hover);
+          --button-br-color: var(--bg-warning-primary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-warning-primary-active);
+          --button-br-color: var(--bg-warning-primary-active);
+        }
+      }
+      &[priority="secondary"] {
+        --button-fg-color: var(--fg-warning-secondary-rest);
+        --button-bg-color: var(--bg-warning-secondary-rest);
+        --button-br-color: var(--br-warning-secondary-rest);
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-warning-secondary-hover);
+          --button-bg-color: var(--bg-warning-secondary-hover);
+          --button-br-color: var(--br-warning-secondary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-warning-secondary-rest);
+          --button-bg-color: var(--bg-warning-secondary-rest);
+          --button-br-color: var(--br-warning-secondary-rest);
+        }
+      }
+      &[priority="tertiary"] {
+        --button-fg-color: var(--fg-warning-tertiary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-warning-tertiary-hover);
+          --button-bg-color: var(--bg-warning-tertiary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-bg-color: var(--bg-warning-tertiary-active);
+        }
+      }
+      &[priority="quaternary"] {
+        --button-fg-color: var(--fg-warning-quaternary-rest);
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"],
+        &:focus-visible, &[data-state="focus"] {
+          --button-fg-color: var(--fg-warning-quaternary-hover);
+        }
+        &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-warning-quaternary-rest);
+        }
+      }
+    }
+
+    /* ── DISABLED ──
+       Placed after the tone rules so it wins source-order ties on
+       specificity (the primary rest selectors of non-brand tones land
+       at (0,2,1); this rule matches that). Tone-agnostic: bg + fg are
+       the same gray regardless of the underlying tone. Tertiary +
+       quaternary stay transparent so the tone's text colour doesn't
+       paint behind the disabled fg. */
+    &[disabled="true"], &[data-state="disabled"], &:disabled {
+      --button-fg-color: var(--fg-disabled);
+      &:where(:not([priority]), [priority="primary"]) {
+        --button-bg-color: var(--bg-primary-disabled);
+        --button-br-color: var(--bg-primary-disabled);
+      }
+      &[priority="secondary"] {
+        --button-bg-color: var(--bg-secondary-disabled);
+        --button-br-color: var(--bg-secondary-disabled);
+      }
+      &[priority="tertiary"], &[priority="quaternary"] {
+        --button-bg-color: transparent;
+        --button-br-color: transparent;
+      }
+    }
+  }
+
+  /* When the button sits as a direct child of <a-menu> (forward-compat
+     for the not-yet-ported menu primitive) it expands to fill the menu
+     width. Harmless until <a-menu> exists. */
+  a-menu > a-button,
+  a-menu > a[role="button"] {
+    --button-width: 100%;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes btn-loading-spin {
+  to { transform: rotate(360deg); }
+}

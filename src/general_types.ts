@@ -92,3 +92,43 @@ export interface AIconAttributes extends BaseAttributes {
   /** Hides decorative icons from screen readers. */
   'aria-hidden'?: 'true' | 'false' | boolean
 }
+
+/**
+ * Attributes for the `<a-button>` custom element.
+ *
+ * Low-level web component attributes; for the JSX wrapper use `Button`
+ * from `@antadesign/anta`.
+ */
+export interface AButtonAttributes extends BaseAttributes {
+  /** Visual emphasis. */
+  priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary'
+  /** Semantic tone. */
+  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning'
+  /** Inline text decoration. */
+  decoration?: 'underline' | 'bold' | 'italic'
+  /** Size variant. small=24px, default=28px, large=32px. */
+  size?: 'small' | 'default' | 'large'
+  /** Loading state. The element's CSS matches `[loading="true"]`. */
+  loading?: 'true' | 'false' | boolean | string
+  /** Disabled state. */
+  disabled?: 'true' | 'false' | boolean | string
+  /** Toggled-on / pressed state. */
+  selected?: 'true' | 'false' | boolean | string
+  /** Force a visual state for the docs gallery (`hover` / `active` /
+   *  `focus` / `disabled`). Pseudo-class behaviour still applies on
+   *  real interaction; this is purely for static showcase rendering. */
+  'data-state'?: 'hover' | 'active' | 'focus' | 'disabled' | 'loading' | 'selected'
+  /** Submit/reset semantics handled by the element's global click delegate. */
+  type?: 'button' | 'submit' | 'reset'
+  /** Associate with a form by id when not nested inside it. */
+  form?: string
+  /** Custom event name dispatched (bubbling) on click. */
+  'data-custom-event'?: string
+  /** ARIA disabled — JSX wrapper sets this in lockstep with `disabled`. */
+  'aria-disabled'?: 'true' | 'false' | boolean
+  /** ARIA busy — JSX wrapper sets this when `loading` is true. */
+  'aria-busy'?: 'true' | 'false' | boolean
+  /** Standard tab order override. The JSX wrapper sets this from
+   *  `disabled` (0 normally, -1 when disabled). */
+  tabindex?: number | string
+}
