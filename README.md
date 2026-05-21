@@ -49,6 +49,19 @@ If you need a different order, declare it in your *own* CSS file that loads **be
 
 CSS custom properties (the `:root { --… }` declarations in `tokens.css`) stay unlayered so they take effect everywhere unconditionally.
 
+> **Gotcha: unlayered hard resets defeat Anta's element rules.**
+>
+> A snippet like this in your global CSS — common copy-paste from older reset guides — silently overrides every element rule Anta ships:
+>
+> ```css
+> *, *::before, *::after { box-sizing: border-box; }
+> * { margin: 0; }
+> ```
+>
+> Unlayered styles **always** beat layered ones in the cascade, regardless of specificity. So `* { margin: 0 }` outranks Anta's `caption { margin-bottom: 0.25em }`, `p { margin: 0 0 1em }`, `ul / ol` padding, and any other per-element default Anta provides — even though those use stronger selectors.
+>
+> If you're importing `@antadesign/anta/reset.css`, Anta already does the same universal `box-sizing` and margin reset, *inside* `@layer anta`. The element-level rules sitting on top are intentionally polite defaults — sensible out of the box, trivially overridable when you want something else (any rule in `@layer components` / `@layer utilities`, or any unlayered rule of your own that targets specific elements, wins automatically). **Delete the duplicate hard reset from your global CSS** so those defaults can apply. If you want to keep your own reset, wrap it in `@layer base { … }` so it sits below `anta` in the declared order and Anta's rules still win element-by-element.
+
 ## Registering elements
 
 The JSX wrappers (React components) as `Progress` render custom DOM elements as `<a-progress>`. The custom elements themselves must be registered with the browser **before** they appear in the DOM, and registration only works where `HTMLElement` exists — i.e. the UI thread of a real browser. **Node.js (SSR) and Worker threads don't have `HTMLElement`**, so the import is harmless in those environments: it does nothing — registration is skipped silently and the class uses a stand-in base instead of crashing — though it might extend your worker's bundle size a bit.
