@@ -1,5 +1,7 @@
 @layer anta {
   a-icon {
+    --icon-size: attr(size px);
+
     display: inline-block;
     vertical-align: middle;
     width: var(--icon-size, 16px);

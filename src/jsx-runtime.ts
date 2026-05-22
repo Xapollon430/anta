@@ -48,7 +48,7 @@ export function jsxs(type: ComponentType, props: Record<string, unknown> | null,
 
 export { _Fragment as Fragment }
 
-import type { AProgressAttributes, ATextAttributes, AIconAttributes, BaseAttributes } from './general_types'
+import type { AProgressAttributes, ATextAttributes, ATitleAttributes, AIconAttributes, BaseAttributes } from './general_types'
 
 export namespace JSX {
   export type IntrinsicElements = React.JSX.IntrinsicElements & {
@@ -58,6 +58,7 @@ export namespace JSX {
     'a-progress-text': BaseAttributes
     'a-progress-hint': BaseAttributes
     'a-text': ATextAttributes
+    'a-title': ATitleAttributes
     'a-icon': AIconAttributes
   }
 }

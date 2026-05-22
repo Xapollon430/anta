@@ -5,6 +5,8 @@ export interface TextProps extends BaseProps {
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
   tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
+  /** Type scale. `small` = 13/16, `medium` (default) = 15/20, `large` = 17/24. */
+  size?: 'small' | 'medium' | 'large'
   /** Render as inline-block instead of the default block element. */
   inline?: boolean
   /** Truncate with a trailing ellipsis. `true` (or `1`) clamps to a
@@ -41,7 +43,7 @@ export interface TextProps extends BaseProps {
  * <Text truncate={3} expandable>…long paragraph…</Text>
  * ```
  */
-export const Text = ({ priority, tone, inline, truncate, expandable, className, style, children, ...rest }: TextProps) => {
+export const Text = ({ priority, tone, size, inline, truncate, expandable, className, style, children, ...rest }: TextProps) => {
   const lineCount = typeof truncate === 'number' ? truncate : (truncate ? 1 : null)
   const computedStyle = lineCount != null
     ? { ...style, ['--line-clamp' as string]: lineCount }
@@ -50,6 +52,7 @@ export const Text = ({ priority, tone, inline, truncate, expandable, className, 
     <a-text
       priority={priority}
       tone={tone}
+      size={size}
       inline={inline ? '' : undefined}
       truncate={lineCount != null ? String(lineCount) : undefined}
       expandable={expandable && truncate ? '' : undefined}

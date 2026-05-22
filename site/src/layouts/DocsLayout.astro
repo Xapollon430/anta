@@ -154,6 +154,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
         <menu>
           <li><a href="/components/progress/" aria-current={isCurrent('/components/progress/') ? 'page' : undefined}><Icon shape="hourglass" size={18} /> Progress</a></li>
           <li><a href="/components/text/" aria-current={isCurrent('/components/text/') ? 'page' : undefined}><Icon shape="text-initial" size={18} /> Text</a></li>
+          <li><a href="/components/title/" aria-current={isCurrent('/components/title/') ? 'page' : undefined}><Icon shape="case-sensitive" size={18} /> Title</a></li>
           <li><a href="/components/icon/" aria-current={isCurrent('/components/icon/') ? 'page' : undefined}><Icon shape="bug" size={18} /> Icon</a></li>
           <li><a href="/components/table/" aria-current={isCurrent('/components/table/') ? 'page' : undefined}><Icon shape="table-2" size={18} /> Table</a></li>
         </menu>
@@ -353,6 +354,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
 
   .sidebar h4 {
     font-size: 12px;
+    line-height: 16px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-4-brand);
@@ -397,7 +399,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
   .content {
     flex: 1;
     min-width: 0;
-    max-width: 900px;
+    max-width: 960px;
     padding: 32px;
   }
 

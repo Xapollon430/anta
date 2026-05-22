@@ -325,7 +325,10 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  flex: 1;
+  min-height: 0;
   min-width: 0;
+  overflow-y: auto;
 }
 
 .field {
@@ -355,7 +358,27 @@
 
 .fieldHint {
   font-size: 12px;
+  line-height: 1.2;
   color: var(--text-4);
+}
+
+/* Inline layout for boolean fields: checkbox + label on one row so
+   the prop reads like a regular settings toggle. */
+.fieldBoolean {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 0;
+}
+.fieldBoolean > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.fieldBoolean input[type="checkbox"] {
+  flex-shrink: 0;
+  margin: 0;
 }
 
 .fieldValueLabel {

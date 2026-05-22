@@ -77,6 +77,24 @@ function controlFor(p: any): PropEntry | null {
     control, prop, optional,
   })
 
+  // The two structural props inherited from BaseProps that the form
+  // surfaces as editable text inputs:
+  // - `children`: edit the JSX element's body content.
+  // - `style`: a CSS declarations string, serialized to a JSX object
+  //   literal so the prop type stays correct downstream.
+  if (name === 'children') {
+    return wrap(
+      { kind: 'text', name, description },
+      { name, kind: 'children' },
+    )
+  }
+  if (name === 'style') {
+    return wrap(
+      { kind: 'text', name, description: description || 'CSS declarations (e.g. `color: red; padding: 8px`).' },
+      { name, kind: 'style-css' },
+    )
+  }
+
   // `intrinsic` types: string / number / boolean.
   if (t.type === 'intrinsic') {
     if (t.name === 'number') {
@@ -109,6 +127,25 @@ function controlFor(p: any): PropEntry | null {
       return wrap(
         { kind: 'segmented', name, options, defaultValue, description },
         { name, kind: 'literal-union', defaultValue },
+      )
+    }
+    // Union of number literals (e.g. Title's `level: 1 | 2 | … | 6`) →
+    // surface as a number input rather than six tiny buttons.
+    const numberLiterals = t.types.filter((x: any) => x.type === 'literal' && typeof x.value === 'number')
+    if (numberLiterals.length === t.types.length && numberLiterals.length > 0) {
+      return wrap(
+        { kind: 'number', name, description },
+        { name, kind: 'number' },
+      )
+    }
+    // Mixed union that includes a number intrinsic (e.g. Text's
+    // `truncate?: boolean | number`) — render as a number input. Empty
+    // value means the prop is absent.
+    const hasNumberIntrinsic = t.types.some((x: any) => x.type === 'intrinsic' && x.name === 'number')
+    if (hasNumberIntrinsic) {
+      return wrap(
+        { kind: 'number', name, description },
+        { name, kind: 'number' },
       )
     }
     // Fall through.
