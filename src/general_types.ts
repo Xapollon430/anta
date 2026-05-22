@@ -107,10 +107,15 @@ export interface ATitleAttributes extends BaseAttributes {
 export interface AIconAttributes extends BaseAttributes {
   /** Which icon to render. */
   shape?: string
-  /** Width and height in pixels. Read via CSS typed `attr()`; needs
-   *  Chrome 133+, Safari 18.2+. In Firefox the attribute is ignored
-   *  (default 16px); use the JSX `<Icon size={N}>` wrapper for
-   *  cross-browser sizing — it sets `--icon-size` inline. */
+  /** Width and height in pixels. Mapped to the `--icon-size` custom
+   *  property via the CSS Values 5 typed `attr()` function — Chrome
+   *  133+ and Safari 18.2+ only. Firefox hasn't shipped typed
+   *  `attr()` yet, so on raw `<a-icon size="N">` the attribute is
+   *  silently ignored there and the icon stays at the default 16 ×
+   *  16. For cross-browser sizing in pure-HTML usage, set the
+   *  variable inline: `<a-icon style="--icon-size: 24px">`. The JSX
+   *  `<Icon size={N}>` wrapper already does that under the hood and
+   *  is the recommended path. */
   size?: number | string
   /** ARIA role — the JSX wrapper sets `'img'` when a label is provided. */
   role?: string
