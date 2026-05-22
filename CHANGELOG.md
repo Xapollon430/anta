@@ -6,7 +6,7 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
-## 0.1.1-dev.5 — May 22, 2026
+## 0.1.1-dev.6 — May 22, 2026
 
 ### Added
 - New `Title` component (`<a-title>` styled tag + `Title` JSX wrapper) for headings at one of six `level`s. Drives both the type scale (font-size + line-height) and the vertical rhythm (logical `margin-block` per level); also surfaces `role="heading"` + `aria-level` for assistive tech. Mirrors `Text`'s `priority` (`primary`-`quinary`, mapping to `--text-1`...`--text-5`) and `tone` (`brand`, `success`, `critical`, `warning`, `info`) APIs. Children are arbitrary — pass icons, badges, or any inline content beside the title text; there are no `leadingIcon` / `trailingIcon` props.
