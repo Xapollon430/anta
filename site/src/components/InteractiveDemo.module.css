@@ -340,7 +340,7 @@
 
 .fieldLabel {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
   font-size: 13px;
@@ -366,7 +366,7 @@
    the prop reads like a regular settings toggle. */
 .fieldBoolean {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   font-size: 13px;
   cursor: pointer;
@@ -378,7 +378,7 @@
 }
 .fieldBoolean input[type="checkbox"] {
   flex-shrink: 0;
-  margin: 0;
+  margin: 0.25em 0 0;
 }
 
 .fieldValueLabel {
