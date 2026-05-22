@@ -186,12 +186,35 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
 
   const controls = useMemo(() => controlsFor(component), [component])
 
-  // Lazy-load Monaco's React wrapper once on mount.
+  // Lazy-load Monaco from npm (not jsdelivr CDN) and wire up the
+  // three workers we use — the docs site is now self-contained, no
+  // third-party JS fetch. `MonacoEnvironment.getWorker` returns the
+  // matching Web Worker for each Monaco language; everything else
+  // falls back to the generic editor worker. `loader.config({ monaco })`
+  // is what tells @monaco-editor/react to skip its CDN bootstrap and
+  // use the bundled namespace.
   useEffect(() => {
     let cancelled = false
-    import('@monaco-editor/react').then((mod) => {
+    Promise.all([
+      import('monaco-editor'),
+      import('monaco-editor/esm/vs/editor/editor.worker?worker'),
+      import('monaco-editor/esm/vs/language/typescript/ts.worker?worker'),
+      import('monaco-editor/esm/vs/language/css/css.worker?worker'),
+      import('@monaco-editor/react'),
+    ]).then(([monacoNs, editorWorker, tsWorker, cssWorker, reactMod]) => {
       if (cancelled) return
-      setMonacoLib(mod)
+      const EditorWorker = editorWorker.default
+      const TsWorker = tsWorker.default
+      const CssWorker = cssWorker.default
+      ;(globalThis as any).MonacoEnvironment = {
+        getWorker(_id: string, label: string) {
+          if (label === 'typescript' || label === 'javascript') return new TsWorker()
+          if (label === 'css' || label === 'scss' || label === 'less') return new CssWorker()
+          return new EditorWorker()
+        },
+      }
+      reactMod.loader.config({ monaco: monacoNs })
+      setMonacoLib(reactMod)
     })
     return () => {
       cancelled = true

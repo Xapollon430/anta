@@ -123,10 +123,20 @@ function controlFor(p: any): PropEntry | null {
     const literals = t.types.filter((x: any) => x.type === 'literal' && typeof x.value === 'string')
     if (literals.length === t.types.length && literals.length > 0) {
       const options = literals.map((x: any) => String(x.value))
-      const defaultValue = options[0]
+      // The runtime default for the UI fallback comes from a
+      // `@defaultValue` JSDoc tag on the prop. We deliberately don't
+      // fall back to `options[0]` — that lies when the first option
+      // isn't the runtime default (Text.tone, Text.size). Without an
+      // explicit tag, no button is highlighted when the source has no
+      // literal, which truthfully reflects "implicit default
+      // applies." The default is also intentionally *not* placed on
+      // the PropDescriptor: that would make `applyEdit` strip the
+      // attribute when the user picks the default, hiding the
+      // selection from the rendered output.
+      const defaultValue = readDefaultValueTag(p.comment)
       return wrap(
         { kind: 'segmented', name, options, defaultValue, description },
-        { name, kind: 'literal-union', defaultValue },
+        { name, kind: 'literal-union' },
       )
     }
     // Union of number literals (e.g. Title's `level: 1 | 2 | … | 6`) →
@@ -196,6 +206,30 @@ function renderComment(comment: any): string | undefined {
     .join('')
     .trim()
   return text || undefined
+}
+
+/** Read the value of a prop's `@defaultValue` (or `@default`) JSDoc
+ *  block tag. Typedoc wraps a bare token like `medium` in a
+ *  ```` ```ts\n…\n``` ```` fence; quoted forms (`'medium'`) come back as
+ *  inline-code or text. Strip whichever wrapping is present. Returns
+ *  `undefined` when neither tag is present. */
+function readDefaultValueTag(comment: any): string | undefined {
+  const tags = comment?.blockTags
+  if (!Array.isArray(tags)) return undefined
+  for (const tag of tags) {
+    if (tag.tag !== '@defaultValue' && tag.tag !== '@default') continue
+    const raw = (tag.content ?? [])
+      .map((p: any) => p.text ?? '')
+      .join('')
+      .trim()
+    if (!raw) continue
+    return raw
+      .replace(/^```[a-zA-Z]*\s*\n?/, '')
+      .replace(/\n?```$/, '')
+      .replace(/^[`'"](.*)[`'"]$/, '$1')
+      .trim()
+  }
+  return undefined
 }
 
 /** Derive a Control schema for a JSX example by introspecting the

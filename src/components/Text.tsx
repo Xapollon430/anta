@@ -5,7 +5,8 @@ export interface TextProps extends BaseProps {
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
   tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
-  /** Type scale. `small` = 13/16, `medium` (default) = 15/20, `large` = 17/24. */
+  /** Type scale. `small` = 13/16, `medium` = 15/20, `large` = 17/24.
+   *  @defaultValue medium */
   size?: 'small' | 'medium' | 'large'
   /** Render as inline-block instead of the default block element. */
   inline?: boolean
