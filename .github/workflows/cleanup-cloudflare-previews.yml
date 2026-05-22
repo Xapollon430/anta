@@ -1,0 +1,95 @@
+name: Cleanup Cloudflare Pages previews
+
+# Fires when a branch (not a tag) is deleted on GitHub. Cloudflare
+# Pages keeps preview deployments around indefinitely on its own — no
+# retention, no branch-aware cleanup — so deleted branches accumulate
+# stale deploys until they hit the project deployment cap.
+#
+# This workflow paginates Cloudflare's REST API for every preview
+# deployment in the project, filters to the deleted branch, and
+# removes each match.
+#
+# Note: GitHub's `delete` event only fires when a branch is removed
+# from the repo. PR merges that leave the source branch in place do
+# not trigger cleanup — turn on "Automatically delete head branches"
+# in Settings → General → Pull Requests if you want merge → cleanup.
+on:
+  delete:
+
+permissions: {}
+
+jobs:
+  cleanup:
+    if: github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete branch's Cloudflare Pages preview deployments
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PROJECT: anta
+          BRANCH: ${{ github.event.ref }}
+        run: |
+          set -euo pipefail
+
+          api="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${PROJECT}/deployments"
+
+          # Cloudflare's list-deployments endpoint caps per_page at 25
+          # and exposes no branch filter, so we paginate the whole
+          # preview-deployments list and match `deployment_trigger.
+          # metadata.branch` client-side. Pagination stops when a page
+          # returns fewer than 25 results (i.e. we've hit the tail).
+          PAGE_SIZE=25
+
+          echo "Looking up preview deployments for branch: ${BRANCH}"
+
+          ids=""
+          page=1
+          while :; do
+            res=$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" \
+              "${api}?env=preview&page=${page}&per_page=${PAGE_SIZE}")
+
+            success=$(echo "${res}" | jq -r '.success')
+            if [[ "${success}" != "true" ]]; then
+              echo "Cloudflare API error on page ${page}:"
+              echo "${res}" | jq '.errors // .'
+              exit 1
+            fi
+
+            page_ids=$(echo "${res}" | jq -r --arg b "${BRANCH}" \
+              '.result[] | select(.deployment_trigger.metadata.branch == $b) | .id')
+            if [[ -n "${page_ids}" ]]; then
+              ids+="${page_ids}"$'\n'
+            fi
+
+            page_count=$(echo "${res}" | jq -r '.result | length')
+            if [[ "${page_count}" -lt "${PAGE_SIZE}" ]]; then
+              break
+            fi
+            page=$((page + 1))
+          done
+
+          ids=$(printf '%s' "${ids}" | sed '/^$/d')
+
+          if [[ -z "${ids}" ]]; then
+            echo "No preview deployments found for ${BRANCH}. Nothing to do."
+            exit 0
+          fi
+
+          count=$(echo "${ids}" | wc -l | tr -d ' ')
+          echo "Deleting ${count} preview deployment(s):"
+
+          while IFS= read -r id; do
+            echo "  ${id}"
+            res=$(curl -sS -X DELETE \
+              -H "Authorization: Bearer ${CF_API_TOKEN}" \
+              "${api}/${id}")
+            success=$(echo "${res}" | jq -r '.success')
+            if [[ "${success}" != "true" ]]; then
+              echo "  failed:"
+              echo "${res}" | jq '.errors // .'
+              exit 1
+            fi
+          done <<< "${ids}"
+
+          echo "Done."

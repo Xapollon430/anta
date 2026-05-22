@@ -114,21 +114,19 @@ code {
   font-family: var(--monospace);
   font-size: 0.9em;
   color: inherit;
-  background: var(--bg-section);
-  border: 0.5px solid var(--border-4);
-  padding: 3px 3px 2px;
+  background: color-mix(in oklch, currentColor 6%, transparent);
+  border: none;
+  padding: 0.25em 0.4ch 0.2em;
   border-radius: 3px;
 }
+
 
 pre code { background: none; padding: 0; }
 
 :not(pre) > code {
   cursor: copy;
-  transition: box-shadow 150ms ease-out;
   position: relative;
 }
-:not(pre) > code:hover { box-shadow: 0 1px 5px color-mix(in oklch, var(--border-1) 50%, transparent); }
-:not(pre) > code:active { box-shadow: none; }
 
 .copyable {
   cursor: copy;
@@ -157,6 +155,16 @@ pre code { background: none; padding: 0; }
   border-radius: inherit;
 
   animation: copy-toast 500ms ease-out forwards;
+}
+
+/* The code-pill toast: the pill's own background is now a translucent
+   `currentColor` wash, so `background: inherit` would leave the
+   floating copy nearly invisible against the page (and outright
+   invisible at z-index: -1 against the page background). Layer the
+   same 6% tint over the page's base color so the toast reads as an
+   opaque ghost of the original pill. */
+code[data-copied]::after {
+  background: color-mix(in oklch, currentColor 6%, var(--bg-base));
 }
 
 @keyframes copy-toast {
@@ -206,6 +214,15 @@ pre code { background: none; padding: 0; }
   margin: 0;
 }
 
+/* Docs-site default: stretch every prose table to fill the column.
+   The package baseline leaves width alone (app tables shouldn't
+   automatically go full-bleed); the docs site overrides for the
+   rendered-MDX context where full-width is what you want. */
+.content table {
+  width: 100%;
+  margin: 0 0 24px;
+}
+
 /* Changelog stream filter. The /changelog/ page wraps each version
    block in <section data-stream="dev|main"> via the
    rehype-changelog-sections plugin. The ChangelogStreamTabs component
@@ -214,27 +231,6 @@ pre code { background: none; padding: 0; }
    sections; default (no html[data-stream]) shows everything. */
 html[data-stream="dev"]  .changelog section[data-stream="main"] { display: none; }
 html[data-stream="main"] .changelog section[data-stream="dev"]  { display: none; }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0 0 24px;
-  font-size: 0.9rem;
-}
-
-th, td {
-  text-align: left;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--border-5);
-}
-
-th {
-  font-weight: 600;
-  color: #6c7278;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
 
 /* Shared demo-island styles. Used by component demos (IconDemo,
    TruncateDemo, ExpandableDemo, TextDemo). */
