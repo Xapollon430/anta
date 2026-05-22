@@ -3,11 +3,17 @@
     --text-color: var(--text-1);
     --text-link-color: var(--link-color);
     --text-link-hover: var(--link-color-hover);
-  
+
     display: block;
     color: var(--text-color);
+    font-size: 15px;
+    line-height: 20px;
   }
-  
+
+  a-text[size="small"]  { font-size: 13px; line-height: 16px; }
+  a-text[size="medium"] { font-size: 15px; line-height: 20px; }
+  a-text[size="large"]  { font-size: 17px; line-height: 24px; }
+
   a-text[inline] {
     display: inline-block;
   }

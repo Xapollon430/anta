@@ -63,6 +63,8 @@ export interface ATextAttributes extends BaseAttributes {
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
   tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
+  /** Type scale. `small` = 13/16, `medium` (default) = 15/20, `large` = 17/24. */
+  size?: 'small' | 'medium' | 'large'
   /** Render as inline-block instead of the default block. */
   inline?: boolean | string
   /** Truncate to N lines with a trailing ellipsis. The attribute value
@@ -78,6 +80,26 @@ export interface ATextAttributes extends BaseAttributes {
 }
 
 /**
+ * Attributes for the `<a-title>` styled tag.
+ *
+ * `<a-title>` has no JS — it's a CSS-only styled element. Low-level
+ * attributes; for the JSX wrapper with typed `level` numbers and ARIA
+ * use `Title` from `@antadesign/anta`.
+ */
+export interface ATitleAttributes extends BaseAttributes {
+  /** Heading level as a string attribute, '1'-'6'. */
+  level?: string
+  /** Visual priority. Maps to text-1..text-5. */
+  priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
+  /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
+  tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
+  /** ARIA role — the JSX wrapper sets this to `'heading'`. */
+  role?: string
+  /** ARIA heading level — the JSX wrapper sets this to match `level`. */
+  'aria-level'?: number | string
+}
+
+/**
  * Attributes for the `<a-icon>` custom element. The `shape` attribute
  * value is typed as `string` here so the element accepts any consumer's
  * generated shapes. The JSX wrapper (`Icon`) narrows it to `IconShape`.
@@ -85,6 +107,16 @@ export interface ATextAttributes extends BaseAttributes {
 export interface AIconAttributes extends BaseAttributes {
   /** Which icon to render. */
   shape?: string
+  /** Width and height in pixels. Mapped to the `--icon-size` custom
+   *  property via the CSS Values 5 typed `attr()` function — Chrome
+   *  133+ and Safari 18.2+ only. Firefox hasn't shipped typed
+   *  `attr()` yet, so on raw `<a-icon size="N">` the attribute is
+   *  silently ignored there and the icon stays at the default 16 ×
+   *  16. For cross-browser sizing in pure-HTML usage, set the
+   *  variable inline: `<a-icon style="--icon-size: 24px">`. The JSX
+   *  `<Icon size={N}>` wrapper already does that under the hood and
+   *  is the recommended path. */
+  size?: number | string
   /** ARIA role — the JSX wrapper sets `'img'` when a label is provided. */
   role?: string
   /** ARIA accessible name when the icon carries meaning. */

@@ -19,13 +19,22 @@ import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
 
 const root = new URL('../..', import.meta.url)
-const entry = fileURLToPath(new URL('src/elements/index.ts', root))
+const resetCss = fileURLToPath(new URL('src/reset.css', root))
+const elementsEntry = fileURLToPath(new URL('src/elements/index.ts', root))
 const outFile = fileURLToPath(new URL('site/public/iframe-anta-runtime.js', root))
 
 await mkdir(dirname(outFile), { recursive: true })
 
 await build({
-  entryPoints: [entry],
+  // Virtual entry: pull reset.css's `@layer anta` rules (base link
+  // styling, list resets, etc.) in alongside the element registrations
+  // so the iframe ends up with the same anchor underlines, etc., the
+  // docs site shows.
+  stdin: {
+    contents: `import ${JSON.stringify(resetCss)}; import ${JSON.stringify(elementsEntry)};`,
+    resolveDir: fileURLToPath(root),
+    loader: 'ts',
+  },
   outfile: outFile,
   bundle: true,
   format: 'esm',

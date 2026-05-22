@@ -1,5 +1,10 @@
 @layer anta {
   a-icon {
+    /* `<a-icon size="N">` maps to `--icon-size` via typed `attr()`
+       (CSS Values 5) — Chrome 133+, Safari 18.2+. Firefox not yet:
+       in raw HTML usage there, set `style="--icon-size: Npx"`. */
+    --icon-size: attr(size px);
+
     display: inline-block;
     vertical-align: middle;
     width: var(--icon-size, 16px);

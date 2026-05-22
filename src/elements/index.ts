@@ -3,6 +3,7 @@ import { register_a_text } from './a-text'
 import { register_a_icon } from './a-icon'
 import './a-progress.css'
 import './a-text.css'
+import './a-title.css'
 import './a-icon.css'
 import './a-icon.shapes.css'
 
