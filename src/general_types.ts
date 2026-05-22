@@ -102,12 +102,17 @@ export interface AIconAttributes extends BaseAttributes {
 export interface AButtonAttributes extends BaseAttributes {
   /** Visual emphasis. */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary'
-  /** Semantic tone. */
-  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning'
-  /** Inline text decoration. */
-  decoration?: 'underline' | 'bold' | 'italic'
+  /** Semantic tone. `custom` bypasses the resolver — supply your own
+   *  colours via the `--button-fg-color` / `--button-bg-color` /
+   *  `--button-br-color` CSS variables on `style`. */
+  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning' | 'custom'
+  /** Underline style — only takes effect on `priority="quaternary"`. */
+  underline?: 'solid' | 'dashed' | 'dotted'
   /** Size variant. small=24px, default=28px, large=32px. */
   size?: 'small' | 'default' | 'large'
+  /** Drop the outer padding to zero so the button sits flush with
+   *  surrounding content. Only takes effect on `priority="quaternary"`. */
+  paddingless?: 'true' | 'false' | boolean | string
   /** Loading state. The element's CSS matches `[loading="true"]`. */
   loading?: 'true' | 'false' | boolean | string
   /** Disabled state. */

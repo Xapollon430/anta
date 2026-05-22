@@ -1,6 +1,5 @@
 import type { BaseProps } from "../general_types"
 import type { IconShape } from '../elements/a-icon.shapes'
-import { Icon } from './Icon'
 
 
 export interface ButtonProps extends BaseProps {
@@ -12,10 +11,16 @@ export interface ButtonProps extends BaseProps {
   /** Semantic tone. Defaults to `brand` (the purple-violet brand
    *  scale). `neutral` falls back to the grayscale text/border tokens;
    *  `critical`/`info`/`success`/`warning` draw from the alert palette
-   *  and the Figma `component/button/*` token set. */
-  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning'
-  /** Inline text decoration. */
-  decoration?: 'underline' | 'bold' | 'italic'
+   *  and the Figma `component/button/*` token set. Pass `custom` to
+   *  bypass the tone resolver entirely and supply your own colours via
+   *  `style={{ '--button-bg-color': ..., '--button-fg-color': ..., '--button-br-color': ... }}`
+   *  (and the `-hover`/`-active` variants if you want state-driven shifts). */
+  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning' | 'custom'
+  /** Underline style. Per the Figma spec underlines are only meaningful
+   *  on `priority="quaternary"` (the link-like text-only variant), so
+   *  the CSS rule that paints them is gated on quaternary — passing
+   *  `underline` on another priority is a no-op visually. */
+  underline?: 'solid' | 'dashed' | 'dotted'
   /** Size variant. Three heights (small = 24px, default = 28px,
    *  large = 32px) — only padding changes; font size stays 15px. */
   size?: 'small' | 'default' | 'large'
@@ -38,8 +43,16 @@ export interface ButtonProps extends BaseProps {
    *  the size-matched square padding. Pass exactly one of
    *  `leadingIcon` / `trailingIcon`. */
   iconButton?: boolean
-  /** Label text. Rendered inside a `<label>` so the icon-only padding
-   *  rule (square 5×5) only kicks in when this is omitted. */
+  /** Drops the outer padding to zero so the button's edges sit flush
+   *  with surrounding content. Useful for inline-link feel inside
+   *  prose. Only takes effect with `priority="quaternary"`. */
+  paddingless?: boolean
+  /** Label text. Rendered inside an `<a-button-label>` tag (an
+   *  unregistered, CSS-styled sub-element — same convention as
+   *  `<a-progress-label>` / `<a-progress-text>`) so the icon-only
+   *  padding rule only kicks in when this is omitted, without
+   *  dragging in `<label>`'s form-association semantics or browser
+   *  UA-stylesheet quirks. */
   label?: string
   /** When set, the component renders as `<a role="button">` rather
    *  than `<a-button>`. */
@@ -90,10 +103,11 @@ export interface ButtonProps extends BaseProps {
 export const Button = ({
   priority,
   tone,
-  decoration,
+  underline,
   leadingIcon,
   trailingIcon,
   iconButton,
+  paddingless,
   label,
   size,
   loading,
@@ -115,9 +129,10 @@ export const Button = ({
   const sharedAttrs = {
     priority,
     tone,
-    decoration,
+    underline,
     size,
     iconbutton: iconButton ? 'true' : undefined,
+    paddingless: paddingless ? 'true' : undefined,
     loading: loading ? 'true' : undefined,
     disabled: disabled ? 'true' : undefined,
     selected: selected ? 'true' : undefined,
@@ -131,10 +146,16 @@ export const Button = ({
 
   const inner = (
     <>
-      {leadingIcon && <Icon shape={leadingIcon} />}
-      {label != null && !iconButton && <label>{label}</label>}
+      {/* `<a-icon>` directly, not the `Icon` JSX wrapper — button icons
+          are always decorative (the label / aria-label carries the
+          meaning), so `aria-hidden="true"` is fixed; the wrapper's
+          size + ARIA defaulting isn't needed inside the button. Keeps
+          the rendered DOM as a clean tree of web-component primitives:
+          `<a-button>` → `<a-icon>` + `<a-button-label>` + `<a-icon>`. */}
+      {leadingIcon && <a-icon shape={leadingIcon} aria-hidden="true" />}
+      {label != null && !iconButton && <a-button-label>{label}</a-button-label>}
       {children}
-      {trailingIcon && <Icon shape={trailingIcon} />}
+      {trailingIcon && <a-icon shape={trailingIcon} aria-hidden="true" />}
     </>
   )
 

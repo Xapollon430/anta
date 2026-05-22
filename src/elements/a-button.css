@@ -15,318 +15,543 @@
      priority = primary | secondary | tertiary | quaternary
      state    = rest | hover | active
 
-     Values come straight from `Dynamic colors/Light.tokens.json` and
-     `Dark.tokens.json` (the Figma DTCG export under `component/button/*`).
-     For tones / states where Figma has no border or text-hover token,
-     the cell falls back to bg or rest as documented in the comments
-     under each block. */
+     Values come from the Figma master (`component/button/*` in the
+     `Dynamic colors` collection). Solids are dual-declared `hex; oklch`
+     — same convention as src/tokens.css — so browsers without oklch
+     fall back to the hex while modern engines get perceptually-uniform
+     colour. Alphas use `color-mix(in oklch, <hex> <p>%, transparent)`
+     so the alpha blend happens in oklch (per CLAUDE.md's mixing rule),
+     with a hex8 fallback emitted first.
+
+     Border tokens (`--br-…-primary-rest`) are set but produce no
+     visible border by default — `--button-br-width: 0` in the geometry
+     block below. They exist so a consumer can opt into an outlined
+     variant via `style={{ '--button-br-width': '1px' }}` without
+     losing the per-tone border colour. */
 
   a-button, a[role="button"] {
     /* Primary text is fixed white in both modes (Figma
        `component/button/primary/text`). The dark block doesn't
        override this. */
     --button-primary-fg: #ffffff;
+    --button-primary-fg: oklch(1.000 0.000 0);
 
     /* Focus-ring colour (Figma `component/focus`). */
     --button-focus-color: #503cb4;
+    --button-focus-color: oklch(0.453 0.181 284);
 
     /* ── BRAND ── */
     --bg-brand-primary-rest:   #5f4bc3;
+    --bg-brand-primary-rest:   oklch(0.502 0.179 286);
     --bg-brand-primary-hover:  #503cb4;
+    --bg-brand-primary-hover:  oklch(0.453 0.181 284);
     --bg-brand-primary-active: #483493;
+    --bg-brand-primary-active: oklch(0.405 0.149 287);
     --br-brand-primary-rest:   #5f4bc3;
+    --br-brand-primary-rest:   oklch(0.502 0.179 286);
     --fg-brand-primary-rest:   var(--button-primary-fg);
 
-    --bg-brand-secondary-rest:  #7460d7;
-    --bg-brand-secondary-hover: #7460d7;
-    --br-brand-secondary-rest:  #7460d7;
-    --br-brand-secondary-hover: #7460d7;
-    --fg-brand-secondary-rest:  #5f4bc3;
-    --fg-brand-secondary-hover: #503cb4;
+    --bg-brand-secondary-rest:   #7460d71a;
+    --bg-brand-secondary-rest:   color-mix(in oklch, #7460d7 10%, transparent);
+    --bg-brand-secondary-hover:  #7460d726;
+    --bg-brand-secondary-hover:  color-mix(in oklch, #7460d7 15%, transparent);
+    --bg-brand-secondary-active: #7460d733;
+    --bg-brand-secondary-active: color-mix(in oklch, #7460d7 20%, transparent);
+    --fg-brand-secondary-rest:   #5f4bc3;
+    --fg-brand-secondary-rest:   oklch(0.502 0.179 286);
+    --fg-brand-secondary-hover:  #503cb4;
+    --fg-brand-secondary-hover:  oklch(0.453 0.181 284);
 
-    --fg-brand-tertiary-rest:   #5f4bc3;
-    --fg-brand-tertiary-hover:  #503cb4;
-    --bg-brand-tertiary-hover:  #7460d7;
-    --bg-brand-tertiary-active: #7460d7;
+    --fg-brand-tertiary-rest:    #5f4bc3;
+    --fg-brand-tertiary-rest:    oklch(0.502 0.179 286);
+    --fg-brand-tertiary-hover:   #503cb4;
+    --fg-brand-tertiary-hover:   oklch(0.453 0.181 284);
+    --bg-brand-tertiary-hover:   #7460d71a;
+    --bg-brand-tertiary-hover:   color-mix(in oklch, #7460d7 10%, transparent);
+    --bg-brand-tertiary-active:  #7460d726;
+    --bg-brand-tertiary-active:  color-mix(in oklch, #7460d7 15%, transparent);
 
     --fg-brand-quaternary-rest:  #5f4bc3;
+    --fg-brand-quaternary-rest:  oklch(0.502 0.179 286);
     --fg-brand-quaternary-hover: #483493;
+    --fg-brand-quaternary-hover: oklch(0.405 0.149 287);
 
     /* ── NEUTRAL ── */
     --bg-neutral-primary-rest:   #635b65;
+    --bg-neutral-primary-rest:   oklch(0.482 0.019 319);
     --bg-neutral-primary-hover:  #534c57;
+    --bg-neutral-primary-hover:  oklch(0.427 0.020 313);
     --bg-neutral-primary-active: #49424c;
+    --bg-neutral-primary-active: oklch(0.390 0.019 316);
     --br-neutral-primary-rest:   #635b65;
+    --br-neutral-primary-rest:   oklch(0.482 0.019 319);
     --fg-neutral-primary-rest:   var(--button-primary-fg);
 
-    --bg-neutral-secondary-rest:  #44374b;
-    --bg-neutral-secondary-hover: #44374b;
-    --br-neutral-secondary-rest:  #44374b;
-    --br-neutral-secondary-hover: #44374b;
-    --fg-neutral-secondary-rest:  #534c57;
-    --fg-neutral-secondary-hover: #49424c;
+    /* Neutral chip is irregular — softer rest alpha (5%) than the other
+       tones (10%) so the gray doesn't read too heavy on a light page. */
+    --bg-neutral-secondary-rest:   #44374b0d;
+    --bg-neutral-secondary-rest:   color-mix(in oklch, #44374b 5%, transparent);
+    --bg-neutral-secondary-hover:  #44374b1a;
+    --bg-neutral-secondary-hover:  color-mix(in oklch, #44374b 10%, transparent);
+    --bg-neutral-secondary-active: #44374b33;
+    --bg-neutral-secondary-active: color-mix(in oklch, #44374b 20%, transparent);
+    --fg-neutral-secondary-rest:   #534c57;
+    --fg-neutral-secondary-rest:   oklch(0.427 0.020 313);
+    --fg-neutral-secondary-hover:  #49424c;
+    --fg-neutral-secondary-hover:  oklch(0.390 0.019 316);
 
-    --fg-neutral-tertiary-rest:   #635b65;
-    --fg-neutral-tertiary-hover:  #534c57;
-    --bg-neutral-tertiary-hover:  #44374b;
-    --bg-neutral-tertiary-active: #44374b;
+    --fg-neutral-tertiary-rest:    #635b65;
+    --fg-neutral-tertiary-rest:    oklch(0.482 0.019 319);
+    --fg-neutral-tertiary-hover:   #534c57;
+    --fg-neutral-tertiary-hover:   oklch(0.427 0.020 313);
+    --bg-neutral-tertiary-hover:   #44374b0d;
+    --bg-neutral-tertiary-hover:   color-mix(in oklch, #44374b 5%, transparent);
+    --bg-neutral-tertiary-active:  #44374b1a;
+    --bg-neutral-tertiary-active:  color-mix(in oklch, #44374b 10%, transparent);
 
     --fg-neutral-quaternary-rest:  #635b65;
+    --fg-neutral-quaternary-rest:  oklch(0.482 0.019 319);
     --fg-neutral-quaternary-hover: #49424c;
+    --fg-neutral-quaternary-hover: oklch(0.390 0.019 316);
 
     /* ── CRITICAL ── */
     --bg-critical-primary-rest:   #c9302c;
+    --bg-critical-primary-rest:   oklch(0.551 0.190 27);
     --bg-critical-primary-hover:  #b02120;
+    --bg-critical-primary-hover:  oklch(0.492 0.179 27);
     --bg-critical-primary-active: #a01c1c;
+    --bg-critical-primary-active: oklch(0.458 0.167 27);
     --br-critical-primary-rest:   #c9302c;
+    --br-critical-primary-rest:   oklch(0.551 0.190 27);
     --fg-critical-primary-rest:   var(--button-primary-fg);
 
-    --bg-critical-secondary-rest:  #de4545;
-    --bg-critical-secondary-hover: #de4545;
-    --br-critical-secondary-rest:  #de4545;
-    --br-critical-secondary-hover: #de4545;
-    --fg-critical-secondary-rest:  #c9302c;
-    --fg-critical-secondary-hover: #b02120;
+    --bg-critical-secondary-rest:   #de45451a;
+    --bg-critical-secondary-rest:   color-mix(in oklch, #de4545 10%, transparent);
+    --bg-critical-secondary-hover:  #de454526;
+    --bg-critical-secondary-hover:  color-mix(in oklch, #de4545 15%, transparent);
+    --bg-critical-secondary-active: #de454533;
+    --bg-critical-secondary-active: color-mix(in oklch, #de4545 20%, transparent);
+    --fg-critical-secondary-rest:   #c9302c;
+    --fg-critical-secondary-rest:   oklch(0.551 0.190 27);
+    --fg-critical-secondary-hover:  #b02120;
+    --fg-critical-secondary-hover:  oklch(0.492 0.179 27);
 
-    --fg-critical-tertiary-rest:   #c9302c;
-    --fg-critical-tertiary-hover:  #b02120;
-    --bg-critical-tertiary-hover:  #de4545;
-    --bg-critical-tertiary-active: #de4545;
+    --fg-critical-tertiary-rest:    #c9302c;
+    --fg-critical-tertiary-rest:    oklch(0.551 0.190 27);
+    --fg-critical-tertiary-hover:   #b02120;
+    --fg-critical-tertiary-hover:   oklch(0.492 0.179 27);
+    /* Critical/warning tertiary active step heavier (20%) than other
+       tones (15%) — explicit irregularity in the Figma spec. */
+    --bg-critical-tertiary-hover:   #de45451a;
+    --bg-critical-tertiary-hover:   color-mix(in oklch, #de4545 10%, transparent);
+    --bg-critical-tertiary-active:  #de454533;
+    --bg-critical-tertiary-active:  color-mix(in oklch, #de4545 20%, transparent);
 
     --fg-critical-quaternary-rest:  #c9302c;
+    --fg-critical-quaternary-rest:  oklch(0.551 0.190 27);
     --fg-critical-quaternary-hover: #a01c1c;
+    --fg-critical-quaternary-hover: oklch(0.458 0.167 27);
 
     /* ── INFO ── */
     --bg-info-primary-rest:   #1f6eb2;
+    --bg-info-primary-rest:   oklch(0.527 0.130 249);
     --bg-info-primary-hover:  #1a5b93;
+    --bg-info-primary-hover:  oklch(0.461 0.111 249);
     --bg-info-primary-active: #175082;
+    --bg-info-primary-active: oklch(0.422 0.101 249);
     --br-info-primary-rest:   #1f6eb2;
+    --br-info-primary-rest:   oklch(0.527 0.130 249);
     --fg-info-primary-rest:   var(--button-primary-fg);
 
-    --bg-info-secondary-rest:  #2686d9;
-    --bg-info-secondary-hover: #2686d9;
-    --br-info-secondary-rest:  #2686d9;
-    --br-info-secondary-hover: #2686d9;
-    --fg-info-secondary-rest:  #1f6eb2;
-    --fg-info-secondary-hover: #1a5b93;
+    --bg-info-secondary-rest:   #2686d91a;
+    --bg-info-secondary-rest:   color-mix(in oklch, #2686d9 10%, transparent);
+    --bg-info-secondary-hover:  #2686d926;
+    --bg-info-secondary-hover:  color-mix(in oklch, #2686d9 15%, transparent);
+    --bg-info-secondary-active: #2686d933;
+    --bg-info-secondary-active: color-mix(in oklch, #2686d9 20%, transparent);
+    --fg-info-secondary-rest:   #1f6eb2;
+    --fg-info-secondary-rest:   oklch(0.527 0.130 249);
+    --fg-info-secondary-hover:  #1a5b93;
+    --fg-info-secondary-hover:  oklch(0.461 0.111 249);
 
-    --fg-info-tertiary-rest:   #1f6eb2;
-    --fg-info-tertiary-hover:  #1a5b93;
-    --bg-info-tertiary-hover:  #2686d9;
-    --bg-info-tertiary-active: #2686d9;
+    --fg-info-tertiary-rest:    #1f6eb2;
+    --fg-info-tertiary-rest:    oklch(0.527 0.130 249);
+    --fg-info-tertiary-hover:   #1a5b93;
+    --fg-info-tertiary-hover:   oklch(0.461 0.111 249);
+    --bg-info-tertiary-hover:   #2686d91a;
+    --bg-info-tertiary-hover:   color-mix(in oklch, #2686d9 10%, transparent);
+    --bg-info-tertiary-active:  #2686d926;
+    --bg-info-tertiary-active:  color-mix(in oklch, #2686d9 15%, transparent);
 
     --fg-info-quaternary-rest:  #1f6eb2;
+    --fg-info-quaternary-rest:  oklch(0.527 0.130 249);
     --fg-info-quaternary-hover: #175082;
+    --fg-info-quaternary-hover: oklch(0.422 0.101 249);
 
     /* ── SUCCESS ── */
     --bg-success-primary-rest:   #2a7e43;
+    --bg-success-primary-rest:   oklch(0.528 0.122 150);
     --bg-success-primary-hover:  #226737;
+    --bg-success-primary-hover:  oklch(0.458 0.103 150);
     --bg-success-primary-active: #1f5c31;
+    --bg-success-primary-active: oklch(0.424 0.094 150);
     --br-success-primary-rest:   #2a7e43;
+    --br-success-primary-rest:   oklch(0.528 0.122 150);
     --fg-success-primary-rest:   var(--button-primary-fg);
 
-    --bg-success-secondary-rest:  #329550;
-    --bg-success-secondary-hover: #329550;
-    --br-success-secondary-rest:  #329550;
-    --br-success-secondary-hover: #329550;
-    --fg-success-secondary-rest:  #2a7e43;
-    --fg-success-secondary-hover: #226737;
+    --bg-success-secondary-rest:   #3295501a;
+    --bg-success-secondary-rest:   color-mix(in oklch, #329550 10%, transparent);
+    --bg-success-secondary-hover:  #32955026;
+    --bg-success-secondary-hover:  color-mix(in oklch, #329550 15%, transparent);
+    --bg-success-secondary-active: #32955033;
+    --bg-success-secondary-active: color-mix(in oklch, #329550 20%, transparent);
+    --fg-success-secondary-rest:   #2a7e43;
+    --fg-success-secondary-rest:   oklch(0.528 0.122 150);
+    --fg-success-secondary-hover:  #226737;
+    --fg-success-secondary-hover:  oklch(0.458 0.103 150);
 
-    --fg-success-tertiary-rest:   #2a7e43;
-    --fg-success-tertiary-hover:  #226737;
-    --bg-success-tertiary-hover:  #329550;
-    --bg-success-tertiary-active: #329550;
+    --fg-success-tertiary-rest:    #2a7e43;
+    --fg-success-tertiary-rest:    oklch(0.528 0.122 150);
+    --fg-success-tertiary-hover:   #226737;
+    --fg-success-tertiary-hover:   oklch(0.458 0.103 150);
+    --bg-success-tertiary-hover:   #3295501a;
+    --bg-success-tertiary-hover:   color-mix(in oklch, #329550 10%, transparent);
+    --bg-success-tertiary-active:  #32955026;
+    --bg-success-tertiary-active:  color-mix(in oklch, #329550 15%, transparent);
 
     --fg-success-quaternary-rest:  #2a7e43;
+    --fg-success-quaternary-rest:  oklch(0.528 0.122 150);
     --fg-success-quaternary-hover: #1f5c31;
+    --fg-success-quaternary-hover: oklch(0.424 0.094 150);
 
-    /* ── WARNING ── */
+    /* ── WARNING ──
+       Warning is irregular: its non-primary text-rest already sits at
+       `#995200` (== primary active). The hover then drops to `#7f410b`,
+       and quaternary hover goes all the way to `#6a3b0c`. Tertiary
+       active also steps heavier (20%) like critical. */
     --bg-warning-primary-rest:   #c37416;
+    --bg-warning-primary-rest:   oklch(0.632 0.138 63);
     --bg-warning-primary-hover:  #ae6613;
+    --bg-warning-primary-hover:  oklch(0.579 0.127 62);
     --bg-warning-primary-active: #995200;
+    --bg-warning-primary-active: oklch(0.513 0.122 59);
     --br-warning-primary-rest:   #c37416;
+    --br-warning-primary-rest:   oklch(0.632 0.138 63);
     --fg-warning-primary-rest:   var(--button-primary-fg);
 
-    --bg-warning-secondary-rest:  #c37416;
-    --bg-warning-secondary-hover: #c37416;
-    --br-warning-secondary-rest:  #c37416;
-    --br-warning-secondary-hover: #c37416;
-    --fg-warning-secondary-rest:  #995200;
-    --fg-warning-secondary-hover: #7f410b;
+    --bg-warning-secondary-rest:   #c374161a;
+    --bg-warning-secondary-rest:   color-mix(in oklch, #c37416 10%, transparent);
+    --bg-warning-secondary-hover:  #c3741626;
+    --bg-warning-secondary-hover:  color-mix(in oklch, #c37416 15%, transparent);
+    --bg-warning-secondary-active: #c3741633;
+    --bg-warning-secondary-active: color-mix(in oklch, #c37416 20%, transparent);
+    --fg-warning-secondary-rest:   #995200;
+    --fg-warning-secondary-rest:   oklch(0.513 0.122 59);
+    --fg-warning-secondary-hover:  #7f410b;
+    --fg-warning-secondary-hover:  oklch(0.445 0.105 54);
 
-    --fg-warning-tertiary-rest:   #995200;
-    --fg-warning-tertiary-hover:  #7f410b;
-    --bg-warning-tertiary-hover:  #c37416;
-    --bg-warning-tertiary-active: #c37416;
+    --fg-warning-tertiary-rest:    #995200;
+    --fg-warning-tertiary-rest:    oklch(0.513 0.122 59);
+    --fg-warning-tertiary-hover:   #7f410b;
+    --fg-warning-tertiary-hover:   oklch(0.445 0.105 54);
+    --bg-warning-tertiary-hover:   #c374161a;
+    --bg-warning-tertiary-hover:   color-mix(in oklch, #c37416 10%, transparent);
+    --bg-warning-tertiary-active:  #c3741633;
+    --bg-warning-tertiary-active:  color-mix(in oklch, #c37416 20%, transparent);
 
     --fg-warning-quaternary-rest:  #995200;
+    --fg-warning-quaternary-rest:  oklch(0.513 0.122 59);
     --fg-warning-quaternary-hover: #6a3b0c;
+    --fg-warning-quaternary-hover: oklch(0.403 0.087 60);
 
-    /* Disabled — tone-agnostic. The bg differs by priority but text
-       and border are shared. Loading/disabled visually overlap; we
-       still keep the colors flat (opacity 1) rather than dimming so
-       the disabled bg matches the spec exactly. The underlying tone
-       tokens stay set on the element; they just lose to the disabled
-       rule, and reappear automatically when `disabled` lifts. */
-    --bg-primary-disabled: #ece9ec;
+    /* ── Disabled ──
+       Tone-agnostic — bg differs by priority but fg is shared. The
+       disabled rule below sets these on `background-color` / `color` /
+       `border-color` DIRECTLY (not via the per-tone vars above) so it
+       beats `tone="custom"` consumers' inline-style overrides on
+       `--button-bg-color`. Text in light mode is one swatch across all
+       priorities; dark splits primary (lighter) from secondary /
+       tertiary / quaternary (darker) — the `*-primary` vs `*-other`
+       split lives in `--fg-disabled-primary` and `--fg-disabled`. */
+    --bg-primary-disabled:   #ece9ec;
+    --bg-primary-disabled:   oklch(0.937 0.005 326);
     --bg-secondary-disabled: #f6f4f6;
-    --fg-disabled: #afa9b1;
+    --bg-secondary-disabled: oklch(0.969 0.003 326);
+    --fg-disabled-primary:   #afa9b1;
+    --fg-disabled-primary:   oklch(0.742 0.013 318);
+    --fg-disabled:           #afa9b1;
+    --fg-disabled:           oklch(0.742 0.013 318);
 
-    /* Loading shimmer. The conic gradient uses an oklch lightness in
-       the 0.74 band so the highlight reads against any tone fill;
-       the hue is driven per-tone by `--loading-hue` set in the tone
-       block. Neutral uses the desaturated variant. */
-    --button-loading-gradient:
-      conic-gradient(from 90deg, transparent 60%,
-        oklch(0.74 0.14 var(--loading-hue) / 0.6) 100%);
-    --button-neutral-loading-gradient:
-      conic-gradient(from 90deg, transparent 60%,
-        oklch(0.74 0.01 var(--loading-hue) / 0.6) 100%);
-    --button-loading-blur: 4px;
+    /* Loading shimmer (per Figma `_button_animation`). Diagonal stripes
+       in `currentColor` slide left → right across the button. Because
+       the gradient uses `currentColor`, it always picks up the label /
+       icon colour — white on primary, the tone hue on every other
+       priority — without any per-tone token. The pattern is one
+       transparent gap + one solid stripe, repeated; one full cycle
+       slides by exactly `--button-loading-period` so the loop is
+       seamless. Light uses an 18% overlay; dark lifts to 22% so the
+       stripe stays legible on the darker fills. Blur defaults to 0 in
+       both modes — bump it (e.g. `2px`) for a softer "shimmer". */
+    --button-loading-stripe:     14px;
+    --button-loading-stripe-gap: 16px;
+    --button-loading-period:     30px;  /* = stripe + gap, along the gradient axis */
+    --button-loading-angle:      125deg;
+    /* `background-position` slides in viewport coordinates, but one
+       full gradient period along the diagonal axis equals
+       `period / cos(angle - 90deg)` measured horizontally — without
+       this projection the loop comes up short and stutters at the
+       seam. Computed once here so any tuning of angle/period stays
+       consistent. */
+    --button-loading-x-period:
+      calc(var(--button-loading-period) / cos(var(--button-loading-angle) - 90deg));
+    --button-loading-opacity:    0.18;
+    --button-loading-blur:       0px;
   }
 
-  /* ── Dark-mode tokens ──────────────────────────────────────────── */
+  /* ── Dark-mode tokens ──────────────────────────────────────────────
+     Dark inverts the saturation curve: primaries shift one step darker
+     at rest and brighten on hover/active. Secondary/tertiary use the
+     same alpha-over-tone pattern as light, but with heavier alphas —
+     `4d` (30%) / `66` (40%) for secondary and `33` (20%) / `4d` (30%)
+     for tertiary — so the chip stays legible on a dark page bg. The
+     neutral chip flips its anchor to `#e4d1ef` (a soft lilac) instead
+     of a darker gray, since alpha-mixing a dark gray into a dark bg
+     would yield no contrast. Disabled text splits in dark: primary uses
+     `#776e77`, all other priorities use `#635b65`. */
   .dark a-button, .dark a[role="button"] {
     --button-focus-color: #a897fc;
+    --button-focus-color: oklch(0.732 0.144 290);
+
+    --bg-primary-disabled:   #272329;
+    --bg-primary-disabled:   oklch(0.263 0.012 315);
+    --bg-secondary-disabled: #1d1a1e;
+    --bg-secondary-disabled: oklch(0.223 0.009 318);
+    --fg-disabled-primary:   #776e77;
+    --fg-disabled-primary:   oklch(0.549 0.018 326);
+    --fg-disabled:           #635b65;
+    --fg-disabled:           oklch(0.482 0.019 319);
 
     /* ── BRAND ── */
     --bg-brand-primary-rest:   #503cb4;
+    --bg-brand-primary-rest:   oklch(0.453 0.181 284);
     --bg-brand-primary-hover:  #5f4bc3;
+    --bg-brand-primary-hover:  oklch(0.502 0.179 286);
     --bg-brand-primary-active: #7460d7;
+    --bg-brand-primary-active: oklch(0.569 0.175 287);
     --br-brand-primary-rest:   #503cb4;
+    --br-brand-primary-rest:   oklch(0.453 0.181 284);
 
-    --bg-brand-secondary-rest:  #7460d7;
-    --bg-brand-secondary-hover: #7460d7;
-    --br-brand-secondary-rest:  #7460d7;
-    --br-brand-secondary-hover: #7460d7;
-    --fg-brand-secondary-rest:  #c5baff;
-    --fg-brand-secondary-hover: #d2cbf6;
+    /* Dark alphas are heavier than light (30% / 40% vs 10% / 15%) so
+       the chip stays legible against a dark page bg. Note hover ==
+       active for brand secondary in dark — the Figma spec deliberately
+       collapses them at 40%. */
+    --bg-brand-secondary-rest:   #7460d74d;
+    --bg-brand-secondary-rest:   color-mix(in oklch, #7460d7 30%, transparent);
+    --bg-brand-secondary-hover:  #7460d766;
+    --bg-brand-secondary-hover:  color-mix(in oklch, #7460d7 40%, transparent);
+    --bg-brand-secondary-active: #7460d766;
+    --bg-brand-secondary-active: color-mix(in oklch, #7460d7 40%, transparent);
+    --fg-brand-secondary-rest:   #c5baff;
+    --fg-brand-secondary-rest:   oklch(0.822 0.097 291);
+    --fg-brand-secondary-hover:  #d2cbf6;
+    --fg-brand-secondary-hover:  oklch(0.862 0.060 293);
 
-    --fg-brand-tertiary-rest:   #ada0ee;
-    --fg-brand-tertiary-hover:  #bcb1f1;
-    --bg-brand-tertiary-hover:  #7460d7;
-    --bg-brand-tertiary-active: #7460d7;
+    --fg-brand-tertiary-rest:    #ada0ee;
+    --fg-brand-tertiary-rest:    oklch(0.746 0.111 291);
+    --fg-brand-tertiary-hover:   #bcb1f1;
+    --fg-brand-tertiary-hover:   oklch(0.792 0.090 292);
+    --bg-brand-tertiary-hover:   #7460d733;
+    --bg-brand-tertiary-hover:   color-mix(in oklch, #7460d7 20%, transparent);
+    --bg-brand-tertiary-active:  #7460d74d;
+    --bg-brand-tertiary-active:  color-mix(in oklch, #7460d7 30%, transparent);
 
     --fg-brand-quaternary-rest:  #ada0ee;
+    --fg-brand-quaternary-rest:  oklch(0.746 0.111 291);
     --fg-brand-quaternary-hover: #c7bef4;
+    --fg-brand-quaternary-hover: oklch(0.827 0.076 292);
 
-    /* ── NEUTRAL ── */
+    /* ── NEUTRAL ──
+       The dark neutral chip flips its anchor from a dark gray to a
+       soft lilac (`#e4d1ef`). Alpha-mixing a dark gray into a dark bg
+       yields no contrast; the lilac lifts the chip just enough to be
+       distinguishable. Tertiary active uses 25% — unique value,
+       between the 20% hover and the 30% other-tones-active steps. */
     --bg-neutral-primary-rest:   #534c57;
+    --bg-neutral-primary-rest:   oklch(0.427 0.020 313);
     --bg-neutral-primary-hover:  #635b65;
+    --bg-neutral-primary-hover:  oklch(0.482 0.019 319);
     --bg-neutral-primary-active: #938d96;
+    --bg-neutral-primary-active: oklch(0.651 0.015 315);
     --br-neutral-primary-rest:   #534c57;
+    --br-neutral-primary-rest:   oklch(0.427 0.020 313);
 
-    --bg-neutral-secondary-rest:  #e4d1ef;
-    --bg-neutral-secondary-hover: #e4d1ef;
-    --br-neutral-secondary-rest:  #e4d1ef;
-    --br-neutral-secondary-hover: #e4d1ef;
-    --fg-neutral-secondary-rest:  #c1b9c1;
-    --fg-neutral-secondary-hover: #d4ced4;
+    --bg-neutral-secondary-rest:   #e4d1ef1a;
+    --bg-neutral-secondary-rest:   color-mix(in oklch, #e4d1ef 10%, transparent);
+    --bg-neutral-secondary-hover:  #e4d1ef26;
+    --bg-neutral-secondary-hover:  color-mix(in oklch, #e4d1ef 15%, transparent);
+    --bg-neutral-secondary-active: #e4d1ef33;
+    --bg-neutral-secondary-active: color-mix(in oklch, #e4d1ef 20%, transparent);
+    --fg-neutral-secondary-rest:   #c1b9c1;
+    --fg-neutral-secondary-rest:   oklch(0.795 0.014 326);
+    --fg-neutral-secondary-hover:  #d4ced4;
+    --fg-neutral-secondary-hover:  oklch(0.858 0.010 326);
 
-    --fg-neutral-tertiary-rest:   #afa9b1;
-    --fg-neutral-tertiary-hover:  #afa9b1;
-    --bg-neutral-tertiary-hover:  #e4d1ef;
-    --bg-neutral-tertiary-active: #e4d1ef;
+    --fg-neutral-tertiary-rest:    #afa9b1;
+    --fg-neutral-tertiary-rest:    oklch(0.742 0.013 318);
+    --fg-neutral-tertiary-hover:   #afa9b1;
+    --fg-neutral-tertiary-hover:   oklch(0.742 0.013 318);
+    --bg-neutral-tertiary-hover:   #e4d1ef1a;
+    --bg-neutral-tertiary-hover:   color-mix(in oklch, #e4d1ef 10%, transparent);
+    --bg-neutral-tertiary-active:  #e4d1ef40;
+    --bg-neutral-tertiary-active:  color-mix(in oklch, #e4d1ef 25%, transparent);
 
     --fg-neutral-quaternary-rest:  #afa9b1;
+    --fg-neutral-quaternary-rest:  oklch(0.742 0.013 318);
     --fg-neutral-quaternary-hover: #cac4ca;
+    --fg-neutral-quaternary-hover: oklch(0.827 0.011 326);
 
     /* ── CRITICAL ── */
     --bg-critical-primary-rest:   #b02120;
+    --bg-critical-primary-rest:   oklch(0.492 0.179 27);
     --bg-critical-primary-hover:  #c9302c;
+    --bg-critical-primary-hover:  oklch(0.551 0.190 27);
     --bg-critical-primary-active: #de4545;
+    --bg-critical-primary-active: oklch(0.610 0.190 25);
     --br-critical-primary-rest:   #b02120;
+    --br-critical-primary-rest:   oklch(0.492 0.179 27);
 
-    --bg-critical-secondary-rest:  #de4545;
-    --bg-critical-secondary-hover: #de4545;
-    --br-critical-secondary-rest:  #de4545;
-    --br-critical-secondary-hover: #de4545;
-    --fg-critical-secondary-rest:  #ffabac;
-    --fg-critical-secondary-hover: #f4c2c2;
+    --bg-critical-secondary-rest:   #de45454d;
+    --bg-critical-secondary-rest:   color-mix(in oklch, #de4545 30%, transparent);
+    --bg-critical-secondary-hover:  #de454566;
+    --bg-critical-secondary-hover:  color-mix(in oklch, #de4545 40%, transparent);
+    --bg-critical-secondary-active: #de454566;
+    --bg-critical-secondary-active: color-mix(in oklch, #de4545 40%, transparent);
+    --fg-critical-secondary-rest:   #ffabac;
+    --fg-critical-secondary-rest:   oklch(0.823 0.099 19);
+    --fg-critical-secondary-hover:  #f4c2c2;
+    --fg-critical-secondary-hover:  oklch(0.858 0.057 18);
 
-    --fg-critical-tertiary-rest:   #e78e90;
-    --fg-critical-tertiary-hover:  #efa4a4;
-    --bg-critical-tertiary-hover:  #de4545;
-    --bg-critical-tertiary-active: #de4545;
+    --fg-critical-tertiary-rest:    #e78e90;
+    --fg-critical-tertiary-rest:    oklch(0.740 0.108 19);
+    --fg-critical-tertiary-hover:   #efa4a4;
+    --fg-critical-tertiary-hover:   oklch(0.791 0.089 19);
+    --bg-critical-tertiary-hover:   #de454533;
+    --bg-critical-tertiary-hover:   color-mix(in oklch, #de4545 20%, transparent);
+    --bg-critical-tertiary-active:  #de45454d;
+    --bg-critical-tertiary-active:  color-mix(in oklch, #de4545 30%, transparent);
 
     --fg-critical-quaternary-rest:  #e78e90;
+    --fg-critical-quaternary-rest:  oklch(0.740 0.108 19);
     --fg-critical-quaternary-hover: #ffabac;
+    --fg-critical-quaternary-hover: oklch(0.823 0.099 19);
 
     /* ── INFO ── */
     --bg-info-primary-rest:   #1a5b93;
+    --bg-info-primary-rest:   oklch(0.461 0.111 249);
     --bg-info-primary-hover:  #1f6eb2;
+    --bg-info-primary-hover:  oklch(0.527 0.130 249);
     --bg-info-primary-active: #2686d9;
+    --bg-info-primary-active: oklch(0.608 0.152 250);
     --br-info-primary-rest:   #1a5b93;
+    --br-info-primary-rest:   oklch(0.461 0.111 249);
 
-    --bg-info-secondary-rest:  #2686d9;
-    --bg-info-secondary-hover: #2686d9;
-    --br-info-secondary-rest:  #2686d9;
-    --br-info-secondary-hover: #2686d9;
-    --fg-info-secondary-rest:  #9ed2ff;
-    --fg-info-secondary-hover: #bad6f3;
+    --bg-info-secondary-rest:   #2686d94d;
+    --bg-info-secondary-rest:   color-mix(in oklch, #2686d9 30%, transparent);
+    --bg-info-secondary-hover:  #2686d966;
+    --bg-info-secondary-hover:  color-mix(in oklch, #2686d9 40%, transparent);
+    --bg-info-secondary-active: #2686d966;
+    --bg-info-secondary-active: color-mix(in oklch, #2686d9 40%, transparent);
+    --fg-info-secondary-rest:   #9ed2ff;
+    --fg-info-secondary-rest:   oklch(0.844 0.083 245);
+    --fg-info-secondary-hover:  #bad6f3;
+    --fg-info-secondary-hover:  oklch(0.865 0.050 249);
 
-    --fg-info-tertiary-rest:   #7db6e8;
-    --fg-info-tertiary-hover:  #93c5ec;
-    --bg-info-tertiary-hover:  #2686d9;
-    --bg-info-tertiary-active: #2686d9;
+    --fg-info-tertiary-rest:    #7db6e8;
+    --fg-info-tertiary-rest:    oklch(0.756 0.094 246);
+    --fg-info-tertiary-hover:   #93c5ec;
+    --fg-info-tertiary-hover:   oklch(0.802 0.076 242);
+    --bg-info-tertiary-hover:   #2686d933;
+    --bg-info-tertiary-hover:   color-mix(in oklch, #2686d9 20%, transparent);
+    --bg-info-tertiary-active:  #2686d94d;
+    --bg-info-tertiary-active:  color-mix(in oklch, #2686d9 30%, transparent);
 
     --fg-info-quaternary-rest:  #7db6e8;
+    --fg-info-quaternary-rest:  oklch(0.756 0.094 246);
     --fg-info-quaternary-hover: #a6cdef;
+    --fg-info-quaternary-hover: oklch(0.832 0.063 245);
 
     /* ── SUCCESS ── */
     --bg-success-primary-rest:   #226737;
+    --bg-success-primary-rest:   oklch(0.458 0.103 150);
     --bg-success-primary-hover:  #2a7e43;
+    --bg-success-primary-hover:  oklch(0.528 0.122 150);
     --bg-success-primary-active: #329550;
+    --bg-success-primary-active: oklch(0.595 0.138 150);
     --br-success-primary-rest:   #226737;
+    --br-success-primary-rest:   oklch(0.458 0.103 150);
 
-    --bg-success-secondary-rest:  #329550;
-    --bg-success-secondary-hover: #329550;
-    --br-success-secondary-rest:  #329550;
-    --br-success-secondary-hover: #329550;
-    --fg-success-secondary-rest:  #8ceca9;
-    --fg-success-secondary-hover: #b3e5c2;
+    --bg-success-secondary-rest:   #3295504d;
+    --bg-success-secondary-rest:   color-mix(in oklch, #329550 30%, transparent);
+    --bg-success-secondary-hover:  #32955066;
+    --bg-success-secondary-hover:  color-mix(in oklch, #329550 40%, transparent);
+    --bg-success-secondary-active: #32955066;
+    --bg-success-secondary-active: color-mix(in oklch, #329550 40%, transparent);
+    --fg-success-secondary-rest:   #8ceca9;
+    --fg-success-secondary-rest:   oklch(0.866 0.131 153);
+    --fg-success-secondary-hover:  #b3e5c2;
+    --fg-success-secondary-hover:  oklch(0.878 0.071 154);
 
-    --fg-success-tertiary-rest:   #74cd8e;
-    --fg-success-tertiary-hover:  #88d7a0;
-    --bg-success-tertiary-hover:  #329550;
-    --bg-success-tertiary-active: #329550;
+    --fg-success-tertiary-rest:    #74cd8e;
+    --fg-success-tertiary-rest:    oklch(0.776 0.125 152);
+    --fg-success-tertiary-hover:   #88d7a0;
+    --fg-success-tertiary-hover:   oklch(0.813 0.110 153);
+    --bg-success-tertiary-hover:   #32955033;
+    --bg-success-tertiary-hover:   color-mix(in oklch, #329550 20%, transparent);
+    --bg-success-tertiary-active:  #3295504d;
+    --bg-success-tertiary-active:  color-mix(in oklch, #329550 30%, transparent);
 
     --fg-success-quaternary-rest:  #74cd8e;
+    --fg-success-quaternary-rest:  oklch(0.776 0.125 152);
     --fg-success-quaternary-hover: #9ddeb1;
+    --fg-success-quaternary-hover: oklch(0.845 0.091 154);
 
     /* ── WARNING ── */
     --bg-warning-primary-rest:   #7f410b;
+    --bg-warning-primary-rest:   oklch(0.445 0.105 54);
     --bg-warning-primary-hover:  #995200;
+    --bg-warning-primary-hover:  oklch(0.513 0.122 59);
     --bg-warning-primary-active: #ae6613;
+    --bg-warning-primary-active: oklch(0.579 0.127 62);
     --br-warning-primary-rest:   #7f410b;
+    --br-warning-primary-rest:   oklch(0.445 0.105 54);
 
-    --bg-warning-secondary-rest:  #c37416;
-    --bg-warning-secondary-hover: #c37416;
-    --br-warning-secondary-rest:  #c37416;
-    --br-warning-secondary-hover: #c37416;
-    --fg-warning-secondary-rest:  #f7c06e;
-    --fg-warning-secondary-hover: #f3cc91;
+    --bg-warning-secondary-rest:   #c374164d;
+    --bg-warning-secondary-rest:   color-mix(in oklch, #c37416 30%, transparent);
+    --bg-warning-secondary-hover:  #c3741666;
+    --bg-warning-secondary-hover:  color-mix(in oklch, #c37416 40%, transparent);
+    --bg-warning-secondary-active: #c3741666;
+    --bg-warning-secondary-active: color-mix(in oklch, #c37416 40%, transparent);
+    --fg-warning-secondary-rest:   #f7c06e;
+    --fg-warning-secondary-rest:   oklch(0.841 0.118 76);
+    --fg-warning-secondary-hover:  #f3cc91;
+    --fg-warning-secondary-hover:  oklch(0.865 0.087 78);
 
-    --fg-warning-tertiary-rest:   #e1a452;
-    --fg-warning-tertiary-hover:  #edb25a;
-    --bg-warning-tertiary-hover:  #c37416;
-    --bg-warning-tertiary-active: #c37416;
+    --fg-warning-tertiary-rest:    #e1a452;
+    --fg-warning-tertiary-rest:    oklch(0.761 0.122 72);
+    --fg-warning-tertiary-hover:   #edb25a;
+    --fg-warning-tertiary-hover:   oklch(0.801 0.125 75);
+    --bg-warning-tertiary-hover:   #c3741633;
+    --bg-warning-tertiary-hover:   color-mix(in oklch, #c37416 20%, transparent);
+    --bg-warning-tertiary-active:  #c374164d;
+    --bg-warning-tertiary-active:  color-mix(in oklch, #c37416 30%, transparent);
 
     --fg-warning-quaternary-rest:  #e1a452;
+    --fg-warning-quaternary-rest:  oklch(0.761 0.122 72);
     --fg-warning-quaternary-hover: #f0bf75;
+    --fg-warning-quaternary-hover: oklch(0.833 0.108 77);
 
-    --button-loading-gradient:
-      conic-gradient(from 90deg, transparent 50%,
-        oklch(0.74 0.14 var(--loading-hue) / 0.5) 100%);
-    --button-neutral-loading-gradient:
-      conic-gradient(from 90deg, transparent 50%,
-        oklch(0.74 0.01 var(--loading-hue) / 0.5) 100%);
-    --button-loading-blur: 6px;
-
-    /* Dark-mode disabled. */
-    --bg-primary-disabled: #272329;
-    --bg-secondary-disabled: #1d1a1e;
-    --fg-disabled: #635b65;
+    --button-loading-opacity: 0.22;
+    --button-loading-blur:    0px;
   }
 
   /* ── Base rule + tone resolvers ───────────────────────────────────
@@ -337,7 +562,13 @@
     --button-padding-x: 8px;
     --button-padding-y: 4px;
     --button-br-radius: 4px;
-    --button-br-width: 1px;
+    /* Figma buttons have no border — just background fills. We keep
+       the infrastructure (border-style/width/color) so a consumer can
+       opt-in via `style={{ '--button-br-width': '1px' }}` for a custom
+       outlined variant, but the default is 0 so heights and widths
+       match the Figma master cell-for-cell (otherwise we'd be 2px
+       taller / 2px wider on every button). */
+    --button-br-width: 0;
     --button-margin-x: 0;
     --button-margin-y: 0;
     --button-width: fit-content;
@@ -357,6 +588,21 @@
     --button-loading-duration: 1s;
     --button-outline-offset: 1px;
 
+    /* Layout. These are also declared in the shadow DOM `:host` rule
+       of `<a-button>` — duplicated here so anchor-mode (`<a role="button">`,
+       which has no shadow DOM) gets the same flex centering, gap, and
+       overflow clipping. Shadow's `:host` (specificity 0,1,0) wins
+       over this tag selector (0,0,1) when an actual `a-button` host
+       matches, so there's no conflict. Without this rule, anchor-mode
+       buttons fell back to default inline flow — leading icon, label,
+       and trailing icon ended up at the text baseline with no
+       vertical alignment or consistent gap. */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--button-gap);
+    overflow: hidden;
+    user-select: none;
+
     color: var(--button-fg-color);
     background-color: var(--button-bg-color);
     border-color: var(--button-br-color);
@@ -368,7 +614,6 @@
     &:hover, &[data-state="hover"],
     &:active, &[data-state="active"], &[selected] {
       text-decoration: none;
-      text-decoration-color: none;
       color: var(--button-fg-color);
     }
 
@@ -391,21 +636,39 @@
     padding-inline: var(--button-padding-x);
     padding-block: var(--button-padding-y);
 
-    & > label {
+    & > a-button-label {
+      display: inline-block;
       text-overflow: ellipsis;
       text-wrap: nowrap;
       white-space: nowrap;
       overflow: hidden;
       min-width: 0;
-      display: inline-block;
+      /* When the label contains inline children (a kbd shortcut span,
+         a `<code>` snippet, a count badge, etc.) switch to flex so
+         the children get a small gap and align on a single baseline
+         — `inline-block` would leave them all sitting at the text
+         baseline with no spacing control. */
       &:has(> *) {
         display: inline-flex;
         gap: 0.25ch;
       }
     }
 
+    /* Direct children inherit the host's cursor. `cursor` is normally
+       inheritable, but `<label>` had a UA-stylesheet `cursor: default`
+       on Chrome that beat the inherited `pointer`. We've moved off
+       `<label>` to `<a-button-label>` (no UA rules), but keeping the
+       explicit inherit is cheap insurance — any future child element
+       (a `<span>` badge, an inline `<code>`, etc.) automatically picks
+       up `pointer` at rest and `not-allowed` when disabled. */
+    & > * { cursor: inherit; }
+
     & a-icon {
-      color: var(--button-fg-color);
+      /* No explicit `color` setter — the icon inherits the button's
+         `color` naturally. That way the disabled rule (which sets
+         `color` directly on the host) propagates to the icon without
+         needing a duplicate override here. Keeping the transition so
+         hue shifts on hover/active still animate smoothly. */
       transition: color var(--button-timing-out);
     }
 
@@ -432,6 +695,13 @@
       pointer-events: none;
       cursor: not-allowed;
       user-select: none;
+      /* No color transitions on disabled. With a transition active, a
+         `.dark` toggle briefly flashes the underlying tone hue while
+         the base and disabled rules resolve their new values in the
+         same paint cycle. Disabled has no interactive feedback to
+         animate anyway — instant lock reads correctly. */
+      transition: none;
+      & a-icon { transition: none; }
     }
 
     &:focus:not(:focus-visible) { outline: none; }
@@ -440,10 +710,15 @@
       outline-offset: var(--button-outline-offset);
     }
 
+    /* Quaternary has no hover/active fill or border shifts — only a
+       text-colour swap — so the transition would be transitioning
+       nothing. Zero it out so the colour swap is instant, matching the
+       link-like feel Figma renders. (`none` isn't valid as a duration
+       value; `0s` is.) */
     &[priority="quaternary"] {
-      --button-timing-in: none;
-      --button-timing-active: none;
-      --button-timing-out: none;
+      --button-timing-in:     0s;
+      --button-timing-active: 0s;
+      --button-timing-out:    0s;
     }
 
     &[size="small"] {
@@ -455,9 +730,19 @@
       --button-padding-x: 12px;
     }
 
-    &[decoration="underline"] { text-decoration: underline; }
-    &[decoration="bold"] { font-weight: 700; }
-    &[decoration="italic"] { font-style: italic; }
+    /* `underline` and `paddingless` are quaternary-only per the Figma
+       spec — they read as "inline link" features that don't make sense
+       on filled / outlined priorities. The colour inherits via
+       `currentColor`, so the underline tracks any tone shift. */
+    &[priority="quaternary"] {
+      &[underline="solid"]  { text-decoration: underline solid; }
+      &[underline="dashed"] { text-decoration: underline dashed; }
+      &[underline="dotted"] { text-decoration: underline dotted; }
+      &[paddingless="true"] {
+        --button-padding-x: 0;
+        --button-padding-y: 0;
+      }
+    }
 
     &[iconbutton="true"],
     &:not(:has( > :not( a-icon, a-tooltip ))) {
@@ -478,29 +763,57 @@
       &::before {
         content: '';
         position: absolute;
-        inset: 0;
-        margin: -50%;
-        background: var(--button-loading-gradient);
-        animation: btn-loading-spin var(--button-loading-duration) linear infinite;
-        animation-delay: -9999s;
-        display: flex;
+        top: 0;
+        bottom: 0;
+        /* The pseudo overshoots to the LEFT by one full x-period so
+           that translating it rightward by the same amount keeps the
+           leftmost area covered by the previous repeat of the gradient.
+           The pattern that ends up at the visible edge after the loop
+           is identical (by construction) to the pattern at the start —
+           that's what makes the loop seamless and gives the stripes
+           the left → right glide direction from the Figma spec. */
+        left: calc(0px - var(--button-loading-x-period));
+        right: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          var(--button-loading-angle),
+          transparent 0,
+          transparent var(--button-loading-stripe-gap),
+          currentColor var(--button-loading-stripe-gap),
+          currentColor calc(var(--button-loading-stripe-gap) + var(--button-loading-stripe))
+        );
+        opacity: var(--button-loading-opacity);
         filter: blur(var(--button-loading-blur));
-      }
-      &[tone="neutral"]::before {
-        background: var(--button-neutral-loading-gradient);
+        /* `transform: translateX` is GPU-composited and sub-pixel
+           accurate, so the loop point lands on integer device pixels
+           instead of stuttering at the rounding boundary the way
+           `background-position` did. */
+        will-change: transform;
+        animation: btn-loading-slide var(--button-loading-duration) linear infinite;
+        /* Desync across instances: starting at a large negative delay
+           drops each button at a different phase, so a row of buttons
+           doesn't pulse in lockstep. */
+        animation-delay: -9999s;
       }
     }
 
+    /* ── `tone="custom"` ──
+       Intentionally has no block. With no rule matching, none of the
+       `--button-fg/bg/br-color` vars are set by the resolver, so the
+       cascade falls through to whatever the consumer supplies — most
+       commonly via inline `style={{ '--button-bg-color': '#…' }}` or a
+       wrapping class. The disabled block below still applies (its
+       selector doesn't depend on tone), so disabled custom buttons
+       still go gray. Hover/active state shifts must be wired by the
+       consumer (e.g. `.my-btn:hover { --button-bg-color: …; }`). */
+
     /* ── BRAND (default tone) ── */
     &:where(:not([tone]), [tone="brand"]) {
-      --loading-hue: 280;
-
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-brand-primary-rest);
         --button-bg-color: var(--bg-brand-primary-rest);
         --button-br-color: var(--br-brand-primary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-brand-primary-hover);
           --button-br-color: var(--bg-brand-primary-hover);
         }
@@ -512,29 +825,26 @@
       &[priority="secondary"] {
         --button-fg-color: var(--fg-brand-secondary-rest);
         --button-bg-color: var(--bg-brand-secondary-rest);
-        --button-br-color: var(--br-brand-secondary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-brand-secondary-hover);
           --button-bg-color: var(--bg-brand-secondary-hover);
-          --button-br-color: var(--br-brand-secondary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-brand-secondary-rest);
-          --button-bg-color: var(--bg-brand-secondary-rest);
-          --button-br-color: var(--br-brand-secondary-rest);
+          --button-fg-color: var(--fg-brand-secondary-hover);
+          --button-bg-color: var(--bg-brand-secondary-active);
         }
       }
       &[priority="tertiary"] {
         --button-fg-color: var(--fg-brand-tertiary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-brand-tertiary-hover);
           --button-bg-color: var(--bg-brand-tertiary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-brand-tertiary-hover);
           --button-bg-color: var(--bg-brand-tertiary-active);
         }
       }
@@ -542,26 +852,22 @@
         --button-fg-color: var(--fg-brand-quaternary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-brand-quaternary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-brand-quaternary-rest);
+          --button-fg-color: var(--fg-brand-quaternary-hover);
         }
       }
     }
 
     /* ── NEUTRAL ── */
     &[tone="neutral"] {
-      --loading-hue: 280;
-
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-neutral-primary-rest);
         --button-bg-color: var(--bg-neutral-primary-rest);
         --button-br-color: var(--br-neutral-primary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-neutral-primary-hover);
           --button-br-color: var(--bg-neutral-primary-hover);
         }
@@ -573,29 +879,26 @@
       &[priority="secondary"] {
         --button-fg-color: var(--fg-neutral-secondary-rest);
         --button-bg-color: var(--bg-neutral-secondary-rest);
-        --button-br-color: var(--br-neutral-secondary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-neutral-secondary-hover);
           --button-bg-color: var(--bg-neutral-secondary-hover);
-          --button-br-color: var(--br-neutral-secondary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-neutral-secondary-rest);
-          --button-bg-color: var(--bg-neutral-secondary-rest);
-          --button-br-color: var(--br-neutral-secondary-rest);
+          --button-fg-color: var(--fg-neutral-secondary-hover);
+          --button-bg-color: var(--bg-neutral-secondary-active);
         }
       }
       &[priority="tertiary"] {
         --button-fg-color: var(--fg-neutral-tertiary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-neutral-tertiary-hover);
           --button-bg-color: var(--bg-neutral-tertiary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-neutral-tertiary-hover);
           --button-bg-color: var(--bg-neutral-tertiary-active);
         }
       }
@@ -603,26 +906,22 @@
         --button-fg-color: var(--fg-neutral-quaternary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-neutral-quaternary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-neutral-quaternary-rest);
+          --button-fg-color: var(--fg-neutral-quaternary-hover);
         }
       }
     }
 
     /* ── CRITICAL ── */
     &[tone="critical"] {
-      --loading-hue: 27;
-
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-critical-primary-rest);
         --button-bg-color: var(--bg-critical-primary-rest);
         --button-br-color: var(--br-critical-primary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-critical-primary-hover);
           --button-br-color: var(--bg-critical-primary-hover);
         }
@@ -634,29 +933,26 @@
       &[priority="secondary"] {
         --button-fg-color: var(--fg-critical-secondary-rest);
         --button-bg-color: var(--bg-critical-secondary-rest);
-        --button-br-color: var(--br-critical-secondary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-critical-secondary-hover);
           --button-bg-color: var(--bg-critical-secondary-hover);
-          --button-br-color: var(--br-critical-secondary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-critical-secondary-rest);
-          --button-bg-color: var(--bg-critical-secondary-rest);
-          --button-br-color: var(--br-critical-secondary-rest);
+          --button-fg-color: var(--fg-critical-secondary-hover);
+          --button-bg-color: var(--bg-critical-secondary-active);
         }
       }
       &[priority="tertiary"] {
         --button-fg-color: var(--fg-critical-tertiary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-critical-tertiary-hover);
           --button-bg-color: var(--bg-critical-tertiary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-critical-tertiary-hover);
           --button-bg-color: var(--bg-critical-tertiary-active);
         }
       }
@@ -664,26 +960,22 @@
         --button-fg-color: var(--fg-critical-quaternary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-critical-quaternary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-critical-quaternary-rest);
+          --button-fg-color: var(--fg-critical-quaternary-hover);
         }
       }
     }
 
     /* ── INFO ── */
     &[tone="info"] {
-      --loading-hue: 240;
-
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-info-primary-rest);
         --button-bg-color: var(--bg-info-primary-rest);
         --button-br-color: var(--br-info-primary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-info-primary-hover);
           --button-br-color: var(--bg-info-primary-hover);
         }
@@ -695,29 +987,26 @@
       &[priority="secondary"] {
         --button-fg-color: var(--fg-info-secondary-rest);
         --button-bg-color: var(--bg-info-secondary-rest);
-        --button-br-color: var(--br-info-secondary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-info-secondary-hover);
           --button-bg-color: var(--bg-info-secondary-hover);
-          --button-br-color: var(--br-info-secondary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-info-secondary-rest);
-          --button-bg-color: var(--bg-info-secondary-rest);
-          --button-br-color: var(--br-info-secondary-rest);
+          --button-fg-color: var(--fg-info-secondary-hover);
+          --button-bg-color: var(--bg-info-secondary-active);
         }
       }
       &[priority="tertiary"] {
         --button-fg-color: var(--fg-info-tertiary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-info-tertiary-hover);
           --button-bg-color: var(--bg-info-tertiary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-info-tertiary-hover);
           --button-bg-color: var(--bg-info-tertiary-active);
         }
       }
@@ -725,26 +1014,22 @@
         --button-fg-color: var(--fg-info-quaternary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-info-quaternary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-info-quaternary-rest);
+          --button-fg-color: var(--fg-info-quaternary-hover);
         }
       }
     }
 
     /* ── SUCCESS ── */
     &[tone="success"] {
-      --loading-hue: 145;
-
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-success-primary-rest);
         --button-bg-color: var(--bg-success-primary-rest);
         --button-br-color: var(--br-success-primary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-success-primary-hover);
           --button-br-color: var(--bg-success-primary-hover);
         }
@@ -756,29 +1041,26 @@
       &[priority="secondary"] {
         --button-fg-color: var(--fg-success-secondary-rest);
         --button-bg-color: var(--bg-success-secondary-rest);
-        --button-br-color: var(--br-success-secondary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-success-secondary-hover);
           --button-bg-color: var(--bg-success-secondary-hover);
-          --button-br-color: var(--br-success-secondary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-success-secondary-rest);
-          --button-bg-color: var(--bg-success-secondary-rest);
-          --button-br-color: var(--br-success-secondary-rest);
+          --button-fg-color: var(--fg-success-secondary-hover);
+          --button-bg-color: var(--bg-success-secondary-active);
         }
       }
       &[priority="tertiary"] {
         --button-fg-color: var(--fg-success-tertiary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-success-tertiary-hover);
           --button-bg-color: var(--bg-success-tertiary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-success-tertiary-hover);
           --button-bg-color: var(--bg-success-tertiary-active);
         }
       }
@@ -786,26 +1068,22 @@
         --button-fg-color: var(--fg-success-quaternary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-success-quaternary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-success-quaternary-rest);
+          --button-fg-color: var(--fg-success-quaternary-hover);
         }
       }
     }
 
     /* ── WARNING ── */
     &[tone="warning"] {
-      --loading-hue: 70;
-
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-warning-primary-rest);
         --button-bg-color: var(--bg-warning-primary-rest);
         --button-br-color: var(--br-warning-primary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-warning-primary-hover);
           --button-br-color: var(--bg-warning-primary-hover);
         }
@@ -817,29 +1095,26 @@
       &[priority="secondary"] {
         --button-fg-color: var(--fg-warning-secondary-rest);
         --button-bg-color: var(--bg-warning-secondary-rest);
-        --button-br-color: var(--br-warning-secondary-rest);
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        --button-br-color: transparent;
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-warning-secondary-hover);
           --button-bg-color: var(--bg-warning-secondary-hover);
-          --button-br-color: var(--br-warning-secondary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-warning-secondary-rest);
-          --button-bg-color: var(--bg-warning-secondary-rest);
-          --button-br-color: var(--br-warning-secondary-rest);
+          --button-fg-color: var(--fg-warning-secondary-hover);
+          --button-bg-color: var(--bg-warning-secondary-active);
         }
       }
       &[priority="tertiary"] {
         --button-fg-color: var(--fg-warning-tertiary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-warning-tertiary-hover);
           --button-bg-color: var(--bg-warning-tertiary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
+          --button-fg-color: var(--fg-warning-tertiary-hover);
           --button-bg-color: var(--bg-warning-tertiary-active);
         }
       }
@@ -847,36 +1122,40 @@
         --button-fg-color: var(--fg-warning-quaternary-rest);
         --button-bg-color: transparent;
         --button-br-color: transparent;
-        &:hover, &[data-state="hover"],
-        &:focus-visible, &[data-state="focus"] {
+        &:hover, &[data-state="hover"] {
           --button-fg-color: var(--fg-warning-quaternary-hover);
         }
         &:active, &[data-state="active"], &[selected] {
-          --button-fg-color: var(--fg-warning-quaternary-rest);
+          --button-fg-color: var(--fg-warning-quaternary-hover);
         }
       }
     }
 
     /* ── DISABLED ──
-       Placed after the tone rules so it wins source-order ties on
-       specificity (the primary rest selectors of non-brand tones land
-       at (0,2,1); this rule matches that). Tone-agnostic: bg + fg are
-       the same gray regardless of the underlying tone. Tertiary +
-       quaternary stay transparent so the tone's text colour doesn't
-       paint behind the disabled fg. */
+       Sets the final CSS properties (`background-color`, `color`,
+       `border-color`) DIRECTLY rather than the `--button-*-color`
+       variables. This beats inline-style overrides from `tone="custom"`
+       consumers — their `style={{ '--button-bg-color': … }}` updates
+       the variable, but the base rule's `background-color: var(...)`
+       loses to this rule's direct property override in the cascade.
+       Net effect: disabled buttons always look disabled, regardless
+       of any custom tone the consumer set. Tertiary + quaternary keep
+       a transparent bg so the tone's text hue doesn't bleed through. */
     &[disabled="true"], &[data-state="disabled"], &:disabled {
-      --button-fg-color: var(--fg-disabled);
       &:where(:not([priority]), [priority="primary"]) {
-        --button-bg-color: var(--bg-primary-disabled);
-        --button-br-color: var(--bg-primary-disabled);
+        background-color: var(--bg-primary-disabled);
+        border-color:     var(--bg-primary-disabled);
+        color:            var(--fg-disabled-primary);
       }
       &[priority="secondary"] {
-        --button-bg-color: var(--bg-secondary-disabled);
-        --button-br-color: var(--bg-secondary-disabled);
+        background-color: var(--bg-secondary-disabled);
+        border-color:     var(--bg-secondary-disabled);
+        color:            var(--fg-disabled);
       }
       &[priority="tertiary"], &[priority="quaternary"] {
-        --button-bg-color: transparent;
-        --button-br-color: transparent;
+        background-color: transparent;
+        border-color:     transparent;
+        color:            var(--fg-disabled);
       }
     }
   }
@@ -891,6 +1170,11 @@
   }
 }
 
-@keyframes btn-loading-spin {
-  to { transform: rotate(360deg); }
+@keyframes btn-loading-slide {
+  /* Slide rightward by exactly one gradient period projected onto x.
+     The pseudo overshoots the button to the left by the same distance,
+     so the leftmost stripe at frame N is the same stripe that was at
+     `x + x-period` at frame 0 — identical pixels at the loop seam,
+     no visible jump. See `--button-loading-x-period`. */
+  to { transform: translateX(var(--button-loading-x-period)); }
 }

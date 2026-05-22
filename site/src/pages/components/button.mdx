@@ -33,6 +33,45 @@ The button surface is a matrix of **6 tones** (`neutral`, `brand`, `critical`,
 - **Tertiary** — background-less at rest, fills on hover. Useful in dense toolbars.
 - **Quaternary** — text only. No background, no border, no transitions.
 
+A seventh value, `tone="custom"`, bypasses the resolver entirely so you can
+supply your own colours via the `--button-fg-color`, `--button-bg-color`,
+`--button-br-color` CSS variables on `style` (or a wrapping class). State
+shifts aren't wired automatically — add a class with `:hover` /
+`:active` selectors if you want hover/press transitions.
+
+## Paddingless
+
+`paddingless` drops the button's outer padding to zero so it sits flush with
+surrounding content. Useful for inline-link-style controls inside prose
+("…or [discard the change]"). Restricted to `priority="quaternary"` per the
+Figma spec — other priorities rely on the padding for their chip / pill shape.
+
+## Underline (quaternary only)
+
+`underline` takes one of three style values:
+
+- `underline="solid"`
+- `underline="dashed"`
+- `underline="dotted"`
+
+Only takes effect on `priority="quaternary"` per the Figma spec — the underline
+is part of the link-like text-only variant. Passing it on other priorities is a
+no-op. Colour inherits via `currentColor`, so a tone shift updates the
+underline along with the label.
+
+## Children alongside label
+
+The component renders `children` after the `label` and before the trailing
+icon, so you can mix custom inline content — keyboard hints, "NEW" badges,
+counters — with the standard prop-driven API. Children also work without
+`label` set, if you want full control over the inner content.
+
+```tsx
+<Button label="Save" leadingIcon="check" tone="brand">
+  <span style={{ opacity: 0.7, fontSize: 12 }}>⌘S</span>
+</Button>
+```
+
 ## Form submission
 
 Setting `type="submit"` on a button inside (or associated with via
@@ -58,26 +97,54 @@ because navigation takes over.
 
 ## Loading
 
-`loading={true}` adds a rotating conic-gradient overlay. It is
+`loading={true}` adds an animated diagonal-stripe overlay that slides
+left → right across the button. The stripe colour is `currentColor`, so
+it always tracks the label / icon tone without any per-tone token. It is
 **visual only** — clicks still fire. Pair with `disabled` when the
 action should be temporarily inert.
+
+## Props
+
+| Prop | Type | Notes |
+|---|---|---|
+| `tone` | `'brand' \| 'neutral' \| 'critical' \| 'info' \| 'success' \| 'warning' \| 'custom'` | Default `brand`. `custom` skips the resolver — supply colours via `--button-*-color` on `style`. |
+| `priority` | `'primary' \| 'secondary' \| 'tertiary' \| 'quaternary'` | Default `primary`. |
+| `size` | `'small' \| 'default' \| 'large'` | Heights 24 / 28 / 32 — only padding changes. |
+| `underline` | `'solid' \| 'dashed' \| 'dotted'` | **Quaternary only** — no-op on other priorities. |
+| `paddingless` | `boolean` | **Quaternary only** — zeros outer padding for flush inline use. |
+| `loading` | `boolean` | Stripe overlay; doesn't block clicks. Pair with `disabled` to inert. |
+| `disabled` | `boolean` | Locks colours to the disabled palette + `pointer-events: none`. |
+| `selected` | `boolean` | Toggled-on visual; shares the active-state look. |
+| `leadingIcon` / `trailingIcon` | `IconShape` | Icon name from `a-icon.shapes.ts`. |
+| `iconButton` | `boolean` | Collapses to a square (label suppressed regardless). |
+| `label` | `string` | Rendered inside `<a-button-label>`. |
+| `href` / `target` / `rel` | `string` | When `href` is set, renders `<a role="button">`. |
+| `type` / `form` | `string` | Form `submit` / `reset` semantics. |
 
 ## Component tokens
 
 The button exposes a set of CSS custom properties on its host element.
 Override any of them on a single instance (`style={{ '--button-padding-x': '12px' }}`)
 or on a selector that wraps the button (e.g. a tone priority of your own).
+All colour tokens are dual-declared `hex; oklch`; alpha fills use
+`color-mix(in oklch, …)` with a hex8 fallback.
 
 | Token | Description |
 |-------|-------------|
-| `--button-fg-color` | Text and icon color. |
+| `--button-fg-color` | Text and icon color (resolves via tone × priority × state). |
 | `--button-bg-color` | Background fill. |
 | `--button-br-color` | Border color. |
 | `--button-focus-color` | Focus-ring outline color. |
 | `--button-padding-x`, `--button-padding-y` | Inner spacing. |
-| `--button-br-radius`, `--button-br-width` | Border. |
+| `--button-br-radius` | Border radius. |
+| `--button-br-width` | Border width. Default **`0`** — Figma buttons have no border. Set to `1px` for an outlined variant. |
 | `--button-font-size`, `--button-font-family`, `--button-font-weight`, `--button-line-height` | Type. |
 | `--button-gap` | Spacing between icon, label, and other children. |
-| `--button-timing-in`, `--button-timing-out`, `--button-timing-active` | State transition durations. |
-| `--button-loading-duration`, `--button-loading-blur` | Loading-spinner tuning. |
+| `--button-timing-in` / `--button-timing-out` / `--button-timing-active` | Per-state transition durations (`50ms`, `150ms`, `50ms` by default). Quaternary zeroes all three. |
 | `--button-outline-offset` | Focus-ring offset from the edge (negative for inset). |
+| `--button-loading-duration` | One slide cycle for the loading stripe (default `1s`). |
+| `--button-loading-angle` | Stripe angle (default `125deg`). |
+| `--button-loading-period` | Stripe + gap along the gradient axis (default `30px`). |
+| `--button-loading-stripe`, `--button-loading-stripe-gap` | Stripe geometry (default `14px` / `16px`). |
+| `--button-loading-opacity` | Overlay opacity (default `0.18` light, `0.22` dark). |
+| `--button-loading-blur` | Optional softening of the stripe edges (default `0`). |
