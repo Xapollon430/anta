@@ -23,11 +23,12 @@
      so the alpha blend happens in oklch (per CLAUDE.md's mixing rule),
      with a hex8 fallback emitted first.
 
-     Border tokens (`--br-…-primary-rest`) are set but produce no
-     visible border by default — `--button-br-width: 0` in the geometry
-     block below. They exist so a consumer can opt into an outlined
-     variant via `style={{ '--button-br-width': '1px' }}` without
-     losing the per-tone border colour. */
+     Border colours are wired up via `--button-br-color` (primary
+     mirrors the opaque fill, others stay transparent) but produce
+     no visible border by default — `--button-br-width: 0` in the
+     geometry block below. They exist so a consumer can opt into an
+     outlined variant via `style={{ '--button-br-width': '1px' }}`
+     and the per-tone border colour is already in place. */
 
   a-button, a[role="button"] {
     /* Primary text is fixed white in both modes (Figma
@@ -47,8 +48,6 @@
     --bg-brand-primary-hover:  oklch(0.453 0.181 284);
     --bg-brand-primary-active: #483493;
     --bg-brand-primary-active: oklch(0.405 0.149 287);
-    --br-brand-primary-rest:   #5f4bc3;
-    --br-brand-primary-rest:   oklch(0.502 0.179 286);
     --fg-brand-primary-rest:   var(--button-primary-fg);
 
     --bg-brand-secondary-rest:   #7460d71a;
@@ -83,8 +82,6 @@
     --bg-neutral-primary-hover:  oklch(0.427 0.020 313);
     --bg-neutral-primary-active: #49424c;
     --bg-neutral-primary-active: oklch(0.390 0.019 316);
-    --br-neutral-primary-rest:   #635b65;
-    --br-neutral-primary-rest:   oklch(0.482 0.019 319);
     --fg-neutral-primary-rest:   var(--button-primary-fg);
 
     /* Neutral chip is irregular — softer rest alpha (5%) than the other
@@ -121,8 +118,6 @@
     --bg-critical-primary-hover:  oklch(0.492 0.179 27);
     --bg-critical-primary-active: #a01c1c;
     --bg-critical-primary-active: oklch(0.458 0.167 27);
-    --br-critical-primary-rest:   #c9302c;
-    --br-critical-primary-rest:   oklch(0.551 0.190 27);
     --fg-critical-primary-rest:   var(--button-primary-fg);
 
     --bg-critical-secondary-rest:   #de45451a;
@@ -159,8 +154,6 @@
     --bg-info-primary-hover:  oklch(0.461 0.111 249);
     --bg-info-primary-active: #175082;
     --bg-info-primary-active: oklch(0.422 0.101 249);
-    --br-info-primary-rest:   #1f6eb2;
-    --br-info-primary-rest:   oklch(0.527 0.130 249);
     --fg-info-primary-rest:   var(--button-primary-fg);
 
     --bg-info-secondary-rest:   #2686d91a;
@@ -195,8 +188,6 @@
     --bg-success-primary-hover:  oklch(0.458 0.103 150);
     --bg-success-primary-active: #1f5c31;
     --bg-success-primary-active: oklch(0.424 0.094 150);
-    --br-success-primary-rest:   #2a7e43;
-    --br-success-primary-rest:   oklch(0.528 0.122 150);
     --fg-success-primary-rest:   var(--button-primary-fg);
 
     --bg-success-secondary-rest:   #3295501a;
@@ -235,8 +226,6 @@
     --bg-warning-primary-hover:  oklch(0.579 0.127 62);
     --bg-warning-primary-active: #995200;
     --bg-warning-primary-active: oklch(0.513 0.122 59);
-    --br-warning-primary-rest:   #c37416;
-    --br-warning-primary-rest:   oklch(0.632 0.138 63);
     --fg-warning-primary-rest:   var(--button-primary-fg);
 
     --bg-warning-secondary-rest:   #c374161a;
@@ -290,8 +279,9 @@
        transparent gap + one solid stripe, repeated; one full cycle
        slides by exactly `--button-loading-period` so the loop is
        seamless. Light uses an 18% overlay; dark lifts to 22% so the
-       stripe stays legible on the darker fills. Blur defaults to 0 in
-       both modes — bump it (e.g. `2px`) for a softer "shimmer". */
+       stripe stays legible on the darker fills. Blur is 1px in both
+       modes so the soft stripe edges don't fight the label text
+       sitting underneath. */
     --button-loading-stripe:     14px;
     --button-loading-stripe-gap: 16px;
     --button-loading-period:     30px;  /* = stripe + gap, along the gradient axis */
@@ -305,7 +295,7 @@
     --button-loading-x-period:
       calc(var(--button-loading-period) / cos(var(--button-loading-angle) - 90deg));
     --button-loading-opacity:    0.18;
-    --button-loading-blur:       0px;
+    --button-loading-blur:       1px;
   }
 
   /* ── Dark-mode tokens ──────────────────────────────────────────────
@@ -338,8 +328,6 @@
     --bg-brand-primary-hover:  oklch(0.502 0.179 286);
     --bg-brand-primary-active: #7460d7;
     --bg-brand-primary-active: oklch(0.569 0.175 287);
-    --br-brand-primary-rest:   #503cb4;
-    --br-brand-primary-rest:   oklch(0.453 0.181 284);
 
     /* Dark alphas are heavier than light (30% / 40% vs 10% / 15%) so
        the chip stays legible against a dark page bg. Note hover ==
@@ -382,8 +370,6 @@
     --bg-neutral-primary-hover:  oklch(0.482 0.019 319);
     --bg-neutral-primary-active: #938d96;
     --bg-neutral-primary-active: oklch(0.651 0.015 315);
-    --br-neutral-primary-rest:   #534c57;
-    --br-neutral-primary-rest:   oklch(0.427 0.020 313);
 
     --bg-neutral-secondary-rest:   #e4d1ef1a;
     --bg-neutral-secondary-rest:   color-mix(in oklch, #e4d1ef 10%, transparent);
@@ -417,8 +403,6 @@
     --bg-critical-primary-hover:  oklch(0.551 0.190 27);
     --bg-critical-primary-active: #de4545;
     --bg-critical-primary-active: oklch(0.610 0.190 25);
-    --br-critical-primary-rest:   #b02120;
-    --br-critical-primary-rest:   oklch(0.492 0.179 27);
 
     --bg-critical-secondary-rest:   #de45454d;
     --bg-critical-secondary-rest:   color-mix(in oklch, #de4545 30%, transparent);
@@ -452,8 +436,6 @@
     --bg-info-primary-hover:  oklch(0.527 0.130 249);
     --bg-info-primary-active: #2686d9;
     --bg-info-primary-active: oklch(0.608 0.152 250);
-    --br-info-primary-rest:   #1a5b93;
-    --br-info-primary-rest:   oklch(0.461 0.111 249);
 
     --bg-info-secondary-rest:   #2686d94d;
     --bg-info-secondary-rest:   color-mix(in oklch, #2686d9 30%, transparent);
@@ -487,8 +469,6 @@
     --bg-success-primary-hover:  oklch(0.528 0.122 150);
     --bg-success-primary-active: #329550;
     --bg-success-primary-active: oklch(0.595 0.138 150);
-    --br-success-primary-rest:   #226737;
-    --br-success-primary-rest:   oklch(0.458 0.103 150);
 
     --bg-success-secondary-rest:   #3295504d;
     --bg-success-secondary-rest:   color-mix(in oklch, #329550 30%, transparent);
@@ -522,8 +502,6 @@
     --bg-warning-primary-hover:  oklch(0.513 0.122 59);
     --bg-warning-primary-active: #ae6613;
     --bg-warning-primary-active: oklch(0.579 0.127 62);
-    --br-warning-primary-rest:   #7f410b;
-    --br-warning-primary-rest:   oklch(0.445 0.105 54);
 
     --bg-warning-secondary-rest:   #c374164d;
     --bg-warning-secondary-rest:   color-mix(in oklch, #c37416 30%, transparent);
@@ -551,7 +529,7 @@
     --fg-warning-quaternary-hover: oklch(0.833 0.108 77);
 
     --button-loading-opacity: 0.22;
-    --button-loading-blur:    0px;
+    --button-loading-blur:    1px;
   }
 
   /* ── Base rule + tone resolvers ───────────────────────────────────
@@ -585,7 +563,7 @@
     --button-timing-in: 50ms ease-out;
     --button-timing-active: 50ms linear;
     --button-timing-out: 150ms ease-out;
-    --button-loading-duration: 1s;
+    --button-loading-duration: 1.1s;
     --button-outline-offset: 1px;
 
     /* Layout. These are also declared in the shadow DOM `:host` rule
@@ -812,7 +790,7 @@
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-brand-primary-rest);
         --button-bg-color: var(--bg-brand-primary-rest);
-        --button-br-color: var(--br-brand-primary-rest);
+        --button-br-color: var(--bg-brand-primary-rest);
         &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-brand-primary-hover);
           --button-br-color: var(--bg-brand-primary-hover);
@@ -866,7 +844,7 @@
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-neutral-primary-rest);
         --button-bg-color: var(--bg-neutral-primary-rest);
-        --button-br-color: var(--br-neutral-primary-rest);
+        --button-br-color: var(--bg-neutral-primary-rest);
         &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-neutral-primary-hover);
           --button-br-color: var(--bg-neutral-primary-hover);
@@ -920,7 +898,7 @@
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-critical-primary-rest);
         --button-bg-color: var(--bg-critical-primary-rest);
-        --button-br-color: var(--br-critical-primary-rest);
+        --button-br-color: var(--bg-critical-primary-rest);
         &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-critical-primary-hover);
           --button-br-color: var(--bg-critical-primary-hover);
@@ -974,7 +952,7 @@
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-info-primary-rest);
         --button-bg-color: var(--bg-info-primary-rest);
-        --button-br-color: var(--br-info-primary-rest);
+        --button-br-color: var(--bg-info-primary-rest);
         &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-info-primary-hover);
           --button-br-color: var(--bg-info-primary-hover);
@@ -1028,7 +1006,7 @@
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-success-primary-rest);
         --button-bg-color: var(--bg-success-primary-rest);
-        --button-br-color: var(--br-success-primary-rest);
+        --button-br-color: var(--bg-success-primary-rest);
         &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-success-primary-hover);
           --button-br-color: var(--bg-success-primary-hover);
@@ -1082,7 +1060,7 @@
       &:where(:not([priority]), [priority="primary"]) {
         --button-fg-color: var(--fg-warning-primary-rest);
         --button-bg-color: var(--bg-warning-primary-rest);
-        --button-br-color: var(--br-warning-primary-rest);
+        --button-br-color: var(--bg-warning-primary-rest);
         &:hover, &[data-state="hover"] {
           --button-bg-color: var(--bg-warning-primary-hover);
           --button-br-color: var(--bg-warning-primary-hover);

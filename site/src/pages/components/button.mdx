@@ -35,9 +35,13 @@ The button surface is a matrix of **6 tones** (`neutral`, `brand`, `critical`,
 
 A seventh value, `tone="custom"`, bypasses the resolver entirely so you can
 supply your own colours via the `--button-fg-color`, `--button-bg-color`,
-`--button-br-color` CSS variables on `style` (or a wrapping class). State
-shifts aren't wired automatically — add a class with `:hover` /
-`:active` selectors if you want hover/press transitions.
+and `--button-br-color` CSS variables on `style` (or a wrapping class).
+The resolver is a no-op for `custom`, so the consumer is fully in control;
+the 1px border is still painted, so set `--button-br-color` (or
+`border-color` directly) to whatever you want — including the fill colour
+for a solid block or `transparent` for fill-only. State shifts aren't
+wired automatically — add a class with `:hover` / `:active` selectors if
+you want hover/press transitions.
 
 ## Paddingless
 
@@ -133,11 +137,11 @@ All colour tokens are dual-declared `hex; oklch`; alpha fills use
 |-------|-------------|
 | `--button-fg-color` | Text and icon color (resolves via tone × priority × state). |
 | `--button-bg-color` | Background fill. |
-| `--button-br-color` | Border color. |
+| `--button-br-color` | Border color. On primary buttons the resolver sets this to the fill so the 1px border merges with the bg; on secondary / tertiary / quaternary it's `transparent` (an alpha-matched border would stack on top of the alpha fill and read as a ring). |
 | `--button-focus-color` | Focus-ring outline color. |
 | `--button-padding-x`, `--button-padding-y` | Inner spacing. |
 | `--button-br-radius` | Border radius. |
-| `--button-br-width` | Border width. Default **`0`** — Figma buttons have no border. Set to `1px` for an outlined variant. |
+| `--button-br-width` | Border width. Default **`1px`**. Set to `0` to drop the border and tighten the bounding box by 2px in each dimension. |
 | `--button-font-size`, `--button-font-family`, `--button-font-weight`, `--button-line-height` | Type. |
 | `--button-gap` | Spacing between icon, label, and other children. |
 | `--button-timing-in` / `--button-timing-out` / `--button-timing-active` | Per-state transition durations (`50ms`, `150ms`, `50ms` by default). Quaternary zeroes all three. |

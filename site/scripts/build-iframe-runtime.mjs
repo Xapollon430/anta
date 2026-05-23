@@ -9,11 +9,15 @@
  * has its own customElements registry, can't share the parent's)
  * dynamic-imports this URL on first load.
  *
+ * One-shot by default; pass `--watch` to keep rebuilding on changes
+ * to `src/elements/**` (used by `site/scripts/dev.mjs` so the iframe
+ * sandbox picks up anta source edits without a server restart).
+ *
  * We use Node esbuild (available transitively via Astro/Vite) rather
  * than esbuild-wasm so the build step runs at native speed alongside
  * the rest of `docs:`.
  */
-import { build } from 'esbuild'
+import { build, context } from 'esbuild'
 import { readFile, mkdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
@@ -21,15 +25,19 @@ import { dirname } from 'node:path'
 const root = new URL('../..', import.meta.url)
 const entry = fileURLToPath(new URL('src/elements/index.ts', root))
 const outFile = fileURLToPath(new URL('site/public/iframe-anta-runtime.js', root))
+const watchMode = process.argv.includes('--watch')
 
 await mkdir(dirname(outFile), { recursive: true })
 
-await build({
+const buildOptions = {
   entryPoints: [entry],
   outfile: outFile,
   bundle: true,
   format: 'esm',
   target: 'es2020',
+  // Silent in one-shot mode (the final `console.log` carries the
+  // single message we want). In watch mode the rebuild-log plugin
+  // takes over so each rebuild is reported on its own line.
   logLevel: 'silent',
   loader: { '.svg': 'text' },
   // Anta's element CSS files use `@import` syntax in some cases and
@@ -56,7 +64,38 @@ await build({
         })
       },
     },
-  ],
-})
+    watchMode && {
+      name: 'rebuild-log',
+      setup(b) {
+        b.onEnd((result) => {
+          const errors = result.errors?.length ?? 0
+          if (errors > 0) {
+            console.error(`[iframe-runtime] rebuild failed (${errors} error${errors === 1 ? '' : 's'})`)
+            for (const err of result.errors) console.error(err.text)
+          } else {
+            console.log(`[iframe-runtime] rebuilt`)
+          }
+        })
+      },
+    },
+  ].filter(Boolean),
+}
 
-console.log(`built ${outFile}`)
+if (watchMode) {
+  const ctx = await context(buildOptions)
+  // Initial rebuild so the bundle exists before we start watching.
+  // `ctx.watch()` schedules its own first build too, but awaiting
+  // `rebuild()` first guarantees the file is on disk by the time
+  // this script's caller (site/scripts/dev.mjs) hands off to astro.
+  await ctx.rebuild()
+  await ctx.watch()
+  console.log(`[iframe-runtime] watching src/elements/**`)
+  // Keep the process alive. esbuild's watcher runs on a background
+  // thread; without something keeping the event loop busy, Node
+  // would exit immediately.
+  process.on('SIGINT', async () => { await ctx.dispose(); process.exit(0) })
+  process.on('SIGTERM', async () => { await ctx.dispose(); process.exit(0) })
+} else {
+  await build(buildOptions)
+  console.log(`built ${outFile}`)
+}

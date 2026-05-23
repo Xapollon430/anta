@@ -8,7 +8,7 @@
     "docs:wasm": "node scripts/copy-esbuild-wasm.mjs",
     "docs:iframe-runtime": "node scripts/build-iframe-runtime.mjs",
     "docs": "pnpm run docs:api && pnpm run docs:pages && pnpm run docs:wasm && pnpm run docs:iframe-runtime",
-    "dev": "pnpm run docs && astro dev",
+    "dev": "node scripts/dev.mjs",
     "build": "pnpm run docs && astro build",
     "preview": "astro preview"
   },
