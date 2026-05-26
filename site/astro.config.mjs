@@ -12,6 +12,8 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeMathjax from 'rehype-mathjax';
 import rehypeTableWrap from './lib/rehype-table-wrap.mjs';
 import rehypeChangelogSections from './lib/rehype-changelog-sections.mjs';
+import remarkUnwrapJsxParagraph from './lib/remark-unwrap-jsx-paragraph.mjs';
+import remarkUnwrapImages from './lib/remark-unwrap-images.mjs';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -92,6 +94,8 @@ export default defineConfig({
       remarkDirective,
       remarkDefinitionList,
       remarkAttributes,
+      remarkUnwrapImages,
+      remarkUnwrapJsxParagraph,
     ],
     rehypePlugins: [
       rehypeSlug,

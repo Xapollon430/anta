@@ -77,6 +77,24 @@ function controlFor(p: any): PropEntry | null {
     control, prop, optional,
   })
 
+  // The two structural props inherited from BaseProps that the form
+  // surfaces as editable text inputs:
+  // - `children`: edit the JSX element's body content.
+  // - `style`: a CSS declarations string, serialized to a JSX object
+  //   literal so the prop type stays correct downstream.
+  if (name === 'children') {
+    return wrap(
+      { kind: 'text', name, description },
+      { name, kind: 'children' },
+    )
+  }
+  if (name === 'style') {
+    return wrap(
+      { kind: 'text', name, description: description || 'CSS declarations (e.g. `color: red; padding: 8px`).' },
+      { name, kind: 'style-css' },
+    )
+  }
+
   // `intrinsic` types: string / number / boolean.
   if (t.type === 'intrinsic') {
     if (t.name === 'number') {
@@ -105,10 +123,39 @@ function controlFor(p: any): PropEntry | null {
     const literals = t.types.filter((x: any) => x.type === 'literal' && typeof x.value === 'string')
     if (literals.length === t.types.length && literals.length > 0) {
       const options = literals.map((x: any) => String(x.value))
-      const defaultValue = options[0]
+      // The runtime default for the UI fallback comes from a
+      // `@defaultValue` JSDoc tag on the prop. We deliberately don't
+      // fall back to `options[0]` — that lies when the first option
+      // isn't the runtime default (Text.tone, Text.size). Without an
+      // explicit tag, no button is highlighted when the source has no
+      // literal, which truthfully reflects "implicit default
+      // applies." The default is also intentionally *not* placed on
+      // the PropDescriptor: that would make `applyEdit` strip the
+      // attribute when the user picks the default, hiding the
+      // selection from the rendered output.
+      const defaultValue = readDefaultValueTag(p.comment)
       return wrap(
         { kind: 'segmented', name, options, defaultValue, description },
-        { name, kind: 'literal-union', defaultValue },
+        { name, kind: 'literal-union' },
+      )
+    }
+    // Union of number literals (e.g. Title's `level: 1 | 2 | … | 6`) →
+    // surface as a number input rather than six tiny buttons.
+    const numberLiterals = t.types.filter((x: any) => x.type === 'literal' && typeof x.value === 'number')
+    if (numberLiterals.length === t.types.length && numberLiterals.length > 0) {
+      return wrap(
+        { kind: 'number', name, description },
+        { name, kind: 'number' },
+      )
+    }
+    // Mixed union that includes a number intrinsic (e.g. Text's
+    // `truncate?: boolean | number`) — render as a number input. Empty
+    // value means the prop is absent.
+    const hasNumberIntrinsic = t.types.some((x: any) => x.type === 'intrinsic' && x.name === 'number')
+    if (hasNumberIntrinsic) {
+      return wrap(
+        { kind: 'number', name, description },
+        { name, kind: 'number' },
       )
     }
     // Fall through.
@@ -159,6 +206,30 @@ function renderComment(comment: any): string | undefined {
     .join('')
     .trim()
   return text || undefined
+}
+
+/** Read the value of a prop's `@defaultValue` (or `@default`) JSDoc
+ *  block tag. Typedoc wraps a bare token like `medium` in a
+ *  ```` ```ts\n…\n``` ```` fence; quoted forms (`'medium'`) come back as
+ *  inline-code or text. Strip whichever wrapping is present. Returns
+ *  `undefined` when neither tag is present. */
+function readDefaultValueTag(comment: any): string | undefined {
+  const tags = comment?.blockTags
+  if (!Array.isArray(tags)) return undefined
+  for (const tag of tags) {
+    if (tag.tag !== '@defaultValue' && tag.tag !== '@default') continue
+    const raw = (tag.content ?? [])
+      .map((p: any) => p.text ?? '')
+      .join('')
+      .trim()
+    if (!raw) continue
+    return raw
+      .replace(/^```[a-zA-Z]*\s*\n?/, '')
+      .replace(/\n?```$/, '')
+      .replace(/^[`'"](.*)[`'"]$/, '$1')
+      .trim()
+  }
+  return undefined
 }
 
 /** Derive a Control schema for a JSX example by introspecting the
