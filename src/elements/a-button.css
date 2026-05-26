@@ -27,8 +27,8 @@
     --button-loading-x-period: calc(
       var(--button-loading-period) / cos(var(--button-loading-angle) - 90deg)
     );
-    --button-loading-opacity: 0.5;
-    --button-loading-blur: 2px;
+    --button-loading-opacity: 0.3;
+    --button-loading-blur: 3px;
   }
 
   a-button:where(:not([tone]), [tone="brand"]),
