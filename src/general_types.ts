@@ -94,20 +94,13 @@ export interface AIconAttributes extends BaseAttributes {
 }
 
 /**
- * Attributes for the `<a-button>` custom element.
- *
- * Low-level web component attributes; for the JSX wrapper use `Button`
- * from `@antadesign/anta`.
+ * Attributes for the `<a-button>` custom element. For the typed JSX
+ * wrapper use `Button` from `@antadesign/anta`.
  */
 export interface AButtonAttributes extends BaseAttributes {
   /** Visual emphasis. */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary'
-  /** Semantic tone. In addition to the six named tones, accepts any
-   *  literal CSS color (`tone="#ff1493"`, `tone="oklch(...)"`, ...);
-   *  the hue is extracted and run through the brand L/C curve to fill
-   *  the full priority × state matrix. Direct overrides of
-   *  `--button-fg-color` / `--button-bg-color` / `--button-br-color`
-   *  via `style` still take precedence over the resolver. */
+  /** Semantic tone, or any literal CSS color for a one-off custom tone. */
   tone?:
     | 'neutral'
     | 'brand'
@@ -116,34 +109,25 @@ export interface AButtonAttributes extends BaseAttributes {
     | 'success'
     | 'warning'
     | (string & {})
-  /** Underline style — only takes effect on `priority="quaternary"`. */
+  /** Underline style. Only renders on `priority="tertiary" | "quaternary"`. */
   underline?: 'solid' | 'dashed' | 'dotted'
   /** Size variant. small=24px, default=28px, large=32px. */
   size?: 'small' | 'default' | 'large'
-  /** Drop the outer padding to zero so the button sits flush with
-   *  surrounding content. Only takes effect on `priority="quaternary"`. */
-  paddingless?: 'true' | 'false' | boolean | string
-  /** Loading state. The element's CSS matches `[loading="true"]`. */
-  loading?: 'true' | 'false' | boolean | string
+  /** Drop outer padding to zero. Only takes effect on `priority="quaternary"`. */
+  paddingless?: 'true' | 'false' | boolean
+  /** Loading state. */
+  loading?: 'true' | 'false' | boolean
   /** Disabled state. */
-  disabled?: 'true' | 'false' | boolean | string
+  disabled?: 'true' | 'false' | boolean
   /** Toggled-on / pressed state. */
-  selected?: 'true' | 'false' | boolean | string
-  /** Force a visual state for the docs gallery (`hover` / `active` /
-   *  `focus` / `disabled`). Pseudo-class behaviour still applies on
-   *  real interaction; this is purely for static showcase rendering. */
-  'data-state'?: 'hover' | 'active' | 'focus' | 'disabled' | 'loading' | 'selected'
-  /** Submit/reset semantics handled by the element's global click delegate. */
+  selected?: 'true' | 'false' | boolean
+  /** Submit/reset semantics. */
   type?: 'button' | 'submit' | 'reset'
   /** Associate with a form by id when not nested inside it. */
   form?: string
   /** Custom event name dispatched (bubbling) on click. */
   'data-custom-event'?: string
-  /** ARIA disabled — JSX wrapper sets this in lockstep with `disabled`. */
   'aria-disabled'?: 'true' | 'false' | boolean
-  /** ARIA busy — JSX wrapper sets this when `loading` is true. */
   'aria-busy'?: 'true' | 'false' | boolean
-  /** Standard tab order override. The JSX wrapper sets this from
-   *  `disabled` (0 normally, -1 when disabled). */
   tabindex?: number | string
 }

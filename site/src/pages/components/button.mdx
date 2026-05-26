@@ -7,12 +7,9 @@ import buttonDemoCode from './button.demo.ts'
 
 # Button
 
-An action control. Renders an `<a-button>` web component (or `<a role="button">`
-in anchor mode) with a tone × priority matrix driven by attributes.
-
-The playground opens on **All states** — every tone × priority × state combo
-from the Figma component set (168 buttons). Switch examples in the Props
-panel on the right.
+An action control. Renders an `<a-button>` web component (or
+`<a role="button">` when `href` is set) with a tone × priority matrix
+applied via attributes.
 
 <InteractiveDemo
   client:load
@@ -21,161 +18,221 @@ panel on the right.
   initialCode={buttonDemoCode}
 />
 
-## Tones and priorities
+## Tones
 
-The button surface is a matrix of **6 tones** (`neutral`, `brand`, `critical`,
-`info`, `success`, `warning`) crossed with **4 priorities**
-(`primary`, `secondary`, `tertiary`, `quaternary`). The default is
-`tone="brand" priority="primary"`.
-
-- **Primary** — saturated background, white/black text. The page's main call to action.
-- **Secondary** — pastel background + matching border. The everyday button.
-- **Tertiary** — background-less at rest, fills on hover. Useful in dense toolbars.
-- **Quaternary** — text only. No background, no border, no transitions.
-
-For a one-off custom color, pass any literal CSS `<color>` value as the
-`tone` — e.g. `tone="#ff1493"`, `tone="oklch(0.6 0.25 30)"`,
-`tone="rgb(255 20 147)"`, or even a named color. The hue is extracted from
-the input and run through the brand L/C curve, so every priority × state
-slot (rest, hover, active, secondary alpha overlay, tertiary fill, …) is
-filled automatically — no extra wiring required. Hover and active darken
-on schedule; loading shimmer, focus ring, and disabled greys all keep
-working because they're tone-agnostic.
-
-Only the **hue** of the input is honoured. Lightness and chroma come from
-the brand tone, so pale or low-chroma inputs (e.g. `tone="#cccccc"`) still
-produce a legible button — saturation-matched to the rest of the
-design system. If you need pixel-for-pixel control, set
-`--button-fg-color` / `--button-bg-color` / `--button-br-color` directly
-on `style`; inline-style declarations beat the resolver.
-
-Dark mode reuses the same curve — a custom tone keeps the same color in
-both modes. To pair light / dark variants, scope them yourself:
-`.dark a-button[tone="…"] { --button-tone-source: …; }`.
-
-## Paddingless
-
-`paddingless` drops the button's outer padding to zero so it sits flush with
-surrounding content. Useful for inline-link-style controls inside prose
-("…or [discard the change]"). Restricted to `priority="quaternary"` per the
-Figma spec — other priorities rely on the padding for their chip / pill shape.
-
-## Underline (background-less priorities)
-
-`underline` takes one of three style values:
-
-- `underline="solid"`
-- `underline="dashed"`
-- `underline="dotted"`
-
-Available on the two priorities that ship without a background fill —
-`tertiary` and `quaternary`. Passing it on `primary` or `secondary` is a no-op
-since the underline would clash with the filled chip. Colour inherits via
-`currentColor`, so a tone shift updates the underline along with the label.
-
-The treatment is intentionally subtler than the global `<a>` rule. The
-underline holds at a 0.5px hairline in every state and only the alpha lifts on
-interaction — the button already shifts its color (and on tertiary, its
-background) on hover, so a heavier underline snap on top reads as a double
-cue. Hover and active share the same state so clicking doesn't kick the
-underline back to rest mid-press:
-
-| State            | Thickness | Underline color                                    |
-|------------------|-----------|----------------------------------------------------|
-| Rest             | 0.5px     | 75% alpha of `currentColor` (mixed in oklch)       |
-| Hover / active   | 0.5px     | `--button-fg-color` (priority/tone-aware, full alpha) |
-
-Like the global `a:hover` rule, the hover underline color is set to the
-resolved fg token directly (rather than `currentColor`) so the underline
-repaints in lockstep with the label whenever the tone resolver flips
-`--button-fg-color`.
-
-## Children alongside label
-
-The component renders `children` after the `label` and before the trailing
-icon, so you can mix custom inline content — keyboard hints, "NEW" badges,
-counters — with the standard prop-driven API. Children also work without
-`label` set, if you want full control over the inner content.
+Six named tones — `brand` (default), `neutral`, `critical`, `info`,
+`success`, `warning` — plus a one-off custom tone for any literal CSS
+color value:
 
 ```tsx
-<Button label="Save" leadingIcon="check" tone="brand">
-  <span style={{ opacity: 0.7, fontSize: 12 }}>⌘S</span>
-</Button>
+<Button tone="brand" label="Save" />
+<Button tone="#ff1493" label="Pink one-off" />
+<Button tone="oklch(0.6 0.25 30)" label="oklch one-off" />
 ```
 
-## Form submission
+For custom tones, only the *hue* of the input is taken. Lightness and
+chroma come from the brand-tone curve, so pale or low-chroma inputs
+(`tone="#cccccc"`, `tone="white"`) still produce a legible button. The
+full priority × state matrix — rest, hover, active, secondary alpha
+overlay, tertiary fill — is derived automatically.
 
-Setting `type="submit"` on a button inside (or associated with via
-`form="id"`) a `<form>` triggers `form.requestSubmit()` on click. The
-element additionally dispatches a custom `submitdetailed` event on the
-form with `{ formData, submitter: { tag, attrs } }` in `detail`,
-which is useful for analytics or wiring up multi-button forms.
+If you need pixel-precise color, set `--button-fg-color`,
+`--button-bg-color`, or `--button-br-color` directly via `style` —
+inline declarations beat the resolver.
 
-`type="reset"` calls `form.reset()`.
+Dark mode reuses the same curve. To pair light/dark variants for a
+custom tone, scope it yourself:
 
-## Custom click events
+```css
+.dark a-button[tone="…"] { --button-tone-source: …; }
+```
 
-Adding `data-custom-event="some-name"` makes the button dispatch a
-bubbling `CustomEvent("some-name")` on click — handy for instrumenting
-analytics without taking ownership of `onClick`.
+## Priorities
+
+Four priorities, each with a distinct visual signature:
+
+| Priority | Visual |
+|---|---|
+| `primary` | Saturated fill. Main call to action. |
+| `secondary` | Pastel background, no border. Everyday button. |
+| `tertiary` | Background-less at rest, fills on hover. Dense toolbars. |
+| `quaternary` | Text only — no background, no border, no transitions. |
+
+Two prop constraints follow from priority and are enforced at the
+type level:
+
+- **`underline`** — only on `tertiary` / `quaternary`. Filled chips
+  don't need an underline; passing it on `primary` / `secondary` is a
+  TypeScript error.
+- **`paddingless`** — only on `quaternary`. Zeros the outer padding so
+  the button sits flush with surrounding prose.
+
+```tsx
+<Button priority="tertiary"  underline="dashed" label="Read more" />
+<Button priority="quaternary" paddingless label="here" />
+```
+
+The underline holds at a 0.5px hairline in every state; only the
+underline alpha lifts from 75% → 100% on hover/active. The color
+tracks `--button-fg-color` so a tone shift updates the underline in
+lockstep with the label.
+
+## Sizes
+
+Three sizes; only padding changes (font size stays at 15px):
+
+```tsx
+<Button size="small"   label="Small" />
+<Button size="default" label="Default" />
+<Button size="large"   label="Large" />
+```
+
+## Icon-only
+
+Pass `iconButton="<shape>"` for a square icon button. The label and
+content slots are TypeScript errors in this mode — icon-only buttons
+render the named icon standalone:
+
+```tsx
+<Button iconButton="check" />
+<Button iconButton="trash" tone="critical" />
+<Button iconButton="dots-vertical" size="small" />
+```
+
+A min-width is pinned to the natural square (20px / 24px / 28px for
+small / default / large) so a tight flex parent can't clip the icon.
+
+## Leading and trailing icons
+
+For non-icon-only buttons, pass `leadingIcon` and/or `trailingIcon`:
+
+```tsx
+<Button leadingIcon="check" label="Confirm" />
+<Button trailingIcon="external-link" label="Read the docs" />
+<Button leadingIcon="info" trailingIcon="chevron-down" label="Filter" />
+```
+
+Icon shape names come from the `IconShape` union — see the
+[Icon](/components/icon) page for the full set.
+
+## States
+
+```tsx
+<Button loading label="Submitting" />
+<Button disabled label="Locked" />
+<Button selected label="Toggled on" />
+<Button loading disabled label="Critical" />
+```
+
+- **`loading`** — diagonal stripe overlay slides across the button.
+  Stripe color follows `currentColor`, so it tracks the tone. Blocks
+  clicks via `pointer-events: none`.
+- **`disabled`** — locks the colors to the disabled palette, sets
+  `pointer-events: none`, and removes the button from the tab order.
+  Beats inline `--button-bg-color` overrides.
+- **`selected`** — toggled-on / pressed visual; shares the active
+  state's look. Useful for filter chips and icon toggles.
 
 ## Anchor mode
 
 Setting `href` switches the rendered tag from `<a-button>` to
-`<a role="button">`. Styles are identical (both selectors share the
-CSS rule set). The form/submit/reset behaviour is no-op in anchor mode
-because navigation takes over.
+`<a role="button">`. Styling is identical — both selectors share the
+same CSS rules. Form-submission props (`type`, `form`) are TypeScript
+errors in anchor mode; navigation takes over.
 
-## Loading
+```tsx
+<Button href="/docs" target="_blank" rel="noopener" label="Read the docs" />
+```
 
-`loading={true}` adds an animated diagonal-stripe overlay that slides
-left → right across the button. The stripe colour is `currentColor`, so
-it always tracks the label / icon tone without any per-tone token. It is
-**visual only** — clicks still fire. Pair with `disabled` when the
-action should be temporarily inert.
+## Form submission
+
+For non-anchor buttons, `type="submit"` and `type="reset"` integrate
+with native forms:
+
+```tsx
+<form id="signup">
+  <Button type="submit" label="Sign up" />
+  <Button type="reset"  label="Clear" />
+</form>
+
+{/* Associate with a form by id when the button is outside */}
+<Button type="submit" form="signup" label="Submit from outside" />
+```
+
+`type="submit"` calls `form.requestSubmit()` and also dispatches a
+`submitdetailed` event on the form with `{ formData, submitter: { tag, attrs } }`
+in `detail` — handy for analytics or multi-button forms.
+
+## Custom click events
+
+`data-custom-event="<name>"` makes the button dispatch a bubbling
+`CustomEvent("<name>")` on click. Use it to instrument analytics
+without taking ownership of `onClick`:
+
+```tsx
+<Button label="Save" data-custom-event="save-clicked" />
+```
+
+## Children alongside label
+
+Children render after the label and before the trailing icon, so you
+can mix custom inline content — keyboard hints, badges, counters —
+with the prop-driven API:
+
+```tsx
+<Button label="Save" leadingIcon="check">
+  <span style={{ opacity: 0.7, fontSize: 12 }}>⌘S</span>
+</Button>
+```
+
+Children also work without `label` — pass them as the only content.
 
 ## Props
 
 | Prop | Type | Notes |
 |---|---|---|
-| `tone` | `'brand' \| 'neutral' \| 'critical' \| 'info' \| 'success' \| 'warning' \| <CSS color>` | Default `brand`. Any literal CSS color (`'#ff1493'`, `'oklch(...)'`, ...) is accepted as a one-off custom tone — hue is extracted and run through the brand L/C curve. |
+| `tone` | `'brand' \| 'neutral' \| 'critical' \| 'info' \| 'success' \| 'warning' \| <css color>` | Default `brand`. Literal colors derive the full matrix from the input hue. |
 | `priority` | `'primary' \| 'secondary' \| 'tertiary' \| 'quaternary'` | Default `primary`. |
-| `size` | `'small' \| 'default' \| 'large'` | Heights 24 / 28 / 32 — only padding changes. |
-| `underline` | `'solid' \| 'dashed' \| 'dotted'` | **Tertiary / quaternary only** — no-op on filled priorities. |
-| `paddingless` | `boolean` | **Quaternary only** — zeros outer padding for flush inline use. |
-| `loading` | `boolean` | Stripe overlay; doesn't block clicks. Pair with `disabled` to inert. |
-| `disabled` | `boolean` | Locks colours to the disabled palette + `pointer-events: none`. |
-| `selected` | `boolean` | Toggled-on visual; shares the active-state look. |
-| `leadingIcon` / `trailingIcon` | `IconShape` | Icon name from `a-icon.shapes.ts`. |
-| `iconButton` | `boolean \| IconShape` | Collapses to a square + pins a min-width to the natural square. Pass a string (`iconButton="check"`) to set the icon in the same prop. |
+| `size` | `'small' \| 'default' \| 'large'` | Default `default`. Only padding changes. |
+| `underline` | `'solid' \| 'dashed' \| 'dotted'` | `tertiary` / `quaternary` only. |
+| `paddingless` | `boolean` | `quaternary` only. |
+| `loading` | `boolean` | Stripe overlay; blocks clicks. |
+| `disabled` | `boolean` | Disabled palette; no clicks; removed from tab order. |
+| `selected` | `boolean` | Toggled-on visual (shares active look). |
+| `leadingIcon` / `trailingIcon` | `IconShape` | Icon shape names. Forbidden with `iconButton`. |
+| `iconButton` | `IconShape` | Icon-only mode. `label` / `leadingIcon` / `trailingIcon` / `children` are TypeScript errors when set. |
 | `label` | `string` | Rendered inside `<a-button-label>`. |
-| `href` / `target` / `rel` | `string` | When `href` is set, renders `<a role="button">`. |
-| `type` / `form` | `string` | Form `submit` / `reset` semantics. |
+| `href` | `string` | Switches to `<a role="button">`. |
+| `target` / `rel` | `string` | Anchor mode only. |
+| `type` | `'button' \| 'submit' \| 'reset'` | Form integration. Forbidden with `href`. |
+| `form` | `string` | Associate with a form by id. Forbidden with `href`. |
+| `onClick` | `(e) => void` | Click handler. |
+| `data-custom-event` | `string` | Dispatches `CustomEvent(<name>)` on click. |
 
 ## Component tokens
 
-The button exposes a set of CSS custom properties on its host element.
-Override any of them on a single instance (`style={{ '--button-padding-x': '12px' }}`)
-or on a selector that wraps the button (e.g. a tone priority of your own).
-All colour tokens are dual-declared `hex; oklch`; alpha fills use
-`color-mix(in oklch, …)` with a hex8 fallback.
+Override any of these on a single instance
+(`style={{ '--button-padding-x': '12px' }}`) or on a selector wrapping
+the button (e.g. a tone or variant of your own). Color tokens are
+dual-declared `hex; oklch`; alpha fills use `color-mix(in oklch, …)`
+with a hex8 fallback first.
 
 | Token | Description |
-|-------|-------------|
-| `--button-fg-color` | Text and icon color (resolves via tone × priority × state). |
+|---|---|
+| `--button-fg-color` | Text and icon color. Resolved per tone × priority × state. |
 | `--button-bg-color` | Background fill. |
-| `--button-br-color` | Border color. On primary buttons the resolver sets this to the fill so the 1px border merges with the bg; on secondary / tertiary / quaternary it's `transparent` (an alpha-matched border would stack on top of the alpha fill and read as a ring). |
+| `--button-br-color` | Border color. Primary mirrors the fill; others are transparent. |
 | `--button-focus-color` | Focus-ring outline color. |
-| `--button-padding-x`, `--button-padding-y` | Inner spacing. |
-| `--button-br-radius` | Border radius. |
-| `--button-br-width` | Border width. Default **`1px`**. Set to `0` to drop the border and tighten the bounding box by 2px in each dimension. |
-| `--button-font-size`, `--button-font-family`, `--button-font-weight`, `--button-line-height` | Type. |
-| `--button-gap` | Spacing between icon, label, and other children. |
-| `--button-timing-in` / `--button-timing-out` / `--button-timing-active` | Per-state transition durations (`50ms`, `150ms`, `50ms` by default). Quaternary zeroes all three. |
-| `--button-outline-offset` | Focus-ring offset from the edge (negative for inset). |
-| `--button-loading-duration` | One slide cycle for the loading stripe (default `1s`). |
+| `--button-padding-x` / `--button-padding-y` | Inner spacing. |
+| `--button-br-radius` | Border radius (default `4px`). |
+| `--button-br-width` | Border width (default `0` — no border). Set to `1px` for an outlined variant. |
+| `--button-font-size` / `--button-font-family` / `--button-font-weight` / `--button-line-height` | Type. |
+| `--button-gap` | Spacing between icon, label, and children. |
+| `--button-timing-in` / `--button-timing-out` / `--button-timing-active` | Per-state transition durations (`50ms` / `150ms` / `50ms`). Quaternary zeroes all three. |
+| `--button-outline-offset` | Focus-ring offset (default `1px`). |
+| `--button-loading-duration` | One slide cycle for the loading stripe (default `1.1s`). |
 | `--button-loading-angle` | Stripe angle (default `125deg`). |
 | `--button-loading-period` | Stripe + gap along the gradient axis (default `30px`). |
-| `--button-loading-stripe`, `--button-loading-stripe-gap` | Stripe geometry (default `14px` / `16px`). |
-| `--button-loading-opacity` | Overlay opacity (default `0.18` light, `0.22` dark). |
-| `--button-loading-blur` | Optional softening of the stripe edges (default `0`). |
+| `--button-loading-stripe` / `--button-loading-stripe-gap` | Stripe geometry (default `14px` / `16px`). |
+| `--button-loading-opacity` | Overlay opacity (default `0.3`). |
+| `--button-loading-blur` | Stripe-edge softening (default `1px`). |

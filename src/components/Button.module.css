@@ -1,8 +1,2 @@
-/*
- * Layout for the button is owned entirely by the web component
- * (`a-button`) and `src/elements/a-button.css`. This stub exists for
- * symmetry with the other wrappers (Progress.module.css, etc.) and as
- * a landing pad for wrapper-only conditional styles if they're needed
- * later (e.g. portal containers, anchor-specific tweaks that don't
- * belong in the element CSS).
- */
+/* Layout lives in src/elements/a-button.css. Stub kept for symmetry
+ * with the other wrappers and as a landing pad for wrapper-only styles. */

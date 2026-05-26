@@ -7,15 +7,6 @@ declare global {
 }
 
 export class AButtonElement extends HTMLElementBase {
-  constructor() {
-    super();
-    // All visual styling lives in src/elements/a-button.css and targets
-    // the host (`a-button`) directly. The shadow root just projects the
-    // light-DOM children through a single `<slot>`.
-    const shadow = this.attachShadow({ mode: "open" });
-    shadow.append(document.createElement("slot"));
-  }
-
   connectedCallback() {
     if (!document.hasKeyListenerForAButton) {
       document.addEventListener("keydown", handleKeyDown, true);
@@ -49,8 +40,7 @@ function handleClick(e: MouseEvent) {
   ) as AButtonElement | null;
   if (!el) return;
 
-  // Consumer-defined event name. Used for analytics or wiring up
-  // workflow-level handlers without per-button onClick props.
+  // Optional bubbling event for analytics / workflow handlers.
   const customEvent = el.getAttribute("data-custom-event");
   if (customEvent) {
     el.dispatchEvent(
@@ -68,10 +58,7 @@ function handleClick(e: MouseEvent) {
     } else {
       form.submit();
     }
-    // Fire a richer event alongside the standard `submit` so
-    // listeners can inspect *which* button submitted and what its
-    // attributes were. Form authors who only listen to `submit` are
-    // unaffected.
+    // Richer event so listeners can inspect which button submitted.
     const formData = new FormData(form);
     form.dispatchEvent(
       new CustomEvent("submitdetailed", {
