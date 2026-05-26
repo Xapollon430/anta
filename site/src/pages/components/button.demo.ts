@@ -7,7 +7,7 @@
  * \`<\` (after whitespace) — the sandbox's \`wrapWithRender\` uses that
  * as the JSX-block entry trigger.
  */
-export default `import { Button } from '@antadesign/anta'
+export default `import { Button, Text } from '@antadesign/anta'
 
 /** # All states
  * Every tone × priority × state combo from the Figma component set —
@@ -267,9 +267,9 @@ export default `import { Button } from '@antadesign/anta'
 </div>
 
 /** # Icon-only button
- * Pass \`iconButton="<shape>"\` (e.g. \`iconButton="check"\`). The named
- * icon renders standalone — no \`leadingIcon\` / \`trailingIcon\` needed,
- * and any label or children are dropped.
+ * Pass \`iconButton\` (boolean) together with \`leadingIcon\` and/or
+ * \`trailingIcon\` to collapse the button to a square. \`label\` is
+ * forbidden in this mode (TypeScript error).
  *
  * A min-width is pinned to the size's natural square (small 20px,
  * default 24px, large 28px) so a tight flex parent can't squeeze the
@@ -279,15 +279,15 @@ export default `import { Button } from '@antadesign/anta'
  */
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 16 }}>
   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-    <Button iconButton="check" size="small" />
-    <Button iconButton="check" />
-    <Button iconButton="check" size="large" />
-    <span style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>iconButton="check"</span>
+    <Button iconButton leadingIcon="check" size="small" />
+    <Button iconButton leadingIcon="check" />
+    <Button iconButton leadingIcon="check" size="large" />
+    <span style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>iconButton leadingIcon="check"</span>
   </div>
   <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: 60, padding: 4, border: '1px dashed var(--border-3)' }}>
-    <Button iconButton="check" />
-    <Button iconButton="check" />
-    <Button iconButton="check" />
+    <Button iconButton leadingIcon="check" />
+    <Button iconButton leadingIcon="check" />
+    <Button iconButton leadingIcon="check" />
   </div>
   <span style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>↑ three buttons in a 60px-wide flex parent — each holds its 24px min</span>
 </div>
@@ -389,15 +389,18 @@ export default `import { Button } from '@antadesign/anta'
 /** # Paddingless (quaternary only)
  * \`paddingless\` zeros the outer padding so the button sits flush with
  * surrounding text — ideal for inline-link-style controls inside prose.
- * Only takes effect on \`priority="quaternary"\` per the Figma spec.
+ * Only takes effect on \`priority="quaternary"\`. Wrap in \`<Text>\` so
+ * the prose typography (font, line-height, letter-spacing) matches the
+ * design system, and the underlined paddingless button reads as a
+ * Text-style link inside the sentence.
  */
-<div style={{ fontSize: 15, lineHeight: 1.5, maxWidth: 520 }}>
+<Text style={{ maxWidth: 520 }}>
   After saving, you can&nbsp;
   <Button label="undo the change" priority="quaternary" paddingless underline="dashed" tone="brand" />
   &nbsp;or&nbsp;
   <Button label="discard everything" priority="quaternary" paddingless underline="dotted" tone="critical" />
   &nbsp;— both options are reversible until the next save.
-</div>
+</Text>
 
 /** # Underline styles (quaternary only)
  * \`underline="solid" | "dashed" | "dotted"\`. Quaternary-only per the
@@ -460,57 +463,57 @@ export default `import { Button } from '@antadesign/anta'
 <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
     <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.7, width: 80 }}>brand</div>
-    <Button iconButton="play" tone="brand" priority="primary" size="small" />
-    <Button iconButton="play" tone="brand" priority="primary" />
-    <Button iconButton="play" tone="brand" priority="primary" size="large" />
-    <Button iconButton="play" tone="brand" priority="secondary" />
-    <Button iconButton="play" tone="brand" priority="tertiary" />
-    <Button iconButton="play" tone="brand" priority="quaternary" />
+    <Button iconButton leadingIcon="play" tone="brand" priority="primary" size="small" />
+    <Button iconButton leadingIcon="play" tone="brand" priority="primary" />
+    <Button iconButton leadingIcon="play" tone="brand" priority="primary" size="large" />
+    <Button iconButton leadingIcon="play" tone="brand" priority="secondary" />
+    <Button iconButton leadingIcon="play" tone="brand" priority="tertiary" />
+    <Button iconButton leadingIcon="play" tone="brand" priority="quaternary" />
   </div>
   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
     <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.7, width: 80 }}>neutral</div>
-    <Button iconButton="play" tone="neutral" priority="primary" size="small" />
-    <Button iconButton="play" tone="neutral" priority="primary" />
-    <Button iconButton="play" tone="neutral" priority="primary" size="large" />
-    <Button iconButton="play" tone="neutral" priority="secondary" />
-    <Button iconButton="play" tone="neutral" priority="tertiary" />
-    <Button iconButton="play" tone="neutral" priority="quaternary" />
+    <Button iconButton leadingIcon="play" tone="neutral" priority="primary" size="small" />
+    <Button iconButton leadingIcon="play" tone="neutral" priority="primary" />
+    <Button iconButton leadingIcon="play" tone="neutral" priority="primary" size="large" />
+    <Button iconButton leadingIcon="play" tone="neutral" priority="secondary" />
+    <Button iconButton leadingIcon="play" tone="neutral" priority="tertiary" />
+    <Button iconButton leadingIcon="play" tone="neutral" priority="quaternary" />
   </div>
   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
     <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.7, width: 80 }}>info</div>
-    <Button iconButton="play" tone="info" priority="primary" size="small" />
-    <Button iconButton="play" tone="info" priority="primary" />
-    <Button iconButton="play" tone="info" priority="primary" size="large" />
-    <Button iconButton="play" tone="info" priority="secondary" />
-    <Button iconButton="play" tone="info" priority="tertiary" />
-    <Button iconButton="play" tone="info" priority="quaternary" />
+    <Button iconButton leadingIcon="play" tone="info" priority="primary" size="small" />
+    <Button iconButton leadingIcon="play" tone="info" priority="primary" />
+    <Button iconButton leadingIcon="play" tone="info" priority="primary" size="large" />
+    <Button iconButton leadingIcon="play" tone="info" priority="secondary" />
+    <Button iconButton leadingIcon="play" tone="info" priority="tertiary" />
+    <Button iconButton leadingIcon="play" tone="info" priority="quaternary" />
   </div>
   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
     <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.7, width: 80 }}>success</div>
-    <Button iconButton="play" tone="success" priority="primary" size="small" />
-    <Button iconButton="play" tone="success" priority="primary" />
-    <Button iconButton="play" tone="success" priority="primary" size="large" />
-    <Button iconButton="play" tone="success" priority="secondary" />
-    <Button iconButton="play" tone="success" priority="tertiary" />
-    <Button iconButton="play" tone="success" priority="quaternary" />
+    <Button iconButton leadingIcon="play" tone="success" priority="primary" size="small" />
+    <Button iconButton leadingIcon="play" tone="success" priority="primary" />
+    <Button iconButton leadingIcon="play" tone="success" priority="primary" size="large" />
+    <Button iconButton leadingIcon="play" tone="success" priority="secondary" />
+    <Button iconButton leadingIcon="play" tone="success" priority="tertiary" />
+    <Button iconButton leadingIcon="play" tone="success" priority="quaternary" />
   </div>
   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
     <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.7, width: 80 }}>critical</div>
-    <Button iconButton="play" tone="critical" priority="primary" size="small" />
-    <Button iconButton="play" tone="critical" priority="primary" />
-    <Button iconButton="play" tone="critical" priority="primary" size="large" />
-    <Button iconButton="play" tone="critical" priority="secondary" />
-    <Button iconButton="play" tone="critical" priority="tertiary" />
-    <Button iconButton="play" tone="critical" priority="quaternary" />
+    <Button iconButton leadingIcon="play" tone="critical" priority="primary" size="small" />
+    <Button iconButton leadingIcon="play" tone="critical" priority="primary" />
+    <Button iconButton leadingIcon="play" tone="critical" priority="primary" size="large" />
+    <Button iconButton leadingIcon="play" tone="critical" priority="secondary" />
+    <Button iconButton leadingIcon="play" tone="critical" priority="tertiary" />
+    <Button iconButton leadingIcon="play" tone="critical" priority="quaternary" />
   </div>
   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
     <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.7, width: 80 }}>warning</div>
-    <Button iconButton="play" tone="warning" priority="primary" size="small" />
-    <Button iconButton="play" tone="warning" priority="primary" />
-    <Button iconButton="play" tone="warning" priority="primary" size="large" />
-    <Button iconButton="play" tone="warning" priority="secondary" />
-    <Button iconButton="play" tone="warning" priority="tertiary" />
-    <Button iconButton="play" tone="warning" priority="quaternary" />
+    <Button iconButton leadingIcon="play" tone="warning" priority="primary" size="small" />
+    <Button iconButton leadingIcon="play" tone="warning" priority="primary" />
+    <Button iconButton leadingIcon="play" tone="warning" priority="primary" size="large" />
+    <Button iconButton leadingIcon="play" tone="warning" priority="secondary" />
+    <Button iconButton leadingIcon="play" tone="warning" priority="tertiary" />
+    <Button iconButton leadingIcon="play" tone="warning" priority="quaternary" />
   </div>
 </section>
 
@@ -520,16 +523,16 @@ export default `import { Button } from '@antadesign/anta'
  * is \`selected\` to show how a toggled-on state reads against rest
  * neighbours. */
 <section style={{ display: 'flex', gap: 2, padding: 4, borderRadius: 6, background: 'rgba(0,0,0,0.04)' }}>
-  <Button iconButton="edit" priority="tertiary" tone="neutral" />
-  <Button iconButton="copy" priority="tertiary" tone="neutral" />
-  <Button iconButton="search" priority="tertiary" tone="neutral" selected />
+  <Button iconButton leadingIcon="edit" priority="tertiary" tone="neutral" />
+  <Button iconButton leadingIcon="copy" priority="tertiary" tone="neutral" />
+  <Button iconButton leadingIcon="search" priority="tertiary" tone="neutral" selected />
   <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(0,0,0,0.08)', margin: '0 4px' }} />
-  <Button iconButton="view" priority="tertiary" tone="neutral" />
-  <Button iconButton="refresh" priority="tertiary" tone="neutral" />
-  <Button iconButton="dots-vertical" priority="tertiary" tone="neutral" />
+  <Button iconButton leadingIcon="view" priority="tertiary" tone="neutral" />
+  <Button iconButton leadingIcon="refresh" priority="tertiary" tone="neutral" />
+  <Button iconButton leadingIcon="dots-vertical" priority="tertiary" tone="neutral" />
   <div style={{ flex: 1 }} />
-  <Button iconButton="check" priority="tertiary" tone="success" />
-  <Button iconButton="trash" priority="tertiary" tone="critical" />
+  <Button iconButton leadingIcon="check" priority="tertiary" tone="success" />
+  <Button iconButton leadingIcon="trash" priority="tertiary" tone="critical" />
 </section>
 
 /** # Confirmation pair — cancel + destructive
@@ -735,7 +738,7 @@ export default `import { Button } from '@antadesign/anta'
   <Button label="Selected"       tone="#ff1493" selected />
   <Button label="Disabled"       tone="#ff1493" disabled />
   <Button label="Loading + sec." tone="#ff1493" priority="secondary" loading />
-  <Button tone="#ff1493" iconButton="check" />
+  <Button tone="#ff1493" iconButton leadingIcon="check" />
   <Button label="Anchor link"    tone="#ff1493" href="#" leadingIcon="external-link" />
 </div>
 

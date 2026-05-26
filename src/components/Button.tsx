@@ -31,25 +31,29 @@ type BaseButtonProps = BaseProps & {
   [key: `aria-${string}`]: unknown
 }
 
-/** Content axis — labeled buttons render label/icons/children; icon-only
- *  buttons render just the named icon and forbid the rest. */
+/** Content axis — `iconButton` flips the button to a square and
+ *  suppresses the label; `leadingIcon` / `trailingIcon` / `children`
+ *  remain available in both modes. */
 type ContentMode =
   | {
-      /** Icon-only button. Renders the named icon standalone. */
-      iconButton: IconShape
-      leadingIcon?: never
-      trailingIcon?: never
+      /** Icon-only button. Pair with `leadingIcon` and/or
+       *  `trailingIcon` to place the icon. `label` is forbidden. */
+      iconButton: true
       label?: never
-      children?: never
-    }
-  | {
-      iconButton?: never
       /** Leading icon shape name. */
       leadingIcon?: IconShape
       /** Trailing icon shape name. */
       trailingIcon?: IconShape
+      children?: React.ReactNode
+    }
+  | {
+      iconButton?: false
       /** Label text. */
       label?: string
+      /** Leading icon shape name. */
+      leadingIcon?: IconShape
+      /** Trailing icon shape name. */
+      trailingIcon?: IconShape
       children?: React.ReactNode
     }
 
@@ -151,7 +155,7 @@ export const Button = ({
     ? { ...style, ['--button-tone-source']: tone }
     : style
 
-  const isIconBtn = iconButton != null
+  const isIconBtn = iconButton === true
 
   const sharedAttrs = {
     priority,
@@ -168,17 +172,15 @@ export const Button = ({
     'aria-busy': loading ? 'true' : undefined,
     'aria-pressed': selected ? 'true' : undefined,
     class: className,
-    style: computedStyle as React.CSSProperties,
+    style: computedStyle,
   } as const
 
   const inner = (
     <>
-      {iconButton
-        ? <a-icon shape={iconButton} aria-hidden="true" />
-        : leadingIcon && <a-icon shape={leadingIcon} aria-hidden="true" />}
+      {leadingIcon && <a-icon shape={leadingIcon} aria-hidden="true" />}
       {label != null && !isIconBtn && <a-button-label>{label}</a-button-label>}
-      {!isIconBtn && children}
-      {!isIconBtn && trailingIcon && <a-icon shape={trailingIcon} aria-hidden="true" />}
+      {children}
+      {trailingIcon && <a-icon shape={trailingIcon} aria-hidden="true" />}
     </>
   )
 
