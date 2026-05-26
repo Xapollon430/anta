@@ -3,7 +3,9 @@ layout: ../../layouts/DocsLayout.astro
 title: Button
 ---
 import InteractiveDemo from '../../components/InteractiveDemo'
+import Preview from '../../components/Preview.astro'
 import buttonDemoCode from './button.demo.ts'
+import { Button } from '@antadesign/anta'
 
 # Button
 
@@ -15,20 +17,47 @@ applied via attributes.
   client:load
   component="Button"
   layout="side"
-  panelHeight={600}
+  panelHeight={400}
   initialCode={buttonDemoCode}
 />
 
 ## Tones
 
-Six named tones — `brand` (default), `neutral`, `critical`, `info`,
-`success`, `warning` — plus a one-off custom tone for any literal CSS
-color value:
+Six named tones — `neutral` (default), `brand`, `critical`, `info`,
+`success`, `warning`:
+
+<Preview>
+  <Button label="Neutral" />
+  <Button tone="brand" label="Brand" />
+  <Button tone="critical" label="Critical" />
+  <Button tone="info" label="Info" />
+  <Button tone="success" label="Success" />
+  <Button tone="warning" label="Warning" />
+</Preview>
 
 ```tsx
-<Button tone="brand" label="Save" />
-<Button tone="#ff1493" label="Pink one-off" />
+<Button label="Neutral" />
+<Button tone="brand" label="Brand" />
+<Button tone="critical" label="Critical" />
+<Button tone="info" label="Info" />
+<Button tone="success" label="Success" />
+<Button tone="warning" label="Warning" />
+```
+
+Plus a one-off custom tone — pass any literal CSS color as `tone`:
+
+<Preview>
+  <Button tone="#ff1493" label="Pink hex" />
+  <Button tone="oklch(0.6 0.25 30)" label="oklch one-off" />
+  <Button tone="hsl(160 84% 39%)" label="Mint HSL" />
+  <Button tone="rebeccapurple" label="Named color" />
+</Preview>
+
+```tsx
+<Button tone="#ff1493" label="Pink hex" />
 <Button tone="oklch(0.6 0.25 30)" label="oklch one-off" />
+<Button tone="hsl(160 84% 39%)" label="Mint HSL" />
+<Button tone="rebeccapurple" label="Named color" />
 ```
 
 For custom tones, only the *hue* of the input is taken. Lightness and
@@ -59,18 +88,39 @@ Four priorities, each with a distinct visual signature:
 | `tertiary` | Background-less at rest, fills on hover. Dense toolbars. |
 | `quaternary` | Text only — no background, no border, no transitions. |
 
-Two prop constraints follow from priority and are enforced at the
-type level:
-
-- **`underline`** — only on `tertiary` / `quaternary`. Filled chips
-  don't need an underline; passing it on `primary` / `secondary` is a
-  TypeScript error.
-- **`paddingless`** — only on `quaternary`. Zeros the outer padding so
-  the button sits flush with surrounding prose.
+<Preview>
+  <Button tone="brand" priority="primary" label="Primary" />
+  <Button tone="brand" priority="secondary" label="Secondary" />
+  <Button tone="brand" priority="tertiary" label="Tertiary" />
+  <Button tone="brand" priority="quaternary" label="Quaternary" />
+</Preview>
 
 ```tsx
-<Button priority="tertiary"  underline="dashed" label="Read more" />
-<Button priority="quaternary" paddingless label="here" />
+<Button tone="brand" priority="primary"    label="Primary" />
+<Button tone="brand" priority="secondary"  label="Secondary" />
+<Button tone="brand" priority="tertiary"   label="Tertiary" />
+<Button tone="brand" priority="quaternary" label="Quaternary" />
+```
+
+Two prop constraints follow from priority and are enforced at the
+type level — `underline` and `paddingless`.
+
+### Underline
+
+Only valid on `priority="tertiary"` / `"quaternary"`. Filled chips
+don't need an underline; passing it on `primary` / `secondary` is a
+TypeScript error. Three styles — `solid`, `dashed`, `dotted`:
+
+<Preview>
+  <Button tone="brand" priority="tertiary" underline="solid" label="Solid" />
+  <Button tone="brand" priority="tertiary" underline="dashed" label="Dashed" />
+  <Button tone="brand" priority="tertiary" underline="dotted" label="Dotted" />
+</Preview>
+
+```tsx
+<Button tone="brand" priority="tertiary" underline="solid"  label="Solid" />
+<Button tone="brand" priority="tertiary" underline="dashed" label="Dashed" />
+<Button tone="brand" priority="tertiary" underline="dotted" label="Dotted" />
 ```
 
 The underline mirrors the prose-link rule used by `<Text>`:
@@ -84,14 +134,42 @@ The underline mirrors the prose-link rule used by `<Text>`:
 The color tracks `--button-fg-color` so a tone shift updates the
 underline in lockstep with the label.
 
+### Paddingless
+
+Only valid on `priority="quaternary"`. Zeros the outer padding so the
+button sits flush with surrounding prose — useful when you want a
+button to read as an inline link inside a sentence:
+
+{/* Keep the prose + button on one source line — MDX's remark pass
+     promotes any text-only line inside JSX to its own `<p>`, which
+     would split the button out of the surrounding paragraph and
+     break inline flow. */}
+<Preview>
+  <p style={{ maxWidth: '480px', margin: 0, lineHeight: 1.6 }}>If you're already familiar with the basics, click <Button tone="info" priority="quaternary" paddingless label="here" /> to skip ahead to the live demo.</p>
+</Preview>
+
+```tsx
+<p>
+  If you're already familiar with the basics, click{' '}
+  <Button tone="info" priority="quaternary" paddingless label="here" />
+  {' '}to skip ahead to the live demo.
+</p>
+```
+
 ## Sizes
 
 Three sizes; only padding changes (font size stays at 15px):
 
+<Preview>
+  <Button tone="brand" size="small" label="Small" />
+  <Button tone="brand" size="default" label="Default" />
+  <Button tone="brand" size="large" label="Large" />
+</Preview>
+
 ```tsx
-<Button size="small"   label="Small" />
-<Button size="default" label="Default" />
-<Button size="large"   label="Large" />
+<Button tone="brand" size="small"   label="Small" />
+<Button tone="brand" size="default" label="Default" />
+<Button tone="brand" size="large"   label="Large" />
 ```
 
 ## Icon-only
@@ -101,10 +179,16 @@ Pass `iconButton` (boolean) together with `leadingIcon` and/or
 forbidden in this mode (TypeScript error). The icon shape comes from
 the `leadingIcon` / `trailingIcon` prop, not from `iconButton`.
 
+<Preview>
+  <Button tone="brand" iconButton leadingIcon="dots-vertical" size="small" />
+  <Button tone="critical" iconButton leadingIcon="trash" />
+  <Button tone="brand" iconButton leadingIcon="check" size="large" />
+</Preview>
+
 ```tsx
-<Button iconButton leadingIcon="check" />
-<Button iconButton leadingIcon="trash" tone="critical" />
-<Button iconButton leadingIcon="dots-vertical" size="small" />
+<Button tone="brand"    iconButton leadingIcon="dots-vertical" size="small" />
+<Button tone="critical" iconButton leadingIcon="trash" />
+<Button tone="brand"    iconButton leadingIcon="check"          size="large" />
 ```
 
 A min-width is pinned to the natural square (20px / 24px / 28px for
@@ -114,10 +198,16 @@ small / default / large) so a tight flex parent can't clip the icon.
 
 For non-icon-only buttons, pass `leadingIcon` and/or `trailingIcon`:
 
+<Preview>
+  <Button tone="brand" leadingIcon="check" label="Confirm" />
+  <Button tone="brand" trailingIcon="external-link" label="Read the docs" />
+  <Button tone="brand" leadingIcon="info" trailingIcon="chevron-down" label="Filter" />
+</Preview>
+
 ```tsx
-<Button leadingIcon="check" label="Confirm" />
-<Button trailingIcon="external-link" label="Read the docs" />
-<Button leadingIcon="info" trailingIcon="chevron-down" label="Filter" />
+<Button tone="brand" leadingIcon="check" label="Confirm" />
+<Button tone="brand" trailingIcon="external-link" label="Read the docs" />
+<Button tone="brand" leadingIcon="info" trailingIcon="chevron-down" label="Filter" />
 ```
 
 Icon shape names come from the `IconShape` union — see the
@@ -125,11 +215,18 @@ Icon shape names come from the `IconShape` union — see the
 
 ## States
 
+<Preview>
+  <Button tone="brand" loading label="Submitting" />
+  <Button tone="brand" disabled label="Locked" />
+  <Button tone="brand" selected label="Toggled on" />
+  <Button tone="brand" loading disabled label="Critical" />
+</Preview>
+
 ```tsx
-<Button loading label="Submitting" />
-<Button disabled label="Locked" />
-<Button selected label="Toggled on" />
-<Button loading disabled label="Critical" />
+<Button tone="brand" loading label="Submitting" />
+<Button tone="brand" disabled label="Locked" />
+<Button tone="brand" selected label="Toggled on" />
+<Button tone="brand" loading disabled label="Critical" />
 ```
 
 - **`loading`** — diagonal stripe overlay slides across the button.
@@ -148,8 +245,12 @@ Setting `href` switches the rendered tag from `<a-button>` to
 same CSS rules. Form-submission props (`type`, `form`) are TypeScript
 errors in anchor mode; navigation takes over.
 
+<Preview>
+  <Button tone="brand" href="#" rel="noopener" label="Read the docs" trailingIcon="external-link" />
+</Preview>
+
 ```tsx
-<Button href="/docs" target="_blank" rel="noopener" label="Read the docs" />
+<Button tone="brand" href="/docs" target="_blank" rel="noopener" label="Read the docs" />
 ```
 
 ## Form submission
@@ -157,14 +258,25 @@ errors in anchor mode; navigation takes over.
 For non-anchor buttons, `type="submit"` and `type="reset"` integrate
 with native forms:
 
+<Preview>
+  {/* `action="javascript:void(0)"` keeps the live demo from navigating
+       on submit; in real code you'd give the form a real action or
+       intercept via JS. */}
+  <form id="signup-demo" action="javascript:void(0)" style={{ display: 'flex', gap: '8px' }}>
+    <Button tone="brand" type="submit" label="Sign up" />
+    <Button tone="brand" type="reset" label="Clear" />
+  </form>
+  <Button tone="brand" type="submit" form="signup-demo" label="Submit from outside" />
+</Preview>
+
 ```tsx
 <form id="signup">
-  <Button type="submit" label="Sign up" />
-  <Button type="reset"  label="Clear" />
+  <Button tone="brand" type="submit" label="Sign up" />
+  <Button tone="brand" type="reset"  label="Clear" />
 </form>
 
 {/* Associate with a form by id when the button is outside */}
-<Button type="submit" form="signup" label="Submit from outside" />
+<Button tone="brand" type="submit" form="signup" label="Submit from outside" />
 ```
 
 `type="submit"` calls `form.requestSubmit()` and also dispatches a
@@ -177,8 +289,12 @@ in `detail` — handy for analytics or multi-button forms.
 `CustomEvent("<name>")` on click. Use it to instrument analytics
 without taking ownership of `onClick`:
 
+<Preview>
+  <Button tone="brand" label="Save" data-custom-event="save-clicked" />
+</Preview>
+
 ```tsx
-<Button label="Save" data-custom-event="save-clicked" />
+<Button tone="brand" label="Save" data-custom-event="save-clicked" />
 ```
 
 ## Children alongside label
@@ -187,8 +303,14 @@ Children render after the label and before the trailing icon, so you
 can mix custom inline content — keyboard hints, badges, counters —
 with the prop-driven API:
 
+<Preview>
+  <Button tone="brand" label="Save" leadingIcon="check">
+    <span style={{ opacity: 0.7, fontSize: 12 }}>⌘S</span>
+  </Button>
+</Preview>
+
 ```tsx
-<Button label="Save" leadingIcon="check">
+<Button tone="brand" label="Save" leadingIcon="check">
   <span style={{ opacity: 0.7, fontSize: 12 }}>⌘S</span>
 </Button>
 ```
@@ -199,7 +321,7 @@ Children also work without `label` — pass them as the only content.
 
 | Prop | Type | Notes |
 |---|---|---|
-| `tone` | `'brand' \| 'neutral' \| 'critical' \| 'info' \| 'success' \| 'warning' \| <css color>` | Default `brand`. Literal colors derive the full matrix from the input hue. |
+| `tone` | `'neutral' \| 'brand' \| 'critical' \| 'info' \| 'success' \| 'warning' \| <css color>` | Default `neutral`. Literal colors derive the full matrix from the input hue. |
 | `priority` | `'primary' \| 'secondary' \| 'tertiary' \| 'quaternary'` | Default `primary`. |
 | `size` | `'small' \| 'default' \| 'large'` | Default `default`. Only padding changes. |
 | `underline` | `'solid' \| 'dashed' \| 'dotted'` | `tertiary` / `quaternary` only. |

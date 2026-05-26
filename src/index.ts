@@ -23,7 +23,13 @@ export type { TextProps } from './components/Text'
 export { Icon } from './components/Icon'
 export type { IconProps } from './components/Icon'
 export { Button } from './components/Button'
-export type { ButtonProps } from './components/Button'
+export type {
+  ButtonProps,
+  BaseButtonProps,
+  ContentMode,
+  SubmitMode,
+  PriorityMode,
+} from './components/Button'
 export { ICON_SHAPES, ICON_SYNONYMS } from './elements/a-icon.shapes'
 export type { BaseProps, BaseAttributes } from './general_types'
 export { configure } from './jsx-runtime'

@@ -7,113 +7,41 @@
  * \`<\` (after whitespace) — the sandbox's \`wrapWithRender\` uses that
  * as the JSX-block entry trigger.
  */
-export default `import { Button, Text } from '@antadesign/anta'
+export default `import { Button } from '@antadesign/anta'
 
 /** # Basic
- * The minimum invocation — defaults to \`tone="brand"\` and
- * \`priority="primary"\`.
+ * The minimum invocation — defaults to \`tone="neutral"\` and
+ * \`priority="primary"\`. Use the Props panel to discover the full
+ * prop surface from a clean slate.
  */
 <Button label="Save" />
 
 /** # Tones
- * Six named tones plus literal CSS colors (\`tone="#ff1493"\`,
- * \`tone="oklch(...)"\`) for one-off custom tones.
+ * Six named tones — flip \`tone\` in the panel — plus literal CSS colors
+ * (\`tone="#ff1493"\`, \`tone="oklch(...)"\`, \`tone="rebeccapurple"\`)
+ * for one-off custom tones. The hue is extracted; L/C come from the
+ * brand curve.
  */
-<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-  <Button tone="brand"    label="Brand" />
-  <Button tone="neutral"  label="Neutral" />
-  <Button tone="critical" label="Critical" />
-  <Button tone="info"     label="Info" />
-  <Button tone="success"  label="Success" />
-  <Button tone="warning"  label="Warning" />
-</div>
+<Button tone="info" label="Info" />
 
 /** # Priorities
- * Four priorities. Hover and press to see the per-priority feedback.
+ * Flipping \`priority\` exercises the discriminated union: \`underline\`
+ * unlocks on \`tertiary\` / \`quaternary\`, \`paddingless\` only on
+ * \`quaternary\`.
  */
-<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-  <Button priority="primary"    label="Primary" />
-  <Button priority="secondary"  label="Secondary" />
-  <Button priority="tertiary"   label="Tertiary" />
-  <Button priority="quaternary" label="Quaternary" />
-</div>
+<Button tone="brand" priority="secondary" label="Secondary" />
 
-/** # Sizes
- * Three sizes — only padding changes; font size stays 15px.
+/** # Icons
+ * Pair \`leadingIcon\` and/or \`trailingIcon\` with a \`label\`. Toggle
+ * \`iconButton\` to collapse to a square (\`label\` becomes a TypeScript
+ * error). Icon shape names come from the \`IconShape\` union.
  */
-<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-  <Button size="small"   label="Small" />
-  <Button size="default" label="Default" />
-  <Button size="large"   label="Large" />
-</div>
-
-/** # Leading and trailing icons
- * Pair an icon with the label via \`leadingIcon\` and/or
- * \`trailingIcon\`.
- */
-<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-  <Button leadingIcon="check" label="Confirm" />
-  <Button trailingIcon="external-link" label="Read the docs" />
-  <Button leadingIcon="info" trailingIcon="chevron-down" label="Filter" />
-</div>
-
-/** # Icon-only buttons
- * \`iconButton\` flips the button to a square. The icon comes from
- * \`leadingIcon\` / \`trailingIcon\`. \`label\` is a TypeScript error
- * in this mode.
- */
-<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-  <Button iconButton leadingIcon="check" />
-  <Button iconButton leadingIcon="trash" tone="critical" />
-  <Button iconButton leadingIcon="dots-vertical" priority="tertiary" />
-  <Button iconButton leadingIcon="external-link" size="large" />
-</div>
+<Button tone="brand" leadingIcon="check" label="Confirm" />
 
 /** # States
- * \`disabled\`, \`loading\`, \`selected\` modify the visual. \`loading\`
- * blocks clicks via \`pointer-events: none\`.
+ * Three booleans modify the visual: \`loading\` slides a stripe overlay,
+ * \`disabled\` locks the disabled palette, \`selected\` shares the active
+ * look. Toggle any combination in the panel.
  */
-<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-  <Button disabled label="Disabled" />
-  <Button loading  label="Submitting" />
-  <Button selected label="Toggled on" />
-</div>
-
-/** # Underline + paddingless
- * \`underline\` only on tertiary / quaternary. \`paddingless\` only
- * on quaternary. Wrap in \`<Text>\` so the prose typography matches
- * the design system.
- */
-<Text style={{ maxWidth: 520 }}>
-  After saving, you can&nbsp;
-  <Button priority="quaternary" paddingless underline="dashed" tone="brand" label="undo the change" />
-  &nbsp;or&nbsp;
-  <Button priority="quaternary" paddingless underline="dotted" tone="critical" label="discard" />
-  &nbsp;— both options are reversible until the next save.
-</Text>
-
-/** # Anchor / form
- * \`href\` switches to \`<a role="button">\` (form props become TS
- * errors). \`type="submit" | "reset"\` integrates with the nearest
- * form when there's no href.
- */
-<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-  <Button href="#example" trailingIcon="external-link" label="Anchor" />
-  <form onSubmit={(e) => e.preventDefault()} style={{ display: 'flex', gap: 8 }}>
-    <Button type="submit" label="Submit" />
-    <Button type="reset"  priority="secondary" tone="neutral" label="Reset" />
-  </form>
-</div>
-
-/** # Custom tone
- * Any literal CSS color — hue is extracted, L/C come from the brand
- * curve. Use \`style={{ '--button-bg-color': '…' }}\` for pixel-precise
- * overrides.
- */
-<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-  <Button tone="#ff1493"            label="Pink hex" />
-  <Button tone="oklch(0.6 0.25 30)" label="oklch" />
-  <Button tone="hsl(160 84% 39%)"   priority="secondary" label="Mint secondary" />
-  <Button tone="rebeccapurple"      priority="tertiary"  label="Named color" />
-</div>
+<Button tone="brand" loading label="Submitting" />
 `

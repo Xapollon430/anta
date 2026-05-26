@@ -6,9 +6,9 @@ const NAMED_TONES = new Set([
 ])
 
 /** Always-allowed props, independent of content/submit/priority mode. */
-type BaseButtonProps = BaseProps & {
+export type BaseButtonProps = BaseProps & {
   /** Semantic tone, or any literal CSS color (`'#ff1493'`, `'oklch(...)'`)
-   *  for a one-off custom tone. Defaults to `brand`. */
+   *  for a one-off custom tone. Defaults to `neutral`. */
   tone?:
     | 'neutral'
     | 'brand'
@@ -34,7 +34,7 @@ type BaseButtonProps = BaseProps & {
 /** Content axis — `iconButton` flips the button to a square and
  *  suppresses the label; `leadingIcon` / `trailingIcon` / `children`
  *  remain available in both modes. */
-type ContentMode =
+export type ContentMode =
   | {
       /** Icon-only button. Pair with `leadingIcon` and/or
        *  `trailingIcon` to place the icon. `label` is forbidden. */
@@ -59,7 +59,7 @@ type ContentMode =
 
 /** Submit axis — anchors (href) don't carry form-submission props; buttons
  *  don't carry anchor props. */
-type SubmitMode =
+export type SubmitMode =
   | {
       /** Renders as `<a role="button">` instead of `<a-button>`. */
       href: string
@@ -82,7 +82,7 @@ type SubmitMode =
 
 /** Priority axis — `underline` only on `tertiary` / `quaternary`,
  *  `paddingless` only on `quaternary`. */
-type PriorityMode =
+export type PriorityMode =
   | {
       /** Visual emphasis. Defaults to `primary`. */
       priority?: 'primary' | 'secondary'
@@ -117,7 +117,7 @@ export type ButtonProps = BaseButtonProps & ContentMode & SubmitMode & PriorityM
  *
  * @example Basic usage
  * ```tsx
- * <Button priority="primary" tone="brand" label="Save" onClick={save} />
+ * <Button label="Save" onClick={save} />
  * ```
  *
  * @example Anchor styled as a button
@@ -162,7 +162,6 @@ export const Button = ({
     tone,
     underline,
     size,
-    iconbutton: isIconBtn ? 'true' : undefined,
     paddingless: paddingless ? 'true' : undefined,
     loading: loading ? 'true' : undefined,
     disabled: disabled ? 'true' : undefined,
