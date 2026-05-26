@@ -102,10 +102,20 @@ export interface AIconAttributes extends BaseAttributes {
 export interface AButtonAttributes extends BaseAttributes {
   /** Visual emphasis. */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary'
-  /** Semantic tone. `custom` bypasses the resolver — supply your own
-   *  colours via the `--button-fg-color` / `--button-bg-color` /
-   *  `--button-br-color` CSS variables on `style`. */
-  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning' | 'custom'
+  /** Semantic tone. In addition to the six named tones, accepts any
+   *  literal CSS color (`tone="#ff1493"`, `tone="oklch(...)"`, ...);
+   *  the hue is extracted and run through the brand L/C curve to fill
+   *  the full priority × state matrix. Direct overrides of
+   *  `--button-fg-color` / `--button-bg-color` / `--button-br-color`
+   *  via `style` still take precedence over the resolver. */
+  tone?:
+    | 'neutral'
+    | 'brand'
+    | 'critical'
+    | 'info'
+    | 'success'
+    | 'warning'
+    | (string & {})
   /** Underline style — only takes effect on `priority="quaternary"`. */
   underline?: 'solid' | 'dashed' | 'dotted'
   /** Size variant. small=24px, default=28px, large=32px. */

@@ -267,14 +267,38 @@ export default `import { Button } from '@antadesign/anta'
 </div>
 
 /** # Icon-only button
- * Pass \`iconButton\` to collapse the button to a square with just the
- * icon inside. Pair with one of \`leadingIcon\` / \`trailingIcon\` — the
- * label is suppressed regardless.
+ * Two forms are accepted:
+ * - \`iconButton={true}\` paired with \`leadingIcon\` / \`trailingIcon\` —
+ *   the old explicit form.
+ * - \`iconButton="<shape>"\` (e.g. \`iconButton="check"\`) — the icon
+ *   name doubles as the opt-in, so you don't need a separate
+ *   \`leadingIcon\` prop. If both are passed, the string wins.
+ *
+ * A min-width is pinned to the size's natural square (small 20px,
+ * default 24px, large 28px) so a tight flex parent can't squeeze the
+ * button below the icon. The squish row below stress-tests it inside
+ * a 60px-wide flex container that would otherwise shrink the button
+ * to a sliver.
  */
-<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-  <Button iconButton leadingIcon="info" />
-  <Button iconButton leadingIcon="info" size="small" />
-  <Button iconButton leadingIcon="info" size="large" />
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 16 }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <Button iconButton="check" size="small" />
+    <Button iconButton="check" />
+    <Button iconButton="check" size="large" />
+    <span style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>iconButton="check"</span>
+  </div>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <Button iconButton leadingIcon="info" size="small" />
+    <Button iconButton leadingIcon="info" />
+    <Button iconButton leadingIcon="info" size="large" />
+    <span style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>iconButton + leadingIcon (old form, still works)</span>
+  </div>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: 60, padding: 4, border: '1px dashed var(--border-3)' }}>
+    <Button iconButton="check" />
+    <Button iconButton="check" />
+    <Button iconButton="check" />
+  </div>
+  <span style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>↑ three buttons in a 60px-wide flex parent — each holds its 24px min</span>
 </div>
 
 /** # Basic
@@ -397,44 +421,22 @@ export default `import { Button } from '@antadesign/anta'
 </div>
 
 /** # Custom tone
- * Pass \`tone="custom"\` to bypass the tone resolver and supply your own
- * colours via the \`--button-fg-color\`, \`--button-bg-color\`,
- * \`--button-br-color\` CSS variables on \`style\` (or any wrapping class).
- * The resolver is a no-op for \`custom\`, so the consumer is fully in
- * control. State shifts (hover/active) aren't wired automatically — add
- * a class with \`:hover\` selectors if you want them.
+ * Pass any literal CSS color as the \`tone\` value — hex, rgb, oklch,
+ * hsl, or a named color. The button extracts the hue and runs it
+ * through the brand L/C curve, so every priority × state combo is
+ * populated automatically with no extra wiring. Only the hue of the
+ * input is honoured; lightness and chroma come from the design
+ * system so contrast stays predictable.
+ *
+ * Need full control? Override \`--button-fg-color\` / \`--button-bg-color\`
+ * / \`--button-br-color\` on \`style\` — inline declarations still beat
+ * the resolver.
  */
 <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-  <Button
-    label="Hot pink"
-    tone="custom"
-    leadingIcon="info"
-    style={{
-      '--button-bg-color': '#ff1493',
-      '--button-fg-color': '#ffffff',
-      '--button-br-color': '#ff1493',
-    } as any}
-  />
-  <Button
-    label="Teal outline"
-    tone="custom"
-    priority="secondary"
-    leadingIcon="info"
-    style={{
-      '--button-bg-color': 'transparent',
-      '--button-fg-color': '#0d9488',
-      '--button-br-color': '#0d9488',
-    } as any}
-  />
-  <Button
-    label="Custom + disabled"
-    tone="custom"
-    disabled
-    style={{
-      '--button-bg-color': '#ff1493',
-      '--button-fg-color': '#ffffff',
-    } as any}
-  />
+  <Button label="Hot pink"     tone="#ff1493"             leadingIcon="info" />
+  <Button label="Teal"         tone="#0d9488" priority="secondary" leadingIcon="info" />
+  <Button label="Cyber violet" tone="oklch(0.6 0.25 290)" priority="tertiary" />
+  <Button label="Custom + disabled" tone="#ff1493" disabled />
 </div>
 
 /** # Children alongside label
@@ -681,33 +683,86 @@ export default `import { Button } from '@antadesign/anta'
 </div>
 
 /** # Custom tone — beyond hot pink
- * \`tone="custom"\` skips the built-in resolver entirely; you supply the
- * three colour vars. State shifts (hover/active) don't auto-derive —
- * either accept the static colour, or attach a class with \`:hover\` /
- * \`:active\` selectors of your own. Disabled always wins. */
+ * Any literal CSS color works as a \`tone\` value. The hue is extracted
+ * and dropped through the brand L/C curve, so hover/active darken
+ * predictably with no extra wiring. Power users who need to pin a
+ * specific fg/bg/br can still override the individual vars via
+ * \`style\` — inline declarations beat the resolver. */
+
+/** ## Across the hue wheel — one tone, all four priorities
+ * Same hue per row, four priorities across. Hover any button to
+ * watch the derived hover/active shift. */
+<section style={{ display: 'grid', gridTemplateColumns: '90px repeat(4, max-content)', columnGap: 12, rowGap: 8, alignItems: 'center' }}>
+  <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>tone</div>
+  <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>primary</div>
+  <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>secondary</div>
+  <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>tertiary</div>
+  <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.6 }}>quaternary</div>
+
+  <div style={{ fontFamily: 'monospace', fontSize: 11 }}>#ff1493</div>
+  <Button label="Save" tone="#ff1493" priority="primary"    leadingIcon="check" />
+  <Button label="Save" tone="#ff1493" priority="secondary"  leadingIcon="check" />
+  <Button label="Save" tone="#ff1493" priority="tertiary"   leadingIcon="check" />
+  <Button label="Save" tone="#ff1493" priority="quaternary" leadingIcon="check" />
+
+  <div style={{ fontFamily: 'monospace', fontSize: 11 }}>#0fdec3</div>
+  <Button label="Run"  tone="#0fdec3" priority="primary"    leadingIcon="play" />
+  <Button label="Run"  tone="#0fdec3" priority="secondary"  leadingIcon="play" />
+  <Button label="Run"  tone="#0fdec3" priority="tertiary"   leadingIcon="play" />
+  <Button label="Run"  tone="#0fdec3" priority="quaternary" leadingIcon="play" />
+
+  <div style={{ fontFamily: 'monospace', fontSize: 11 }}>tomato</div>
+  <Button label="Stop" tone="tomato"  priority="primary"    leadingIcon="info" />
+  <Button label="Stop" tone="tomato"  priority="secondary"  leadingIcon="info" />
+  <Button label="Stop" tone="tomato"  priority="tertiary"   leadingIcon="info" />
+  <Button label="Stop" tone="tomato"  priority="quaternary" leadingIcon="info" />
+
+  <div style={{ fontFamily: 'monospace', fontSize: 11 }}>oklch()</div>
+  <Button label="Send" tone="oklch(0.6 0.25 290)" priority="primary"    leadingIcon="arrow-right" />
+  <Button label="Send" tone="oklch(0.6 0.25 290)" priority="secondary"  leadingIcon="arrow-right" />
+  <Button label="Send" tone="oklch(0.6 0.25 290)" priority="tertiary"   leadingIcon="arrow-right" />
+  <Button label="Send" tone="oklch(0.6 0.25 290)" priority="quaternary" leadingIcon="arrow-right" />
+
+  <div style={{ fontFamily: 'monospace', fontSize: 11 }}>rgb()</div>
+  <Button label="Edit" tone="rgb(245 158 11)"   priority="primary"    leadingIcon="info" />
+  <Button label="Edit" tone="rgb(245 158 11)"   priority="secondary"  leadingIcon="info" />
+  <Button label="Edit" tone="rgb(245 158 11)"   priority="tertiary"   leadingIcon="info" />
+  <Button label="Edit" tone="rgb(245 158 11)"   priority="quaternary" leadingIcon="info" />
+
+  <div style={{ fontFamily: 'monospace', fontSize: 11 }}>hsl()</div>
+  <Button label="Sync" tone="hsl(160 84% 39%)"  priority="primary"    leadingIcon="refresh-ccw-dot" />
+  <Button label="Sync" tone="hsl(160 84% 39%)"  priority="secondary"  leadingIcon="refresh-ccw-dot" />
+  <Button label="Sync" tone="hsl(160 84% 39%)"  priority="tertiary"   leadingIcon="refresh-ccw-dot" />
+  <Button label="Sync" tone="hsl(160 84% 39%)"  priority="quaternary" leadingIcon="refresh-ccw-dot" />
+</section>
+
+/** ## Interactive states on a single custom tone
+ * Loading, selected, disabled, and href-mode all interoperate with
+ * the derived tone like they do for the named tones. */
 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-  <Button
-    label="Cyber teal" leadingIcon="info" tone="custom"
-    style={{
-      '--button-bg-color': '#0fdec3',
-      '--button-fg-color': '#001a14',
-    } as any}
+  <Button label="Loading"        tone="#ff1493" loading />
+  <Button label="Selected"       tone="#ff1493" selected />
+  <Button label="Disabled"       tone="#ff1493" disabled />
+  <Button label="Loading + sec." tone="#ff1493" priority="secondary" loading />
+  <Button label="Icon-only"      tone="#ff1493" leadingIcon="check" iconButton />
+  <Button label="Anchor link"    tone="#ff1493" href="#" leadingIcon="external-link" />
+</div>
+
+/** ## Edge cases — low chroma + power-user override
+ * Greys produce undefined hue in oklch; the engine falls back to a
+ * red anchor (hue=0), so \`tone="#cccccc"\` ends up a muted red rather
+ * than a true grey. Use \`tone="neutral"\` if you want the calibrated
+ * grayscale palette. The last button shows the power-user escape
+ * hatch — overriding the derived bg/fg directly. */
+<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+  <Button label="#cccccc (low chroma)" tone="#cccccc" />
+  <Button label="#222 (very dark)"     tone="#222222" />
+  <Button label="white (very light)"   tone="white"   />
+  <Button label="Custom outline"       tone="#0f766e" priority="secondary"
+    style={{ '--button-br-color': '#0f766e', '--button-br-width': '1px' } as any}
   />
-  <Button
-    label="Vapor pink" leadingIcon="info" tone="custom"
-    style={{
-      '--button-bg-color': '#ff77b3',
-      '--button-fg-color': '#3a0023',
-    } as any}
-  />
-  <Button
-    label="Custom outline" leadingIcon="info" tone="custom" priority="secondary"
-    style={{
-      '--button-bg-color': 'transparent',
-      '--button-fg-color': '#0f766e',
-      '--button-br-color': '#0f766e',
-      '--button-br-width': '1px',
-    } as any}
+  <Button label="Forced fg via style"  tone="#ff1493"
+    style={{ '--button-fg-color': '#3a0023' } as any}
   />
 </div>
 

@@ -1,6 +1,13 @@
 import type { BaseProps } from "../general_types"
 import type { IconShape } from '../elements/a-icon.shapes'
 
+/** Tones with a built-in CSS resolver. Anything else passed to
+ *  `tone` is treated as a literal CSS color and flows through
+ *  `--button-tone-source` to the custom-tone resolver. */
+const NAMED_TONES = new Set([
+  'brand', 'neutral', 'critical', 'info', 'success', 'warning',
+])
+
 
 export interface ButtonProps extends BaseProps {
   /** Visual emphasis. Defaults to `primary` (saturated fill — the
@@ -11,15 +18,32 @@ export interface ButtonProps extends BaseProps {
   /** Semantic tone. Defaults to `brand` (the purple-violet brand
    *  scale). `neutral` falls back to the grayscale text/border tokens;
    *  `critical`/`info`/`success`/`warning` draw from the alert palette
-   *  and the Figma `component/button/*` token set. Pass `custom` to
-   *  bypass the tone resolver entirely and supply your own colours via
-   *  `style={{ '--button-bg-color': ..., '--button-fg-color': ..., '--button-br-color': ... }}`
-   *  (and the `-hover`/`-active` variants if you want state-driven shifts). */
-  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning' | 'custom'
-  /** Underline style. Per the Figma spec underlines are only meaningful
-   *  on `priority="quaternary"` (the link-like text-only variant), so
-   *  the CSS rule that paints them is gated on quaternary — passing
-   *  `underline` on another priority is a no-op visually. */
+   *  and the Figma `component/button/*` token set.
+   *
+   *  Pass any literal CSS color (hex, rgb, oklch, hsl, named) as a
+   *  one-off custom tone — e.g. `tone="#ff1493"` or
+   *  `tone="oklch(0.6 0.25 30)"`. The hue of that color is extracted
+   *  and run through the brand L/C curve so every priority × state
+   *  slot is populated automatically. Power users can still override
+   *  individual tokens via `style={{ '--button-bg-color': '#…' }}` —
+   *  inline-style overrides beat the resolver. */
+  tone?:
+    | 'neutral'
+    | 'brand'
+    | 'critical'
+    | 'info'
+    | 'success'
+    | 'warning'
+    | (string & {})
+  /** Underline style. Available on the two background-less priorities,
+   *  `tertiary` and `quaternary` — passing `underline` on `primary` or
+   *  `secondary` is a no-op visually since the underline would clash
+   *  with a filled chip. The treatment is subtler than the global
+   *  `<a>` rule: the underline holds at a 0.5px hairline in every
+   *  state and only the alpha lifts from 75% → 100% on hover / active
+   *  (the button's own color shift carries most of the interaction
+   *  cue). Hover and active share the same underline state so
+   *  clicking doesn't kick it back to rest mid-press. */
   underline?: 'solid' | 'dashed' | 'dotted'
   /** Size variant. Three heights (small = 24px, default = 28px,
    *  large = 32px) — only padding changes; font size stays 15px. */
@@ -40,9 +64,15 @@ export interface ButtonProps extends BaseProps {
    *  the label / children. */
   trailingIcon?: IconShape
   /** Icon-only button — collapses to a square, hides any label, applies
-   *  the size-matched square padding. Pass exactly one of
-   *  `leadingIcon` / `trailingIcon`. */
-  iconButton?: boolean
+   *  the size-matched square padding, and pins a min-width to the
+   *  natural square so the icon can't get clipped by a shrinking
+   *  parent. Accepts either:
+   *  - `true` — opt in; pair with `leadingIcon` / `trailingIcon` to
+   *    place the glyph.
+   *  - an `IconShape` name (e.g. `iconButton="check"`) — opts in *and*
+   *    sets the icon in one prop. Wins over `leadingIcon` if both are
+   *    set. */
+  iconButton?: boolean | IconShape
   /** Drops the outer padding to zero so the button's edges sit flush
    *  with surrounding content. Useful for inline-link feel inside
    *  prose. Only takes effect with `priority="quaternary"`. */
@@ -123,6 +153,27 @@ export const Button = ({
   children,
   ...rest
 }: ButtonProps) => {
+  // When `tone` is a literal CSS color (anything not in the named-tone
+  // enum), feed it to the element as `--button-tone-source`. The CSS
+  // resolver then derives every priority × state slot from that
+  // single var via `oklch(from var(--button-tone-source) …)`. Doing
+  // this in the wrapper (vs. `attr(tone color)` in CSS) keeps the
+  // derivation off the cutting edge — works on every browser that
+  // supports relative-color syntax, no typed-attr() dependency.
+  const isCustomTone = tone != null && !NAMED_TONES.has(tone)
+  const computedStyle = isCustomTone
+    ? { ...style, ['--button-tone-source' as string]: tone }
+    : style
+
+  // `iconButton` is dual-typed (boolean | IconShape). A string value
+  // both opts into icon-only mode AND names the icon, so callers can
+  // skip a separate `leadingIcon`. If both are passed, the string
+  // value wins — that's the more specific declaration.
+  const isIconBtn = iconButton != null && iconButton !== false
+  const iconBtnShape =
+    typeof iconButton === 'string' ? (iconButton as IconShape) : undefined
+  const resolvedLeadingIcon = iconBtnShape ?? leadingIcon
+
   // ARIA + tabindex live in the wrapper, not the element class. The
   // wrapper unconditionally sets tabindex from `disabled` (overriding
   // any caller-supplied value); the element stays declarative.
@@ -131,7 +182,7 @@ export const Button = ({
     tone,
     underline,
     size,
-    iconbutton: iconButton ? 'true' : undefined,
+    iconbutton: isIconBtn ? 'true' : undefined,
     paddingless: paddingless ? 'true' : undefined,
     loading: loading ? 'true' : undefined,
     disabled: disabled ? 'true' : undefined,
@@ -141,7 +192,7 @@ export const Button = ({
     'aria-busy': loading ? 'true' : undefined,
     'aria-pressed': selected ? 'true' : undefined,
     class: className,
-    style,
+    style: computedStyle as React.CSSProperties,
   } as const
 
   const inner = (
@@ -152,8 +203,8 @@ export const Button = ({
           size + ARIA defaulting isn't needed inside the button. Keeps
           the rendered DOM as a clean tree of web-component primitives:
           `<a-button>` → `<a-icon>` + `<a-button-label>` + `<a-icon>`. */}
-      {leadingIcon && <a-icon shape={leadingIcon} aria-hidden="true" />}
-      {label != null && !iconButton && <a-button-label>{label}</a-button-label>}
+      {resolvedLeadingIcon && <a-icon shape={resolvedLeadingIcon} aria-hidden="true" />}
+      {label != null && !isIconBtn && <a-button-label>{label}</a-button-label>}
       {children}
       {trailingIcon && <a-icon shape={trailingIcon} aria-hidden="true" />}
     </>

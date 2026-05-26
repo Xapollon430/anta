@@ -6,6 +6,18 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## 0.1.1-dev.5 — May 25, 2026
+
+### Breaking
+- **`<Button tone="custom">` removed.** Pass any literal CSS color as the `tone` instead (`tone="#ff1493"`, `tone="oklch(0.6 0.25 30)"`, `tone="rgb(255 20 147)"`, named colors, anything that parses as `<color>`). The JSX wrapper hands the color to the host via `--button-tone-source` on inline style; the CSS resolver extracts the **hue** with `oklch(from var(--button-tone-source) … h)` and runs it through the brand-tone L/C curve so every priority × state slot is populated automatically — hover/active darken on schedule, secondary alpha overlays anchor to the consumer's color, tertiary and quaternary text colors all derive. Power-user `style={{ '--button-fg-color': '#…' }}` overrides still beat the resolver. Migration: drop the `tone="custom"` literal + the trio of `--button-{bg,fg,br}-color` inline declarations and just set `tone` to the source color. Relative-color `oklch(from …)` is the only modern-CSS dependency (Safari ≥16.4, Firefox ≥113, Chrome ≥119).
+
+### Changed
+- `Button`'s `tone` prop type widens: the `'custom'` literal is dropped and the union gains `(string & {})` so any color literal is type-safe while autocomplete on the six named tones stays intact. `AButtonAttributes.tone` mirrors the same widening.
+- `<Button>` now defaults to `flex-shrink: 0`. When the button sat as a flex item in a tight parent, it used to compress and silently clip its icon / label because the host carries `overflow: hidden`. The new default makes the button hold its natural width and overflow the parent instead — the loud failure mode. Consumers who want the old shrinkable behavior can opt back in with `style={{ flexShrink: 1 }}` per instance. The dedicated `a-menu > a-button` rule simplified accordingly (it used to set `flex-shrink: 0` itself).
+- `iconButton` accepts an `IconShape` string in addition to `boolean`. `<Button iconButton="check" />` is now equivalent to `<Button iconButton leadingIcon="check" />`; if both are set, the string form wins.
+- Icon-only buttons gain a `min-width` / `min-height` pinned to the natural square (small 20px, default 24px, large 28px) so a tight flex parent can no longer squeeze the host below the 16px icon.
+- Base `cursor: pointer` moved from the (deleted) shadow `:host` style into `a-button.css`, so anchor-mode buttons and JS-only consumers (no element CSS loaded yet) both pick it up.
+
 ## 0.1.1-dev.4 — May 6, 2026
 
 ### Breaking

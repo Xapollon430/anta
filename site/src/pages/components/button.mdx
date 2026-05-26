@@ -33,15 +33,25 @@ The button surface is a matrix of **6 tones** (`neutral`, `brand`, `critical`,
 - **Tertiary** — background-less at rest, fills on hover. Useful in dense toolbars.
 - **Quaternary** — text only. No background, no border, no transitions.
 
-A seventh value, `tone="custom"`, bypasses the resolver entirely so you can
-supply your own colours via the `--button-fg-color`, `--button-bg-color`,
-and `--button-br-color` CSS variables on `style` (or a wrapping class).
-The resolver is a no-op for `custom`, so the consumer is fully in control;
-the 1px border is still painted, so set `--button-br-color` (or
-`border-color` directly) to whatever you want — including the fill colour
-for a solid block or `transparent` for fill-only. State shifts aren't
-wired automatically — add a class with `:hover` / `:active` selectors if
-you want hover/press transitions.
+For a one-off custom color, pass any literal CSS `<color>` value as the
+`tone` — e.g. `tone="#ff1493"`, `tone="oklch(0.6 0.25 30)"`,
+`tone="rgb(255 20 147)"`, or even a named color. The hue is extracted from
+the input and run through the brand L/C curve, so every priority × state
+slot (rest, hover, active, secondary alpha overlay, tertiary fill, …) is
+filled automatically — no extra wiring required. Hover and active darken
+on schedule; loading shimmer, focus ring, and disabled greys all keep
+working because they're tone-agnostic.
+
+Only the **hue** of the input is honoured. Lightness and chroma come from
+the brand tone, so pale or low-chroma inputs (e.g. `tone="#cccccc"`) still
+produce a legible button — saturation-matched to the rest of the
+design system. If you need pixel-for-pixel control, set
+`--button-fg-color` / `--button-bg-color` / `--button-br-color` directly
+on `style`; inline-style declarations beat the resolver.
+
+Dark mode reuses the same curve — a custom tone keeps the same color in
+both modes. To pair light / dark variants, scope them yourself:
+`.dark a-button[tone="…"] { --button-tone-source: …; }`.
 
 ## Paddingless
 
@@ -50,7 +60,7 @@ surrounding content. Useful for inline-link-style controls inside prose
 ("…or [discard the change]"). Restricted to `priority="quaternary"` per the
 Figma spec — other priorities rely on the padding for their chip / pill shape.
 
-## Underline (quaternary only)
+## Underline (background-less priorities)
 
 `underline` takes one of three style values:
 
@@ -58,10 +68,27 @@ Figma spec — other priorities rely on the padding for their chip / pill shape.
 - `underline="dashed"`
 - `underline="dotted"`
 
-Only takes effect on `priority="quaternary"` per the Figma spec — the underline
-is part of the link-like text-only variant. Passing it on other priorities is a
-no-op. Colour inherits via `currentColor`, so a tone shift updates the
-underline along with the label.
+Available on the two priorities that ship without a background fill —
+`tertiary` and `quaternary`. Passing it on `primary` or `secondary` is a no-op
+since the underline would clash with the filled chip. Colour inherits via
+`currentColor`, so a tone shift updates the underline along with the label.
+
+The treatment is intentionally subtler than the global `<a>` rule. The
+underline holds at a 0.5px hairline in every state and only the alpha lifts on
+interaction — the button already shifts its color (and on tertiary, its
+background) on hover, so a heavier underline snap on top reads as a double
+cue. Hover and active share the same state so clicking doesn't kick the
+underline back to rest mid-press:
+
+| State            | Thickness | Underline color                                    |
+|------------------|-----------|----------------------------------------------------|
+| Rest             | 0.5px     | 75% alpha of `currentColor` (mixed in oklch)       |
+| Hover / active   | 0.5px     | `--button-fg-color` (priority/tone-aware, full alpha) |
+
+Like the global `a:hover` rule, the hover underline color is set to the
+resolved fg token directly (rather than `currentColor`) so the underline
+repaints in lockstep with the label whenever the tone resolver flips
+`--button-fg-color`.
 
 ## Children alongside label
 
@@ -111,16 +138,16 @@ action should be temporarily inert.
 
 | Prop | Type | Notes |
 |---|---|---|
-| `tone` | `'brand' \| 'neutral' \| 'critical' \| 'info' \| 'success' \| 'warning' \| 'custom'` | Default `brand`. `custom` skips the resolver — supply colours via `--button-*-color` on `style`. |
+| `tone` | `'brand' \| 'neutral' \| 'critical' \| 'info' \| 'success' \| 'warning' \| <CSS color>` | Default `brand`. Any literal CSS color (`'#ff1493'`, `'oklch(...)'`, ...) is accepted as a one-off custom tone — hue is extracted and run through the brand L/C curve. |
 | `priority` | `'primary' \| 'secondary' \| 'tertiary' \| 'quaternary'` | Default `primary`. |
 | `size` | `'small' \| 'default' \| 'large'` | Heights 24 / 28 / 32 — only padding changes. |
-| `underline` | `'solid' \| 'dashed' \| 'dotted'` | **Quaternary only** — no-op on other priorities. |
+| `underline` | `'solid' \| 'dashed' \| 'dotted'` | **Tertiary / quaternary only** — no-op on filled priorities. |
 | `paddingless` | `boolean` | **Quaternary only** — zeros outer padding for flush inline use. |
 | `loading` | `boolean` | Stripe overlay; doesn't block clicks. Pair with `disabled` to inert. |
 | `disabled` | `boolean` | Locks colours to the disabled palette + `pointer-events: none`. |
 | `selected` | `boolean` | Toggled-on visual; shares the active-state look. |
 | `leadingIcon` / `trailingIcon` | `IconShape` | Icon name from `a-icon.shapes.ts`. |
-| `iconButton` | `boolean` | Collapses to a square (label suppressed regardless). |
+| `iconButton` | `boolean \| IconShape` | Collapses to a square + pins a min-width to the natural square. Pass a string (`iconButton="check"`) to set the icon in the same prop. |
 | `label` | `string` | Rendered inside `<a-button-label>`. |
 | `href` / `target` / `rel` | `string` | When `href` is set, renders `<a role="button">`. |
 | `type` / `form` | `string` | Form `submit` / `reset` semantics. |
