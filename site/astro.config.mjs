@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import mdx from '@astrojs/mdx';
-import astroExpressiveCode from 'astro-expressive-code';
+import astroExpressiveCode, { createInlineSvgUrl } from 'astro-expressive-code';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import remarkDirective from 'remark-directive';
@@ -78,6 +78,12 @@ export default defineConfig({
           terminalBackground: 'var(--bg-section)',
           terminalTitlebarBackground: 'var(--bg-pane)',
           terminalTitlebarBorderBottomColor: 'var(--border-5)',
+          copyIcon: createInlineSvgUrl([
+            `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'>`,
+            `<rect width='14' height='14' x='8' y='8' rx='2' ry='2'/>`,
+            `<path d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/>`,
+            `</svg>`,
+          ]),
         },
       },
     }),

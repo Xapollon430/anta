@@ -133,7 +133,8 @@ pre code { background: none; padding: 0; }
   position: relative;
 }
 
-[data-copied]::after {
+/* Necessary for astro expressive code hover copy button */
+:is(code, .copyable, .demoCell)[data-copied]::after {
   content: attr(data-copied);
   position: absolute;
   top: 0;
