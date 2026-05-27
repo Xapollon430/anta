@@ -22,7 +22,7 @@ import s from './InteractiveDemo.module.css'
 import { controlsFor, controlsForExample, type Control, type PropEntry } from '../../lib/sandbox/props-form.ts'
 import { bundle, type BundleResult } from '../../lib/sandbox/bundler.ts'
 import { getDemoModules } from '../../lib/sandbox/modules.ts'
-import { replaceProp } from '../../lib/sandbox/prop-patch.ts'
+import { replaceProp, readChildren } from '../../lib/sandbox/prop-patch.ts'
 import { readProp } from '../../lib/sandbox/prop-read.ts'
 import { parseExamples, type Example } from '../../lib/sandbox/parse-examples.ts'
 
@@ -41,6 +41,9 @@ interface Props {
   component: string
   /** Initial code (TSX) shown in the editor and run in the iframe. */
   initialCode: string
+  /** Optional initial CSS for the CSS tab. Useful for centering the
+   *  preview, hiding scrollbars, etc. Empty by default. */
+  initialCss?: string
   /** Visual arrangement.
    *  - `stacked` (default): preview on top, tabbed panel underneath.
    *  - `side`: preview on the left, tabbed panel on the right.
@@ -54,13 +57,13 @@ interface Props {
 
 type Tab = 'props' | 'code' | 'css'
 
-export default function InteractiveDemo({ component, initialCode, layout = 'stacked', panelHeight = 400 }: Props) {
+export default function InteractiveDemo({ component, initialCode, initialCss = '', layout = 'stacked', panelHeight = 400 }: Props) {
   const [code, setCode] = useState(initialCode)
   // CSS state is independent of the code — the user owns it. The CSS
   // tab is unconditionally available; no auto-seed from any className
   // in the JSX. If a user wants to style a class, they write the rule
   // by hand and add `className="…"` themselves.
-  const [styles, setStyles] = useState<string>('')
+  const [styles, setStyles] = useState<string>(initialCss)
   const [bundleState, setBundleState] = useState<BundleResult | { ok: false; message: string; pending: true } | null>({
     ok: false,
     message: 'Compiling…',
@@ -101,17 +104,54 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
     return () => obs.disconnect()
   }, [])
 
-  // (Re)define the single `anta` Monaco theme whenever the dark class
-  // flips. We rebuild rather than keeping two separate themes because
-  // --bg-section can only be resolved in whichever mode is currently
-  // active, and Monaco caches resolved colors per theme name — so we
-  // always rewrite this one and call setTheme to force a repaint.
+  // Lazy-load Shiki + its Monaco adapter and create a TextMate-backed
+  // highlighter with the two themes the docs site already uses for
+  // expressive-code blocks. Once ready, Monaco's tokenizer for the
+  // `typescript` and `css` languages is replaced via shikiToMonaco
+  // (`installShikiBridge` in beforeMount); the playground inherits
+  // VS Code's exact syntax coloring.
+  const [shikiBundle, setShikiBundle] = useState<{
+    highlighter: any
+    shikiToMonaco: (highlighter: any, monaco: any) => void
+    textmateThemeToMonacoTheme: (t: any) => any
+  } | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([import('shiki'), import('@shikijs/monaco')]).then(([shiki, sm]) =>
+      shiki.createHighlighter({
+        themes: ['github-light', 'tokyo-night'],
+        langs: ['tsx', 'css'],
+      }).then((highlighter) => {
+        if (cancelled) {
+          highlighter.dispose?.()
+          return
+        }
+        setShikiBundle({
+          highlighter,
+          shikiToMonaco: sm.shikiToMonaco,
+          textmateThemeToMonacoTheme: sm.textmateThemeToMonacoTheme,
+        })
+      }),
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Mirror docs-site dark-mode into Monaco by switching between the
+  // two Shiki themes. We also overlay our `--bg-section` token onto
+  // the active theme's `editor.background` so the editor pane blends
+  // with the surrounding card instead of using Shiki's default
+  // off-white / dark-navy. `--bg-section` is mode-dependent, so we
+  // resolve it here (after the dark class has already flipped) and
+  // re-define the theme each time.
   useEffect(() => {
     const monaco = monacoRef.current
-    if (!monaco) return
-    defineAntaTheme(monaco, isDark)
-    monaco.editor.setTheme('anta')
-  }, [isDark])
+    if (!monaco || !shikiBundle) return
+    overlayBgOnShikiThemes(monaco, shikiBundle)
+    monaco.editor.setTheme(isDark ? 'tokyo-night' : 'github-light')
+  }, [isDark, shikiBundle])
 
   // Observe each editor's host and tell its editor to relayout.
   // Monaco's `automaticLayout` polls at ~100ms and frequently misses
@@ -146,12 +186,35 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
 
   const controls = useMemo(() => controlsFor(component), [component])
 
-  // Lazy-load Monaco's React wrapper once on mount.
+  // Lazy-load Monaco from npm (not jsdelivr CDN) and wire up the
+  // three workers we use — the docs site is now self-contained, no
+  // third-party JS fetch. `MonacoEnvironment.getWorker` returns the
+  // matching Web Worker for each Monaco language; everything else
+  // falls back to the generic editor worker. `loader.config({ monaco })`
+  // is what tells @monaco-editor/react to skip its CDN bootstrap and
+  // use the bundled namespace.
   useEffect(() => {
     let cancelled = false
-    import('@monaco-editor/react').then((mod) => {
+    Promise.all([
+      import('monaco-editor'),
+      import('monaco-editor/esm/vs/editor/editor.worker?worker'),
+      import('monaco-editor/esm/vs/language/typescript/ts.worker?worker'),
+      import('monaco-editor/esm/vs/language/css/css.worker?worker'),
+      import('@monaco-editor/react'),
+    ]).then(([monacoNs, editorWorker, tsWorker, cssWorker, reactMod]) => {
       if (cancelled) return
-      setMonacoLib(mod)
+      const EditorWorker = editorWorker.default
+      const TsWorker = tsWorker.default
+      const CssWorker = cssWorker.default
+      ;(globalThis as any).MonacoEnvironment = {
+        getWorker(_id: string, label: string) {
+          if (label === 'typescript' || label === 'javascript') return new TsWorker()
+          if (label === 'css' || label === 'scss' || label === 'less') return new CssWorker()
+          return new EditorWorker()
+        },
+      }
+      reactMod.loader.config({ monaco: monacoNs })
+      setMonacoLib(reactMod)
     })
     return () => {
       cancelled = true
@@ -426,21 +489,17 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
               {...(tab !== 'code' ? { inert: '' } : {})}
             >
               <div class={s.editorHost} ref={tsxHostRef}>
-                {monacoLib ? (
+                {monacoLib && shikiBundle ? (
                 <monacoLib.Editor
                   height="100%"
                   defaultLanguage="typescript"
                   path="user.tsx"
                   value={code}
-                  theme="anta"
+                  theme={isDark ? 'tokyo-night' : 'github-light'}
                   onChange={handleEditorChange}
                   beforeMount={(monaco) => {
-                    // Register the theme BEFORE Monaco creates the editor.
-                    // If it doesn't exist at creation time Monaco falls
-                    // back to `vs` (white) and won't pick up our
-                    // redefinition.
                     monacoRef.current = monaco
-                    defineAntaTheme(monaco, isDark)
+                    installShikiBridge(monaco, shikiBundle)
                   }}
                   onMount={(editor, monaco) => {
                     editorRef.current = editor
@@ -477,17 +536,17 @@ export default function InteractiveDemo({ component, initialCode, layout = 'stac
               {...(tab !== 'css' ? { inert: '' } : {})}
             >
               <div class={s.editorHost} ref={cssHostRef}>
-                {monacoLib ? (
+                {monacoLib && shikiBundle ? (
                   <monacoLib.Editor
                     height="100%"
                     defaultLanguage="css"
                     path="user.css"
                     value={styles}
-                    theme="anta"
+                    theme={isDark ? 'tokyo-night' : 'github-light'}
                     onChange={(v) => setStyles(v ?? '')}
                     beforeMount={(monaco) => {
                       monacoRef.current = monaco
-                      defineAntaTheme(monaco, isDark)
+                      installShikiBridge(monaco, shikiBundle)
                     }}
                     onMount={(editor) => {
                       cssEditorRef.current = editor
@@ -537,12 +596,43 @@ function FormField({
   onChange: (v: string | number | boolean | null) => void
 }) {
   const c = entry.control
-  const read = readProp(code, componentName, entry.prop, range)
+  // `children` doesn't live in the attribute list — read the JSX
+  // element's body content instead. `style-css` stores a JSX object
+  // literal in source, so we can't recover the original CSS string
+  // without a back-parser; leave the input empty in that case (the
+  // user always sees a blank field, edits flow forward only).
+  let read: ReturnType<typeof readProp>
+  if (entry.prop.kind === 'children') {
+    const body = readChildren(code, componentName, range)
+    read = body !== undefined ? { kind: 'literal', value: body } : undefined
+  } else if (entry.prop.kind === 'style-css') {
+    read = undefined
+  } else {
+    read = readProp(code, componentName, entry.prop, range)
+  }
   const fromExpression = read?.kind === 'expression'
   // Only the literal in code populates the input; the default is
   // shown as a placeholder instead so the user can tell what Anta
   // would do if they leave the field blank.
   const current = read?.kind === 'literal' ? read.value : undefined
+
+  if (c.kind === 'boolean') {
+    return (
+      <label class={s.fieldBoolean}>
+        <input
+          type="checkbox"
+          checked={current === true}
+          disabled={fromExpression}
+          onChange={(e) => onChange((e.currentTarget as HTMLInputElement).checked)}
+        />
+        <span>
+          <code>{c.name}{entry.optional ? '?' : ''}</code>
+          {c.description ? <span class={s.fieldHint}> — {c.description}</span> : null}
+        </span>
+        {fromExpression ? <span class={s.fieldExpressionBadge}>set by code</span> : null}
+      </label>
+    )
+  }
 
   return (
     <div class={s.field}>
@@ -743,14 +833,12 @@ function ExampleAccordion({
 // ──────────────────────────────────────────────────────────────────
 // Iframe lifecycle helpers
 
-// Fallback bg-base for the iframe before the parent's stylesheets get
-// cloned in. We use the dark-mode value (--bg-base in `.dark`) so the
-// preview never flashes white — dark→light is a far less jarring
-// transition than white→anything. Once setupIframe mirrors the
-// parent's actual `.dark` state, the cloned stylesheet rules take
-// over and the iframe lands on the correct mode's value.
+// Transparent iframe body so the playground's surrounding panel
+// background shows through. The html class="dark" + cloned-stylesheet
+// pipeline still applies anta tokens for typography and colors;
+// removing the body background just lets the host card paint behind.
 const IFRAME_SRCDOC = `<!DOCTYPE html><html class="dark"><head><meta charset="utf-8"><style>
-  html, body { margin: 0; background: var(--bg-base, #100e11); font-family: var(--sans-serif, sans-serif); }
+  html, body { margin: 0; background: transparent; font-family: var(--sans-serif, sans-serif); }
   body { padding: 24px; overflow: auto; box-sizing: border-box; min-height: 100%; }
   /* Preview default layout: a column-flex with 16px gap so multiple
      examples stack vertically with consistent breathing room. The
@@ -894,21 +982,61 @@ function getElementsModuleUrl(): string {
 }
 
 // ──────────────────────────────────────────────────────────────────
-// Theme bridge: define `anta-light` / `anta-dark` so the editor's
-// background tracks Anta's --bg-section. Monaco's defineTheme accepts
-// only hex (#rrggbb[aa]); --bg-section resolves to oklch(...), so we
-// paint via a 1×1 canvas to extract sRGB bytes the browser already
-// computed for us.
+// Shiki ↔ Monaco bridge. shikiToMonaco installs themes + token
+// providers, but it only registers a token provider for a language
+// when Monaco already has that language ID. Shiki's TSX grammar is
+// named `tsx`, and Monaco's TS language services are bound to
+// `typescript` — so we briefly proxy `setTokensProvider` to mirror
+// the `tsx` registration onto `typescript`, keeping intellisense and
+// errors attached to `typescript` while the tokenizer is Shiki's
+// VS Code-grade TSX grammar. Idempotent across multiple editor mounts.
+let shikiInstalled = false
+function installShikiBridge(
+  monaco: any,
+  bundle: { highlighter: any; shikiToMonaco: (h: any, m: any) => void },
+) {
+  if (shikiInstalled) return
+  shikiInstalled = true
+  if (!monaco.languages.getLanguages().some((l: any) => l.id === 'tsx')) {
+    monaco.languages.register({ id: 'tsx' })
+  }
+  const origSet = monaco.languages.setTokensProvider.bind(monaco.languages)
+  monaco.languages.setTokensProvider = (id: string, p: any) => {
+    if (id === 'tsx') origSet('typescript', p)
+    return origSet(id, p)
+  }
+  bundle.shikiToMonaco(bundle.highlighter, monaco)
+  monaco.languages.setTokensProvider = origSet
+}
 
-function defineAntaTheme(monaco: any, isDark: boolean) {
+// Re-define both Shiki themes in Monaco with our `--bg-section`
+// painted over `editor.background` / `editorGutter.background`. The
+// resolved color depends on the current `.dark` class; call this on
+// every dark-mode flip so the theme that becomes active picks up the
+// matching background. The token-color rules from Shiki survive
+// because we spread the converted spec verbatim and only override
+// the two color slots.
+function overlayBgOnShikiThemes(
+  monaco: any,
+  bundle: {
+    highlighter: any
+    textmateThemeToMonacoTheme: (t: any) => any
+  },
+) {
   const bg = resolveCssColorToHex('--bg-section')
   if (!bg) return
-  monaco.editor.defineTheme('anta', {
-    base: isDark ? 'vs-dark' : 'vs',
-    inherit: true,
-    rules: [],
-    colors: { 'editor.background': bg, 'editorGutter.background': bg },
-  })
+  for (const themeId of bundle.highlighter.getLoadedThemes()) {
+    const tmTheme = bundle.highlighter.getTheme(themeId)
+    const monacoTheme = bundle.textmateThemeToMonacoTheme(tmTheme)
+    monaco.editor.defineTheme(themeId, {
+      ...monacoTheme,
+      colors: {
+        ...monacoTheme.colors,
+        'editor.background': bg,
+        'editorGutter.background': bg,
+      },
+    })
+  }
 }
 
 function resolveCssColorToHex(varName: string): string | null {
@@ -921,10 +1049,7 @@ function resolveCssColorToHex(varName: string): string | null {
   ctx.fillStyle = v
   ctx.fillRect(0, 0, 1, 1)
   const d = ctx.getImageData(0, 0, 1, 1).data
-  return (
-    '#' +
-    [d[0], d[1], d[2]].map((c) => c.toString(16).padStart(2, '0')).join('')
-  )
+  return '#' + [d[0], d[1], d[2]].map((c) => c.toString(16).padStart(2, '0')).join('')
 }
 
 // ──────────────────────────────────────────────────────────────────

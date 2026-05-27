@@ -31,31 +31,20 @@ export type BaseButtonProps = BaseProps & {
   [key: `aria-${string}`]: unknown
 }
 
-/** Content axis — `iconButton` flips the button to a square and
- *  suppresses the label; `leadingIcon` / `trailingIcon` / `children`
- *  remain available in both modes. */
-export type ContentMode =
-  | {
-      /** Icon-only button. Pair with `leadingIcon` and/or
-       *  `trailingIcon` to place the icon. `label` is forbidden. */
-      iconButton: true
-      label?: never
-      /** Leading icon shape name. */
-      leadingIcon?: IconShape
-      /** Trailing icon shape name. */
-      trailingIcon?: IconShape
-      children?: React.ReactNode
-    }
-  | {
-      iconButton?: false
-      /** Label text. */
-      label?: string
-      /** Leading icon shape name. */
-      leadingIcon?: IconShape
-      /** Trailing icon shape name. */
-      trailingIcon?: IconShape
-      children?: React.ReactNode
-    }
+/** Content axis — pass `icon` alone for an icon-only button (the CSS
+ *  detects this structurally via `:has(> a-icon:only-child)` and gives
+ *  the host the square padding + min-size pin). Pair `icon` with
+ *  `label` / `trailingIcon` / `children` for a text+icon chip. */
+export type ContentMode = {
+  /** Label text. */
+  label?: string
+  /** Icon shape. When set alone (no `label`, no `trailingIcon`, no
+   *  `children`), the button renders as a square icon-only control. */
+  icon?: IconShape
+  /** Trailing icon shape name. */
+  trailingIcon?: IconShape
+  children?: React.ReactNode
+}
 
 /** Submit axis — anchors (href) don't carry form-submission props; buttons
  *  don't carry anchor props. */
@@ -129,9 +118,8 @@ export const Button = ({
   priority,
   tone,
   underline,
-  leadingIcon,
+  icon,
   trailingIcon,
-  iconButton,
   paddingless,
   label,
   size,
@@ -155,8 +143,6 @@ export const Button = ({
     ? { ...style, ['--button-tone-source']: tone }
     : style
 
-  const isIconBtn = iconButton === true
-
   const sharedAttrs = {
     priority,
     tone,
@@ -176,8 +162,8 @@ export const Button = ({
 
   const inner = (
     <>
-      {leadingIcon && <a-icon shape={leadingIcon} aria-hidden="true" />}
-      {label != null && !isIconBtn && <a-button-label>{label}</a-button-label>}
+      {icon && <a-icon shape={icon} aria-hidden="true" />}
+      {label != null && <a-button-label>{label}</a-button-label>}
       {children}
       {trailingIcon && <a-icon shape={trailingIcon} aria-hidden="true" />}
     </>

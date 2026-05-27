@@ -3,9 +3,8 @@ layout: ../../layouts/DocsLayout.astro
 title: Text
 ---
 import TextDemo from '../../components/TextDemo'
-import TruncateDemo from '../../components/TruncateDemo'
-import ExpandableDemo from '../../components/ExpandableDemo'
-import PropsTable from '../../components/PropsTable.astro'
+import InteractiveDemo from '../../components/InteractiveDemo'
+import textDemoCode from './text.demo.ts'
 
 # Text
 
@@ -20,91 +19,13 @@ in the middle of other text.
 `<Text>` are styled by the design system — there are no per-page
 overrides to maintain.
 
-## Props
-
-<PropsTable component="Text" />
-
-## Examples
-
-### Priority
-
-```tsx
-<Text priority="primary">Primary emphasis</Text>
-<Text priority="secondary">Secondary emphasis</Text>
-<Text priority="tertiary">Tertiary emphasis</Text>
-<Text priority="quaternary">Quaternary emphasis</Text>
-<Text priority="quinary">Quinary emphasis</Text>
-```
-
-### Tinted
-
-```tsx
-<Text tone="info" priority="secondary">Informational note</Text>
-<Text tone="critical">Something broke</Text>
-<Text tone="success" priority="tertiary">Saved</Text>
-```
-
-### Inline
-
-```tsx
-<p>
-  This paragraph has a <Text inline tone="info">tinted phrase</Text>{' '}
-  in the middle.
-</p>
-```
-
-### Truncate
-
-```tsx
-{/* Single line */}
-<Text truncate>
-  This very long sentence will be cut off with an ellipsis…
-</Text>
-
-{/* Multi-line — pass the line count */}
-<Text truncate={3}>
-  Long paragraph that wraps across many lines but stops at three…
-</Text>
-```
-
-<TruncateDemo client:load />
-
-`truncate` accepts either `true` (or `1`) for a single-line ellipsis or
-any integer ≥ 2 for multi-line clamping. Both modes use
-`-webkit-line-clamp` inside `display: -webkit-box`. Despite the
-`-webkit-` prefix, every major browser supports it (Firefox 68+,
-Chrome, Safari, Edge). The host gets `min-width: 0` so truncation
-works correctly inside flex and grid containers.
-
-### Expandable
-
-```tsx
-<Text truncate expandable>…</Text>
-<Text truncate={3} expandable>…</Text>
-```
-
-Pair `expandable` with `truncate` to let the user reveal the full
-text. Single-line truncation gets a horizontal fade on the right edge;
-multi-line gets a vertical fade over the last line. A chevron-down
-hint appears in the bottom-right corner on hover or keyboard focus —
-clicking the chevron or focusing the element and pressing Enter
-expands the text and the clamp is removed. The element is exposed as
-`role="button"` with `aria-expanded` while collapsed; once expanded
-it reverts to plain text.
-
-<ExpandableDemo client:load />
-
-### Links inside
-
-```tsx
-<Text priority="primary">
-  Read the <a href="#">full guide</a> to get started.
-</Text>
-
-<Text priority="tertiary">
-  Footnote with a <a href="#">muted link</a> that brightens on hover.
-</Text>
-```
+<InteractiveDemo
+  client:load
+  component="Text"
+  layout="side"
+  initialCode={textDemoCode}
+  initialCss={`.preview { align-items: center; justify-content: center; min-height: 100%; }`}
+/>
 
 ## Link behavior
 

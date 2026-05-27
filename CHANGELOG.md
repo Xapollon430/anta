@@ -6,6 +6,20 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## Unreleased
+
+### Breaking
+- **`<Button>`'s `iconButton` prop is removed** and **`leadingIcon` is renamed to `icon`**. Icon-only behavior is now purely structural: pass `icon` with no `label`, `trailingIcon`, or `children`, and the existing CSS rule (`a-button:has(> a-icon:only-child)`) gives the host the square padding + min-size pin. No opt-in attribute. Migration: `<Button iconButton leadingIcon="check" />` → `<Button icon="check" />`; `<Button leadingIcon="check" label="…" />` → `<Button icon="check" label="…" />`. `trailingIcon` is unchanged.
+
+## 0.1.1-dev.6 — May 22, 2026
+
+### Added
+- New `Title` component (`<a-title>` styled tag + `Title` JSX wrapper) for headings at one of six `level`s. Drives both the type scale (font-size + line-height) and the vertical rhythm (logical `margin-block` per level); also surfaces `role="heading"` + `aria-level` for assistive tech. Mirrors `Text`'s `priority` (`primary`-`quinary`, mapping to `--text-1`...`--text-5`) and `tone` (`brand`, `success`, `critical`, `warning`, `info`) APIs. Children are arbitrary — pass icons, badges, or any inline content beside the title text; there are no `leadingIcon` / `trailingIcon` props.
+- `<a-title>` is intentionally CSS-only — no `customElements.define`, no shadow DOM. The browser treats it as a generic unknown element and the rules in `dist/elements/a-title.css` do all the work, so consumers who import `@antadesign/anta/elements` get it for free.
+
+### Changed
+- `src/reset.css` now styles raw `<h1>`-`<h6>` to match `<Title level={n}>` at the default `primary` priority / no tone — same demi-bold weight (584.62), letter-spacing (0), per-level font-size, line-height, and logical block margins. Reach for a real heading tag when SEO matters and you don't need `tone` / `priority`; reach for `<Title>` when you do.
+
 ## 0.1.1-dev.5 — May 25, 2026
 
 ### Breaking

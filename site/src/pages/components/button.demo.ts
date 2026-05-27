@@ -32,11 +32,12 @@ export default `import { Button } from '@antadesign/anta'
 <Button tone="brand" priority="secondary" label="Secondary" />
 
 /** # Icons
- * Pair \`leadingIcon\` and/or \`trailingIcon\` with a \`label\`. Toggle
- * \`iconButton\` to collapse to a square (\`label\` becomes a TypeScript
- * error). Icon shape names come from the \`IconShape\` union.
+ * Pair \`icon\` and/or \`trailingIcon\` with a \`label\` for a chip. Pass
+ * \`icon\` alone (no label, no children, no trailing icon) and the CSS
+ * collapses the button to a square via \`:has(> a-icon:only-child)\`.
+ * Icon shape names come from the \`IconShape\` union.
  */
-<Button tone="brand" leadingIcon="check" label="Confirm" />
+<Button tone="brand" icon="check" label="Confirm" />
 
 /** # States
  * Three booleans modify the visual: \`loading\` slides a stripe overlay,

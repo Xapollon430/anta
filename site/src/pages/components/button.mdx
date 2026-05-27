@@ -174,21 +174,21 @@ Three sizes; only padding changes (font size stays at 15px):
 
 ## Icon-only
 
-Pass `iconButton` (boolean) together with `leadingIcon` and/or
-`trailingIcon` to collapse the button to a square. `label` is
-forbidden in this mode (TypeScript error). The icon shape comes from
-the `leadingIcon` / `trailingIcon` prop, not from `iconButton`.
+Pass `icon` alone — no `label`, no `trailingIcon`, no `children` — and
+the button collapses to a square. No opt-in attribute: the CSS detects
+icon-only mode structurally via `:has(> a-icon:only-child)`, so the
+square padding + min-size pin apply automatically.
 
 <Preview>
-  <Button tone="brand" iconButton leadingIcon="dots-vertical" size="small" />
-  <Button tone="critical" iconButton leadingIcon="trash" />
-  <Button tone="brand" iconButton leadingIcon="check" size="large" />
+  <Button tone="brand" icon="dots-vertical" size="small" />
+  <Button tone="critical" icon="trash" />
+  <Button tone="brand" icon="check" size="large" />
 </Preview>
 
 ```tsx
-<Button tone="brand"    iconButton leadingIcon="dots-vertical" size="small" />
-<Button tone="critical" iconButton leadingIcon="trash" />
-<Button tone="brand"    iconButton leadingIcon="check"          size="large" />
+<Button tone="brand"    icon="dots-vertical" size="small" />
+<Button tone="critical" icon="trash" />
+<Button tone="brand"    icon="check"          size="large" />
 ```
 
 A min-width is pinned to the natural square (20px / 24px / 28px for
@@ -196,18 +196,19 @@ small / default / large) so a tight flex parent can't clip the icon.
 
 ## Leading and trailing icons
 
-For non-icon-only buttons, pass `leadingIcon` and/or `trailingIcon`:
+Pair `icon` and/or `trailingIcon` with a `label` for an icon-plus-text
+chip:
 
 <Preview>
-  <Button tone="brand" leadingIcon="check" label="Confirm" />
+  <Button tone="brand" icon="check" label="Confirm" />
   <Button tone="brand" trailingIcon="external-link" label="Read the docs" />
-  <Button tone="brand" leadingIcon="info" trailingIcon="chevron-down" label="Filter" />
+  <Button tone="brand" icon="info" trailingIcon="chevron-down" label="Filter" />
 </Preview>
 
 ```tsx
-<Button tone="brand" leadingIcon="check" label="Confirm" />
+<Button tone="brand" icon="check" label="Confirm" />
 <Button tone="brand" trailingIcon="external-link" label="Read the docs" />
-<Button tone="brand" leadingIcon="info" trailingIcon="chevron-down" label="Filter" />
+<Button tone="brand" icon="info" trailingIcon="chevron-down" label="Filter" />
 ```
 
 Icon shape names come from the `IconShape` union — see the
@@ -304,13 +305,13 @@ can mix custom inline content — keyboard hints, badges, counters —
 with the prop-driven API:
 
 <Preview>
-  <Button tone="brand" label="Save" leadingIcon="check">
+  <Button tone="brand" label="Save" icon="check">
     <span style={{ opacity: 0.7, fontSize: 12 }}>⌘S</span>
   </Button>
 </Preview>
 
 ```tsx
-<Button tone="brand" label="Save" leadingIcon="check">
+<Button tone="brand" label="Save" icon="check">
   <span style={{ opacity: 0.7, fontSize: 12 }}>⌘S</span>
 </Button>
 ```
@@ -329,8 +330,7 @@ Children also work without `label` — pass them as the only content.
 | `loading` | `boolean` | Stripe overlay; blocks clicks. |
 | `disabled` | `boolean` | Disabled palette; no clicks; removed from tab order. |
 | `selected` | `boolean` | Toggled-on visual (shares active look). |
-| `leadingIcon` / `trailingIcon` | `IconShape` | Icon shape names. Required when `iconButton` is set (provides the icon). |
-| `iconButton` | `boolean` | Icon-only mode. Pair with `leadingIcon` / `trailingIcon`. `label` is a TypeScript error when set. |
+| `icon` / `trailingIcon` | `IconShape` | Icon shape names. When `icon` is set alone (no `label`, no `trailingIcon`, no `children`) the CSS auto-collapses the button to a square via `:has(> a-icon:only-child)`. |
 | `label` | `string` | Rendered inside `<a-button-label>`. |
 | `href` | `string` | Switches to `<a role="button">`. |
 | `target` / `rel` | `string` | Anchor mode only. |

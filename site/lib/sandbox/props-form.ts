@@ -132,8 +132,9 @@ function flattenType(type: any, root: any): any[] {
 /** Merge multiple appearances of the same prop across union branches.
  *  `never` branches are dropped from the type merge — they're the
  *  discriminator pattern used to forbid a prop in one variant (e.g.
- *  `label?: never` on the `iconButton: true` branch). If every branch
- *  is `never`, the prop collapses to nothing and we return null. For
+ *  `type?: never` on the anchor branch of Button's `SubmitMode`). If
+ *  every branch is `never`, the prop collapses to nothing and we
+ *  return null. For
  *  literal / literal-union types we take the union of all values
  *  across branches; for any other shape we keep the first documented
  *  branch. The merged prop is marked optional whenever any branch
@@ -204,9 +205,36 @@ function controlFor(p: any): PropEntry | null {
   const t = p.type
   if (!t) return null
 
+  // Skip function-typed props (event handlers like `onClick`, `onChange`,
+  // etc.). They aren't meaningfully editable from a UI panel, and showing
+  // them as documentation rows clutters the list. TypeDoc represents a
+  // function type as a `reflection` whose `declaration.signatures[]` is
+  // populated with the call signature.
+  if (t.type === 'reflection' && Array.isArray(t.declaration?.signatures) && t.declaration.signatures.length > 0) {
+    return null
+  }
+
   const wrap = (control: Control, prop: PropDescriptor): PropEntry => ({
     control, prop, optional,
   })
+
+  // The two structural props inherited from BaseProps that the form
+  // surfaces as editable text inputs:
+  // - `children`: edit the JSX element's body content.
+  // - `style`: a CSS declarations string, serialized to a JSX object
+  //   literal so the prop type stays correct downstream.
+  if (name === 'children') {
+    return wrap(
+      { kind: 'text', name, description },
+      { name, kind: 'children' },
+    )
+  }
+  if (name === 'style') {
+    return wrap(
+      { kind: 'text', name, description: description || 'CSS declarations (e.g. `color: red; padding: 8px`).' },
+      { name, kind: 'style-css' },
+    )
+  }
 
   // `intrinsic` types: string / number / boolean.
   if (t.type === 'intrinsic') {
@@ -233,27 +261,75 @@ function controlFor(p: any): PropEntry | null {
 
   // `union` of all `literal` members → segmented buttons. Boolean-only
   // literal unions (`true | false`) reduce to a plain boolean control
-  // — that's how discriminated-union booleans (e.g. Button's
-  // `iconButton: true | iconButton?: false`) appear after merging.
+  // — that's how discriminated-union booleans (one branch sets `true`,
+  // the other `false`) appear after the prop merger flattens them.
   if (t.type === 'union' && Array.isArray(t.types)) {
-    const allLiterals = t.types.every((x: any) => x.type === 'literal')
-    if (allLiterals && t.types.length > 0) {
-      const allBoolean = t.types.every((x: any) => typeof x.value === 'boolean')
-      if (allBoolean) {
-        return wrap(
-          { kind: 'boolean', name, description },
-          { name, kind: 'boolean' },
-        )
+    // Boolean-only literal union (`true | false`) — render as a boolean
+    // toggle. Catches discriminated-union booleans after merging.
+    const allBoolean = t.types.length > 0 && t.types.every((x: any) => x.type === 'literal' && typeof x.value === 'boolean')
+    if (allBoolean) {
+      return wrap(
+        { kind: 'boolean', name, description },
+        { name, kind: 'boolean' },
+      )
+    }
+    // All string literals → segmented buttons.
+    const literals = t.types.filter((x: any) => x.type === 'literal' && typeof x.value === 'string')
+    if (literals.length === t.types.length && literals.length > 0) {
+      const options = literals.map((x: any) => String(x.value))
+      // The runtime default for the UI fallback comes from a
+      // `@defaultValue` JSDoc tag on the prop. We deliberately don't
+      // fall back to `options[0]` — that lies when the first option
+      // isn't the runtime default (Text.tone, Text.size). Without an
+      // explicit tag, no button is highlighted when the source has no
+      // literal, which truthfully reflects "implicit default
+      // applies." The default is also intentionally *not* placed on
+      // the PropDescriptor: that would make `applyEdit` strip the
+      // attribute when the user picks the default, hiding the
+      // selection from the rendered output.
+      const defaultValue = readDefaultValueTag(p.comment)
+      return wrap(
+        { kind: 'segmented', name, options, defaultValue, description },
+        { name, kind: 'literal-union' },
+      )
+    }
+    // Union of number literals (e.g. Title's `level: 1 | 2 | … | 6`) →
+    // surface as a number input rather than six tiny buttons.
+    const numberLiterals = t.types.filter((x: any) => x.type === 'literal' && typeof x.value === 'number')
+    if (numberLiterals.length === t.types.length && numberLiterals.length > 0) {
+      return wrap(
+        { kind: 'number', name, description },
+        { name, kind: 'number' },
+      )
+    }
+    // Mixed union that includes a number intrinsic (e.g. Text's
+    // `truncate?: boolean | number`) — render as a number input. Empty
+    // value means the prop is absent.
+    const hasNumberIntrinsic = t.types.some((x: any) => x.type === 'intrinsic' && x.name === 'number')
+    if (hasNumberIntrinsic) {
+      return wrap(
+        { kind: 'number', name, description },
+        { name, kind: 'number' },
+      )
+    }
+    // Mixed union: literal members + an open string (the `(string & {})`
+    // TypeScript trick used by e.g. Button's `tone` to keep literal
+    // autocomplete while accepting any CSS color). Surface as a plain
+    // text input so the user can type either a literal name or a custom
+    // value. The `string` can appear raw or wrapped in an intersection
+    // with a reflection (TypeDoc's representation of `string & {}`).
+    const hasOpenString = t.types.some((x: any) => {
+      if (x.type === 'intrinsic' && x.name === 'string') return true
+      if (x.type === 'intersection' && Array.isArray(x.types)) {
+        return x.types.some((y: any) => y.type === 'intrinsic' && y.name === 'string')
       }
-      const stringLiterals = t.types.filter((x: any) => typeof x.value === 'string')
-      if (stringLiterals.length === t.types.length) {
-        const options = stringLiterals.map((x: any) => String(x.value))
-        const defaultValue = options[0]
-        return wrap(
-          { kind: 'segmented', name, options, defaultValue, description },
-          { name, kind: 'literal-union', defaultValue },
-        )
-      }
+      return false
+    })
+    if (hasOpenString && literals.length > 0) {
+      return wrap(
+        { kind: 'text', name, description },
+        { name, kind: 'string' },
+      )
     }
     // Fall through.
   }
@@ -303,6 +379,30 @@ function renderComment(comment: any): string | undefined {
     .join('')
     .trim()
   return text || undefined
+}
+
+/** Read the value of a prop's `@defaultValue` (or `@default`) JSDoc
+ *  block tag. Typedoc wraps a bare token like `medium` in a
+ *  ```` ```ts\n…\n``` ```` fence; quoted forms (`'medium'`) come back as
+ *  inline-code or text. Strip whichever wrapping is present. Returns
+ *  `undefined` when neither tag is present. */
+function readDefaultValueTag(comment: any): string | undefined {
+  const tags = comment?.blockTags
+  if (!Array.isArray(tags)) return undefined
+  for (const tag of tags) {
+    if (tag.tag !== '@defaultValue' && tag.tag !== '@default') continue
+    const raw = (tag.content ?? [])
+      .map((p: any) => p.text ?? '')
+      .join('')
+      .trim()
+    if (!raw) continue
+    return raw
+      .replace(/^```[a-zA-Z]*\s*\n?/, '')
+      .replace(/\n?```$/, '')
+      .replace(/^[`'"](.*)[`'"]$/, '$1')
+      .trim()
+  }
+  return undefined
 }
 
 /** Derive a Control schema for a JSX example by introspecting the

@@ -15,12 +15,21 @@ name: Cleanup Cloudflare Pages previews
 # in Settings → General → Pull Requests if you want merge → cleanup.
 on:
   delete:
+  # Manual trigger so previews from already-deleted branches (no
+  # `delete` event to replay) can still be reaped — supply the
+  # branch name in the GitHub Actions UI.
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch name whose preview deployments to delete
+        required: true
+        type: string
 
 permissions: {}
 
 jobs:
   cleanup:
-    if: github.event.ref_type == 'branch'
+    if: github.event.ref_type == 'branch' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Delete branch's Cloudflare Pages preview deployments
@@ -28,7 +37,7 @@ jobs:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PROJECT: anta
-          BRANCH: ${{ github.event.ref }}
+          BRANCH: ${{ github.event.ref || inputs.branch }}
         run: |
           set -euo pipefail
 
@@ -79,11 +88,16 @@ jobs:
           count=$(echo "${ids}" | wc -l | tr -d ' ')
           echo "Deleting ${count} preview deployment(s):"
 
+          # `force=true` is required because Cloudflare refuses to
+          # delete the deployment that currently holds the branch's
+          # `<branch>.<project>.pages.dev` alias (error 8000035).
+          # Since the whole branch is gone, that alias has no future
+          # use — forcing is safe.
           while IFS= read -r id; do
             echo "  ${id}"
             res=$(curl -sS -X DELETE \
               -H "Authorization: Bearer ${CF_API_TOKEN}" \
-              "${api}/${id}")
+              "${api}/${id}?force=true")
             success=$(echo "${res}" | jq -r '.success')
             if [[ "${success}" != "true" ]]; then
               echo "  failed:"

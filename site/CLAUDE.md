@@ -16,21 +16,23 @@ Supporting code:
 - `site/scripts/copy-esbuild-wasm.mjs` — copies `esbuild.wasm` into `site/public/` so the iframe can fetch `/esbuild.wasm` directly.
 - `site/scripts/build-iframe-runtime.mjs` — pre-builds `site/public/iframe-anta-runtime.js`, a self-contained ESM bundle of `@antadesign/anta/elements` + per-element CSS that the iframe dynamic-imports to register custom elements on its own `customElements` registry.
 
-### Monaco is loaded from a CDN (today)
+### Monaco is bundled from npm (no CDN)
 
-`@monaco-editor/react` (the wrapper) defers Monaco loading to `@monaco-editor/loader`, which by default fetches Monaco from `cdn.jsdelivr.net/npm/monaco-editor@<version>/min/vs/`. Even though `monaco-editor` is in our `dependencies`, Vite never actually imports it — the wrapper sidesteps bundling so consumers don't have to wire up worker scripts.
-
-**This is deliberate-for-now, and will be revisited when the playground moves to its own package / repo.** At that point we should switch to bundled-from-npm Monaco:
+Monaco lives in `dependencies` as `monaco-editor` and is bundled by Vite into the playground's lazy chunk. The wiring is in `InteractiveDemo.tsx`'s mount effect:
 
 ```ts
-import * as monacoLib from 'monaco-editor'
-import { loader } from '@monaco-editor/react'
-loader.config({ monaco: monacoLib })
+import('monaco-editor')                                                         // namespace
+import('monaco-editor/esm/vs/editor/editor.worker?worker')                      // fallback worker
+import('monaco-editor/esm/vs/language/typescript/ts.worker?worker')             // TS service
+import('monaco-editor/esm/vs/language/css/css.worker?worker')                   // CSS tab
+import('@monaco-editor/react')                                                  // React wrapper
 ```
 
-…plus a `MonacoEnvironment.getWorker` shim that uses `new URL('monaco-editor/esm/vs/language/typescript/ts.worker', import.meta.url)` for each worker label (typescript / css / json / html / editor). Trade-offs: ~1.5 MB Monaco becomes part of the page's lazy chunk on `/components/<name>/`, but the docs site no longer depends on an external CDN, runs offline-correctly, and version-drift between `dependencies` and runtime disappears. The work is ~30 minutes of Vite config plus per-worker testing.
+After load, `MonacoEnvironment.getWorker(_, label)` returns a fresh `Worker` for `typescript`/`javascript` (ts.worker), `css`/`scss`/`less` (css.worker), and anything else (editor.worker). `loader.config({ monaco: monacoNs })` is what makes `@monaco-editor/react` skip its default CDN fetch.
 
-For now: the CDN load is acceptable for a public docs site, and it keeps the site bundle small. The note exists so the bundling switch lands deliberately at migration time, not as a panic when someone hits the CDN dependency in a more sensitive context.
+Trade-off: ~1.5 MB Monaco enters the `/components/<name>/` lazy chunk. The docs site is self-contained — no third-party JS fetch, offline-correct, and the runtime version is whatever `package.json` says.
+
+We only register workers for languages the playground actually uses. Adding JSON/HTML support means adding two more `?worker` imports and switch arms.
 
 ## Adding a component docs page
 
