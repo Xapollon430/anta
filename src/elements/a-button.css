@@ -467,6 +467,11 @@
       --button-padding-x: 4px;
       min-width: 24px;
       min-height: 24px;
+      /* Centre the icon when the host is given an explicit width / height
+         larger than the natural square — without this the icon sits at the
+         padding-start edge. No-op when the button is at its intrinsic
+         square size. */
+      justify-content: center;
       &[size="small"] {
         --button-padding-y: 2px;
         --button-padding-x: 2px;

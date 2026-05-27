@@ -5,6 +5,24 @@ const NAMED_TONES = new Set([
   'brand', 'neutral', 'critical', 'info', 'success', 'warning',
 ])
 
+/** Wrap primitive (string / number) children in `<a-button-label>` so
+ *  the ellipsis rule applies and the icon-only CSS detector doesn't
+ *  false-positive on a bare text-node sibling. JSX elements,
+ *  booleans, and nullish values pass through unchanged. Uses plain
+ *  Array.isArray + typeof for React/Preact portability — avoids
+ *  React.Children.* helpers. */
+const wrapChildren = (kids: React.ReactNode): React.ReactNode => {
+  if (kids == null) return kids
+  const arr = Array.isArray(kids) ? kids : [kids]
+  return arr.map((child, i) => {
+    const t = typeof child
+    if (t === 'string' || t === 'number') {
+      return <a-button-label key={i}>{child}</a-button-label>
+    }
+    return child
+  })
+}
+
 /** Always-allowed props, independent of content/submit/priority mode. */
 export type BaseButtonProps = {
   /** Semantic tone, or any literal CSS color (`'#ff1493'`, `'rebeccapurple'`)
@@ -176,7 +194,7 @@ export const Button = ({
     <>
       {icon && <a-icon shape={icon} aria-hidden="true" />}
       {label != null && <a-button-label>{label}</a-button-label>}
-      {children}
+      {wrapChildren(children)}
       {iconTrailing && <a-icon shape={iconTrailing} aria-hidden="true" />}
     </>
   )

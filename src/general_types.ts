@@ -20,6 +20,8 @@ export interface BaseProps {
 
 /** Attributes for intrinsic custom elements (`<a-*>` tags) in JSX. */
 export interface BaseAttributes {
+  /** React/Preact reconciliation key when rendered inside a list. */
+  key?: string | number | null
   /** HTML `class` attribute (standard DOM). */
   class?: string
   /** React/Preact-style class name. Alias for `class`. */

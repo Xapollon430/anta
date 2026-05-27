@@ -9,5 +9,5 @@ export default `import { Button } from '@antadesign/anta'
  * Tweak props in the panel to explore the API. The static examples
  * below show the full tone × priority × state matrix.
  */
-<Button icon="check" label="Brand" tone="brand" />
+<Button icon="check" label="Brand" tone="brand" iconTrailing="check" />
 `
