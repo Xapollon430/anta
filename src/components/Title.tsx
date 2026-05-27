@@ -17,7 +17,7 @@ export interface TitleProps extends BaseProps {
  * Renders an `<a-title>` styled tag (no JS, no shadow DOM) with
  * `role="heading"` and `aria-level={level}` set by this wrapper for
  * accessibility. Children can be anything — text, icons, badges, links
- * — so there are no `icon` / `trailingIcon` props; just compose
+ * — so there are no `icon` / `iconTrailing` props; just compose
  * inside.
  *
  * Raw `<h1>`-`<h6>` get the same visual styling via `src/reset.css`,

@@ -66,8 +66,8 @@ chroma come from the brand-tone curve, so pale or low-chroma inputs
 full priority × state matrix — rest, hover, active, secondary alpha
 overlay, tertiary fill — is derived automatically.
 
-If you need pixel-precise color, set `--button-fg-color`,
-`--button-bg-color`, or `--button-br-color` directly via `style` —
+If you need pixel-precise color, set `--button-fg`,
+`--button-bg`, or `--button-br` directly via `style` —
 inline declarations beat the resolver.
 
 Dark mode reuses the same curve. To pair light/dark variants for a
@@ -128,10 +128,10 @@ The underline mirrors the prose-link rule used by `<Text>`:
 | State | Thickness | Alpha |
 |---|---|---|
 | Rest | 0.5px | 75% (`currentColor` mixed with transparent) |
-| Hover / selected | 1px | 100% (`--button-fg-color`) |
+| Hover / selected | 1px | 100% (`--button-fg`) |
 | Active | 0.5px | 75% (returns to rest) |
 
-The color tracks `--button-fg-color` so a tone shift updates the
+The color tracks `--button-fg` so a tone shift updates the
 underline in lockstep with the label.
 
 ### Paddingless
@@ -145,14 +145,14 @@ button to read as an inline link inside a sentence:
      would split the button out of the surrounding paragraph and
      break inline flow. */}
 <Preview>
-  <p style={{ maxWidth: '480px', margin: 0, lineHeight: 1.6 }}>If you're already familiar with the basics, click <Button tone="info" priority="quaternary" paddingless label="here" /> to skip ahead to the live demo.</p>
+  <p style={{ maxWidth: '480px', margin: 0, lineHeight: 1.6 }}>If you're familiar with the basics, click <Button tone="critical" priority="quaternary" paddingless label="here" /> to skip the live demo.</p>
 </Preview>
 
 ```tsx
 <p>
-  If you're already familiar with the basics, click{' '}
-  <Button tone="info" priority="quaternary" paddingless label="here" />
-  {' '}to skip ahead to the live demo.
+  If you're familiar with the basics, click
+  <Button tone="critical" priority="quaternary" paddingless label="here" />
+  to skip ahead to the live demo.
 </p>
 ```
 
@@ -162,19 +162,23 @@ Three sizes; only padding changes (font size stays at 15px):
 
 <Preview>
   <Button tone="brand" size="small" label="Small" />
-  <Button tone="brand" size="default" label="Default" />
+  <Button tone="brand" size="medium" label="Medium" />
   <Button tone="brand" size="large" label="Large" />
 </Preview>
 
 ```tsx
-<Button tone="brand" size="small"   label="Small" />
-<Button tone="brand" size="default" label="Default" />
-<Button tone="brand" size="large"   label="Large" />
+<Button tone="brand" size="small"  label="Small" />
+<Button tone="brand" size="medium" label="Medium" /> // default
+<Button tone="brand" size="large"  label="Large" />
 ```
+
+Omitting `size` and passing `size="medium"` render identically — the
+wrapper drops the attribute for the medium case so the DOM stays free
+of redundant `size="medium"`.
 
 ## Icon-only
 
-Pass `icon` alone — no `label`, no `trailingIcon`, no `children` — and
+Pass `icon` alone — no `label`, no `iconTrailing`, no `children` — and
 the button collapses to a square. No opt-in attribute: the CSS detects
 icon-only mode structurally via `:has(> a-icon:only-child)`, so the
 square padding + min-size pin apply automatically.
@@ -192,23 +196,33 @@ square padding + min-size pin apply automatically.
 ```
 
 A min-width is pinned to the natural square (20px / 24px / 28px for
-small / default / large) so a tight flex parent can't clip the icon.
+small / medium / large) so a tight flex parent can't clip the icon.
+
+Icon-only buttons get an accessible name automatically — the wrapper
+sets `aria-label={icon}` so `<Button icon="trash" />` ships with the
+name "trash". Pass your own `aria-label` to override.
 
 ## Leading and trailing icons
 
-Pair `icon` and/or `trailingIcon` with a `label` for an icon-plus-text
-chip:
+Slots render in this order inside the button:
+
+```
+icon → label → children → iconTrailing
+```
+
+Pair `icon` and/or `iconTrailing` with a `label` for an icon-plus-text
+chip. `children` (if any) lands between `label` and `iconTrailing`:
 
 <Preview>
   <Button tone="brand" icon="check" label="Confirm" />
-  <Button tone="brand" trailingIcon="external-link" label="Read the docs" />
-  <Button tone="brand" icon="info" trailingIcon="chevron-down" label="Filter" />
+  <Button tone="brand" iconTrailing="external-link" label="Read the docs" />
+  <Button tone="brand" icon="info" iconTrailing="chevron-down" label="Filter" />
 </Preview>
 
 ```tsx
 <Button tone="brand" icon="check" label="Confirm" />
-<Button tone="brand" trailingIcon="external-link" label="Read the docs" />
-<Button tone="brand" icon="info" trailingIcon="chevron-down" label="Filter" />
+<Button tone="brand" iconTrailing="external-link" label="Read the docs" />
+<Button tone="brand" icon="info" iconTrailing="chevron-down" label="Filter" />
 ```
 
 Icon shape names come from the `IconShape` union — see the
@@ -235,7 +249,7 @@ Icon shape names come from the `IconShape` union — see the
   clicks via `pointer-events: none`.
 - **`disabled`** — locks the colors to the disabled palette, sets
   `pointer-events: none`, and removes the button from the tab order.
-  Beats inline `--button-bg-color` overrides.
+  Beats inline `--button-bg` overrides.
 - **`selected`** — toggled-on / pressed visual; shares the active
   state's look. Useful for filter chips and icon toggles.
 
@@ -247,12 +261,90 @@ same CSS rules. Form-submission props (`type`, `form`) are TypeScript
 errors in anchor mode; navigation takes over.
 
 <Preview>
-  <Button tone="brand" href="#" rel="noopener" label="Read the docs" trailingIcon="external-link" />
+  <Button tone="brand" href="#" rel="noopener" label="Read the docs" iconTrailing="external-link" />
 </Preview>
 
 ```tsx
 <Button tone="brand" href="/docs" target="_blank" rel="noopener" label="Read the docs" />
 ```
+
+## Linking with routing libraries
+
+Anta's CSS targets `a-button, a[role="button"]` — any element with
+`role="button"` and the right attributes gets the styling. The `<Button>`
+wrapper is a convenience, not a gatekeeper. That means anta doesn't
+need an `as` / `asChild` / `component` prop or per-framework integrations;
+client-side routing slots in by composing your own thin wrapper around
+the library's `Link` component.
+
+```tsx
+// LinkButton.tsx — anta-styled link for client-side routing
+import { Link, type LinkProps } from 'react-router-dom'
+import type { IconShape } from '@antadesign/anta'
+
+type LinkButtonProps = LinkProps & {
+  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning'
+  priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary'
+  size?: 'small' | 'medium' | 'large'
+  icon?: IconShape
+  iconTrailing?: IconShape
+  label?: string
+}
+
+export const LinkButton = ({
+  tone, priority, size, icon, iconTrailing, label, children, ...rest
+}: LinkButtonProps) => (
+  <Link role="button" tone={tone} priority={priority} size={size} {...rest}>
+    {icon && <a-icon shape={icon} aria-hidden="true" />}
+    {label != null && <a-button-label>{label}</a-button-label>}
+    {children}
+    {iconTrailing && <a-icon shape={iconTrailing} aria-hidden="true" />}
+  </Link>
+)
+```
+
+Usage:
+
+```tsx
+<LinkButton to="/dashboard" tone="brand" label="Dashboard" />
+<LinkButton to="/docs" priority="tertiary" iconTrailing="external-link" label="Docs" />
+```
+
+The same shape transfers verbatim to Next.js `<Link>`, TanStack Router,
+or any other routing library — swap the import and the `to`/`href` prop
+to match.
+
+**Why this works:**
+
+- The CSS is already polymorphic at the attribute level. Any element
+  with `role="button"` plus the `tone` / `priority` / `size` / etc.
+  attributes inherits the full visual treatment.
+- Avoids the typing complexity of `as` / `asChild` and the indirection
+  of render props.
+- Keeps the slot structure (`<a-button-label>`, `<a-icon>`) visible to
+  the consumer — matches anta's "the DOM is the API" philosophy.
+- Scales to any wrapping element without anta needing per-framework
+  integrations.
+
+**Trade-offs to absorb in your helper:**
+
+Composing your own wrapper means anta's JSX-side conveniences don't
+come with you. None of these are blockers — just things to add to your
+helper when you need them:
+
+- **No auto `aria-label` for icon-only.** `<Button icon="trash" />` ships
+  with `aria-label="trash"`; your `<LinkButton icon="trash" />` doesn't,
+  unless you replicate the icon-only check.
+- **No custom-tone CSS variable injection.** `<Button tone="#ff1493" />`
+  writes `--button-tone-source` inline; your `LinkButton` won't unless
+  you mirror that path.
+- **No discriminated-union enforcement.** `<Button priority="primary"
+  underline="solid" />` is a TS error; your `LinkButton` would accept it
+  and the underline would just not render (CSS ignores it on primary).
+
+Pulling any of these over is straightforward — copy the relevant lines
+out of `Button.tsx`. Most consumers won't need them and the smaller
+helper stays easier to read.
 
 ## Form submission
 
@@ -324,13 +416,13 @@ Children also work without `label` — pass them as the only content.
 |---|---|---|
 | `tone` | `'neutral' \| 'brand' \| 'critical' \| 'info' \| 'success' \| 'warning' \| <css color>` | Default `neutral`. Literal colors derive the full matrix from the input hue. |
 | `priority` | `'primary' \| 'secondary' \| 'tertiary' \| 'quaternary'` | Default `primary`. |
-| `size` | `'small' \| 'default' \| 'large'` | Default `default`. Only padding changes. |
+| `size` | `'small' \| 'medium' \| 'large'` | Default `medium`. Only padding changes. Omit or pass `'medium'` for the default — both render identically. |
 | `underline` | `'solid' \| 'dashed' \| 'dotted'` | `tertiary` / `quaternary` only. |
 | `paddingless` | `boolean` | `quaternary` only. |
 | `loading` | `boolean` | Stripe overlay; blocks clicks. |
 | `disabled` | `boolean` | Disabled palette; no clicks; removed from tab order. |
 | `selected` | `boolean` | Toggled-on visual (shares active look). |
-| `icon` / `trailingIcon` | `IconShape` | Icon shape names. When `icon` is set alone (no `label`, no `trailingIcon`, no `children`) the CSS auto-collapses the button to a square via `:has(> a-icon:only-child)`. |
+| `icon` / `iconTrailing` | `IconShape` | Icon shape names. When `icon` is set alone (no `label`, no `iconTrailing`, no `children`) the CSS auto-collapses the button to a square via `:has(> a-icon:only-child)`. |
 | `label` | `string` | Rendered inside `<a-button-label>`. |
 | `href` | `string` | Switches to `<a role="button">`. |
 | `target` / `rel` | `string` | Anchor mode only. |
@@ -349,10 +441,10 @@ with a hex8 fallback first.
 
 | Token | Description |
 |---|---|
-| `--button-fg-color` | Text and icon color. Resolved per tone × priority × state. |
-| `--button-bg-color` | Background fill. |
-| `--button-br-color` | Border color. Primary mirrors the fill; others are transparent. |
-| `--button-focus-color` | Focus-ring outline color. |
+| `--button-fg` | Text and icon color. Resolved per tone × priority × state. |
+| `--button-bg` | Background fill. |
+| `--button-br` | Border color. Primary mirrors the fill; others are transparent. |
+| `--button-focus` | Focus-ring outline color. |
 | `--button-padding-x` / `--button-padding-y` | Inner spacing. |
 | `--button-br-radius` | Border radius (default `4px`). |
 | `--button-br-width` | Border width (default `0` — no border). Set to `1px` for an outlined variant. |

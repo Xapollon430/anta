@@ -108,7 +108,7 @@
     color: var(--link-color);
     text-decoration: underline;
     text-decoration-style: solid;
-    text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);
+    text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
     text-decoration-thickness: 0.5px;
     text-underline-offset: 3px;
   }
@@ -122,21 +122,12 @@
     text-decoration-thickness: 1px;
   }
   a:active {
-    text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);
+    text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
   }
 
-  /* Text selection — full-chroma brand color at 15% alpha. Using
-     OKLCH relative-color syntax (not `color-mix` with `transparent`)
-     keeps the chroma intact: mixing toward `transparent` interpolates
-     in OKLCH and pulls L/C toward zero, which washes the result out.
-     `calc(c * 1.5)` bumps the saturation modestly above the source
-     token so the highlight reads as clearly brand-coloured rather
-     than a neutral grey. No `color` override on the selection, so
-     the selected text keeps its original color and contrast is
-     preserved automatically. `--text-1-brand` inverts between light
-     and dark, so the effect tracks the active palette unaided. */
+  /* Text selection — brand color at 15% alpha. */
   ::selection {
-    background: oklch(from var(--text-1-brand) l calc(c * 1.5) h / 0.15);
+    background: color-mix(in srgb, var(--text-1-brand), transparent 85%);
   }
 
   /* ───── Tables ───────────────────────────────────────────────── */

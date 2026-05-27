@@ -3,25 +3,17 @@
      implicit default, so unset buttons inherit these directly. Named
      tones (brand, critical, info, success, warning) override via
      `[tone="X"]` selectors below.
-     Hex+oklch dual-decl pattern follows tokens.css — hex first for
-     older engines, oklch for perceptually-uniform colour.
      Neutral chip uses a softer 5% rest alpha (other tones use 10%). */
   a-button,
   a[role="button"] {
     --button-primary-fg: #ffffff;
-    --button-primary-fg: oklch(1 0 0);
 
-    --button-focus-color: #503cb4;
-    --button-focus-color: oklch(0.453 0.181 284);
+    --button-focus: #503cb4;
 
     --bg-primary-disabled: #ece9ec;
-    --bg-primary-disabled: oklch(0.937 0.005 326);
     --bg-secondary-disabled: #f6f4f6;
-    --bg-secondary-disabled: oklch(0.969 0.003 326);
     --fg-disabled-primary: #afa9b1;
-    --fg-disabled-primary: oklch(0.742 0.013 318);
     --fg-disabled: #afa9b1;
-    --fg-disabled: oklch(0.742 0.013 318);
 
     --button-loading-stripe: 14px;
     --button-loading-stripe-gap: 16px;
@@ -35,218 +27,146 @@
     --button-loading-blur: 2.5px;
 
     --button-bg-primary-rest: #635b65;
-    --button-bg-primary-rest: oklch(0.482 0.019 319);
     --button-bg-primary-hover: #534c57;
-    --button-bg-primary-hover: oklch(0.427 0.02 313);
     --button-bg-primary-active: #49424c;
-    --button-bg-primary-active: oklch(0.39 0.019 316);
     --button-fg-primary-rest: var(--button-primary-fg);
 
     --button-bg-secondary-rest: #44374b0d;
-    --button-bg-secondary-rest: color-mix(in oklch, #44374b 5%, transparent);
     --button-bg-secondary-hover: #44374b1a;
-    --button-bg-secondary-hover: color-mix(in oklch, #44374b 10%, transparent);
     --button-bg-secondary-active: #44374b33;
-    --button-bg-secondary-active: color-mix(in oklch, #44374b 20%, transparent);
     --button-fg-secondary-rest: #534c57;
-    --button-fg-secondary-rest: oklch(0.427 0.02 313);
     --button-fg-secondary-hover: #49424c;
-    --button-fg-secondary-hover: oklch(0.39 0.019 316);
 
     --button-fg-tertiary-rest: #635b65;
-    --button-fg-tertiary-rest: oklch(0.482 0.019 319);
     --button-fg-tertiary-hover: #534c57;
-    --button-fg-tertiary-hover: oklch(0.427 0.02 313);
     --button-bg-tertiary-hover: #44374b0d;
-    --button-bg-tertiary-hover: color-mix(in oklch, #44374b 5%, transparent);
     --button-bg-tertiary-active: #44374b1a;
-    --button-bg-tertiary-active: color-mix(in oklch, #44374b 10%, transparent);
 
     --button-fg-quaternary-rest: #635b65;
-    --button-fg-quaternary-rest: oklch(0.482 0.019 319);
     --button-fg-quaternary-hover: #49424c;
-    --button-fg-quaternary-hover: oklch(0.39 0.019 316);
+
+    /* Layout */
+    --button-padding-x: 8px;
+    --button-padding-y: 4px;
+    --button-max-width: 100%;
+    --button-max-height: 100%;
+
+    /* Transitions */
+    --button-timing-in: 50ms ease-out;
+    --button-timing-active: 50ms linear;
+    --button-timing-out: 150ms ease-out;
+    --button-loading-duration: 1s;
   }
 
   a-button[tone="brand"],
   a[role="button"][tone="brand"] {
     --button-bg-primary-rest: #5f4bc3;
-    --button-bg-primary-rest: oklch(0.502 0.179 286);
     --button-bg-primary-hover: #503cb4;
-    --button-bg-primary-hover: oklch(0.453 0.181 284);
     --button-bg-primary-active: #483493;
-    --button-bg-primary-active: oklch(0.405 0.149 287);
     --button-fg-primary-rest: var(--button-primary-fg);
 
     --button-bg-secondary-rest: #7460d71a;
-    --button-bg-secondary-rest: color-mix(in oklch, #7460d7 10%, transparent);
     --button-bg-secondary-hover: #7460d726;
-    --button-bg-secondary-hover: color-mix(in oklch, #7460d7 15%, transparent);
     --button-bg-secondary-active: #7460d733;
-    --button-bg-secondary-active: color-mix(in oklch, #7460d7 20%, transparent);
     --button-fg-secondary-rest: #5f4bc3;
-    --button-fg-secondary-rest: oklch(0.502 0.179 286);
     --button-fg-secondary-hover: #503cb4;
-    --button-fg-secondary-hover: oklch(0.453 0.181 284);
 
     --button-fg-tertiary-rest: #5f4bc3;
-    --button-fg-tertiary-rest: oklch(0.502 0.179 286);
     --button-fg-tertiary-hover: #503cb4;
-    --button-fg-tertiary-hover: oklch(0.453 0.181 284);
     --button-bg-tertiary-hover: #7460d71a;
-    --button-bg-tertiary-hover: color-mix(in oklch, #7460d7 10%, transparent);
     --button-bg-tertiary-active: #7460d726;
-    --button-bg-tertiary-active: color-mix(in oklch, #7460d7 15%, transparent);
 
     --button-fg-quaternary-rest: #5f4bc3;
-    --button-fg-quaternary-rest: oklch(0.502 0.179 286);
     --button-fg-quaternary-hover: #483493;
-    --button-fg-quaternary-hover: oklch(0.405 0.149 287);
   }
 
   /* Critical/warning tertiary active steps heavier (20% vs 15%). */
   a-button[tone="critical"],
   a[role="button"][tone="critical"] {
     --button-bg-primary-rest: #c9302c;
-    --button-bg-primary-rest: oklch(0.551 0.19 27);
     --button-bg-primary-hover: #b02120;
-    --button-bg-primary-hover: oklch(0.492 0.179 27);
     --button-bg-primary-active: #a01c1c;
-    --button-bg-primary-active: oklch(0.458 0.167 27);
     --button-fg-primary-rest: var(--button-primary-fg);
 
     --button-bg-secondary-rest: #de45451a;
-    --button-bg-secondary-rest: color-mix(in oklch, #de4545 10%, transparent);
     --button-bg-secondary-hover: #de454526;
-    --button-bg-secondary-hover: color-mix(in oklch, #de4545 15%, transparent);
     --button-bg-secondary-active: #de454533;
-    --button-bg-secondary-active: color-mix(in oklch, #de4545 20%, transparent);
     --button-fg-secondary-rest: #c9302c;
-    --button-fg-secondary-rest: oklch(0.551 0.19 27);
     --button-fg-secondary-hover: #b02120;
-    --button-fg-secondary-hover: oklch(0.492 0.179 27);
 
     --button-fg-tertiary-rest: #c9302c;
-    --button-fg-tertiary-rest: oklch(0.551 0.19 27);
     --button-fg-tertiary-hover: #b02120;
-    --button-fg-tertiary-hover: oklch(0.492 0.179 27);
     --button-bg-tertiary-hover: #de45451a;
-    --button-bg-tertiary-hover: color-mix(in oklch, #de4545 10%, transparent);
     --button-bg-tertiary-active: #de454533;
-    --button-bg-tertiary-active: color-mix(in oklch, #de4545 20%, transparent);
 
     --button-fg-quaternary-rest: #c9302c;
-    --button-fg-quaternary-rest: oklch(0.551 0.19 27);
     --button-fg-quaternary-hover: #a01c1c;
-    --button-fg-quaternary-hover: oklch(0.458 0.167 27);
   }
 
   a-button[tone="info"],
   a[role="button"][tone="info"] {
     --button-bg-primary-rest: #1f6eb2;
-    --button-bg-primary-rest: oklch(0.527 0.13 249);
     --button-bg-primary-hover: #1a5b93;
-    --button-bg-primary-hover: oklch(0.461 0.111 249);
     --button-bg-primary-active: #175082;
-    --button-bg-primary-active: oklch(0.422 0.101 249);
     --button-fg-primary-rest: var(--button-primary-fg);
 
     --button-bg-secondary-rest: #2686d91a;
-    --button-bg-secondary-rest: color-mix(in oklch, #2686d9 10%, transparent);
     --button-bg-secondary-hover: #2686d926;
-    --button-bg-secondary-hover: color-mix(in oklch, #2686d9 15%, transparent);
     --button-bg-secondary-active: #2686d933;
-    --button-bg-secondary-active: color-mix(in oklch, #2686d9 20%, transparent);
     --button-fg-secondary-rest: #1f6eb2;
-    --button-fg-secondary-rest: oklch(0.527 0.13 249);
     --button-fg-secondary-hover: #1a5b93;
-    --button-fg-secondary-hover: oklch(0.461 0.111 249);
 
     --button-fg-tertiary-rest: #1f6eb2;
-    --button-fg-tertiary-rest: oklch(0.527 0.13 249);
     --button-fg-tertiary-hover: #1a5b93;
-    --button-fg-tertiary-hover: oklch(0.461 0.111 249);
     --button-bg-tertiary-hover: #2686d91a;
-    --button-bg-tertiary-hover: color-mix(in oklch, #2686d9 10%, transparent);
     --button-bg-tertiary-active: #2686d926;
-    --button-bg-tertiary-active: color-mix(in oklch, #2686d9 15%, transparent);
 
     --button-fg-quaternary-rest: #1f6eb2;
-    --button-fg-quaternary-rest: oklch(0.527 0.13 249);
     --button-fg-quaternary-hover: #175082;
-    --button-fg-quaternary-hover: oklch(0.422 0.101 249);
   }
 
   a-button[tone="success"],
   a[role="button"][tone="success"] {
     --button-bg-primary-rest: #2a7e43;
-    --button-bg-primary-rest: oklch(0.528 0.122 150);
     --button-bg-primary-hover: #226737;
-    --button-bg-primary-hover: oklch(0.458 0.103 150);
     --button-bg-primary-active: #1f5c31;
-    --button-bg-primary-active: oklch(0.424 0.094 150);
     --button-fg-primary-rest: var(--button-primary-fg);
 
     --button-bg-secondary-rest: #3295501a;
-    --button-bg-secondary-rest: color-mix(in oklch, #329550 10%, transparent);
     --button-bg-secondary-hover: #32955026;
-    --button-bg-secondary-hover: color-mix(in oklch, #329550 15%, transparent);
     --button-bg-secondary-active: #32955033;
-    --button-bg-secondary-active: color-mix(in oklch, #329550 20%, transparent);
     --button-fg-secondary-rest: #2a7e43;
-    --button-fg-secondary-rest: oklch(0.528 0.122 150);
     --button-fg-secondary-hover: #226737;
-    --button-fg-secondary-hover: oklch(0.458 0.103 150);
 
     --button-fg-tertiary-rest: #2a7e43;
-    --button-fg-tertiary-rest: oklch(0.528 0.122 150);
     --button-fg-tertiary-hover: #226737;
-    --button-fg-tertiary-hover: oklch(0.458 0.103 150);
     --button-bg-tertiary-hover: #3295501a;
-    --button-bg-tertiary-hover: color-mix(in oklch, #329550 10%, transparent);
     --button-bg-tertiary-active: #32955026;
-    --button-bg-tertiary-active: color-mix(in oklch, #329550 15%, transparent);
 
     --button-fg-quaternary-rest: #2a7e43;
-    --button-fg-quaternary-rest: oklch(0.528 0.122 150);
     --button-fg-quaternary-hover: #1f5c31;
-    --button-fg-quaternary-hover: oklch(0.424 0.094 150);
   }
 
   a-button[tone="warning"],
   a[role="button"][tone="warning"] {
     --button-bg-primary-rest: #c37416;
-    --button-bg-primary-rest: oklch(0.632 0.138 63);
     --button-bg-primary-hover: #ae6613;
-    --button-bg-primary-hover: oklch(0.579 0.127 62);
     --button-bg-primary-active: #995200;
-    --button-bg-primary-active: oklch(0.513 0.122 59);
     --button-fg-primary-rest: var(--button-primary-fg);
 
     --button-bg-secondary-rest: #c374161a;
-    --button-bg-secondary-rest: color-mix(in oklch, #c37416 10%, transparent);
     --button-bg-secondary-hover: #c3741626;
-    --button-bg-secondary-hover: color-mix(in oklch, #c37416 15%, transparent);
     --button-bg-secondary-active: #c3741633;
-    --button-bg-secondary-active: color-mix(in oklch, #c37416 20%, transparent);
     --button-fg-secondary-rest: #c37416;
-    --button-fg-secondary-rest: oklch(0.632 0.138 63);
     --button-fg-secondary-hover: #ae6613;
-    --button-fg-secondary-hover: oklch(0.579 0.127 62);
 
     --button-fg-tertiary-rest: #c37416;
-    --button-fg-tertiary-rest: oklch(0.632 0.138 63);
     --button-fg-tertiary-hover: #ae6613;
-    --button-fg-tertiary-hover: oklch(0.579 0.127 62);
     --button-bg-tertiary-hover: #c374161a;
-    --button-bg-tertiary-hover: color-mix(in oklch, #c37416 10%, transparent);
     --button-bg-tertiary-active: #c3741633;
-    --button-bg-tertiary-active: color-mix(in oklch, #c37416 20%, transparent);
 
     --button-fg-quaternary-rest: #c37416;
-    --button-fg-quaternary-rest: oklch(0.632 0.138 63);
     --button-fg-quaternary-hover: #995200;
-    --button-fg-quaternary-hover: oklch(0.513 0.122 59);
   }
 
   /* Dark mode — heavier alphas (30/40% vs 10/15%) so chips stay legible
@@ -256,288 +176,170 @@
      implicit default. */
   .dark a-button,
   .dark a[role="button"] {
-    --button-focus-color: #a897fc;
-    --button-focus-color: oklch(0.732 0.144 290);
+    --button-focus: #a897fc;
 
     --bg-primary-disabled: #272329;
-    --bg-primary-disabled: oklch(0.263 0.012 315);
     --bg-secondary-disabled: #1d1a1e;
-    --bg-secondary-disabled: oklch(0.223 0.009 318);
     --fg-disabled-primary: #776e77;
-    --fg-disabled-primary: oklch(0.549 0.018 326);
     --fg-disabled: #635b65;
-    --fg-disabled: oklch(0.482 0.019 319);
 
     --button-bg-primary-rest: #534c57;
-    --button-bg-primary-rest: oklch(0.427 0.02 313);
     --button-bg-primary-hover: #635b65;
-    --button-bg-primary-hover: oklch(0.482 0.019 319);
     --button-bg-primary-active: #938d96;
-    --button-bg-primary-active: oklch(0.651 0.015 315);
 
     --button-bg-secondary-rest: #e4d1ef1a;
-    --button-bg-secondary-rest: color-mix(in oklch, #e4d1ef 10%, transparent);
     --button-bg-secondary-hover: #e4d1ef26;
-    --button-bg-secondary-hover: color-mix(in oklch, #e4d1ef 15%, transparent);
     --button-bg-secondary-active: #e4d1ef33;
-    --button-bg-secondary-active: color-mix(in oklch, #e4d1ef 20%, transparent);
     --button-fg-secondary-rest: #c1b9c1;
-    --button-fg-secondary-rest: oklch(0.795 0.014 326);
     --button-fg-secondary-hover: #d4ced4;
-    --button-fg-secondary-hover: oklch(0.858 0.01 326);
 
     --button-fg-tertiary-rest: #afa9b1;
-    --button-fg-tertiary-rest: oklch(0.742 0.013 318);
     --button-fg-tertiary-hover: #afa9b1;
-    --button-fg-tertiary-hover: oklch(0.742 0.013 318);
     --button-bg-tertiary-hover: #e4d1ef1a;
-    --button-bg-tertiary-hover: color-mix(in oklch, #e4d1ef 10%, transparent);
     --button-bg-tertiary-active: #e4d1ef40;
-    --button-bg-tertiary-active: color-mix(in oklch, #e4d1ef 25%, transparent);
 
     --button-fg-quaternary-rest: #afa9b1;
-    --button-fg-quaternary-rest: oklch(0.742 0.013 318);
     --button-fg-quaternary-hover: #cac4ca;
-    --button-fg-quaternary-hover: oklch(0.827 0.011 326);
   }
 
   .dark a-button[tone="brand"],
   .dark a[role="button"][tone="brand"] {
     --button-bg-primary-rest: #503cb4;
-    --button-bg-primary-rest: oklch(0.453 0.181 284);
     --button-bg-primary-hover: #5f4bc3;
-    --button-bg-primary-hover: oklch(0.502 0.179 286);
     --button-bg-primary-active: #7460d7;
-    --button-bg-primary-active: oklch(0.569 0.175 287);
 
     --button-bg-secondary-rest: #7460d74d;
-    --button-bg-secondary-rest: color-mix(in oklch, #7460d7 30%, transparent);
     --button-bg-secondary-hover: #7460d766;
-    --button-bg-secondary-hover: color-mix(in oklch, #7460d7 40%, transparent);
     --button-bg-secondary-active: #7460d780;
-    --button-bg-secondary-active: color-mix(in oklch, #7460d7 50%, transparent);
     --button-fg-secondary-rest: #c5baff;
-    --button-fg-secondary-rest: oklch(0.822 0.097 291);
     --button-fg-secondary-hover: #d2cbf6;
-    --button-fg-secondary-hover: oklch(0.862 0.06 293);
 
     --button-fg-tertiary-rest: #ada0ee;
-    --button-fg-tertiary-rest: oklch(0.746 0.111 291);
     --button-fg-tertiary-hover: #bcb1f1;
-    --button-fg-tertiary-hover: oklch(0.792 0.09 292);
     --button-bg-tertiary-hover: #7460d733;
-    --button-bg-tertiary-hover: color-mix(in oklch, #7460d7 20%, transparent);
     --button-bg-tertiary-active: #7460d74d;
-    --button-bg-tertiary-active: color-mix(in oklch, #7460d7 30%, transparent);
 
     --button-fg-quaternary-rest: #ada0ee;
-    --button-fg-quaternary-rest: oklch(0.746 0.111 291);
     --button-fg-quaternary-hover: #c7bef4;
-    --button-fg-quaternary-hover: oklch(0.827 0.076 292);
   }
 
   .dark a-button[tone="critical"],
   .dark a[role="button"][tone="critical"] {
     --button-bg-primary-rest: #b02120;
-    --button-bg-primary-rest: oklch(0.492 0.179 27);
     --button-bg-primary-hover: #c9302c;
-    --button-bg-primary-hover: oklch(0.551 0.19 27);
     --button-bg-primary-active: #de4545;
-    --button-bg-primary-active: oklch(0.61 0.19 25);
 
     --button-bg-secondary-rest: #de45454d;
-    --button-bg-secondary-rest: color-mix(in oklch, #de4545 30%, transparent);
     --button-bg-secondary-hover: #de454566;
-    --button-bg-secondary-hover: color-mix(in oklch, #de4545 40%, transparent);
     --button-bg-secondary-active: #de454580;
-    --button-bg-secondary-active: color-mix(in oklch, #de4545 50%, transparent);
     --button-fg-secondary-rest: #ffabac;
-    --button-fg-secondary-rest: oklch(0.823 0.099 19);
     --button-fg-secondary-hover: #f4c2c2;
-    --button-fg-secondary-hover: oklch(0.858 0.057 18);
 
     --button-fg-tertiary-rest: #e78e90;
-    --button-fg-tertiary-rest: oklch(0.74 0.108 19);
     --button-fg-tertiary-hover: #efa4a4;
-    --button-fg-tertiary-hover: oklch(0.791 0.089 19);
     --button-bg-tertiary-hover: #de454533;
-    --button-bg-tertiary-hover: color-mix(in oklch, #de4545 20%, transparent);
     --button-bg-tertiary-active: #de45454d;
-    --button-bg-tertiary-active: color-mix(in oklch, #de4545 30%, transparent);
 
     --button-fg-quaternary-rest: #e78e90;
-    --button-fg-quaternary-rest: oklch(0.74 0.108 19);
     --button-fg-quaternary-hover: #ffabac;
-    --button-fg-quaternary-hover: oklch(0.823 0.099 19);
   }
 
   .dark a-button[tone="info"],
   .dark a[role="button"][tone="info"] {
     --button-bg-primary-rest: #1a5b93;
-    --button-bg-primary-rest: oklch(0.461 0.111 249);
     --button-bg-primary-hover: #1f6eb2;
-    --button-bg-primary-hover: oklch(0.527 0.13 249);
     --button-bg-primary-active: #2686d9;
-    --button-bg-primary-active: oklch(0.608 0.152 250);
 
     --button-bg-secondary-rest: #2686d94d;
-    --button-bg-secondary-rest: color-mix(in oklch, #2686d9 30%, transparent);
     --button-bg-secondary-hover: #2686d966;
-    --button-bg-secondary-hover: color-mix(in oklch, #2686d9 40%, transparent);
     --button-bg-secondary-active: #2686d980;
-    --button-bg-secondary-active: color-mix(in oklch, #2686d9 50%, transparent);
     --button-fg-secondary-rest: #9ed2ff;
-    --button-fg-secondary-rest: oklch(0.844 0.083 245);
     --button-fg-secondary-hover: #bad6f3;
-    --button-fg-secondary-hover: oklch(0.865 0.05 249);
 
     --button-fg-tertiary-rest: #7db6e8;
-    --button-fg-tertiary-rest: oklch(0.756 0.094 246);
     --button-fg-tertiary-hover: #93c5ec;
-    --button-fg-tertiary-hover: oklch(0.802 0.076 242);
     --button-bg-tertiary-hover: #2686d933;
-    --button-bg-tertiary-hover: color-mix(in oklch, #2686d9 20%, transparent);
     --button-bg-tertiary-active: #2686d94d;
-    --button-bg-tertiary-active: color-mix(in oklch, #2686d9 30%, transparent);
 
     --button-fg-quaternary-rest: #7db6e8;
-    --button-fg-quaternary-rest: oklch(0.756 0.094 246);
     --button-fg-quaternary-hover: #a6cdef;
-    --button-fg-quaternary-hover: oklch(0.832 0.063 245);
   }
 
   .dark a-button[tone="success"],
   .dark a[role="button"][tone="success"] {
     --button-bg-primary-rest: #226737;
-    --button-bg-primary-rest: oklch(0.458 0.103 150);
     --button-bg-primary-hover: #2a7e43;
-    --button-bg-primary-hover: oklch(0.528 0.122 150);
     --button-bg-primary-active: #329550;
-    --button-bg-primary-active: oklch(0.595 0.138 150);
 
     --button-bg-secondary-rest: #3295504d;
-    --button-bg-secondary-rest: color-mix(in oklch, #329550 30%, transparent);
     --button-bg-secondary-hover: #32955066;
-    --button-bg-secondary-hover: color-mix(in oklch, #329550 40%, transparent);
     --button-bg-secondary-active: #32955080;
-    --button-bg-secondary-active: color-mix(in oklch, #329550 50%, transparent);
     --button-fg-secondary-rest: #8ceca9;
-    --button-fg-secondary-rest: oklch(0.866 0.131 153);
     --button-fg-secondary-hover: #b3e5c2;
-    --button-fg-secondary-hover: oklch(0.878 0.071 154);
 
     --button-fg-tertiary-rest: #74cd8e;
-    --button-fg-tertiary-rest: oklch(0.776 0.125 152);
     --button-fg-tertiary-hover: #88d7a0;
-    --button-fg-tertiary-hover: oklch(0.813 0.11 153);
     --button-bg-tertiary-hover: #32955033;
-    --button-bg-tertiary-hover: color-mix(in oklch, #329550 20%, transparent);
     --button-bg-tertiary-active: #3295504d;
-    --button-bg-tertiary-active: color-mix(in oklch, #329550 30%, transparent);
 
     --button-fg-quaternary-rest: #74cd8e;
-    --button-fg-quaternary-rest: oklch(0.776 0.125 152);
     --button-fg-quaternary-hover: #9ddeb1;
-    --button-fg-quaternary-hover: oklch(0.845 0.091 154);
   }
 
   .dark a-button[tone="warning"],
   .dark a[role="button"][tone="warning"] {
     --button-bg-primary-rest: #7f410b;
-    --button-bg-primary-rest: oklch(0.445 0.105 54);
     --button-bg-primary-hover: #995200;
-    --button-bg-primary-hover: oklch(0.513 0.122 59);
     --button-bg-primary-active: #ae6613;
-    --button-bg-primary-active: oklch(0.579 0.127 62);
 
     --button-bg-secondary-rest: #c374164d;
-    --button-bg-secondary-rest: color-mix(in oklch, #c37416 30%, transparent);
     --button-bg-secondary-hover: #c3741666;
-    --button-bg-secondary-hover: color-mix(in oklch, #c37416 40%, transparent);
     --button-bg-secondary-active: #c3741680;
-    --button-bg-secondary-active: color-mix(in oklch, #c37416 50%, transparent);
     --button-fg-secondary-rest: #f7c06e;
-    --button-fg-secondary-rest: oklch(0.841 0.118 76);
     --button-fg-secondary-hover: #f3cc91;
-    --button-fg-secondary-hover: oklch(0.865 0.087 78);
 
     --button-fg-tertiary-rest: #e1a452;
-    --button-fg-tertiary-rest: oklch(0.761 0.122 72);
     --button-fg-tertiary-hover: #edb25a;
-    --button-fg-tertiary-hover: oklch(0.801 0.125 75);
     --button-bg-tertiary-hover: #c3741633;
-    --button-bg-tertiary-hover: color-mix(in oklch, #c37416 20%, transparent);
     --button-bg-tertiary-active: #c374164d;
-    --button-bg-tertiary-active: color-mix(in oklch, #c37416 30%, transparent);
 
     --button-fg-quaternary-rest: #e1a452;
-    --button-fg-quaternary-rest: oklch(0.761 0.122 72);
     --button-fg-quaternary-hover: #f0bf75;
-    --button-fg-quaternary-hover: oklch(0.833 0.108 77);
   }
 
   a-button,
   a[role="button"] {
-    --button-padding-x: 8px;
-    --button-padding-y: 4px;
-    --button-br-radius: 4px;
-    /* No border by default; consumers can opt in via --button-br-width. */
-    --button-br-width: 0;
-    --button-margin-x: 0;
-    --button-margin-y: 0;
-    --button-width: fit-content;
-    --button-max-width: 100%;
-    --button-height: fit-content;
-    --button-max-height: 100%;
-    --button-gap: 4px;
-
-    --button-font-size: 15px;
-    --button-font-family: var(--sans-serif);
-    --button-font-weight: 500;
-    --button-font-wdth: 88;
-    --button-line-height: 20px;
-
-    --button-timing-in: 50ms ease-out;
-    --button-timing-active: 50ms linear;
-    --button-timing-out: 150ms ease-out;
-    --button-loading-duration: 1s;
-    --button-outline-offset: 1px;
-
     user-select: none;
     display: inline-flex;
     align-items: center;
-    gap: var(--button-gap);
+    gap: 4px;
     overflow: hidden;
     cursor: pointer;
     /* Don't shrink in a flex parent — `overflow: hidden` would clip
        the icon/label silently. Consumers can opt back in if needed. */
     flex-shrink: 0;
 
-    color: var(--button-fg-color);
-    background-color: var(--button-bg-color);
-    border-color: var(--button-br-color);
+    color: var(--button-fg);
+    background-color: var(--button-bg);
+    border-color: var(--button-br);
     border-style: solid;
-    border-width: var(--button-br-width);
-    border-radius: var(--button-br-radius);
+    border-width: 0;
+    border-radius: 4px;
     text-decoration: none;
 
-    font-size: var(--button-font-size);
-    font-family: var(--button-font-family);
-    font-weight: var(--button-font-weight);
-    font-variation-settings: "wdth" var(--button-font-wdth);
-    line-height: var(--button-line-height);
+    font-size: 15px;
+    font-family: var(--sans-serif);
+    font-weight: 500;
+    font-variation-settings: "wdth" 88;
+    line-height: 20px;
     letter-spacing: 0.1ch;
 
     text-overflow: ellipsis;
     text-wrap: nowrap;
     white-space: nowrap;
 
-    width: var(--button-width);
     max-width: var(--button-max-width);
-    height: var(--button-height);
     max-height: var(--button-max-height);
-    margin-inline: var(--button-margin-x);
-    margin-block: var(--button-margin-y);
     padding-inline: var(--button-padding-x);
     padding-block: var(--button-padding-y);
 
@@ -557,7 +359,7 @@
     }
 
     & > * {
-      cursor: inherit;
+      pointer-events: none;
     }
 
     & a-icon {
@@ -603,8 +405,8 @@
     }
 
     &:focus-visible {
-      outline: 1px solid var(--button-focus-color);
-      outline-offset: var(--button-outline-offset);
+      outline: 1px solid var(--button-focus);
+      outline-offset: 1px;
     }
 
     /* Quaternary: instant in every direction — hover-in, press, and
@@ -640,29 +442,15 @@
         text-decoration: underline dotted;
       }
       &[underline] {
-        text-decoration-color: color-mix(
-          in oklch,
-          currentColor 75%,
-          transparent
-        );
-        text-decoration-thickness: 0.5px;
+        text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
+        text-decoration-thickness: 1px;
         text-underline-offset: 3px;
         &:hover,
         &[selected] {
-          text-decoration-color: var(--button-fg-color);
+          text-decoration-color: var(--button-fg);
           text-decoration-thickness: 1px;
         }
       }
-    }
-
-    /* Quaternary + underline reads as an inline link: pin fg to rest
-       across interactive states so only the underline thickness / alpha
-       reacts — the text itself stays put. Tertiary keeps its normal
-       chip behaviour (bg fills on hover, fg shifts) even when underlined. */
-    &[priority="quaternary"][underline]:hover,
-    &[priority="quaternary"][underline]:active,
-    &[priority="quaternary"][underline][selected] {
-      --button-fg-color: var(--button-fg-quaternary-rest);
     }
 
     &[priority="quaternary"][paddingless="true"] {
@@ -726,13 +514,12 @@
       }
     }
 
-    /* Custom tone — any non-named `tone` value. Only the hue is taken
-       from it; L/C come from the brand curve. The JSX wrapper writes
-       `--button-tone-source` inline as the SSR-safe path; the typed
-       attr() fallback below picks up raw `<a-button tone="…">` usage
-       on engines that support CSS Values 5 attr() (Chrome 133+, Safari
-       18.2+). Older engines fall through to `transparent` and render
-       no fill — JSX usage is still required for those. */
+    /* Custom tone — any non-named `tone` value. The literal color is
+       used as-is for primary fill; other priorities fall back to the
+       neutral defaults. JSX wrapper writes `--button-tone-source`
+       inline for SSR/older-engine support; the typed attr() fallback
+       picks up raw `<a-button tone="…">` usage on engines that
+       support CSS Values 5 attr() (Chrome 133+, Safari 18.2+). */
     &[tone]:not(
         [tone="brand"],
         [tone="neutral"],
@@ -742,24 +529,10 @@
         [tone="warning"]
       ) {
       --button-tone-source: attr(tone type(<color>), transparent);
-      --button-bg-primary-rest: oklch(from var(--button-tone-source) 0.502 0.179 h);
-      --button-bg-primary-hover: oklch(from var(--button-tone-source) 0.453 0.181 h);
-      --button-bg-primary-active: oklch(from var(--button-tone-source) 0.405 0.149 h);
+      --button-bg-primary-rest: var(--button-tone-source);
+      --button-bg-primary-hover: color-mix(in srgb, var(--button-tone-source), black 12%);
+      --button-bg-primary-active: color-mix(in srgb, var(--button-tone-source), black 22%);
       --button-fg-primary-rest: var(--button-primary-fg);
-
-      --button-bg-secondary-rest: color-mix(in oklch, var(--button-tone-source) 10%, transparent);
-      --button-bg-secondary-hover: color-mix(in oklch, var(--button-tone-source) 15%, transparent);
-      --button-bg-secondary-active: color-mix(in oklch, var(--button-tone-source) 20%, transparent);
-      --button-fg-secondary-rest: oklch(from var(--button-tone-source) 0.502 0.179 h);
-      --button-fg-secondary-hover: oklch(from var(--button-tone-source) 0.453 0.181 h);
-
-      --button-fg-tertiary-rest: oklch(from var(--button-tone-source) 0.502 0.179 h);
-      --button-fg-tertiary-hover: oklch(from var(--button-tone-source) 0.453 0.181 h);
-      --button-bg-tertiary-hover: color-mix(in oklch, var(--button-tone-source) 10%, transparent);
-      --button-bg-tertiary-active: color-mix(in oklch, var(--button-tone-source) 15%, transparent);
-
-      --button-fg-quaternary-rest: oklch(from var(--button-tone-source) 0.502 0.179 h);
-      --button-fg-quaternary-hover: oklch(from var(--button-tone-source) 0.405 0.149 h);
     }
 
     /* Wire the per-tone vars into the final fg/bg/br colors. Primary
@@ -768,61 +541,61 @@
        priorities (secondary/tertiary/quaternary) match an explicit
        `[priority="…"]` attr and win on specificity. Primary uses bg for
        the border; the rest hold border transparent. */
-    --button-fg-color: var(--button-fg-primary-rest);
-    --button-bg-color: var(--button-bg-primary-rest);
-    --button-br-color: var(--button-bg-primary-rest);
+    --button-fg: var(--button-fg-primary-rest);
+    --button-bg: var(--button-bg-primary-rest);
+    --button-br: var(--button-bg-primary-rest);
     &:hover {
-      --button-bg-color: var(--button-bg-primary-hover);
-      --button-br-color: var(--button-bg-primary-hover);
+      --button-bg: var(--button-bg-primary-hover);
+      --button-br: var(--button-bg-primary-hover);
     }
     &:active,
     &[selected] {
-      --button-bg-color: var(--button-bg-primary-active);
-      --button-br-color: var(--button-bg-primary-active);
+      --button-bg: var(--button-bg-primary-active);
+      --button-br: var(--button-bg-primary-active);
     }
     &[priority="secondary"] {
-      --button-fg-color: var(--button-fg-secondary-rest);
-      --button-bg-color: var(--button-bg-secondary-rest);
-      --button-br-color: transparent;
+      --button-fg: var(--button-fg-secondary-rest);
+      --button-bg: var(--button-bg-secondary-rest);
+      --button-br: transparent;
       &:hover {
-        --button-fg-color: var(--button-fg-secondary-hover);
-        --button-bg-color: var(--button-bg-secondary-hover);
+        --button-fg: var(--button-fg-secondary-hover);
+        --button-bg: var(--button-bg-secondary-hover);
       }
       &:active,
       &[selected] {
-        --button-fg-color: var(--button-fg-secondary-hover);
-        --button-bg-color: var(--button-bg-secondary-active);
+        --button-fg: var(--button-fg-secondary-hover);
+        --button-bg: var(--button-bg-secondary-active);
       }
     }
     &[priority="tertiary"] {
-      --button-fg-color: var(--button-fg-tertiary-rest);
-      --button-bg-color: transparent;
-      --button-br-color: transparent;
+      --button-fg: var(--button-fg-tertiary-rest);
+      --button-bg: transparent;
+      --button-br: transparent;
       &:hover {
-        --button-fg-color: var(--button-fg-tertiary-hover);
-        --button-bg-color: var(--button-bg-tertiary-hover);
+        --button-fg: var(--button-fg-tertiary-hover);
+        --button-bg: var(--button-bg-tertiary-hover);
       }
       &:active,
       &[selected] {
-        --button-fg-color: var(--button-fg-tertiary-hover);
-        --button-bg-color: var(--button-bg-tertiary-active);
+        --button-fg: var(--button-fg-tertiary-hover);
+        --button-bg: var(--button-bg-tertiary-active);
       }
     }
     &[priority="quaternary"] {
-      --button-fg-color: var(--button-fg-quaternary-rest);
-      --button-bg-color: transparent;
-      --button-br-color: transparent;
+      --button-fg: var(--button-fg-quaternary-rest);
+      --button-bg: transparent;
+      --button-br: transparent;
       &:hover {
-        --button-fg-color: var(--button-fg-quaternary-hover);
+        --button-fg: var(--button-fg-quaternary-hover);
       }
       &:active,
       &[selected] {
-        --button-fg-color: var(--button-fg-quaternary-hover);
+        --button-fg: var(--button-fg-quaternary-hover);
       }
     }
 
     /* Set bg/color/border-color directly (not the vars) so inline-style
-       `--button-bg-color` overrides can't keep a disabled button alive.
+       `--button-bg` overrides can't keep a disabled button alive.
        Primary disabled is the default; other priorities override below. */
     &[disabled="true"] {
       background-color: var(--bg-primary-disabled);

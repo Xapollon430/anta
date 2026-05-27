@@ -5,7 +5,7 @@ type Tone = 'neutral' | 'brand' | 'info' | 'success' | 'critical' | 'warning'
 type Mode = 'light' | 'dark'
 
 // ─── Color resolution ─────────────────────────────────────────────────────
-// One shared canvas resolves any CSS color (hex, hex+alpha, oklch, color-mix)
+// One shared canvas resolves any CSS color (hex, hex+alpha, color-mix)
 // to its sRGB pixel value. Compositing text-over-bg is a 2-step paint:
 // fill bg, then fill text on top, then read back the final pixel — alpha is
 // handled natively by the canvas, which is exactly what we want for
@@ -307,7 +307,7 @@ function buildSampleShadow(condition: Condition, dark: boolean): string {
   // with a slight vertical eye-misalignment. 50 % alpha keeps the
   // ghost secondary so the primary glyph is still the dominant read.
   if (condition === 'diplopia') {
-    return '30px -5px 0 color-mix(in oklch, currentColor 50%, transparent)'
+    return '30px -5px 0 color-mix(in srgb, currentColor 50%, transparent)'
   }
   // Photophobia, dark mode only: light glyph halates outward in its
   // own bright color. In light mode the visual is carried by the
@@ -623,7 +623,7 @@ function writeUrlState(state: State) {
 
 export default function AccessibilityMatrix() {
   // Gate the whole island behind a hydration flag — the cells reach for
-  // a `<canvas>` during render to resolve oklch/alpha colors to sRGB,
+  // a `<canvas>` during render to resolve alpha-mixed colors to sRGB,
   // and that's not available during SSR.
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])

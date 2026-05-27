@@ -94,7 +94,7 @@ summary { cursor: pointer; }
 .header-anchor:active {
   text-decoration: underline;
   text-decoration-style: dotted;
-  text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);
+  text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
@@ -125,7 +125,7 @@ code {
   font-family: var(--monospace);
   font-size: 0.9em;
   color: inherit;
-  background: color-mix(in oklch, currentColor 6%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
   border: none;
   padding: 0.25em 0.4ch 0.2em;
   border-radius: 3px;
@@ -176,7 +176,7 @@ pre code { background: none; padding: 0; }
    same 6% tint over the page's base color so the toast reads as an
    opaque ghost of the original pill. */
 code[data-copied]::after {
-  background: color-mix(in oklch, currentColor 6%, var(--bg-base));
+  background: color-mix(in srgb, currentColor 6%, var(--bg-base));
 }
 
 @keyframes copy-toast {

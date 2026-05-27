@@ -482,5 +482,5 @@
   line-height: 0.7;
   vertical-align: -1px;
 }
-.a11yPass { color: oklch(0.55 0.16 145); }
-.a11yFail { color: oklch(0.55 0.20 25); }
+.a11yPass { color: #2a7e43; }
+.a11yFail { color: #c9302c; }

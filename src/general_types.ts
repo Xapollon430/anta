@@ -6,6 +6,16 @@ export interface BaseProps {
   style?: React.CSSProperties
   /** Child elements. When provided, replaces the component's default label/content. */
   children?: React.ReactNode
+  /** HTML `id` attribute. */
+  id?: string
+  /** HTML `title` attribute — native browser tooltip on hover. */
+  title?: string
+  /** Tab order. Set to `-1` to skip the element when tabbing. */
+  tabIndex?: number
+  /** Any `data-*` attribute is forwarded to the rendered element. */
+  [key: `data-${string}`]: unknown
+  /** Any `aria-*` attribute is forwarded to the rendered element. */
+  [key: `aria-${string}`]: unknown
 }
 
 /** Attributes for intrinsic custom elements (`<a-*>` tags) in JSX. */

@@ -6,9 +6,10 @@ const NAMED_TONES = new Set([
 ])
 
 /** Always-allowed props, independent of content/submit/priority mode. */
-export type BaseButtonProps = BaseProps & {
-  /** Semantic tone, or any literal CSS color (`'#ff1493'`, `'oklch(...)'`)
-   *  for a one-off custom tone. Defaults to `neutral`. */
+export type BaseButtonProps = {
+  /** Semantic tone, or any literal CSS color (`'#ff1493'`, `'rebeccapurple'`)
+   *  for a one-off custom tone. Custom tones are used as-is on `primary`
+   *  priority; other priorities fall back to neutral. Defaults to `neutral`. */
   tone?:
     | 'neutral'
     | 'brand'
@@ -17,8 +18,10 @@ export type BaseButtonProps = BaseProps & {
     | 'success'
     | 'warning'
     | (string & {})
-  /** Size variant. small=24px, default=28px, large=32px. */
-  size?: 'small' | 'default' | 'large'
+  /** Size variant. small=24px, medium=28px (default), large=32px. Omit
+   *  the attribute or pass `'medium'` for the default — both render
+   *  identically and emit no DOM attribute. */
+  size?: 'small' | 'medium' | 'large'
   /** Show a rotating loading indicator. Blocks clicks. */
   loading?: boolean
   /** Disable the button. */
@@ -27,23 +30,23 @@ export type BaseButtonProps = BaseProps & {
   selected?: boolean
   /** Click handler. */
   onClick?: (e: any) => void
-  [key: `data-${string}`]: unknown
-  [key: `aria-${string}`]: unknown
 }
 
-/** Content axis — pass `icon` alone for an icon-only button (the CSS
- *  detects this structurally via `:has(> a-icon:only-child)` and gives
- *  the host the square padding + min-size pin). Pair `icon` with
- *  `label` / `trailingIcon` / `children` for a text+icon chip. */
+/** Content axis — slots render in this order inside the button:
+ *  `icon` → `label` → `children` → `iconTrailing`. Pass `icon` alone
+ *  for an icon-only button (the CSS detects this structurally via
+ *  `:has(> a-icon:only-child)` and gives the host square padding +
+ *  min-size pin). */
 export type ContentMode = {
-  /** Label text. */
+  /** Label text. Renders between the leading icon and `children`. */
   label?: string
-  /** Icon shape. When set alone (no `label`, no `trailingIcon`, no
-   *  `children`), the button renders as a square icon-only control. */
+  /** Leading icon shape. When set alone (no `label`, no `iconTrailing`, no
+   *  `children`), the button renders as a square icon-only control and
+   *  the wrapper auto-supplies `aria-label={icon}` (override by passing
+   *  your own `aria-label`). */
   icon?: IconShape
-  /** Trailing icon shape name. */
-  trailingIcon?: IconShape
-  children?: React.ReactNode
+  /** Trailing icon shape. Renders after `children`, last in the slot order. */
+  iconTrailing?: IconShape
 }
 
 /** Submit axis — anchors (href) don't carry form-submission props; buttons
@@ -56,6 +59,10 @@ export type SubmitMode =
       target?: string
       /** Anchor rel. */
       rel?: string
+      /** Anchor download attribute. Empty string / `true` triggers a download with the resource's default name; a string overrides the filename. */
+      download?: string | boolean
+      /** Space-separated URLs the browser pings on navigation. */
+      ping?: string
       type?: never
       form?: never
     }
@@ -63,6 +70,8 @@ export type SubmitMode =
       href?: never
       target?: never
       rel?: never
+      download?: never
+      ping?: never
       /** Form submission type. */
       type?: 'button' | 'submit' | 'reset'
       /** Form id when the button isn't a descendant of its form. */
@@ -92,7 +101,7 @@ export type PriorityMode =
       paddingless?: boolean
     }
 
-export type ButtonProps = BaseButtonProps & ContentMode & SubmitMode & PriorityMode
+export type ButtonProps = BaseButtonProps & PriorityMode & ContentMode & SubmitMode & BaseProps
 
 /**
  * Action button.
@@ -119,7 +128,7 @@ export const Button = ({
   tone,
   underline,
   icon,
-  trailingIcon,
+  iconTrailing,
   paddingless,
   label,
   size,
@@ -127,8 +136,6 @@ export const Button = ({
   disabled,
   selected,
   href,
-  target,
-  rel,
   type,
   form,
   className,
@@ -136,26 +143,31 @@ export const Button = ({
   children,
   ...rest
 }: ButtonProps) => {
-  // Literal-color tone flows through --button-tone-source; the CSS
-  // resolver derives the rest via oklch(from ...).
   const isCustomTone = tone != null && !NAMED_TONES.has(tone)
   const computedStyle = isCustomTone
     ? { ...style, ['--button-tone-source']: tone }
     : style
 
+  const isIconOnly =
+    icon != null && label == null && children == null && iconTrailing == null
+
   const sharedAttrs = {
     priority,
     tone,
     underline,
-    size,
+    // 'medium' (and unset) is the implicit default — emit no DOM attr.
+    size: size && size !== 'medium' ? size : undefined,
     paddingless: paddingless ? 'true' : undefined,
     loading: loading ? 'true' : undefined,
     disabled: disabled ? 'true' : undefined,
     selected: selected ? 'true' : undefined,
     tabindex: disabled ? -1 : 0,
-    'aria-disabled': disabled ? 'true' : undefined,
+    'aria-disabled': disabled || loading ? 'true' : undefined,
     'aria-busy': loading ? 'true' : undefined,
     'aria-pressed': selected ? 'true' : undefined,
+    // Icon-only buttons get an accessible name from the icon shape;
+    // consumer's own `aria-label` (via ...rest) wins by spread order.
+    'aria-label': isIconOnly ? icon : undefined,
     class: className,
     style: computedStyle,
   } as const
@@ -165,7 +177,7 @@ export const Button = ({
       {icon && <a-icon shape={icon} aria-hidden="true" />}
       {label != null && <a-button-label>{label}</a-button-label>}
       {children}
-      {trailingIcon && <a-icon shape={trailingIcon} aria-hidden="true" />}
+      {iconTrailing && <a-icon shape={iconTrailing} aria-hidden="true" />}
     </>
   )
 
@@ -174,8 +186,6 @@ export const Button = ({
     return (
       <a
         href={href}
-        target={target}
-        rel={rel}
         role="button"
         {...sharedAttrs as any}
         {...rest}

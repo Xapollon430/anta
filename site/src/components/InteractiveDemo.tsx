@@ -364,7 +364,7 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
   const bodyClass = layout === 'side' ? `${s.body} ${s.bodySide}` : s.body
 
   return (
-    <section class={`${s.root} full-bleed`}>
+    <section class={s.root}>
       <div
         class={bodyClass}
         ref={bodyRef}
@@ -850,6 +850,7 @@ const IFRAME_SRCDOC = `<!DOCTYPE html><html class="dark"><head><meta charset="ut
   .preview {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 16px;
     width: 100%;
   }
