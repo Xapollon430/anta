@@ -67,5 +67,3 @@ await build({
     },
   ],
 })
-
-console.log(`built ${outFile}`)
