@@ -25,7 +25,6 @@
     /* Per-component reset, same spirit as Tailwind preflight: declare
        width / style / colour at a known state so a consumer only has
        to change ONE property to opt in. Writing `border-width: 4px`
-       in your own CSS (or via the Anta playground's CSS tab) gives a
        4px solid themed border immediately — no need to also specify
        `border-style: solid` or `border-color`. */
     border: 0px solid var(--progress-border-color);
