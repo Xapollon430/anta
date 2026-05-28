@@ -4,6 +4,8 @@ title: Text
 ---
 import TextDemo from '../../components/TextDemo'
 import InteractiveDemo from '../../components/InteractiveDemo'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
 import textDemoCode from './text.demo.ts'
 
 # Text
@@ -54,7 +56,13 @@ the underline to full alpha.
 
 <TextDemo client:load />
 
-## Component tokens
+<Disclosure title="Props">
+
+<PropsTable component="Text" />
+
+</Disclosure>
+
+<Disclosure title="Component tokens">
 
 `Text` derives its colors from the global token system. Every variable
 below has a light and dark mode value defined in
@@ -76,3 +84,5 @@ resolved values into its descendant link rule:
 | `--text-link-color`            | Color used by `a-text a` at rest             |
 | `--text-link-hover`            | Color used by `a-text a:hover`               |
 | `--text-link-underline-alpha`  | Alpha applied to the underline (50% / 100%)  |
+
+</Disclosure>

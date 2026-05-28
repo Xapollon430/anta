@@ -3,6 +3,8 @@ layout: ../../layouts/DocsLayout.astro
 title: Progress
 ---
 import InteractiveDemo from '../../components/InteractiveDemo'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
 // The demo source lives in a sibling `.ts` file rather than inline
 // here because Astro's MDX pipeline trims leading whitespace from
 // JSX-attribute template literals, which scrambles the indentation
@@ -22,7 +24,13 @@ A progress indicator for displaying task completion. Consists of a track
   initialCode={progressDemoCode}
 />
 
-## Component tokens
+<Disclosure title="Props">
+
+<PropsTable component="Progress" />
+
+</Disclosure>
+
+<Disclosure title="Component tokens">
 
 Progress exposes these CSS custom properties as its theming surface. Override any of them in consumer CSS to retint a single instance, or set them on a `[tone="…"]` selector to add a new tone variant. Tokens marked *(shadow-only API)* style elements inside the shadow DOM and can **only** be customized via these properties — consumer CSS can't reach those elements directly.
 
@@ -34,3 +42,5 @@ Progress exposes these CSS custom properties as its theming surface. Override an
 | `--progress-indicator-edge` *(shadow-only API)* | Gradient painted at the indicator's right edge. Defaults to `linear-gradient(90deg in oklch, var(--progress-indicator-bg), var(--progress-border-color))`. |
 | `--progress-text-color` | Colour of the percentage number and the label text. |
 | `--progress-hint-color` | Colour of the right-aligned hint text. |
+
+</Disclosure>

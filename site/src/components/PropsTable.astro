@@ -1,5 +1,6 @@
 ---
 import api from '../api.json'
+import { marked } from 'marked'
 
 interface Props {
   component: string
@@ -37,14 +38,15 @@ function renderType(type: any): string {
   }
 }
 
-function renderComment(comment: any): string {
+// TypeDoc splits a JSDoc summary into parts (`text` prose + `code`
+// spans whose `text` keeps its backticks), so joining the raw `text`
+// of every part reconstructs the original markdown source. Render it
+// as inline markdown (no wrapping <p>) so `` `code` ``, **bold**,
+// links, etc. in prop descriptions display formatted in the table.
+function renderDescription(comment: any): string {
   if (!comment?.summary) return ''
-  return comment.summary
-    .map((part: any) => {
-      if (part.kind === 'code') return part.text
-      return part.text
-    })
-    .join('')
+  const md = comment.summary.map((part: any) => part.text).join('')
+  return marked.parseInline(md) as string
 }
 
 const props = iface?.children
@@ -78,7 +80,7 @@ const inherited = iface?.children
               <code>{p.name}{p.flags?.isOptional ? '?' : ''}</code>
             </td>
             <td><code>{renderType(p.type)}</code></td>
-            <td>{renderComment(p.comment)}</td>
+            <td set:html={renderDescription(p.comment)} />
           </tr>
         ))}
       </tbody>
@@ -103,7 +105,7 @@ const inherited = iface?.children
             <tr>
               <td><code>{p.name}?</code></td>
               <td><code>{renderType(p.type)}</code></td>
-              <td>{renderComment(p.comment)}</td>
+              <td set:html={renderDescription(p.comment)} />
             </tr>
           ))}
         </tbody>
