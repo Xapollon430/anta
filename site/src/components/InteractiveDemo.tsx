@@ -856,7 +856,6 @@ const IFRAME_SRCDOC = `<!DOCTYPE html><html class="dark"><head><meta charset="ut
   .preview {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     gap: 16px;
     width: 100%;
   }

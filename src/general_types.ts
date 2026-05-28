@@ -1,3 +1,5 @@
+import type { IconShape } from './elements/a-icon.shapes'
+
 /** Common props for JSX component wrappers. */
 export interface BaseProps {
   /** CSS class name. Merged with any internal classes by the component. */
@@ -112,13 +114,15 @@ export interface ATitleAttributes extends BaseAttributes {
 }
 
 /**
- * Attributes for the `<a-icon>` custom element. The `shape` attribute
- * value is typed as `string` here so the element accepts any consumer's
- * generated shapes. The JSX wrapper (`Icon`) narrows it to `IconShape`.
+ * Attributes for the `<a-icon>` custom element. `shape` is typed as
+ * `IconShape` (`keyof IconShapes`); the `IconShapes` interface is
+ * module-augmentable, so consumers who generate their own shape sets
+ * via `declare module '@antadesign/anta' { interface IconShapes { … } }`
+ * get those keys accepted automatically.
  */
 export interface AIconAttributes extends BaseAttributes {
   /** Which icon to render. */
-  shape?: string
+  shape?: IconShape
   /** Width and height in pixels. Mapped to the `--icon-size` custom
    *  property via the CSS Values 5 typed `attr()` function — Chrome
    *  133+ and Safari 18.2+ only. Firefox hasn't shipped typed
