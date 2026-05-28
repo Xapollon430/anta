@@ -18,6 +18,16 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import s from './InteractiveDemo.module.css'
+// Monaco ships its structural CSS as ~110 separate `import './x.css'`
+// side-effect imports inside its ESM build. Vite injects each one
+// live in dev (so the editor looks right under `pnpm dev`) but emits
+// none of them into the production bundle, since they're only reached
+// through the lazily-imported `monaco-editor` chunk. Without these
+// rules the editor's hidden <textarea> (`.inputarea`) falls back to
+// the UA default (border + resize grip) and the layout breaks. Pull
+// in Monaco's concatenated stylesheet statically so it's always part
+// of this island's CSS in both dev and prod.
+import 'monaco-editor/min/vs/editor/editor.main.css'
 
 import { controlsFor, controlsForExample, type Control, type PropEntry } from '../../lib/sandbox/props-form.ts'
 import { bundle, type BundleResult } from '../../lib/sandbox/bundler.ts'
