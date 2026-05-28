@@ -838,7 +838,13 @@ function ExampleAccordion({
 // pipeline still applies anta tokens for typography and colors;
 // removing the body background just lets the host card paint behind.
 const IFRAME_SRCDOC = `<!DOCTYPE html><html class="dark"><head><meta charset="utf-8"><style>
-  html, body { margin: 0; background: transparent; font-family: var(--sans-serif, sans-serif); }
+  /* Pin the Antithesis-sans variable font's slnt / ital axes to 0.
+     Safari leaves variable-font axes at the font file's internal
+     defaults unless they're explicitly set — and our font ships
+     with non-zero defaults — so without this the preview iframe
+     renders italic on Safari only. \`font-style: normal\` is the
+     belt to the variation-settings braces. */
+  html, body { margin: 0; background: transparent; font-family: var(--sans-serif, sans-serif); font-style: normal; font-variation-settings: "slnt" 0, "ital" 0; }
   body { padding: 24px; overflow: auto; box-sizing: border-box; min-height: 100%; }
   /* Preview default layout: a column-flex with 16px gap so multiple
      examples stack vertically with consistent breathing room. The

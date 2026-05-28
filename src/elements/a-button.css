@@ -330,7 +330,11 @@
     font-size: 15px;
     font-family: var(--sans-serif);
     font-weight: 500;
-    font-variation-settings: "wdth" 88;
+    /* All upstream axes must be re-stated here — `font-variation-settings`
+       replaces, it doesn't merge with inherited values. Dropping
+       "slnt"/"ital" would revert them to the font file's non-zero
+       defaults and Safari would render button labels italic. */
+    font-variation-settings: "wdth" 88, "slnt" 0, "ital" 0;
     line-height: 20px;
     letter-spacing: 0.1ch;
 
