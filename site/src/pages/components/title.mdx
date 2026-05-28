@@ -4,6 +4,8 @@ title: Title
 ---
 import { Title, Text, Icon } from '@antadesign/anta'
 import InteractiveDemo from '../../components/InteractiveDemo'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
 import titleDemoCode from './title.demo.ts'
 
 # Title
@@ -188,3 +190,9 @@ announce it correctly. Search-engine crawlers, however, generally
 ignore ARIA headings — if SEO matters, write raw `<h{level}>` instead
 (it gets the same visual treatment from the reset) and skip the
 component.
+
+<Disclosure title="Props">
+
+<PropsTable component="Title" />
+
+</Disclosure>
