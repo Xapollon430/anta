@@ -221,7 +221,11 @@ code[data-copied]::after {
   scrollbar-width: thin;
   margin: 0 0 24px;
 }
-.table-wrap > table {
+/* The wrap owns the bottom margin; zero it on the inner table so a
+   wrapped table doesn't stack its own `.content table` margin on top
+   of the wrap's (which doubled the gap). Scoped to `.content` so it
+   outranks the equal-specificity-but-later `.content table` rule below. */
+.content .table-wrap > table {
   margin: 0;
 }
 
