@@ -9,9 +9,22 @@ name: Cleanup Cloudflare Pages production deployments
 # deployment (the one currently aliased to the production domain) and
 # deletes every other production deployment with `?force=true` (the
 # aliased one would otherwise reject the DELETE — same gotcha as the
-# preview-cleanup workflow). Manual trigger only — fire it from the
-# Actions UI after a known-good production deploy.
+# preview-cleanup workflow).
+#
+# Triggers:
+#  - push to main: fires immediately when a new production deploy
+#    starts. The new Cloudflare deploy is usually still building, so
+#    the script's `status == "success"` filter skips it; the previous
+#    successful deploy stays kept and everything older is reaped.
+#  - schedule (every 30 min): catches up after the new deploy
+#    completes — the previously-kept deploy is no longer newest, so
+#    the next scheduled run prunes it.
+#  - workflow_dispatch: keep for manual / ad-hoc runs.
 on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0,30 * * * *'
   workflow_dispatch:
 
 permissions: {}
