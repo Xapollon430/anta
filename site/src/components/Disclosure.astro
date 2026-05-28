@@ -1,0 +1,122 @@
+---
+// A collapsible documentation section: a styled <details>/<summary>
+// whose header matches the visual scale of an `##` (h2) heading so a
+// `<Disclosure title="…">` reads like the section heading it replaces.
+// Used on the component pages to fold the Props and Component tokens
+// references away by default (the live demo stays the focus).
+//
+// `id` (or a slug derived from `title`) lands on the <details> element
+// so existing deep links — e.g. `#component-tokens` — keep resolving.
+interface Props {
+  title: string
+  /** Start expanded. Defaults to collapsed. */
+  open?: boolean
+  /** Anchor id. Defaults to a slug of `title`. */
+  id?: string
+}
+
+const { title, open = false, id } = Astro.props
+const slug = (id ?? title)
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/(^-|-$)/g, '')
+---
+
+<details class="disclosure" id={slug} open={open}>
+  <summary class="summary">
+    <a-icon shape="chevron-right" class="chevron" style="--icon-size: 18px"></a-icon>
+    {/* Same anchor markup rehype-autolink-headings applies to `##`
+        headings (`behavior: 'wrap'`, classes `header-anchor muted`),
+        so the section deep-links and hover-underlines like the rest.
+        The href points at the <details>'s own id. */}
+    <a class="title header-anchor muted" href={`#${slug}`}>{title}</a>
+  </summary>
+  <div class="body">
+    <slot />
+  </div>
+</details>
+
+<style>
+  .disclosure {
+    margin-block: 32px 0;
+  }
+
+  .summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text-1);
+    /* Hide the default disclosure triangle — the chevron replaces it. */
+    list-style: none;
+  }
+  .summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .title {
+    font-size: 24px;
+    line-height: 28px;
+    font-weight: 584.62;
+    letter-spacing: 0;
+  }
+
+  .chevron {
+    color: var(--text-3);
+    flex-shrink: 0;
+    transition: transform 150ms ease-out, color 120ms ease-out;
+  }
+  .summary:hover .chevron {
+    color: var(--text-1);
+  }
+  .disclosure[open] > .summary .chevron {
+    transform: rotate(90deg);
+  }
+
+  .body {
+    margin-top: 12px;
+  }
+</style>
+
+<script>
+  // Make the disclosure headers behave like anchor-linked headings:
+  // clicking the header link always EXPANDS the section (never toggles
+  // it closed) and deep-links it, and arriving via a `#slug` URL opens
+  // the targeted section. Bundled once per page by Astro regardless of
+  // how many <Disclosure>s render, so it queries them all.
+  function openDisclosure(id: string): HTMLDetailsElement | null {
+    if (!id) return null
+    const el = document.getElementById(id)
+    if (el instanceof HTMLDetailsElement && el.classList.contains('disclosure')) {
+      el.open = true
+      return el
+    }
+    return null
+  }
+
+  // Deep links (shared URL, in-page nav): expand + scroll to the target.
+  function syncFromHash() {
+    const opened = openDisclosure(decodeURIComponent(location.hash.slice(1)))
+    if (opened) opened.scrollIntoView({ block: 'start' })
+  }
+  syncFromHash()
+  window.addEventListener('hashchange', syncFromHash)
+
+  // Header-link click: own the interaction so the section opens rather
+  // than relying on the native <summary> toggle (which doesn't fire for
+  // a nested link). stopPropagation keeps it from toggling closed; the
+  // chevron / summary still toggles normally for collapsing.
+  for (const a of document.querySelectorAll<HTMLAnchorElement>(
+    'details.disclosure > summary > a.header-anchor',
+  )) {
+    a.addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const details = a.closest('details')
+      if (!details) return
+      details.open = true
+      if (details.id) location.hash = details.id
+    })
+  }
+</script>
