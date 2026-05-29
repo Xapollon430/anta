@@ -1,7 +1,8 @@
 import type { BaseProps } from "../general_types"
 
 export interface TextProps extends BaseProps {
-  /** Visual priority. Maps to text-1..text-5. Defaults to 'primary' (text-1). */
+  /** Visual priority. Maps to text-1..text-5 (`primary` = text-1).
+   *  @defaultValue primary */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
   tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'

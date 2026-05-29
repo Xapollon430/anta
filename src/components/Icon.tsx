@@ -6,7 +6,8 @@ export interface IconProps extends BaseProps {
    *  built-in icons plus any consumer-generated shapes (via the
    *  `IconShapes` interface module augmentation). */
   shape: IconShape
-  /** Width and height in pixels. Defaults to `16`. */
+  /** Width and height in pixels.
+   *  @defaultValue 16 */
   size?: number
   /** Accessible name for the icon. When set, the wrapper exposes
    *  `role="img"` and `aria-label={label}` so screen readers announce

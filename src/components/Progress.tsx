@@ -4,9 +4,11 @@ import { hasChildren } from "../anta_helpers"
 export interface ProgressProps extends BaseProps {
   /** Current progress value. Negative values are clamped to 0. */
   value: number
-  /** Upper bound of the range. Defaults to 100. */
+  /** Upper bound of the range.
+   *  @defaultValue 100 */
   max?: number
-  /** Color variant. `'info'` applies a blue tint. */
+  /** Color variant. `'info'` applies a blue tint.
+   *  @defaultValue neutral */
   tone?: 'neutral' | 'info'
   /** Text label displayed after the percentage. */
   label?: string

@@ -2,10 +2,12 @@ import type { BaseProps } from "../general_types"
 
 export interface TitleProps extends BaseProps {
   /** Heading level, 1-6. Drives font-size, line-height, and vertical
-   *  rhythm. Also surfaced to assistive tech via `aria-level`. Defaults
-   *  to 2 (h1 is typically reserved for the page title). */
+   *  rhythm. Also surfaced to assistive tech via `aria-level`
+   *  (h1 is typically reserved for the page title).
+   *  @defaultValue 2 */
   level?: 1 | 2 | 3 | 4 | 5 | 6
-  /** Visual priority. Maps to text-1..text-5. Defaults to 'primary' (text-1). */
+  /** Visual priority. Maps to text-1..text-5 (`primary` = text-1).
+   *  @defaultValue primary */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
   tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'

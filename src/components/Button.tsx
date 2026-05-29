@@ -27,7 +27,8 @@ const wrapChildren = (kids: React.ReactNode): React.ReactNode => {
 export type BaseButtonProps = {
   /** Semantic tone, or any literal CSS color (`'#ff1493'`, `'rebeccapurple'`)
    *  for a one-off custom tone. Custom tones are used as-is on `primary`
-   *  priority; other priorities fall back to neutral. Defaults to `neutral`. */
+   *  priority; other priorities fall back to neutral.
+   *  @defaultValue neutral */
   tone?:
     | 'neutral'
     | 'brand'
@@ -36,9 +37,10 @@ export type BaseButtonProps = {
     | 'success'
     | 'warning'
     | (string & {})
-  /** Size variant. small=24px, medium=28px (default), large=32px. Omit
-   *  the attribute or pass `'medium'` for the default — both render
-   *  identically and emit no DOM attribute. */
+  /** Size variant. small=24px, medium=28px, large=32px. Omit the
+   *  attribute or pass `'medium'` for the default — both render
+   *  identically and emit no DOM attribute.
+   *  @defaultValue medium */
   size?: 'small' | 'medium' | 'large'
   /** Show a rotating loading indicator. Blocks clicks. */
   loading?: boolean
@@ -100,7 +102,8 @@ export type SubmitMode =
  *  `paddingless` only on `quaternary`. */
 export type PriorityMode =
   | {
-      /** Visual emphasis. Defaults to `primary`. */
+      /** Visual emphasis.
+       *  @defaultValue primary */
       priority?: 'primary' | 'secondary'
       underline?: never
       paddingless?: never
