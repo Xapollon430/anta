@@ -72,6 +72,12 @@
     font-weight: 600;
   }
 
+  /* Keep inline `<code>` from inflating the line box of the prose it
+     sits in — `1em` pins its line height to its own font size. */
+  code {
+    line-height: 1em;
+  }
+
   /* Prose lists (ul, ol) get a tight 3ch left padding so markers
      hug the text, and items get a small bottom margin so
      consecutive ones breathe. Markers are toned all the way down

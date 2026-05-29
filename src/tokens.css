@@ -153,11 +153,11 @@
   font-weight: 400;
 
   /* Backgrounds — dark, neutral */
-  --bg-base: #100e11;
-  --bg-pane: #1d1a1e;
-  --bg-block: #272329;
-  --bg-spot: #302b31;
-  --bg-section: #171519;
+  --bg-base: #050306;
+  --bg-pane: #171519;
+  --bg-block: #1d1a1e;
+  --bg-spot: #221e24;
+  --bg-section: #100e11;
 
   /* Backgrounds — dark, Brand */
   --bg-base-brand: #0f0c1d;
@@ -232,11 +232,11 @@
   --text-5-info: #7db6e866;
 
   /* Borders — dark, neutral */
-  --border-1: #776e77;
-  --border-2: #534c57;
-  --border-3: #49424c;
-  --border-4: #3e3941;
-  --border-5: #272329;
+  --border-1: #635b65;
+  --border-2: #49424c;
+  --border-3: #3e3941;
+  --border-4: #302b31;
+  --border-5: #1d1a1e;
 
   /* Borders — dark, Brand */
   --border-1-brand: #7460d7;
