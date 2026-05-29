@@ -26,8 +26,9 @@ const wrapChildren = (kids: React.ReactNode): React.ReactNode => {
 /** Always-allowed props, independent of content/submit/priority mode. */
 export type BaseButtonProps = {
   /** Semantic tone, or any literal CSS color (`'#ff1493'`, `'rebeccapurple'`)
-   *  for a one-off custom tone. Custom tones are used as-is on `primary`
-   *  priority; other priorities fall back to neutral.
+   *  for a one-off custom tone. Primary uses the color as-is; secondary,
+   *  tertiary, and quaternary take its hue and pin lightness/chroma to the
+   *  brand curve so any input stays legible.
    *  @defaultValue neutral */
   tone?:
     | 'neutral'
@@ -37,7 +38,7 @@ export type BaseButtonProps = {
     | 'success'
     | 'warning'
     | (string & {})
-  /** Size variant. small=24px, medium=28px, large=32px. Omit the
+  /** Size variant. small=22px, medium=26px, large=30px. Omit the
    *  attribute or pass `'medium'` for the default — both render
    *  identically and emit no DOM attribute.
    *  @defaultValue medium */
@@ -50,6 +51,11 @@ export type BaseButtonProps = {
   selected?: boolean
   /** Click handler. */
   onClick?: (e: any) => void
+  /** Tab order. The button is keyboard-focusable by default (`0`) and
+   *  becomes `-1` automatically while `disabled` — `<a-button>` and
+   *  `<a role="button">` aren't focusable without an explicit tabindex.
+   *  @defaultValue 0 */
+  tabIndex?: number
 }
 
 /** Content axis — slots render in this order inside the button:
@@ -103,7 +109,7 @@ export type SubmitMode =
 export type PriorityMode =
   | {
       /** Visual emphasis.
-       *  @defaultValue primary */
+       *  @defaultValue secondary */
       priority?: 'primary' | 'secondary'
       underline?: never
       paddingless?: never
@@ -182,7 +188,7 @@ export const Button = ({
     loading: loading ? 'true' : undefined,
     disabled: disabled ? 'true' : undefined,
     selected: selected ? 'true' : undefined,
-    tabindex: disabled ? -1 : 0,
+    tabIndex: disabled ? -1 : 0,
     'aria-disabled': disabled || loading ? 'true' : undefined,
     'aria-busy': loading ? 'true' : undefined,
     'aria-pressed': selected ? 'true' : undefined,

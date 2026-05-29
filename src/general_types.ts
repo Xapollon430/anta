@@ -159,7 +159,7 @@ export interface AButtonAttributes extends BaseAttributes {
     | (string & {})
   /** Underline style. Only renders on `priority="tertiary" | "quaternary"`. */
   underline?: 'solid' | 'dashed' | 'dotted'
-  /** Size variant. small=24px, medium=28px, large=32px. */
+  /** Size variant. small=22px, medium=26px, large=30px. */
   size?: 'small' | 'medium' | 'large'
   /** Drop outer padding to zero. Only takes effect on `priority="quaternary"`. */
   paddingless?: 'true' | 'false' | boolean
@@ -177,5 +177,4 @@ export interface AButtonAttributes extends BaseAttributes {
   'data-custom-event'?: string
   'aria-disabled'?: 'true' | 'false' | boolean
   'aria-busy'?: 'true' | 'false' | boolean
-  tabindex?: number | string
 }

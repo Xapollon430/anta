@@ -23,7 +23,7 @@
     --button-loading-x-period: calc(
       var(--button-loading-period) / cos(var(--button-loading-angle) - 90deg)
     );
-    --button-loading-opacity: 0.2;
+    --button-loading-opacity: 0.25;
     --button-loading-blur: 2.5px;
 
     --button-bg-primary-rest: #635b65;
@@ -31,7 +31,7 @@
     --button-bg-primary-active: #49424c;
     --button-fg-primary-rest: var(--button-primary-fg);
 
-    --button-bg-secondary-rest: #44374b0d;
+    --button-bg-secondary-rest: #45374c12;
     --button-bg-secondary-hover: #44374b1a;
     --button-bg-secondary-active: #44374b33;
     --button-fg-secondary-rest: #534c57;
@@ -52,7 +52,7 @@
     --button-max-height: 100%;
 
     /* Transitions */
-    --button-timing-in: 50ms ease-out;
+    --button-timing-in: 75ms ease-in;
     --button-timing-active: 50ms linear;
     --button-timing-out: 150ms ease-out;
     --button-loading-duration: 1s;
@@ -196,7 +196,7 @@
     --button-fg-tertiary-rest: #afa9b1;
     --button-fg-tertiary-hover: #afa9b1;
     --button-bg-tertiary-hover: #e4d1ef1a;
-    --button-bg-tertiary-active: #e4d1ef40;
+    --button-bg-tertiary-active: #e4d1ef26;
 
     --button-fg-quaternary-rest: #afa9b1;
     --button-fg-quaternary-hover: #cac4ca;
@@ -208,16 +208,16 @@
     --button-bg-primary-hover: #5f4bc3;
     --button-bg-primary-active: #7460d7;
 
-    --button-bg-secondary-rest: #7460d74d;
-    --button-bg-secondary-hover: #7460d766;
-    --button-bg-secondary-active: #7460d780;
+    --button-bg-secondary-rest: #7460d726;
+    --button-bg-secondary-hover: #7460d733;
+    --button-bg-secondary-active: #7460d740;
     --button-fg-secondary-rest: #c5baff;
     --button-fg-secondary-hover: #d2cbf6;
 
     --button-fg-tertiary-rest: #ada0ee;
     --button-fg-tertiary-hover: #bcb1f1;
-    --button-bg-tertiary-hover: #7460d733;
-    --button-bg-tertiary-active: #7460d74d;
+    --button-bg-tertiary-hover: #7460d726;
+    --button-bg-tertiary-active: #7460d733;
 
     --button-fg-quaternary-rest: #ada0ee;
     --button-fg-quaternary-hover: #c7bef4;
@@ -229,16 +229,16 @@
     --button-bg-primary-hover: #c9302c;
     --button-bg-primary-active: #de4545;
 
-    --button-bg-secondary-rest: #de45454d;
-    --button-bg-secondary-hover: #de454566;
-    --button-bg-secondary-active: #de454580;
+    --button-bg-secondary-rest: #de454526;
+    --button-bg-secondary-hover: #de454533;
+    --button-bg-secondary-active: #de454540;
     --button-fg-secondary-rest: #ffabac;
     --button-fg-secondary-hover: #f4c2c2;
 
     --button-fg-tertiary-rest: #e78e90;
     --button-fg-tertiary-hover: #efa4a4;
-    --button-bg-tertiary-hover: #de454533;
-    --button-bg-tertiary-active: #de45454d;
+    --button-bg-tertiary-hover: #de454526;
+    --button-bg-tertiary-active: #de454533;
 
     --button-fg-quaternary-rest: #e78e90;
     --button-fg-quaternary-hover: #ffabac;
@@ -250,16 +250,16 @@
     --button-bg-primary-hover: #1f6eb2;
     --button-bg-primary-active: #2686d9;
 
-    --button-bg-secondary-rest: #2686d94d;
-    --button-bg-secondary-hover: #2686d966;
-    --button-bg-secondary-active: #2686d980;
+    --button-bg-secondary-rest: #2686d926;
+    --button-bg-secondary-hover: #2686d933;
+    --button-bg-secondary-active: #2686d940;
     --button-fg-secondary-rest: #9ed2ff;
     --button-fg-secondary-hover: #bad6f3;
 
     --button-fg-tertiary-rest: #7db6e8;
     --button-fg-tertiary-hover: #93c5ec;
-    --button-bg-tertiary-hover: #2686d933;
-    --button-bg-tertiary-active: #2686d94d;
+    --button-bg-tertiary-hover: #2686d926;
+    --button-bg-tertiary-active: #2686d933;
 
     --button-fg-quaternary-rest: #7db6e8;
     --button-fg-quaternary-hover: #a6cdef;
@@ -271,16 +271,16 @@
     --button-bg-primary-hover: #2a7e43;
     --button-bg-primary-active: #329550;
 
-    --button-bg-secondary-rest: #3295504d;
-    --button-bg-secondary-hover: #32955066;
-    --button-bg-secondary-active: #32955080;
+    --button-bg-secondary-rest: #32955026;
+    --button-bg-secondary-hover: #32955033;
+    --button-bg-secondary-active: #32955040;
     --button-fg-secondary-rest: #8ceca9;
     --button-fg-secondary-hover: #b3e5c2;
 
     --button-fg-tertiary-rest: #74cd8e;
     --button-fg-tertiary-hover: #88d7a0;
-    --button-bg-tertiary-hover: #32955033;
-    --button-bg-tertiary-active: #3295504d;
+    --button-bg-tertiary-hover: #32955026;
+    --button-bg-tertiary-active: #32955033;
 
     --button-fg-quaternary-rest: #74cd8e;
     --button-fg-quaternary-hover: #9ddeb1;
@@ -292,16 +292,16 @@
     --button-bg-primary-hover: #995200;
     --button-bg-primary-active: #ae6613;
 
-    --button-bg-secondary-rest: #c374164d;
-    --button-bg-secondary-hover: #c3741666;
-    --button-bg-secondary-active: #c3741680;
+    --button-bg-secondary-rest: #c3741626;
+    --button-bg-secondary-hover: #c3741633;
+    --button-bg-secondary-active: #c3741640;
     --button-fg-secondary-rest: #f7c06e;
     --button-fg-secondary-hover: #f3cc91;
 
     --button-fg-tertiary-rest: #e1a452;
     --button-fg-tertiary-hover: #edb25a;
-    --button-bg-tertiary-hover: #c3741633;
-    --button-bg-tertiary-active: #c374164d;
+    --button-bg-tertiary-hover: #c3741626;
+    --button-bg-tertiary-active: #c3741633;
 
     --button-fg-quaternary-rest: #e1a452;
     --button-fg-quaternary-hover: #f0bf75;
@@ -312,7 +312,7 @@
     user-select: none;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 0.5ch;
     overflow: hidden;
     cursor: pointer;
     /* Don't shrink in a flex parent — `overflow: hidden` would clip
@@ -332,8 +332,8 @@
        "slnt"/"ital" would revert them to the font file's non-zero
        defaults and Safari would render button labels italic. */
     font-variation-settings: "wdth" 88, "slnt" 0, "ital" 0;
-    line-height: 20px;
-    letter-spacing: 0.1ch;
+    line-height: 18px;
+    letter-spacing: 0.05ch;
 
     text-overflow: ellipsis;
     text-wrap: nowrap;
@@ -351,6 +351,12 @@
       white-space: nowrap;
       overflow: hidden;
       min-width: 0;
+      /* Optical centering: a 17px line box + 1px bottom padding keeps the
+         label box at 18px (so button heights are unchanged) while nudging
+         the glyphs up ~0.5px, which reads as vertically centered for the
+         Antithesis-sans metrics. */
+      line-height: 17px;
+      padding-bottom: 1px;
       /* Switch to flex when the label has inline children so they
          align on a baseline with a small gap. */
       &:has(> *) {
@@ -463,8 +469,8 @@
     &:has(> a-icon:only-child) {
       --button-padding-y: 4px;
       --button-padding-x: 4px;
-      min-width: 24px;
-      min-height: 24px;
+      min-width: 26px;
+      min-height: 26px;
       /* Centre the icon when the host is given an explicit width / height
          larger than the natural square — without this the icon sits at the
          padding-start edge. No-op when the button is at its intrinsic
@@ -473,15 +479,28 @@
       &[size="small"] {
         --button-padding-y: 2px;
         --button-padding-x: 2px;
-        min-width: 20px;
-        min-height: 20px;
+        min-width: 22px;
+        min-height: 22px;
       }
       &[size="large"] {
         --button-padding-y: 6px;
         --button-padding-x: 6px;
-        min-width: 28px;
-        min-height: 28px;
+        min-width: 30px;
+        min-height: 30px;
       }
+    }
+
+    /* Optical side padding: an icon at an edge needs less breathing room
+       than a text edge, so tighten the padding on whichever side a
+       (non-only) icon occupies — leading icon trims the start, trailing
+       icon trims the end — to ~2px under the text-edge padding (8px → 6px
+       at medium). `max(0px, …)` keeps paddingless/quaternary at 0.
+       Icon-only buttons are handled by the rule above. */
+    &:has(> a-icon:first-child:not(:only-child)) {
+      padding-inline-start: max(0px, var(--button-padding-x) - 2px);
+    }
+    &:has(> a-icon:last-child:not(:only-child)) {
+      padding-inline-end: max(0px, var(--button-padding-x) - 2px);
     }
 
     &[loading="true"] {
@@ -517,12 +536,16 @@
       }
     }
 
-    /* Custom tone — any non-named `tone` value. The literal color is
-       used as-is for primary fill; other priorities fall back to the
-       neutral defaults. JSX wrapper writes `--button-tone-source`
-       inline for SSR/older-engine support; the typed attr() fallback
-       picks up raw `<a-button tone="…">` usage on engines that
-       support CSS Values 5 attr() (Chrome 133+, Safari 18.2+). */
+    /* Custom tone — any non-named `tone` value. Primary uses the literal
+       color as-is; the other priorities derive from the source HUE via
+       oklch relative color, with lightness/chroma/alpha pinned near Brand
+       so any hue reads like a sibling of the named tones. The `--_tone-*`
+       knobs below are the only numbers to tune; the dark block re-tunes
+       them and the formulas resolve against whichever value computes.
+       JSX wrapper writes `--button-tone-source` inline for SSR / older
+       engines; the typed attr() fallback picks up raw `<a-button tone="…">`
+       on Chrome 133+ / Safari 18.2+. (oklch relative color: Chrome 119+,
+       Safari 16.4+, Firefox 128+.) */
     &[tone]:not(
         [tone="brand"],
         [tone="neutral"],
@@ -532,37 +555,84 @@
         [tone="warning"]
       ) {
       --button-tone-source: attr(tone type(<color>), transparent);
+
+      /* Tunable knobs (light mode). */
+      --_tone-fg-l: 0.46;          /* fg rest lightness */
+      --_tone-fg-strong-l: 0.40;   /* fg hover / active lightness */
+      --_tone-fg-c: 0.17;          /* fg chroma */
+      --_tone-bg-l: 0.54;          /* tinted-bg lightness */
+      --_tone-bg-c: 0.16;          /* tinted-bg chroma */
+      --_tone-bg-a-rest: 0.10;     /* tinted-bg alpha (rest) */
+      --_tone-bg-a-hover: 0.15;    /* tinted-bg alpha (hover) */
+      --_tone-bg-a-active: 0.20;   /* tinted-bg alpha (active) */
+
+      /* Primary — source color as-is. */
       --button-bg-primary-rest: var(--button-tone-source);
       --button-bg-primary-hover: color-mix(in srgb, var(--button-tone-source), black 12%);
       --button-bg-primary-active: color-mix(in srgb, var(--button-tone-source), black 22%);
       --button-fg-primary-rest: var(--button-primary-fg);
+
+      /* Secondary / tertiary / quaternary fg — source hue, pinned L/C. */
+      --button-fg-secondary-rest:   oklch(from var(--button-tone-source) var(--_tone-fg-l) var(--_tone-fg-c) h);
+      --button-fg-secondary-hover:  oklch(from var(--button-tone-source) var(--_tone-fg-strong-l) var(--_tone-fg-c) h);
+      --button-fg-tertiary-rest:    oklch(from var(--button-tone-source) var(--_tone-fg-l) var(--_tone-fg-c) h);
+      --button-fg-tertiary-hover:   oklch(from var(--button-tone-source) var(--_tone-fg-strong-l) var(--_tone-fg-c) h);
+      --button-fg-quaternary-rest:  oklch(from var(--button-tone-source) var(--_tone-fg-l) var(--_tone-fg-c) h);
+      --button-fg-quaternary-hover: oklch(from var(--button-tone-source) var(--_tone-fg-strong-l) var(--_tone-fg-c) h);
+
+      /* Tinted backgrounds — source hue, pinned L, brand-like alphas. */
+      --button-bg-secondary-rest:   oklch(from var(--button-tone-source) var(--_tone-bg-l) var(--_tone-bg-c) h / var(--_tone-bg-a-rest));
+      --button-bg-secondary-hover:  oklch(from var(--button-tone-source) var(--_tone-bg-l) var(--_tone-bg-c) h / var(--_tone-bg-a-hover));
+      --button-bg-secondary-active: oklch(from var(--button-tone-source) var(--_tone-bg-l) var(--_tone-bg-c) h / var(--_tone-bg-a-active));
+      --button-bg-tertiary-hover:   oklch(from var(--button-tone-source) var(--_tone-bg-l) var(--_tone-bg-c) h / var(--_tone-bg-a-rest));
+      --button-bg-tertiary-active:  oklch(from var(--button-tone-source) var(--_tone-bg-l) var(--_tone-bg-c) h / var(--_tone-bg-a-hover));
     }
 
-    /* Wire the per-tone vars into the final fg/bg colors. Primary
+    /* Custom tone, dark mode — same formulas, re-tuned knobs: lighter fg
+       and heavier tint alphas to read against a dark page. */
+    .dark &[tone]:not(
+        [tone="brand"],
+        [tone="neutral"],
+        [tone="critical"],
+        [tone="info"],
+        [tone="success"],
+        [tone="warning"]
+      ) {
+      --_tone-fg-l: 0.78;
+      --_tone-fg-strong-l: 0.85;
+      --_tone-fg-c: 0.11;
+      --_tone-bg-l: 0.58;
+      --_tone-bg-a-rest: 0.15;
+      --_tone-bg-a-hover: 0.20;
+      --_tone-bg-a-active: 0.25;
+    }
+
+    /* Wire the per-tone vars into the final fg/bg colors. Secondary
        is the default — declared unscoped so a bare `a-button` consumer
-       selector can override it without bumping specificity. The other
-       priorities (secondary/tertiary/quaternary) match an explicit
-       `[priority="…"]` attr and win on specificity. */
-    --button-fg: var(--button-fg-primary-rest);
-    --button-bg: var(--button-bg-primary-rest);
+       selector can override it without bumping specificity. Primary,
+       tertiary, and quaternary match an explicit `[priority="…"]` attr
+       and win on specificity (primary's constant fg beats the unscoped
+       :hover on source order). */
+    --button-fg: var(--button-fg-secondary-rest);
+    --button-bg: var(--button-bg-secondary-rest);
     &:hover {
-      --button-bg: var(--button-bg-primary-hover);
+      --button-fg: var(--button-fg-secondary-hover);
+      --button-bg: var(--button-bg-secondary-hover);
     }
     &:active,
     &[selected] {
-      --button-bg: var(--button-bg-primary-active);
+      --button-fg: var(--button-fg-secondary-hover);
+      --button-bg: var(--button-bg-secondary-active);
     }
-    &[priority="secondary"] {
-      --button-fg: var(--button-fg-secondary-rest);
-      --button-bg: var(--button-bg-secondary-rest);
+    &[priority="primary"] {
+      --button-fg: var(--button-fg-primary-rest);
+      --button-bg: var(--button-bg-primary-rest);
       &:hover {
-        --button-fg: var(--button-fg-secondary-hover);
-        --button-bg: var(--button-bg-secondary-hover);
+        --button-bg: var(--button-bg-primary-hover);
       }
       &:active,
       &[selected] {
-        --button-fg: var(--button-fg-secondary-hover);
-        --button-bg: var(--button-bg-secondary-active);
+        --button-bg: var(--button-bg-primary-active);
       }
     }
     &[priority="tertiary"] {
@@ -584,21 +654,25 @@
       &:hover {
         --button-fg: var(--button-fg-quaternary-hover);
       }
-      &:active,
       &[selected] {
         --button-fg: var(--button-fg-quaternary-hover);
+      }
+      /* Pressing returns quaternary to its rest look — declared after
+         :hover so it wins while the pointer is still over the button. */
+      &:active {
+        --button-fg: var(--button-fg-quaternary-rest);
       }
     }
 
     /* Set bg/color directly (not the vars) so inline-style
        `--button-bg` overrides can't keep a disabled button alive.
-       Primary disabled is the default; other priorities override below. */
+       Secondary disabled is the default; other priorities override below. */
     &[disabled="true"] {
-      background-color: var(--bg-primary-disabled);
-      color: var(--fg-disabled-primary);
-      &[priority="secondary"] {
-        background-color: var(--bg-secondary-disabled);
-        color: var(--fg-disabled);
+      background-color: var(--bg-secondary-disabled);
+      color: var(--fg-disabled);
+      &[priority="primary"] {
+        background-color: var(--bg-primary-disabled);
+        color: var(--fg-disabled-primary);
       }
       &[priority="tertiary"],
       &[priority="quaternary"] {
