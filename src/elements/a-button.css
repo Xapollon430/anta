@@ -321,9 +321,6 @@
 
     color: var(--button-fg);
     background-color: var(--button-bg);
-    border-color: var(--button-br);
-    border-style: solid;
-    border-width: 0;
     border-radius: 4px;
     text-decoration: none;
 
@@ -372,14 +369,12 @@
 
     transition:
       color var(--button-timing-out),
-      border-color var(--button-timing-out),
       background-color var(--button-timing-out);
 
     &:hover,
     &:focus-visible {
       transition:
         color var(--button-timing-in),
-        border-color var(--button-timing-in),
         background-color var(--button-timing-in);
       & a-icon {
         transition: color var(--button-timing-in);
@@ -390,7 +385,6 @@
     &[selected] {
       transition:
         color var(--button-timing-active),
-        border-color var(--button-timing-active),
         background-color var(--button-timing-active);
       & a-icon {
         transition: color var(--button-timing-active);
@@ -544,28 +538,23 @@
       --button-fg-primary-rest: var(--button-primary-fg);
     }
 
-    /* Wire the per-tone vars into the final fg/bg/br colors. Primary
+    /* Wire the per-tone vars into the final fg/bg colors. Primary
        is the default — declared unscoped so a bare `a-button` consumer
        selector can override it without bumping specificity. The other
        priorities (secondary/tertiary/quaternary) match an explicit
-       `[priority="…"]` attr and win on specificity. Primary uses bg for
-       the border; the rest hold border transparent. */
+       `[priority="…"]` attr and win on specificity. */
     --button-fg: var(--button-fg-primary-rest);
     --button-bg: var(--button-bg-primary-rest);
-    --button-br: var(--button-bg-primary-rest);
     &:hover {
       --button-bg: var(--button-bg-primary-hover);
-      --button-br: var(--button-bg-primary-hover);
     }
     &:active,
     &[selected] {
       --button-bg: var(--button-bg-primary-active);
-      --button-br: var(--button-bg-primary-active);
     }
     &[priority="secondary"] {
       --button-fg: var(--button-fg-secondary-rest);
       --button-bg: var(--button-bg-secondary-rest);
-      --button-br: transparent;
       &:hover {
         --button-fg: var(--button-fg-secondary-hover);
         --button-bg: var(--button-bg-secondary-hover);
@@ -579,7 +568,6 @@
     &[priority="tertiary"] {
       --button-fg: var(--button-fg-tertiary-rest);
       --button-bg: transparent;
-      --button-br: transparent;
       &:hover {
         --button-fg: var(--button-fg-tertiary-hover);
         --button-bg: var(--button-bg-tertiary-hover);
@@ -593,7 +581,6 @@
     &[priority="quaternary"] {
       --button-fg: var(--button-fg-quaternary-rest);
       --button-bg: transparent;
-      --button-br: transparent;
       &:hover {
         --button-fg: var(--button-fg-quaternary-hover);
       }
@@ -603,22 +590,19 @@
       }
     }
 
-    /* Set bg/color/border-color directly (not the vars) so inline-style
+    /* Set bg/color directly (not the vars) so inline-style
        `--button-bg` overrides can't keep a disabled button alive.
        Primary disabled is the default; other priorities override below. */
     &[disabled="true"] {
       background-color: var(--bg-primary-disabled);
-      border-color: var(--bg-primary-disabled);
       color: var(--fg-disabled-primary);
       &[priority="secondary"] {
         background-color: var(--bg-secondary-disabled);
-        border-color: var(--bg-secondary-disabled);
         color: var(--fg-disabled);
       }
       &[priority="tertiary"],
       &[priority="quaternary"] {
         background-color: transparent;
-        border-color: transparent;
         color: var(--fg-disabled);
       }
     }

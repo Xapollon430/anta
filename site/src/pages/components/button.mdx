@@ -67,8 +67,8 @@ chroma come from the brand-tone curve, so pale or low-chroma inputs
 full priority × state matrix — rest, hover, active, secondary alpha
 overlay, tertiary fill — is derived automatically.
 
-If you need pixel-precise color, set `--button-fg`,
-`--button-bg`, or `--button-br` directly via `style` —
+If you need pixel-precise color, set `--button-fg` or
+`--button-bg` directly via `style` —
 inline declarations beat the resolver.
 
 Dark mode reuses the same curve. To pair light/dark variants for a
@@ -444,18 +444,12 @@ with a hex8 fallback first.
 |---|---|
 | `--button-fg` | Text and icon color. Resolved per tone × priority × state. |
 | `--button-bg` | Background fill. |
-| `--button-br` | Border color. Primary mirrors the fill; others are transparent. |
 | `--button-focus` | Focus-ring outline color. |
 | `--button-padding-x` / `--button-padding-y` | Inner spacing. |
-| `--button-br-radius` | Border radius (default `4px`). |
-| `--button-br-width` | Border width (default `0` — no border). Set to `1px` for an outlined variant. |
-| `--button-font-size` / `--button-font-family` / `--button-font-weight` / `--button-line-height` | Type. |
-| `--button-gap` | Spacing between icon, label, and children. |
 | `--button-timing-in` / `--button-timing-out` / `--button-timing-active` | Per-state transition durations (`50ms` / `150ms` / `50ms`). Quaternary zeroes all three. |
-| `--button-outline-offset` | Focus-ring offset (default `1px`). |
-| `--button-loading-duration` | One slide cycle for the loading stripe (default `1.1s`). |
+| `--button-loading-duration` | One slide cycle for the loading stripe (default `1s`). |
 | `--button-loading-angle` | Stripe angle (default `125deg`). |
 | `--button-loading-period` | Stripe + gap along the gradient axis (default `30px`). |
 | `--button-loading-stripe` / `--button-loading-stripe-gap` | Stripe geometry (default `14px` / `16px`). |
-| `--button-loading-opacity` | Overlay opacity (default `0.3`). |
-| `--button-loading-blur` | Stripe-edge softening (default `1px`). |
+| `--button-loading-opacity` | Overlay opacity (default `0.2`). |
+| `--button-loading-blur` | Stripe-edge softening (default `2.5px`). |
