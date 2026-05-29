@@ -15,19 +15,6 @@ An action control. Renders an `<a-button>` web component (or
 `<a role="button">` when `href` is set) with a tone × priority matrix
 applied via attributes.
 
-<Disclosure title="Playground">
-
-<InteractiveDemo
-  client:visible
-  component="Button"
-  layout="side"
-  panelHeight={400}
-  initialCode={buttonDemoCode}
-  initialCss={`a-button { align-self: start; }`}
-/>
-
-</Disclosure>
-
 ## Tones
 
 Six named tones — `neutral` (default), `brand`, `critical`, `info`,
@@ -67,11 +54,13 @@ Plus a one-off custom tone — pass any literal CSS color as `tone`:
 <Button tone="rebeccapurple" label="Named color" />
 ```
 
-For custom tones, only the *hue* of the input is taken. Lightness and
-chroma come from the brand-tone curve, so pale or low-chroma inputs
-(`tone="#cccccc"`, `tone="white"`) still produce a legible button. The
-full priority × state matrix — rest, hover, active, secondary alpha
-overlay, tertiary fill — is derived automatically.
+For custom tones, **primary** uses the color as-is, while **secondary**,
+**tertiary**, and **quaternary** take only its *hue* — lightness, chroma,
+and alpha come from the brand-tone curve (via `oklch()` relative color),
+so pale or low-chroma inputs (`tone="#cccccc"`, `tone="white"`) still
+produce a legible button. The full priority × state matrix — rest, hover,
+active, secondary alpha overlay, tertiary fill — is derived automatically,
+in light and dark.
 
 If you need pixel-precise color, set `--button-fg` or
 `--button-bg` directly via `style` —
@@ -91,7 +80,7 @@ Four priorities, each with a distinct visual signature:
 | Priority | Visual |
 |---|---|
 | `primary` | Saturated fill. Main call to action. |
-| `secondary` | Pastel background, no border. Everyday button. |
+| `secondary` | Pastel background, no border. Everyday button — the default. |
 | `tertiary` | Background-less at rest, fills on hover. Dense toolbars. |
 | `quaternary` | Text only — no background, no border, no transitions. |
 
@@ -168,9 +157,15 @@ button to read as an inline link inside a sentence:
 Three sizes; only padding changes (font size stays at 15px):
 
 <Preview>
-  <Button tone="brand" size="small" label="Small" />
-  <Button tone="brand" size="medium" label="Medium" />
-  <Button tone="brand" size="large" label="Large" />
+  <Button size="small" tone="brand" icon="check" />
+  <Button size="small" tone="brand" icon="check" label="Small" />
+  <Button size="small" tone="brand" label="Small" />
+  <Button size="medium" tone="brand" icon="check" />
+  <Button size="medium" tone="brand" icon="check" label="Medium" />
+  <Button size="medium" tone="brand" label="Medium" />
+  <Button size="large" tone="brand" icon="check" />
+  <Button size="large" tone="brand" icon="check" label="Large" />
+  <Button size="large" tone="brand" label="Large" />
 </Preview>
 
 ```tsx
@@ -182,6 +177,21 @@ Three sizes; only padding changes (font size stays at 15px):
 Omitting `size` and passing `size="medium"` render identically — the
 wrapper drops the attribute for the medium case so the DOM stays free
 of redundant `size="medium"`.
+
+Height comes from `line-height` (18px) plus vertical padding; font size
+stays 15px across all sizes:
+
+| size | height | `padding-y` | text-edge `padding-x` | icon-edge `padding-x` |
+|---|---|---|---|---|
+| `small` | 22px | 2px | 6px | 4px |
+| `medium` (default) | 26px | 4px | 8px | 6px |
+| `large` | 30px | 6px | 12px | 10px |
+
+The **icon-edge** padding is the text-edge value minus 2px — an icon at
+an edge needs less breathing room than a glyph — so only the side a
+(leading or trailing) icon occupies is trimmed; the text side keeps the
+full padding. The gap between an icon and the label is `0.5ch` at every
+size.
 
 ## Icon-only
 
@@ -202,8 +212,9 @@ square padding + min-size pin apply automatically.
 <Button tone="brand"    icon="check"          size="large" />
 ```
 
-A min-width is pinned to the natural square (20px / 24px / 28px for
-small / medium / large) so a tight flex parent can't clip the icon.
+A min-size is pinned to a square matching the labeled-button height
+(22px / 26px / 30px for small / medium / large) so icon-only and
+labeled buttons line up, and a tight flex parent can't clip the icon.
 
 Icon-only buttons get an accessible name automatically — the wrapper
 sets `aria-label={icon}` so `<Button icon="trash" />` ships with the
@@ -417,6 +428,19 @@ with the prop-driven API:
 
 Children also work without `label` — pass them as the only content.
 
+<Disclosure title="Playground">
+
+<InteractiveDemo
+  client:visible
+  component="Button"
+  layout="side"
+  panelHeight={400}
+  initialCode={buttonDemoCode}
+  initialCss={`a-button { align-self: start; }`}
+/>
+
+</Disclosure>
+
 <Disclosure title="Props">
 
 <PropsTable component="Button" />
@@ -437,12 +461,12 @@ with a hex8 fallback first.
 | `--button-bg` | Background fill. |
 | `--button-focus` | Focus-ring outline color. |
 | `--button-padding-x` / `--button-padding-y` | Inner spacing. |
-| `--button-timing-in` / `--button-timing-out` / `--button-timing-active` | Per-state transition durations (`50ms` / `150ms` / `50ms`). Quaternary zeroes all three. |
+| `--button-timing-in` / `--button-timing-out` / `--button-timing-active` | Per-state transitions — hover-in `75ms ease-in`, return-to-rest `150ms ease-out`, press `50ms linear`. Quaternary zeroes all three. |
 | `--button-loading-duration` | One slide cycle for the loading stripe (default `1s`). |
 | `--button-loading-angle` | Stripe angle (default `125deg`). |
 | `--button-loading-period` | Stripe + gap along the gradient axis (default `30px`). |
 | `--button-loading-stripe` / `--button-loading-stripe-gap` | Stripe geometry (default `14px` / `16px`). |
-| `--button-loading-opacity` | Overlay opacity (default `0.2`). |
+| `--button-loading-opacity` | Overlay opacity (default `0.25`). |
 | `--button-loading-blur` | Stripe-edge softening (default `2.5px`). |
 
 </Disclosure>

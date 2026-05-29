@@ -334,6 +334,22 @@ function controlFor(p: any): PropEntry | null {
     // Fall through.
   }
 
+  // Icon-name types (`icon` / `iconTrailing`) — an open-ended set of
+  // string keys, far too many for segmented buttons. In api.json these
+  // surface either as a `reference` to the `IconShape` alias (the JSX
+  // wrapper props) or as the inlined `keyof IconShapes` typeOperator (the
+  // raw element attrs). Either way, render a text input so the user can
+  // type a shape name; the value emits as a string attribute.
+  if (
+    (t.type === 'reference' && t.name === 'IconShape') ||
+    (t.type === 'typeOperator' && t.operator === 'keyof')
+  ) {
+    return wrap(
+      { kind: 'text', name, description },
+      { name, kind: 'string' },
+    )
+  }
+
   // Anything else — `ReactNode`, `CSSProperties`, named references,
   // intersection / mapped types, etc. Surface as a documentation
   // row: name + rendered type + description, no input. Lets the
