@@ -4,6 +4,8 @@ title: Button
 ---
 import InteractiveDemo from '../../components/InteractiveDemo'
 import Preview from '../../components/Preview.astro'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
 import buttonDemoCode from './button.demo.ts'
 import { Button } from '@antadesign/anta'
 
@@ -13,14 +15,18 @@ An action control. Renders an `<a-button>` web component (or
 `<a role="button">` when `href` is set) with a tone × priority matrix
 applied via attributes.
 
+<Disclosure title="Playground">
+
 <InteractiveDemo
-  client:load
+  client:visible
   component="Button"
   layout="side"
   panelHeight={400}
   initialCode={buttonDemoCode}
   initialCss={`a-button { align-self: start; }`}
 />
+
+</Disclosure>
 
 ## Tones
 
@@ -411,28 +417,13 @@ with the prop-driven API:
 
 Children also work without `label` — pass them as the only content.
 
-## Props
+<Disclosure title="Props">
 
-| Prop | Type | Notes |
-|---|---|---|
-| `tone` | `'neutral' \| 'brand' \| 'critical' \| 'info' \| 'success' \| 'warning' \| <css color>` | Default `neutral`. Literal colors derive the full matrix from the input hue. |
-| `priority` | `'primary' \| 'secondary' \| 'tertiary' \| 'quaternary'` | Default `primary`. |
-| `size` | `'small' \| 'medium' \| 'large'` | Default `medium`. Only padding changes. Omit or pass `'medium'` for the default — both render identically. |
-| `underline` | `'solid' \| 'dashed' \| 'dotted'` | `tertiary` / `quaternary` only. |
-| `paddingless` | `boolean` | `quaternary` only. |
-| `loading` | `boolean` | Stripe overlay; blocks clicks. |
-| `disabled` | `boolean` | Disabled palette; no clicks; removed from tab order. |
-| `selected` | `boolean` | Toggled-on visual (shares active look). |
-| `icon` / `iconTrailing` | `IconShape` | Icon shape names. When `icon` is set alone (no `label`, no `iconTrailing`, no `children`) the CSS auto-collapses the button to a square via `:has(> a-icon:only-child)`. |
-| `label` | `string` | Rendered inside `<a-button-label>`. |
-| `href` | `string` | Switches to `<a role="button">`. |
-| `target` / `rel` | `string` | Anchor mode only. |
-| `type` | `'button' \| 'submit' \| 'reset'` | Form integration. Forbidden with `href`. |
-| `form` | `string` | Associate with a form by id. Forbidden with `href`. |
-| `onClick` | `(e) => void` | Click handler. |
-| `data-custom-event` | `string` | Dispatches `CustomEvent(<name>)` on click. |
+<PropsTable component="Button" />
 
-## Component tokens
+</Disclosure>
+
+<Disclosure title="Component tokens">
 
 Override any of these on a single instance
 (`style={{ '--button-padding-x': '12px' }}`) or on a selector wrapping
@@ -453,3 +444,5 @@ with a hex8 fallback first.
 | `--button-loading-stripe` / `--button-loading-stripe-gap` | Stripe geometry (default `14px` / `16px`). |
 | `--button-loading-opacity` | Overlay opacity (default `0.2`). |
 | `--button-loading-blur` | Stripe-edge softening (default `2.5px`). |
+
+</Disclosure>
