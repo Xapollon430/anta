@@ -153,41 +153,44 @@
   font-weight: 400;
 
   /* Backgrounds — dark, neutral */
-  --bg-base: #050306;
-  --bg-pane: #171519;
-  --bg-block: #1d1a1e;
-  --bg-spot: #221e24;
-  --bg-section: #100e11;
+  --bg-base: hsl(280 20% 3% / 1);
+  --bg-section: hsl(280 9% 4.6% / 1);
+  --bg-pane: hsl(280 10% 6% / 1);
+  --bg-block: hsl(285 7% 7% / 1);
+  --bg-spot: hsl(285 9% 9% / 1);
+
+  /* Backgrounds — dark, tinted. The Anta 0.2 values converted to HSL,
+     each a touch deeper for dark mode (lightness −1%). */
 
   /* Backgrounds — dark, Brand */
-  --bg-base-brand: #0f0c1d;
-  --bg-pane-brand: #16122b;
-  --bg-block-brand: #1c1736;
-  --bg-spot-brand: #201b3e;
+  --bg-base-brand: hsl(251 41% 4% / 1);
+  --bg-pane-brand: hsl(250 41% 8% / 1);
+  --bg-block-brand: hsl(250 40% 10% / 1);
+  --bg-spot-brand: hsl(249 39% 12% / 1);
 
   /* Backgrounds — dark, Success */
-  --bg-base-success: #05140a;
-  --bg-pane-success: #081f0f;
-  --bg-block-success: #0c2814;
-  --bg-spot-success: #0d2b16;
+  --bg-base-success: hsl(140 60% 2.7% / 1);
+  --bg-pane-success: hsl(138 59% 4.5% / 1);
+  --bg-block-success: hsl(137 54% 5.5% / 1);
+  --bg-spot-success: hsl(138 54% 7% / 1);
 
   /* Backgrounds — dark, Critical */
-  --bg-base-critical: #1f0506;
-  --bg-pane-critical: #33090a;
-  --bg-block-critical: #400d0e;
-  --bg-spot-critical: #471011;
+  --bg-base-critical: hsl(358 72% 4% / 1);
+  --bg-pane-critical: hsl(359 70% 7.5% / 1);
+  --bg-block-critical: hsl(359 66% 9% / 1);
+  --bg-spot-critical: hsl(359 63% 11% / 1);
 
   /* Backgrounds — dark, Warning */
-  --bg-base-warning: #160d04;
-  --bg-pane-warning: #241506;
-  --bg-block-warning: #2b1908;
-  --bg-spot-warning: #311d0a;
+  --bg-base-warning: hsl(30 69% 4% / 1);
+  --bg-pane-warning: hsl(30 71% 6.5% / 1);
+  --bg-block-warning: hsl(30 70% 8% / 1);
+  --bg-spot-warning: hsl(30 70% 10% / 1);
 
   /* Backgrounds — dark, Info */
-  --bg-base-info: #04111f;
-  --bg-pane-info: #071b2c;
-  --bg-block-info: #092034;
-  --bg-spot-info: #0d273e;
+  --bg-base-info: hsl(211 77% 4% / 1);
+  --bg-pane-info: hsl(208 73% 7% / 1);
+  --bg-block-info: hsl(208 70% 8.5% / 1);
+  --bg-spot-info: hsl(208 65% 13% / 1);
 
   /* Text — dark, neutral */
   --text-1: #ece9ec;
@@ -232,46 +235,46 @@
   --text-5-info: #7db6e866;
 
   /* Borders — dark, neutral */
-  --border-1: #635b65;
-  --border-2: #49424c;
-  --border-3: #3e3941;
-  --border-4: #302b31;
-  --border-5: #1d1a1e;
+  --border-1: hsl(288deg 5.21% 42%);
+  --border-2: hsl(282deg 7.04% 28%);
+  --border-3: hsl(277.5deg 6.56% 20%);
+  --border-4: hsl(290deg 6.52% 13%);
+  --border-5: hsl(285deg 7.14% 10%);
 
   /* Borders — dark, Brand */
-  --border-1-brand: #7460d7;
-  --border-2-brand: #503cb4;
-  --border-3-brand: #483493;
-  --border-4-brand: #2d2556;
-  --border-5-brand: #251f47;
+  --border-1-brand: hsl(250.08deg 59.8% 58%);
+  --border-2-brand: hsl(250deg 50% 42%);
+  --border-3-brand: hsl(252.63deg 47.74% 30%);
+  --border-4-brand: hsl(249.8deg 39.84% 19%);
+  --border-5-brand: hsl(249deg 39.22% 14%);
 
   /* Borders — dark, Success */
-  --border-1-success: #329550;
-  --border-2-success: #226737;
-  --border-3-success: #1f5c31;
-  --border-4-success: #12391e;
-  --border-5-success: #0f321a;
+  --border-1-success: hsl(138.18deg 49.75% 29%);
+  --border-2-success: hsl(138.26deg 50.36% 20%);
+  --border-3-success: hsl(137.7deg 49.59% 16%);
+  --border-4-success: hsl(138.46deg 52% 10%);
+  --border-5-success: hsl(138.86deg 53.85% 7.5%);
 
   /* Borders — dark, Critical */
-  --border-1-critical: #de4545;
-  --border-2-critical: #b02120;
-  --border-3-critical: #a01c1c;
-  --border-4-critical: #5d1819;
-  --border-5-critical: #531314;
+  --border-1-critical: hsl(0deg 56% 46%);
+  --border-2-critical: hsl(0.42deg 63% 30%);
+  --border-3-critical: hsl(0deg 62.21% 23%);
+  --border-4-critical: hsl(359.13deg 59% 15%);
+  --border-5-critical: hsl(359.06deg 63% 11%);
 
   /* Borders — dark, Warning */
-  --border-1-warning: #ae6613;
-  --border-2-warning: #7f410b;
-  --border-3-warning: #6a3b0c;
-  --border-4-warning: #3e250e;
-  --border-5-warning: #37200b;
+  --border-1-warning: hsl(32.13deg 80.31% 34%);
+  --border-2-warning: hsl(27.93deg 84.06% 24%);
+  --border-3-warning: hsl(30deg 79.66% 17%);
+  --border-4-warning: hsl(28.75deg 63.16% 12%);
+  --border-5-warning: hsl(28.64deg 66.67% 9%);
 
   /* Borders — dark, Info */
-  --border-1-info: #2686d9;
-  --border-2-info: #1a5b93;
-  --border-3-info: #175082;
-  --border-4-info: #12324f;
-  --border-5-info: #0e2b44;
+  --border-1-info: hsl(207.82deg 70.2% 40%);
+  --border-2-info: hsl(207.77deg 69.94% 29%);
+  --border-3-info: hsl(208.04deg 69.93% 21%);
+  --border-4-info: hsl(208.52deg 62.89% 14%);
+  --border-5-info: hsl(207.78deg 65.85% 10.5%);
 
   /* Prose link colors — dark mode */
   --link-color: #7baee9;
