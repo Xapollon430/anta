@@ -14,6 +14,10 @@
     "baseUrl": ".",
     "paths": {
       "@antadesign/anta": ["./index.ts"],
+      "@antadesign/anta/sticker-runtime": ["./components/Sticker.tsx"],
+      "@antadesign/anta/sticker-runtime/animated": [
+        "./components/StickerAnimated.tsx"
+      ],
       "@antadesign/anta/*": ["./*"]
     }
   },

@@ -15,6 +15,9 @@ importers:
       clsx:
         specifier: ^2.1.0
         version: 2.1.1
+      lottie-web:
+        specifier: ^5.13.0
+        version: 5.13.0
       react:
         specifier: ^18.0.0 || ^19.0.0
         version: 19.2.5
@@ -2799,6 +2802,10 @@ packages:
 
   /longest-streak@3.1.0:
     resolution: {integrity: sha512-9Ri+o0JYgehTaVBBDoMqIl8GXtbWg711O3srftcHhZ0dqnETqLaoIK0x17fUw9rFSlK/0NlsKe0Ahhyl5pXE2g==}
+    dev: false
+
+  /lottie-web@5.13.0:
+    resolution: {integrity: sha512-+gfBXl6sxXMPe8tKQm7qzLnUy5DUPJPKIyRHwtpCpyUEYjHYRJC/5gjUvdkuO2c3JllrPtHXH5UJJK8LRYl5yQ==}
     dev: false
 
   /lru-cache@11.3.5:
