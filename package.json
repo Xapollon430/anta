@@ -30,14 +30,6 @@
     "./reset.css": "./dist/reset.css",
     "./generate-icons.mjs": "./dist/generate-icons.mjs",
     "./generate-stickers.mjs": "./dist/generate-stickers.mjs",
-    "./sticker-runtime": {
-      "types": "./dist/components/Sticker.d.ts",
-      "default": "./dist/components/Sticker.js"
-    },
-    "./sticker-runtime/animated": {
-      "types": "./dist/components/StickerAnimated.d.ts",
-      "default": "./dist/components/StickerAnimated.js"
-    },
     "./stickers": {
       "types": "./dist/components/__generated__/stickers/index.d.ts",
       "default": "./dist/components/__generated__/stickers/index.js"
