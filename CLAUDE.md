@@ -30,6 +30,15 @@ pnpm run build:types  # tsc: emit .d.ts declarations
 pnpm run typecheck    # Type check without emit
 ```
 
+### Running the dev server — always `pnpm run dev` from the repo root
+
+**For any dev work — editing the anta package *or* the docs site — run `pnpm run dev` from the repo root** (run it in the background; it's long-lived). It does both halves together:
+
+- a `nodemon -w src` watcher that **rebuilds `dist`** (and regenerates the site's `docs:*` artifacts) on every change to anta's `src/**/*.{ts,tsx,css}`, and
+- the docs site's `astro dev` (HMR for `site/`).
+
+The docs site consumes anta from the built `dist/` (workspace symlink), so this is what propagates an anta-source change through to the running site. **Do not** run `cd site && pnpm run dev` for package work — that starts only the site's Astro dev and will *not* rebuild `dist`, so anta `src` edits won't show up and you'd be stuck manually rebuilding + restarting. Pure `site/` edits (`.mdx`, Astro/Preact components) HMR fine under either, but the root command is the one to use so package edits Just Work too.
+
 **Important**: esbuild runs in non-bundle mode (no `--bundle` flag). It compiles each entry point individually but does **not** process CSS imports — it leaves `import "./a-progress.css"` in the JS output without copying the CSS file. The `build:css` step copies CSS files manually. When adding a new component, add its CSS files to `build:css`.
 
 Uses `jsx: "react-jsx"` with `jsxImportSource: "@antadesign/anta"` (automatic transform). The compiled output self-references the package via the exports map: `import { jsx } from "@antadesign/anta/jsx-runtime"`.

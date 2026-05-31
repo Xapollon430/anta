@@ -39,11 +39,13 @@ We only register workers for languages the playground actually uses. Adding JSON
 Create `site/src/pages/components/{name}.mdx` with `layout: ../../layouts/DocsLayout.astro`. For an interactive demo, drop `<InteractiveDemo client:load component="…" layout="side" initialCode={…} />` near the top.
 
 ```sh
-cd site && pnpm run dev      # dev server
-cd site && pnpm run build    # static build
+pnpm run dev                 # ← run from the REPO ROOT (see below); the dev command for all work
+cd site && pnpm run build    # static build (site only)
 ```
 
-`pnpm run dev` chains through `docs:api` (typedoc → `src/api.json`), `docs:pages` (regenerate index.mdx from README.md), `docs:wasm` (copy esbuild.wasm), and `docs:iframe-runtime` (rebuild iframe runtime) before starting Astro.
+**Run the dev server with `pnpm run dev` from the repo root, not `cd site && pnpm run dev`.** The root command runs the site's `astro dev` *and* a `nodemon` watcher that rebuilds anta's `dist` on `src` changes, so package edits propagate to the running site; the site-only command does not rebuild anta. (See "Running the dev server" in the root `CLAUDE.md`.)
+
+The site's own `pnpm run dev` (which the root command invokes under the hood) chains through `docs:api` (typedoc → `src/api.json`), `docs:pages` (regenerate index.mdx from README.md), `docs:wasm` (copy esbuild.wasm), and `docs:iframe-runtime` (rebuild iframe runtime) before starting Astro.
 
 ## Component reference tables
 
