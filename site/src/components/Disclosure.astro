@@ -82,8 +82,43 @@ const Heading = `h${level}` as const
     transform: rotate(90deg);
   }
 
+  /* Gap below the summary. Lives as padding (not margin) so it sits
+     inside the clipped grid item and collapses with the row during the
+     expand/collapse animation below. */
   .body {
-    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  /* Animate expand / collapse. `::details-content` (Baseline) wraps the
+     content after <summary>; animate its grid row 0fr↔1fr (works in
+     Chrome/Firefox/Safari). Overflow is clipped while the row animates
+     and dropped once open + idle, so descendants (the playground corner
+     grip, Monaco popups, focus rings) aren't cut off when expanded. */
+  @media (prefers-reduced-motion: no-preference) {
+    .disclosure::details-content {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 240ms ease, content-visibility 240ms ease;
+      transition-behavior: allow-discrete;
+    }
+    .disclosure[open]::details-content {
+      grid-template-rows: 1fr;
+    }
+    /* The grid item collapses + clips while the row animates. `clip`
+       (not hidden) avoids creating a scroll container. */
+    .disclosure .body {
+      min-height: 0;
+      overflow: clip;
+    }
+    /* Drop the clip once open + idle: `overflow 0s 240ms` defers the
+       clip→visible flip to after the expand. On collapse the [open] rule
+       stops applying, so overflow snaps back to clip immediately and the
+       fold stays clipped throughout. */
+    .disclosure[open] .body {
+      overflow: visible;
+      transition: overflow 0s 240ms;
+      transition-behavior: allow-discrete; /* required for the delayed discrete flip */
+    }
   }
 </style>
 
