@@ -163,6 +163,9 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
       <main class="content">
         <slot />
       </main>
+      <aside class="toc-rail">
+        <a-toc></a-toc>
+      </aside>
     </div>
     <div class="backdrop" aria-hidden="true"></div>
 
@@ -193,6 +196,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
 
     <script>
       import '@antadesign/anta/elements'
+      import '../components/a-toc.ts'
 
       document.addEventListener('click', (e) => {
         const target = (e.target as HTMLElement)?.closest?.('code, .copyable') as HTMLElement | null
@@ -403,11 +407,25 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     padding: 32px;
   }
 
+  /* Right "On this page" rail — mirrors the left sidebar's width and
+     sticky full-height behaviour. Holds the <a-toc> web component. */
+  .toc-rail {
+    width: 240px;
+    flex-shrink: 0;
+    padding: 32px 16px 32px 4px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
   .topbar { display: none; }
   .backdrop { display: none; }
 
   @media (max-width: 900px) {
     .logo { display: none; }
+
+    .toc-rail { display: none; }
 
     .content {
       padding-inline: 16px;

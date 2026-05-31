@@ -5,31 +5,39 @@
 // Used on the component pages to fold the Props and Component tokens
 // references away by default (the live demo stays the focus).
 //
-// `id` (or a slug derived from `title`) lands on the <details> element
-// so existing deep links — e.g. `#component-tokens` — keep resolving.
+// The title is a real heading element (`h{level}`) carrying the `id`, so
+// it shows up in the page's table of contents (`<a-toc>` scans real
+// headings). The id lives on the heading — not the <details> — but existing
+// deep links — e.g. `#component-tokens` — keep resolving (the script below
+// opens the enclosing block when one is targeted).
 interface Props {
   title: string
   /** Start expanded. Defaults to collapsed. */
   open?: boolean
   /** Anchor id. Defaults to a slug of `title`. */
   id?: string
+  /** Heading level for the title. Defaults to 2 (top-level section). */
+  level?: 2 | 3 | 4 | 5 | 6
 }
 
-const { title, open = false, id } = Astro.props
+const { title, open = false, id, level = 2 } = Astro.props
 const slug = (id ?? title)
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, '-')
   .replace(/(^-|-$)/g, '')
+const Heading = `h${level}` as const
 ---
 
-<details class="disclosure" id={slug} open={open}>
+<details class="disclosure" open={open}>
   <summary class="summary">
     <a-icon shape="chevron-right" class="chevron" style="--icon-size: 18px"></a-icon>
-    {/* Same anchor markup rehype-autolink-headings applies to `##`
-        headings (`behavior: 'wrap'`, classes `header-anchor muted`),
-        so the section deep-links and hover-underlines like the rest.
-        The href points at the <details>'s own id. */}
-    <a class="title header-anchor muted" href={`#${slug}`}>{title}</a>
+    {/* A real heading carries the id so the TOC picks it up; the inner
+        anchor mirrors rehype-autolink-headings' `behavior: 'wrap'` output
+        (classes `header-anchor muted`) so the section deep-links and
+        hover-underlines like every other `##` heading. */}
+    <Heading id={slug} class="title">
+      <a class="header-anchor muted" href={`#${slug}`}>{title}</a>
+    </Heading>
   </summary>
   <div class="body">
     <slot />
@@ -55,11 +63,11 @@ const slug = (id ?? title)
     display: none;
   }
 
+  /* The title is a real heading; its type scale comes from reset.css.
+     Just drop the heading's block margin so it sits inline with the
+     chevron in the summary row. */
   .title {
-    font-size: 24px;
-    line-height: 28px;
-    font-weight: 584.62;
-    letter-spacing: 0;
+    margin: 0;
   }
 
   .chevron {
@@ -85,20 +93,21 @@ const slug = (id ?? title)
   // it closed) and deep-links it, and arriving via a `#slug` URL opens
   // the targeted section. Bundled once per page by Astro regardless of
   // how many <Disclosure>s render, so it queries them all.
-  function openDisclosure(id: string): HTMLDetailsElement | null {
+  // Open the disclosure that contains the element with the given id —
+  // works for a block's own title heading AND for any heading nested in
+  // its body (so TOC entries inside a folded block expand it).
+  function openContaining(id: string): Element | null {
     if (!id) return null
-    const el = document.getElementById(id)
-    if (el instanceof HTMLDetailsElement && el.classList.contains('disclosure')) {
-      el.open = true
-      return el
-    }
-    return null
+    const target = document.getElementById(id)
+    const details = target?.closest('details.disclosure')
+    if (details instanceof HTMLDetailsElement) details.open = true
+    return target
   }
 
   // Deep links (shared URL, in-page nav): expand + scroll to the target.
   function syncFromHash() {
-    const opened = openDisclosure(decodeURIComponent(location.hash.slice(1)))
-    if (opened) opened.scrollIntoView({ block: 'start' })
+    const target = openContaining(decodeURIComponent(location.hash.slice(1)))
+    if (target) target.scrollIntoView({ block: 'start' })
   }
   syncFromHash()
   window.addEventListener('hashchange', syncFromHash)
@@ -108,15 +117,16 @@ const slug = (id ?? title)
   // a nested link). stopPropagation keeps it from toggling closed; the
   // chevron / summary still toggles normally for collapsing.
   for (const a of document.querySelectorAll<HTMLAnchorElement>(
-    'details.disclosure > summary > a.header-anchor',
+    'details.disclosure > summary :is(h2,h3,h4,h5,h6) > a.header-anchor',
   )) {
     a.addEventListener('click', (e) => {
       e.preventDefault()
       e.stopPropagation()
       const details = a.closest('details')
+      const headingId = a.closest('[id]')?.id
       if (!details) return
       details.open = true
-      if (details.id) location.hash = details.id
+      if (headingId) location.hash = headingId
     })
   }
 </script>

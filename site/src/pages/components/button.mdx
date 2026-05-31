@@ -101,7 +101,7 @@ Four priorities, each with a distinct visual signature:
 Two prop constraints follow from priority and are enforced at the
 type level — `underline` and `paddingless`.
 
-### Underline
+## Underline
 
 Only valid on `priority="tertiary"` / `"quaternary"`. Filled chips
 don't need an underline; passing it on `primary` / `secondary` is a
@@ -130,7 +130,7 @@ The underline mirrors the prose-link rule used by `<Text>`:
 The color tracks `--button-fg` so a tone shift updates the
 underline in lockstep with the label.
 
-### Paddingless
+## Paddingless
 
 Only valid on `priority="quaternary"`. Zeros the outer padding so the
 button sits flush with surrounding prose — useful when you want a
@@ -288,12 +288,12 @@ errors in anchor mode; navigation takes over.
 
 ## Linking with routing libraries
 
-Anta's CSS targets `a-button, a[role="button"]` — any element with
-`role="button"` and the right attributes gets the styling. The `<Button>`
-wrapper is a convenience, not a gatekeeper. That means anta doesn't
-need an `as` / `asChild` / `component` prop or per-framework integrations;
-client-side routing slots in by composing your own thin wrapper around
-the library's `Link` component.
+Anta's CSS targets `a-button, a[role="button"]` — an anchor (`<a>`) with
+`role="button"` and the right attributes gets the styling. That means anta doesn't
+need an `as` / `asChild` / `component` prop or per-framework integrations.
+Compose your own thin wrapper around
+your library's `Link` component — which renders an `<a>`, so it matches the
+selector.
 
 ```tsx
 // LinkButton.tsx — anta-styled link for client-side routing
@@ -328,41 +328,8 @@ Usage:
 <LinkButton to="/docs" priority="tertiary" iconTrailing="external-link" label="Docs" />
 ```
 
-The same shape transfers verbatim to Next.js `<Link>`, TanStack Router,
-or any other routing library — swap the import and the `to`/`href` prop
-to match.
-
-**Why this works:**
-
-- The CSS is already polymorphic at the attribute level. Any element
-  with `role="button"` plus the `tone` / `priority` / `size` / etc.
-  attributes inherits the full visual treatment.
-- Avoids the typing complexity of `as` / `asChild` and the indirection
-  of render props.
-- Keeps the slot structure (`<a-button-label>`, `<a-icon>`) visible to
-  the consumer — matches anta's "the DOM is the API" philosophy.
-- Scales to any wrapping element without anta needing per-framework
-  integrations.
-
-**Trade-offs to absorb in your helper:**
-
-Composing your own wrapper means anta's JSX-side conveniences don't
-come with you. None of these are blockers — just things to add to your
-helper when you need them:
-
-- **No auto `aria-label` for icon-only.** `<Button icon="trash" />` ships
-  with `aria-label="trash"`; your `<LinkButton icon="trash" />` doesn't,
-  unless you replicate the icon-only check.
-- **No custom-tone CSS variable injection.** `<Button tone="#ff1493" />`
-  writes `--button-tone-source` inline; your `LinkButton` won't unless
-  you mirror that path.
-- **No discriminated-union enforcement.** `<Button priority="primary"
-  underline="solid" />` is a TS error; your `LinkButton` would accept it
-  and the underline would just not render (CSS ignores it on primary).
-
-Pulling any of these over is straightforward — copy the relevant lines
-out of `Button.tsx`. Most consumers won't need them and the smaller
-helper stays easier to read.
+This approach would work for Next.js `<Link>`, TanStack Router, or any
+other routing library.
 
 ## Form submission
 

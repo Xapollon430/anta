@@ -53,6 +53,14 @@ html {
   scroll-padding-top: var(--scroll-padding-top);
 }
 
+/* Smooth-scroll anchor jumps (e.g. the "On this page" TOC), but respect
+   users who ask for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 html, body {
   font-family: var(--sans-serif);
   /* "Antithesis sans" has a `slnt` axis whose default inside the
