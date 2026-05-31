@@ -147,6 +147,13 @@ pre code { background: none; padding: 0; }
   position: relative;
 }
 
+/* Inline code pills read too faint at 6% on dark surfaces — bump the
+   tint to 10% in dark mode. Scoped to inline code so `pre code` (which
+   is background-less) is untouched. */
+.dark :not(pre) > code {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
 .copyable {
   cursor: copy;
   position: relative;

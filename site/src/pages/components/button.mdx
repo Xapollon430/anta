@@ -13,9 +13,35 @@ import { Button } from '@antadesign/anta'
 
 # Button
 
-An action control. Renders an `<a-button>` web component (or
-`<a role="button">` when `href` is set) with a tone × priority matrix
-applied via attributes.
+An action control. The `Button` JSX wrapper renders an `<a-button>` web
+component (or `<a role="button">` when `href` is set). Tone, priority,
+size, and state are all plain attributes, so the styling is identical
+whether you use the wrapper or author the element by hand.
+
+## Priorities
+
+Four priorities, each with a distinct visual signature:
+
+| Priority | Visual |
+|---|---|
+| `primary` | Saturated fill. Main call to action. |
+| `secondary` | Pastel background, no border. Everyday button — the default. |
+| `tertiary` | Background-less at rest, fills on hover. Dense toolbars. |
+| `quaternary` | Text only — no background, no border, no transitions. |
+
+<Preview>
+  <Button tone="brand" priority="primary" label="Publish" />
+  <Button tone="brand" priority="secondary" label="Move" />
+  <Button tone="brand" priority="tertiary" label="Cancel" />
+  <Button tone="brand" priority="quaternary" label="Clarify" />
+</Preview>
+
+```tsx
+<Button tone="brand" priority="primary"    label="Publish" />
+<Button tone="brand" priority="secondary"  label="Move" />
+<Button tone="brand" priority="tertiary"   label="Cancel" />
+<Button tone="brand" priority="quaternary" label="Clarify" />
+```
 
 ## Tones
 
@@ -83,34 +109,6 @@ custom tone, scope it yourself:
 
 </Col>
 </Columns>
-
-## Priorities
-
-Four priorities, each with a distinct visual signature:
-
-| Priority | Visual |
-|---|---|
-| `primary` | Saturated fill. Main call to action. |
-| `secondary` | Pastel background, no border. Everyday button — the default. |
-| `tertiary` | Background-less at rest, fills on hover. Dense toolbars. |
-| `quaternary` | Text only — no background, no border, no transitions. |
-
-<Preview>
-  <Button tone="brand" priority="primary" label="Primary" />
-  <Button tone="brand" priority="secondary" label="Secondary" />
-  <Button tone="brand" priority="tertiary" label="Tertiary" />
-  <Button tone="brand" priority="quaternary" label="Quaternary" />
-</Preview>
-
-```tsx
-<Button tone="brand" priority="primary"    label="Primary" />
-<Button tone="brand" priority="secondary"  label="Secondary" />
-<Button tone="brand" priority="tertiary"   label="Tertiary" />
-<Button tone="brand" priority="quaternary" label="Quaternary" />
-```
-
-Two prop constraints follow from priority and are enforced at the
-type level — `underline` and `paddingless`.
 
 ## Underline
 
