@@ -2,7 +2,7 @@
 import '@antadesign/anta/tokens.css'
 import '@antadesign/anta/reset.css'
 import '../styles/base.css'
-import { Icon } from '@antadesign/anta'
+import { Button, Icon } from '@antadesign/anta'
 
 interface Props {
   title?: string
@@ -130,18 +130,32 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
         <span class="logo">
           <img src="/anta-logo.svg" alt="" width="32" height="32" />
           <span class="logo-label">Anta</span>
-          <button class="theme-toggle" type="button" aria-label="Switch theme">
-            <Icon shape="sun" size={18} />
-            <Icon shape="moon" size={18} />
-          </button>
+          <a-button class="theme-toggle" priority="tertiary" size="large" aria-label="Switch theme">
+            <a-icon shape="sun" size="18"></a-icon>
+            <a-icon shape="moon" size="18"></a-icon>
+          </a-button>
         </span>
         <div class="brand-links">
-          <a href="https://github.com/antithesishq/anta" target="_blank" rel="noopener" aria-label="GitHub repository">
-            <Icon shape="github-logo" size={14} /> GitHub
-          </a>
-          <a href="https://www.npmjs.com/package/@antadesign/anta?activeTab=versions" target="_blank" rel="noopener" aria-label={npmVersion ? `npm package v${npmVersion}` : 'npm package'}>
-            <Icon shape="cube" size={14} /> {npmVersion ? `npm v${npmVersion}` : 'npm'}
-          </a>
+          <Button
+            class="brand-link"
+            href="https://github.com/antithesishq/anta"
+            target="_blank"
+            rel="noopener"
+            priority="tertiary"
+            icon="github-logo"
+            label="GitHub"
+            aria-label="GitHub repository"
+          />
+          <Button
+            class="brand-link"
+            href="https://www.npmjs.com/package/@antadesign/anta?activeTab=versions"
+            target="_blank"
+            rel="noopener"
+            priority="tertiary"
+            icon="cube"
+            label={npmVersion ? `npm v${npmVersion}` : 'npm'}
+            aria-label={npmVersion ? `npm package v${npmVersion}` : 'npm package'}
+          />
         </div>
         <menu>
           <li><a href="/" aria-current={isCurrent('/') ? 'page' : undefined}><Icon shape="info" size={18} /> Overview</a></li>
@@ -302,30 +316,15 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     flex: 1;
   }
 
+  /* Theme toggle is a tertiary icon <a-button> (Anta owns fg/hover),
+     forced to a square with a circular radius. We only swap which icon
+     shows per mode: sun in light, moon in dark. */
   .theme-toggle {
-    appearance: none;
-    border: none;
-    background: transparent;
-    color: var(--text-3);
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
+    padding-inline: 8px;
+    padding-block: 8px;
+    border-radius: 999px;
     justify-content: center;
-    cursor: pointer;
-    transition: color 120ms ease-out, background 120ms ease-out;
   }
-
-  .theme-toggle:hover,
-  .theme-toggle:focus-visible {
-    color: var(--text-1);
-    background: var(--bg-section);
-    outline: none;
-  }
-
-  /* Show the icon that matches the current mode: sun in light mode,
-     moon in dark mode. */
   .theme-toggle a-icon[shape="moon"] { display: none; }
   :global(.dark) .theme-toggle a-icon[shape="sun"] { display: none; }
   :global(.dark) .theme-toggle a-icon[shape="moon"] { display: inline-block; }
@@ -337,35 +336,19 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     flex-wrap: wrap;
   }
 
-  .brand-links a {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px 3px 6px;
+  /* GitHub / npm are tertiary anta anchor-buttons (`<a role="button">`).
+     Anta owns the tertiary hover/active; we just shrink the font and tune
+     the rest colour. (Site styles are un-layered, so they beat anta's
+     `@layer anta` defaults.) */
+  .brand-link {
+    font-size: 12px;
     border-radius: 999px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.03ch;
-    color: var(--text-3);
-    text-decoration: none;
-    transition: color 120ms ease-out, background 120ms ease-out;
+    gap: 5px;
+    padding-left: 7px;
+    --button-fg-tertiary-rest: var(--text-3);
   }
-
-  .brand-links a > a-icon {
-    color: var(--text-4-brand);
-    transition: color 120ms ease-out;
-  }
-
-  .brand-links a:hover,
-  .brand-links a:focus-visible {
-    color: var(--text-1);
-    background: var(--bg-section);
-    outline: none;
-  }
-
-  .brand-links a:hover > a-icon,
-  .brand-links a:focus-visible > a-icon {
-    color: var(--text-1-brand);
+  .brand-link :global(a-icon) {
+    --icon-size: 14px;
   }
 
   .sidebar h4 {

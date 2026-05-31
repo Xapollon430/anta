@@ -110,6 +110,23 @@ summary { cursor: pointer; }
 p, ul, ol, blockquote, dl { margin: 0 0 1em; }
 pre, figure, hr, .expressive-code { margin: 0 0 1.5em; }
 
+/* Code blocks in the main content blend into the page (transparent fill)
+   at rest and reveal their card background on hover / focus. Gated to
+   hover-capable devices (touch keeps the background always) and scoped to
+   `.content` so the playground's embedded editor is unaffected. */
+@media (hover: hover) {
+  /* Override the `--code-background` var the EC `pre` reads (specificity-
+     proof vs EC's own rule), so the block is transparent at rest. */
+  .content .expressive-code pre {
+    --code-background: transparent;
+    transition: background-color 150ms ease-out;
+  }
+  .content .expressive-code:hover pre,
+  .content .expressive-code:focus-within pre {
+    --code-background: var(--bg-section);
+  }
+}
+
 /* Tone × priority demo on the Title docs page. Scrolls horizontally
    when the columns don't fit; titles inside the grid drop their
    per-level margins so cell heights are uniform. */
