@@ -19,6 +19,15 @@ const byId = new Map<number, any>()
 
 const root = (api as any).children?.find((c: any) => c.name === propsName)
 
+// A union member is a *value* (string / number / boolean literal) → render
+// it as a copyable code pill. Everything else (type keywords like `string`,
+// `boolean`, `number`, and named types like `IconShape`) is a *type* →
+// render as plain tertiary-coloured monospace text, no pill.
+function isLiteralValue(part: string): boolean {
+  const s = part.trim()
+  return /^'.*'$/.test(s) || /^-?\d+(\.\d+)?$/.test(s) || s === 'true' || s === 'false'
+}
+
 function renderType(type: any): string {
   if (!type) return '—'
   switch (type.type) {
@@ -200,9 +209,20 @@ const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeComp
           const def = readDefault(p.comment)
           return (
           <tr>
-            <td><code>{p.name}{p.optional ? '?' : ''}</code></td>
-            <td><code>{p.type}</code></td>
-            <td>{def ? <code>{def}</code> : '—'}</td>
+            <td><span class="prop-name">{p.name}{p.optional ? <span class="opt">?</span> : null}</span></td>
+            <td>
+              {p.type === '—' ? <span class="empty">—</span> : (
+                <span class="type-list">
+                  {p.type.split(' | ').map((t: string) => {
+                    const v = t.trim()
+                    return isLiteralValue(v)
+                      ? <code>{v.replace(/^'|'$/g, '')}</code>
+                      : <span class="type-name">{v}</span>
+                  })}
+                </span>
+              )}
+            </td>
+            <td>{def ? <code>{def}</code> : <span class="empty">—</span>}</td>
             <td set:html={renderDescription(p.comment)} />
           </tr>
         )})}
@@ -210,6 +230,41 @@ const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeComp
     </table>
   </div>
 )}
+
+<style>
+  /* Each union member renders as its own code pill, stacked one per line
+     (no `|` separator). */
+  .type-list {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  /* Prop name: monospace text, no code-pill chrome. */
+  .prop-name {
+    font-family: var(--monospace);
+    font-size: 0.9em;
+    font-weight: 475;
+  }
+  /* The optional `?` is its own element (text-3, not selectable) so a
+     double-click selects just the name and copying omits the `?`. */
+  .opt {
+    color: var(--text-5);
+    user-select: none;
+  }
+  /* Type names (primitives + named types) — monospace, tertiary, no pill.
+     Literal values stay as copyable <code> pills. */
+  .type-name {
+    font-family: var(--monospace);
+    font-size: 0.9em;
+    color: var(--text-3);
+  }
+  /* "No value" em-dash placeholders (Type / Default columns). */
+  .empty {
+    color: var(--text-5);
+  }
+</style>
 
 {inherited.length > 0 && (
   <details>
@@ -229,9 +284,20 @@ const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeComp
             const def = readDefault(p.comment)
             return (
             <tr>
-              <td><code>{p.name}?</code></td>
-              <td><code>{p.type}</code></td>
-              <td>{def ? <code>{def}</code> : '—'}</td>
+              <td><span class="prop-name">{p.name}<span class="opt">?</span></span></td>
+              <td>
+              {p.type === '—' ? <span class="empty">—</span> : (
+                <span class="type-list">
+                  {p.type.split(' | ').map((t: string) => {
+                    const v = t.trim()
+                    return isLiteralValue(v)
+                      ? <code>{v.replace(/^'|'$/g, '')}</code>
+                      : <span class="type-name">{v}</span>
+                  })}
+                </span>
+              )}
+            </td>
+              <td>{def ? <code>{def}</code> : <span class="empty">—</span>}</td>
               <td set:html={renderDescription(p.comment)} />
             </tr>
           )})}
