@@ -74,6 +74,7 @@ export const ICON_SHAPES = [
   'refresh',
   'regex',
   'repeat',
+  'rotate-ccw',
   'rss',
   'runs-history',
   'scroll-text',
@@ -258,6 +259,7 @@ declare module '@antadesign/anta' {
     'refresh': true
     'regex': true
     'repeat': true
+    'rotate-ccw': true
     'rss': true
     'runs-history': true
     'scroll-text': true

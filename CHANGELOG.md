@@ -8,6 +8,9 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 
 ## Unreleased
 
+### Added
+- New `rotate-ccw` icon shape (lucide), available as `<Icon shape="rotate-ccw" />` / `<a-icon shape="rotate-ccw">` and in the `IconShape` union.
+
 ### Breaking
 - **`<Button>`'s `iconButton` prop is removed** and **`leadingIcon` is renamed to `icon`**. Icon-only behavior is now purely structural: pass `icon` with no `label`, `trailingIcon`, or `children`, and the existing CSS rule (`a-button:has(> a-icon:only-child)`) gives the host the square padding + min-size pin. No opt-in attribute. Migration: `<Button iconButton leadingIcon="check" />` → `<Button icon="check" />`; `<Button leadingIcon="check" label="…" />` → `<Button icon="check" label="…" />`. `trailingIcon` is unchanged.
 
