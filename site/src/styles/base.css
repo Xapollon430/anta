@@ -152,6 +152,39 @@ pre code { background: none; padding: 0; }
   position: relative;
 }
 
+/* Nudge the expressive-code copy button flush to the block's top-right
+   corner (1px inset on both axes). */
+.expressive-code .frame .copy {
+  inset-block-start: 2px;
+  inset-inline-end: 2px;
+}
+
+/* Replace expressive-code's "Copied!" tooltip with an icon swap: on a
+   successful copy our script (DocsLayout) sets [data-anta-copied] on the
+   button for a moment, turning the copy glyph into a green check. EC's
+   tooltip text is kept in the DOM but visually hidden so screen readers
+   still announce it. */
+.expressive-code .copy .feedback {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  background: transparent;
+}
+.expressive-code .copy .feedback::after {
+  display: none; /* tooltip arrow */
+}
+
+.expressive-code .copy button[data-anta-copied]::after {
+  background-color: var(--text-1-success);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
 /* Necessary for astro expressive code hover copy button */
 :is(code, .copyable, .demoCell)[data-copied]::after {
   content: attr(data-copied);

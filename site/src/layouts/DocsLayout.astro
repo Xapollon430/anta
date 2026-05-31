@@ -210,6 +210,19 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
         }).catch(() => {})
       })
 
+      // Expressive-code copy buttons: instead of EC's "Copied!" tooltip
+      // (hidden via CSS), flip the copy glyph to a green check for a
+      // moment by toggling `[data-anta-copied]` on the button.
+      document.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement)?.closest?.('.expressive-code .copy button') as
+          | (HTMLElement & { _antaCopyTimer?: ReturnType<typeof setTimeout> })
+          | null
+        if (!btn) return
+        btn.dataset.antaCopied = 'true'
+        clearTimeout(btn._antaCopyTimer)
+        btn._antaCopyTimer = setTimeout(() => { delete btn.dataset.antaCopied }, 1400)
+      })
+
       // Anchor-based "scroll preservation" for tone-tab navigation.
       // When the user clicks a link tagged `data-preserve-scroll`, find
       // the heading representing the section they're currently reading
