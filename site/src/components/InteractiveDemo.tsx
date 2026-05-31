@@ -42,6 +42,10 @@ import { throttle } from 'es-toolkit'
  *  built by `site/scripts/build-iframe-runtime.mjs`. */
 const IFRAME_RUNTIME_URL = '/iframe-anta-runtime.js'
 
+/** The prose column width (matches the 960px measure in base.css). The
+ *  playground starts here and can't be resized narrower. */
+const COLUMN_WIDTH = 960
+
 // Lazily loaded inside an effect so the docs page paints without
 // blocking on Monaco's ~1.5 MB bundle.
 type MonacoEditorLib = typeof import('@monaco-editor/react')
@@ -87,6 +91,15 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
   const [panelWidth, setPanelWidth] = useState(400)
   const draggingRef = useRef(false)
   const bodyRef = useRef<HTMLDivElement | null>(null)
+  // Whole-widget size, driven by the bottom-right corner grip (side
+  // layout). Width is the *preferred* width: `null` means "full track"
+  // and sticks there; a number is held until the track squeezes it
+  // (see `width: min(--pg-w, 100%)`). Centered, so only the preview
+  // (the 1fr grid column) grows — the panel keeps its width.
+  const [widgetWidth, setWidgetWidth] = useState<number | null>(COLUMN_WIDTH)
+  const [widgetHeight, setWidgetHeight] = useState(panelHeight)
+  const rootRef = useRef<HTMLElement | null>(null)
+  const cornerDraggingRef = useRef(false)
   const [isDark, setIsDark] = useState<boolean>(() =>
     typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
   )
@@ -389,6 +402,47 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
     try { e.currentTarget.releasePointerCapture(e.pointerId) } catch {}
   }
 
+  // Bottom-right corner grip — resizes the whole widget. Width grows
+  // symmetrically about the widget's centre (it's centered in the lane),
+  // so the grip tracks the right edge while the widget stays aligned;
+  // capped at the available track and snapped to "full" (sticks) at the
+  // edge. Height grows downward, capped at 90vh.
+  function startCornerResize(e: any) {
+    if (layout !== 'side') return
+    e.preventDefault()
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
+    cornerDraggingRef.current = true
+  }
+  function onCornerMove(e: any) {
+    if (!cornerDraggingRef.current || !rootRef.current || !bodyRef.current) return
+    // The section's flow container is the disclosure body; the
+    // astro-island wrapper in between is display:contents (zero box),
+    // so walk past any such wrappers to a real layout box.
+    let container = rootRef.current.parentElement
+    while (container && getComputedStyle(container).display === 'contents') {
+      container = container.parentElement
+    }
+    if (!container) return
+    const cr = container.getBoundingClientRect()
+    const maxW = cr.width // the full-bleed track (already inside the lane padding)
+    const centerX = cr.left + cr.width / 2
+    const w = 2 * (e.clientX - centerX)
+    if (w >= maxW - 8) {
+      setWidgetWidth(null) // snap to full track + stick there
+    } else {
+      // Floor at the prose column width (960) so the widget never gets
+      // narrower than a normal text block; cap at the track.
+      setWidgetWidth(Math.min(maxW, Math.max(COLUMN_WIDTH, w)))
+    }
+    const b = bodyRef.current.getBoundingClientRect()
+    // Floor at the originally-prescribed height; cap at 90vh.
+    setWidgetHeight(Math.max(panelHeight, Math.min(window.innerHeight * 0.9, e.clientY - b.top)))
+  }
+  function endCornerResize(e: any) {
+    cornerDraggingRef.current = false
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch {}
+  }
+
   function handleEditorChange(next: string | undefined) {
     if (next == null) return
     // Update only if the model's value drifted from React state. When
@@ -408,7 +462,20 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
   const bodyClass = layout === 'side' ? `${s.body} ${s.bodySide}` : s.body
 
   return (
-    <section class={s.root}>
+    <section
+      ref={rootRef}
+      class={s.root}
+      style={
+        layout === 'side'
+          ? ({
+              '--pg-w': widgetWidth == null ? '100%' : `${widgetWidth}px`,
+              width: 'min(var(--pg-w), 100%)',
+              maxWidth: 'none', // let the corner grip widen past 960
+              marginInline: 'auto',
+            } as any)
+          : undefined
+      }
+    >
       <div
         class={bodyClass}
         ref={bodyRef}
@@ -443,7 +510,7 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
           />
         )}
 
-        <div class={s.panel} style={{ '--demo-panel-h': `${panelHeight}px` } as any}>
+        <div class={s.panel} style={{ '--demo-panel-h': `${widgetHeight}px` } as any}>
           <div class={s.tabs} role="tablist">
             <button
               type="button"
@@ -474,8 +541,8 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
             </button>
             {/* Reset edits to props / code. CSS is intentionally
                 preserved — the user owns it independently. */}
-            <button
-              type="button"
+            <a-button
+              priority="quaternary"
               class={s.resetBtn}
               aria-label="Reset props and code"
               title="Reset props and code"
@@ -487,8 +554,8 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
                 setCode(initialCode)
               }}
             >
-              <a-icon shape="refresh-ccw-dot" style={{ '--icon-size': '14px' } as any} />
-            </button>
+              <a-icon shape="rotate-ccw" size="14" />
+            </a-button>
           </div>
           {/* Both panels are stacked in the same grid cell so the
               panel sizes to the taller of the two — switching tabs
@@ -611,6 +678,19 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
             </div>
           </div>
         </div>
+
+        {layout === 'side' && (
+          <div
+            class={s.cornerResize}
+            role="separator"
+            aria-label="Resize playground"
+            title="Drag to resize"
+            onPointerDown={startCornerResize}
+            onPointerMove={onCornerMove}
+            onPointerUp={endCornerResize}
+            onPointerCancel={endCornerResize}
+          />
+        )}
       </div>
 
       {compileError && (

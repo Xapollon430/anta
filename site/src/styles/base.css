@@ -240,15 +240,71 @@ code[data-copied]::after {
   }
 }
 
-/* Escape `.content`'s 960px max-width to fill the available width
-   to the right of the sidebar. Used by widgets that need real
-   estate (the InteractiveDemo playground, future wide visualisations).
-   `.content` has `overflow: visible` (default), so children with
-   width > 960px are allowed to extend right; they cap at the
-   viewport's right edge minus the same gutter the prose uses. */
-.full-bleed {
-  width: calc(100vw - var(--page-sidebar-width) - 2 * var(--page-content-pad));
+/* Content lane: `.content` fills the whole track between the sidebars
+   (see DocsLayout), and the 960px readable prose measure is applied
+   per direct child, so wide blocks can opt out and use the full width.
+   An open <Disclosure> is itself a content lane: it spans the track but
+   keeps its header aligned with regular headings and its prose at 960,
+   while a `.columns` / `.full-bleed` child (e.g. the playground) breaks
+   out. Prose looks unchanged; only the opted-out blocks span the track. */
+.content > .disclosure {
   max-width: none;
+}
+.disclosure > summary {
+  max-width: 960px;
+  margin-inline: auto;
+}
+.disclosure > .body {
+  /* Query container for any `.columns` placed inside a disclosure. */
+  container-type: inline-size;
+}
+
+.content > *,
+.disclosure > .body > * {
+  max-width: 960px;
+  margin-inline: auto;
+}
+.content > :is(.columns, .full-bleed),
+.disclosure > .body > :is(.columns, .full-bleed) {
+  max-width: none;
+}
+
+/* Fill the content track (bounded by both sidebars). Used by widgets
+   that need real estate (the InteractiveDemo playground, wide
+   visualisations). */
+.full-bleed {
+  max-width: none;
+}
+
+/* Multi-column section (<Columns> / <Col>). Stacked by default; switches
+   to equal side-by-side columns once the content track is wide enough.
+   Keyed to `.content`'s inline size (container query) — i.e. the
+   edge-to-edge width between the sidebars — not the viewport. */
+.columns {
+  display: flex;
+  flex-direction: column;
+  /* No vertical gap when stacked — the stacked blocks' own margins
+     handle that spacing. The horizontal gap is added in row mode. */
+}
+@container (min-width: 950px) {
+  .columns {
+    flex-direction: row;
+    align-items: start;
+    column-gap: var(--columns-gap, 24px);
+  }
+  /* Default: every child is an equal column with a sensible min width. */
+  .columns > * {
+    flex: 1;
+    min-width: 320px;
+  }
+  /* <Col>: width / min / max driven by inline custom props. */
+  .columns > .col {
+    flex-grow: var(--col-grow, 1);
+    flex-shrink: 1;
+    flex-basis: var(--col-basis, 0);
+    min-width: var(--col-min, 320px);
+    max-width: var(--col-max, none);
+  }
 }
 
 /* Wraps every <table> in MDX/markdown content (injected by the
@@ -257,11 +313,14 @@ code[data-copied]::after {
    *inside* the column instead of the whole page picking up a
    horizontal scrollbar. The table itself keeps default `display:
    table` semantics. */
+/* Wraps stay within the 960px prose measure and centre by default (via
+   `.content > *`); to let a table use the full content track, wrap it in
+   a `.full-bleed` element. `overflow-x: auto` keeps a too-wide table
+   scrolling inside its column rather than the whole page. */
 .table-wrap {
-  max-width: 100%;
   overflow-x: auto;
   scrollbar-width: thin;
-  margin: 0 0 24px;
+  margin: 0 auto 24px;
 }
 /* The wrap owns the bottom margin; zero it on the inner table so a
    wrapped table doesn't stack its own `.content table` margin on top

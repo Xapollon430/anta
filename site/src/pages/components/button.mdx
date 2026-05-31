@@ -6,6 +6,8 @@ import InteractiveDemo from '../../components/InteractiveDemo'
 import Preview from '../../components/Preview.astro'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
+import Columns from '../../components/Columns.astro'
+import Col from '../../components/Col.astro'
 import buttonDemoCode from './button.demo.ts'
 import { Button } from '@antadesign/anta'
 
@@ -16,6 +18,9 @@ An action control. Renders an `<a-button>` web component (or
 applied via attributes.
 
 ## Tones
+
+<Columns>
+<Col>
 
 Six named tones — `neutral` (default), `brand`, `critical`, `info`,
 `success`, `warning`:
@@ -37,6 +42,9 @@ Six named tones — `neutral` (default), `brand`, `critical`, `info`,
 <Button tone="success" label="Success" />
 <Button tone="warning" label="Warning" />
 ```
+
+</Col>
+<Col>
 
 Plus a one-off custom tone — pass any literal CSS color as `tone`:
 
@@ -72,6 +80,9 @@ custom tone, scope it yourself:
 ```css
 .dark a-button[tone="…"] { --button-tone-source: …; }
 ```
+
+</Col>
+</Columns>
 
 ## Priorities
 

@@ -412,12 +412,16 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     color: var(--text-1-brand);
   }
 
+  /* Fill the whole track between the sidebars. The 960px prose measure
+     is applied per-child in base.css (`.content > *`) so wide blocks
+     (`.columns`, `.full-bleed`) can opt out and use the full width.
+     `container-type: inline-size` makes this the query container for
+     `.columns`' column/stack switch. */
   .content {
     flex: 1;
     min-width: 0;
-    max-width: 960px;
-    margin-inline: auto;
     padding: 32px;
+    container-type: inline-size;
   }
 
   /* Right "On this page" rail — mirrors the left sidebar's width and

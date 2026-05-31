@@ -2,10 +2,13 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin: 0 0 32px;
-  /* `.full-bleed` on the host gives the demo widget the available
-     width to the right of the sidebar; this rule is the inner
-     layout. */
+  /* Default to the 960px prose measure, centered — matches surrounding
+     content. (The astro-island wrapper is display:contents, so the
+     content lane's own `> *` cap can't reach this section; cap it here.)
+     The side layout overrides max-width inline so the corner grip can
+     widen the widget to the full track. */
+  max-width: 960px;
+  margin: 0 auto 32px;
 }
 
 .body {
@@ -14,22 +17,39 @@
   gap: 12px;
 }
 
-/* Side layout: preview left, tabbed panel right. Falls back to the
-   stacked column on mobile so the panel sits underneath the preview
-   at narrow widths. */
+/* Side layout: preview left, tabbed panel right. It activates only when
+   we're on desktop AND the content lane is actually wide enough to fit
+   `preview(min 80) + handle + panel` — otherwise the panel overflows and
+   the corner grip detaches. The query container is the disclosure body /
+   `.content` (both `container-type: inline-size`). Below the threshold
+   the body stays a stacked flex column, and the handle + corner grip are
+   hidden. */
+.resizeHandle,
+.cornerResize {
+  display: none;
+}
+
 @media (min-width: 901px) {
-  .bodySide {
-    display: grid;
-    /* preview | handle | panel — handle replaces the gap and serves
-       as the drag affordance. Panel width is driven by the
-       `--demo-panel-w` inline var (state). */
-    grid-template-columns: minmax(0, 1fr) 16px var(--demo-panel-w, 400px);
-    gap: 0;
-    align-items: stretch;
+  @container (min-width: 520px) {
+    .bodySide {
+      display: grid;
+      /* preview | handle | panel. Preview floors at 80px. */
+      grid-template-columns: minmax(80px, 1fr) 8px var(--demo-panel-w, 400px);
+      gap: 0;
+      align-items: stretch;
+      /* Anchor the bottom-right corner grip. */
+      position: relative;
+    }
+    .resizeHandle {
+      display: block;
+    }
+    .cornerResize {
+      display: block;
+    }
   }
 }
 
-/* Resize handle: 16px-wide hit area with a centred 1px rail that
+/* Resize handle: 8px-wide hit area with a centred 1px rail that
    shows up only on hover / active so it stays calm at rest. */
 .resizeHandle {
   position: relative;
@@ -55,11 +75,25 @@
   background: var(--border-3);
 }
 
-/* Hide the handle in stacked layout and on mobile. */
-@media (max-width: 900px) {
-  .resizeHandle {
-    display: none;
-  }
+/* Bottom-right corner grip — resizes the whole widget (width + height).
+   A 16×16 hit area whose 3px line echoes the panel's rounded corner. */
+.cornerResize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  touch-action: none;
+  user-select: none;
+  border-right: 3px solid var(--border-3);
+  border-bottom: 3px solid var(--border-3);
+  border-bottom-right-radius: 8px;
+  transition: border-color 120ms ease-out;
+}
+.cornerResize:hover {
+  border-color: var(--text-3);
 }
 
 .preview {
@@ -157,28 +191,12 @@
 /* Reset button anchored to the right edge of the tab strip. Same
    vertical metrics as a tab so its hit area matches the strip
    height; just an icon, no label. */
+/* Reset control — a quaternary <a-button> (no bg/border) holding the
+   rotate-ccw icon. Anta's button styling owns the colour/hover; we only
+   push it to the end of the tab strip and give it 8px inline padding. */
 .resetBtn {
-  margin-left: auto;
-  appearance: none;
-  border: none;
-  background: transparent;
-  padding: 0 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-4);
-  cursor: pointer;
-  transition: color 120ms ease-out;
-}
-
-.resetBtn:hover,
-.resetBtn:focus-visible {
-  color: var(--text-1);
-  outline: none;
-}
-
-.resetBtn:active {
-  color: var(--text-2);
+  margin-inline-start: auto;
+  --button-padding-x: 8px;
 }
 
 /* Hover wins so only the tab under the cursor reads at full intensity. */

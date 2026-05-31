@@ -1,0 +1,18 @@
+---
+// A multi-column section for docs prose. Spans the full content track
+// (escapes the 960px prose measure via `.columns` in base.css) and lays
+// its children out as equal columns when the available width is wide
+// enough (container query in base.css), stacking them otherwise.
+//
+// Any direct child is a column; children split equally by default. Use
+// <Col> for a column whose width / min / max you want to control.
+interface Props {
+  /** Gap between columns (and between stacked rows). Defaults to 24px. */
+  gap?: string
+}
+const { gap } = Astro.props
+---
+
+<div class="columns" style={gap ? `--columns-gap: ${gap}` : undefined}>
+  <slot />
+</div>
