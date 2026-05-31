@@ -17,6 +17,7 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 ### Changed
 - **Dark theme palette comprehensively retuned.** Every dark-mode background and border token — neutral plus all five tinted tones (brand / success / critical / warning / info) — was reworked into hand-tuned `hsl()` values, deepened from the Anta 0.2 baseline so dark surfaces and borders read with less glare. The dark background and border ramps are now authored in HSL; light mode and dark text tokens are unchanged.
 - **Raw `<code>` now sets `line-height: 1em`** (in `src/reset.css`, `@layer anta`) so inline code no longer inflates the line box of the prose it sits in.
+- **Neutral secondary button background retuned.** Light mode evens out its rest→hover→active ramp — active drops from ~20% to ~15% alpha (`#44374b33` → `#44374b26`), giving ~7 → 10 → 15% instead of the abrupt 7 → 10 → 20. Dark mode is brought down slightly to ~9 → 14 → 18% (`#e4d1ef` at `17`/`24`/`2e`, from `1a`/`26`/`33`). Other tones unchanged.
 
 ## 0.1.1-dev.6 — May 22, 2026
 

@@ -33,7 +33,7 @@
 
     --button-bg-secondary-rest: #45374c12;
     --button-bg-secondary-hover: #44374b1a;
-    --button-bg-secondary-active: #44374b33;
+    --button-bg-secondary-active: #44374b26;
     --button-fg-secondary-rest: #534c57;
     --button-fg-secondary-hover: #49424c;
 
@@ -187,9 +187,9 @@
     --button-bg-primary-hover: #635b65;
     --button-bg-primary-active: #938d96;
 
-    --button-bg-secondary-rest: #e4d1ef1a;
-    --button-bg-secondary-hover: #e4d1ef26;
-    --button-bg-secondary-active: #e4d1ef33;
+    --button-bg-secondary-rest: #e4d1ef17;
+    --button-bg-secondary-hover: #e4d1ef24;
+    --button-bg-secondary-active: #e4d1ef2e;
     --button-fg-secondary-rest: #c1b9c1;
     --button-fg-secondary-hover: #d4ced4;
 
