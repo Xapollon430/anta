@@ -44,3 +44,8 @@ cd site && pnpm run build    # static build
 ```
 
 `pnpm run dev` chains through `docs:api` (typedoc → `src/api.json`), `docs:pages` (regenerate index.mdx from README.md), `docs:wasm` (copy esbuild.wasm), and `docs:iframe-runtime` (rebuild iframe runtime) before starting Astro.
+
+## Component reference tables
+
+- **Props table is automatic.** `<PropsTable component="Button" />` derives everything from `src/api.json` (typedoc) and `PropsTable.astro` owns the rendering, so it's uniform across pages — don't hand-format props. How it renders (for reference, all in `PropsTable.astro`): prop name = monospace, weight 475, no code pill; the optional `?` is a separate `--text-5` element with `user-select: none` (double-click selects just the name, copy omits the `?`); the type column lists each union member on its own line (no `|`), with **type names** (`string`/`number`/`boolean` and named types like `IconShape`) as plain `--text-3` monospace and **literal values** as copyable `<code>` pills with the surrounding quotes stripped (e.g. `neutral`); "no value" em-dashes in the Type/Default columns use `--text-5`.
+- **Component tokens table is hand-authored — keep these conventions** (not automatable): when a row lists multiple tokens, put **each token on its own line with `<br />`**, never separate them with ` / `. Match the existing `## Component tokens` table shape (a `| Token | Description |` table inside `<Disclosure title="Component tokens">`). Token names and inline values stay as normal `` `code` `` (they pick up the copyable code-pill styling automatically).
