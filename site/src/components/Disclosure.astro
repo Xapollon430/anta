@@ -119,6 +119,12 @@ const Heading = `h${level}` as const
       transition: overflow 0s 240ms;
       transition-behavior: allow-discrete; /* required for the delayed discrete flip */
     }
+    /* Deep-link / anchor opens skip the animation (the script adds this
+       briefly) so the layout is final before we scroll to the target. */
+    .disclosure.no-anim::details-content,
+    .disclosure.no-anim .body {
+      transition: none;
+    }
   }
 </style>
 
@@ -135,7 +141,17 @@ const Heading = `h${level}` as const
     if (!id) return null
     const target = document.getElementById(id)
     const details = target?.closest('details.disclosure')
-    if (details instanceof HTMLDetailsElement) details.open = true
+    if (details instanceof HTMLDetailsElement && !details.open) {
+      // Deep-link / anchor open: expand instantly (no animation) so the
+      // page height is final before we scroll — otherwise the smooth
+      // scroll chases a moving target as the 0fr→1fr row grows. Re-enable
+      // the animation after the open commits so manual toggles still animate.
+      details.classList.add('no-anim')
+      details.open = true
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => details.classList.remove('no-anim')),
+      )
+    }
     return target
   }
 
