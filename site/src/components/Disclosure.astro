@@ -30,7 +30,7 @@ const Heading = `h${level}` as const
 
 <details class="disclosure" open={open}>
   <summary class="summary">
-    <a-icon shape="chevron-right" class="chevron" style="--icon-size: 18px"></a-icon>
+    <a-icon shape="chevron-right" class="chevron"></a-icon>
     {/* A real heading carries the id so the TOC picks it up; the inner
         anchor mirrors rehype-autolink-headings' `behavior: 'wrap'` output
         (classes `header-anchor muted`) so the section deep-links and
@@ -52,7 +52,7 @@ const Heading = `h${level}` as const
   .summary {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 2px;
     cursor: pointer;
     user-select: none;
     color: var(--text-1);
@@ -73,6 +73,14 @@ const Heading = `h${level}` as const
   .chevron {
     color: var(--text-3);
     flex-shrink: 0;
+    /* Hang the chevron in the left gutter (negative margin = chevron width
+       16px + gap 2px) so the title lands flush at the 960px prose edge —
+       aligned with regular `##` headings and the disclosure body — instead
+       of being pushed right by the chevron. The summary keeps its centering
+       (`margin-inline: auto` from base.css) untouched. At 18px the hang is
+       small enough that on mobile (16px content padding) only the chevron's
+       inset glyph whitespace overhangs, so no mobile special-casing needed. */
+    margin-left: -18px;
     transition: transform 150ms ease-out, color 120ms ease-out;
   }
   .summary:hover .chevron {

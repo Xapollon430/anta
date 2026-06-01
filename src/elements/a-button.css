@@ -326,7 +326,7 @@
 
     font-size: 15px;
     font-family: var(--sans-serif);
-    font-weight: 500;
+    font-weight: 450;
     /* All upstream axes must be re-stated here — `font-variation-settings`
        replaces, it doesn't merge with inherited values. Dropping
        "slnt"/"ital" would revert them to the font file's non-zero

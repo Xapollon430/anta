@@ -20,8 +20,9 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 - **Neutral secondary button background retuned.** Light mode evens out its rest→hover→active ramp — active drops from ~20% to ~15% alpha (`#44374b33` → `#44374b26`), giving ~7 → 10 → 15% instead of the abrupt 7 → 10 → 20. Dark mode is brought down slightly to ~9 → 14 → 18% (`#e4d1ef` at `17`/`24`/`2e`, from `1a`/`26`/`33`). Other tones unchanged.
 - **Dark neutral `--bg-base` / `--bg-section` adjusted.** `--bg-base` lightened to `hsl(280 10% 5.5%)` and `--bg-section` set to near-black `hsl(280 20% 0%)`, so the "section" surface now sits *below* the page canvas in lightness — elevated / code surfaces read as recessed rather than raised. `--bg-pane` / `--bg-block` / `--bg-spot` and all tinted tones are unchanged.
 - **Quaternary button press feedback (light mode).** `priority="quaternary"`'s `:active` now lightens the rest foreground by `0.05` in oklch lightness (`oklch(from var(--button-fg-quaternary-rest) calc(l + 0.05) c h)`) for a subtle pressed look, instead of snapping back to the rest color. Dark mode is unchanged — it still returns to rest, since lightening would brighten the already-light foreground.
+- **Button label `font-weight` softened from `500` to `450`.** Applies to every `<Button>` / `<a-button>` label across all priorities and sizes.
 
-## 0.1.1-dev.6 — May 22, 2026
+## 0.1.1-dev.6 — May 28, 2026
 
 ### Added
 - New `Title` component (`<a-title>` styled tag + `Title` JSX wrapper) for headings at one of six `level`s. Drives both the type scale (font-size + line-height) and the vertical rhythm (logical `margin-block` per level); also surfaces `role="heading"` + `aria-level` for assistive tech. Mirrors `Text`'s `priority` (`primary`-`quinary`, mapping to `--text-1`...`--text-5`) and `tone` (`brand`, `success`, `critical`, `warning`, `info`) APIs. Children are arbitrary — pass icons, badges, or any inline content beside the title text; there are no `leadingIcon` / `trailingIcon` props.

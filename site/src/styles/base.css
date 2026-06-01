@@ -204,6 +204,19 @@ pre code { background: none; padding: 0; }
 .content .expressive-code .copy button > div {
   display: none;
 }
+/* Pin the icon glyph to a fixed 16px, centered. EC sizes the button larger
+   on touch (2.5rem vs the 2rem hover-capable size) and the icon's mask uses
+   `mask-size: auto`, which fills the button box — so a bigger button scaled
+   the glyph up too. Fixing the mask size decouples the icon from the button:
+   the button can grow for a bigger tap target while the icon stays 16px.
+   Applies to the green-check state too (it only swaps the mask image). */
+.content .expressive-code .copy button::after {
+  margin: 0;
+  -webkit-mask-size: 16px;
+  mask-size: 16px;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
 
 /* EC fades the copy *button* in on frame hover; move that reveal to the
    whole `.copy` tab so the frosted chip isn't shown empty at rest. */

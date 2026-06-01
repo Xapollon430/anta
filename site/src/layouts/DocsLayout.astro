@@ -115,15 +115,16 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
   <body>
     <header class="topbar">
       <span class="topbar-title">
-        <img class="topbar-logo" src="/anta-logo.svg" alt="" width="32" height="32" />
-        Anta design system
+        Anta{title && <Fragment><span class="crumb-sep">›</span>{title}</Fragment>}
       </span>
-      <button class="menu-toggle" aria-label="Open menu" type="button">
-        <span class="menu-label">MENU</span>
-        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-          <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </button>
+      <Button
+        class="menu-toggle"
+        priority="tertiary"
+        size="large"
+        label="MENU"
+        iconTrailing="menu"
+        aria-label="Open menu"
+      />
     </header>
     <div class="layout">
       <aside class="sidebar">
@@ -175,6 +176,16 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
         </menu>
       </aside>
       <main class="content">
+        {/* Mobile-only: opens the "On this page" TOC as a right-side
+            slide-out (the .toc-rail is hidden on mobile otherwise).
+            Absolutely positioned in the content's top-right corner. */}
+        <Button
+          class="toc-toggle"
+          priority="tertiary"
+          underline="dotted"
+          label="On this page"
+          aria-label="Open table of contents"
+        />
         <slot />
       </main>
       <aside class="toc-rail">
@@ -185,17 +196,33 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
 
     <script>
       const backdrop = document.querySelector('.backdrop')
+      // Two mobile slide-outs share the backdrop: the nav sidebar (menu)
+      // and the "On this page" TOC. Opening one closes the other so they
+      // never overlap (both slide in from the right).
       const setMenu = (open: boolean) => {
         document.body.dataset.menuOpen = open ? 'true' : 'false'
+        if (open) document.body.dataset.tocOpen = 'false'
+      }
+      const setToc = (open: boolean) => {
+        document.body.dataset.tocOpen = open ? 'true' : 'false'
+        if (open) document.body.dataset.menuOpen = 'false'
       }
       const toggleMenu = () => setMenu(document.body.dataset.menuOpen !== 'true')
+      const toggleToc = () => setToc(document.body.dataset.tocOpen !== 'true')
+      const closeAll = () => {
+        setMenu(false)
+        setToc(false)
+      }
       document.querySelectorAll('.menu-toggle, .topbar-title').forEach((el) => {
         el.addEventListener('click', toggleMenu)
       })
-      backdrop?.addEventListener('click', () => setMenu(false))
+      document.querySelector('.toc-toggle')?.addEventListener('click', toggleToc)
+      backdrop?.addEventListener('click', closeAll)
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') setMenu(false)
+        if (e.key === 'Escape') closeAll()
       })
+      // Tapping a TOC entry navigates via hash — close the panel after.
+      window.addEventListener('hashchange', () => setToc(false))
 
       // Theme toggle — flips the `.dark` class on <html> and persists
       // the choice in localStorage. The inline head script handles
@@ -407,6 +434,12 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     container-type: inline-size;
   }
 
+  /* The in-content "On this page" TOC trigger is mobile-only; on desktop
+     the .toc-rail is always visible, so the button is hidden. */
+  .toc-toggle {
+    display: none;
+  }
+
   /* Right "On this page" rail — mirrors the left sidebar's width and
      sticky full-height behaviour. Holds the <a-toc> web component. */
   .toc-rail {
@@ -423,12 +456,53 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
   .backdrop { display: none; }
 
   @media (max-width: 900px) {
-    .logo { display: none; }
-
-    .toc-rail { display: none; }
+    /* The full logo row (logo + "Anta" wordmark + theme toggle) shows at
+       the top of the slide-out sidebar, exactly like desktop — so it keeps
+       its base styles here (no mobile override). */
 
     .content {
-      padding-inline: 16px;
+      /* Asymmetric on mobile: a touch more breathing room on the left
+         (start) than the right (end). `padding-inline: <start> <end>`. */
+      padding-inline: 20px 12px;
+      /* Positioning context for the absolutely-placed TOC trigger. */
+      position: relative;
+    }
+
+    /* The "On this page" trigger floats in the content's top-right corner. */
+    .toc-toggle {
+      display: inline-flex;
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      z-index: 5;
+      font-size: 14px;
+    }
+
+    /* On mobile the TOC rail becomes a right-side slide-out panel (mirrors
+       the nav sidebar), revealed by the .toc-toggle button. */
+    .toc-rail {
+      display: block;
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100dvh;
+      width: min(280px, 80vw);
+      padding: 24px;
+      background: var(--bg-section);
+      border-left: 1px solid var(--border-5);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 250ms ease-out;
+      z-index: 20;
+    }
+
+    body[data-toc-open="true"] .toc-rail {
+      transform: translateX(0);
+    }
+
+    body[data-toc-open="true"] .backdrop {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .sidebar {
@@ -466,52 +540,50 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
       align-items: center;
       gap: 8px;
       height: 44px;
-      padding: 0 10px;
+      /* A touch more room on the left (start) than the right (end). */
+      padding-block: 0;
+      padding-inline: 18px 6px;
       position: sticky;
       top: 0;
       z-index: 10;
-      background: var(--bg-section);
-      border-bottom: 1px solid var(--border-5);
+      background: var(--bg-block);
+      border-bottom: 1px solid var(--border-4);
     }
 
+    /* The menu button is an Anta tertiary <Button> (background-less, fills
+       on hover), pushed to the right of the topbar. The smaller font-size +
+       letter-spacing (inherited by the label; the icon stays its absolute
+       16px) bring the "MENU" text back to its previous compact look. */
     .menu-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
       margin-left: auto;
-      height: 28px;
-      padding: 0 6px;
-      background: transparent;
-      border: none;
-      color: inherit;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-
-    .menu-toggle:hover { background: var(--bg-spot); }
-
-    .menu-label {
-      font-size: 0.75rem;
-      font-weight: 600;
+      font-size: 14px;
       letter-spacing: 0.05em;
-      color: var(--text-2);
+    }
+    /* Override Anta's label optical-centering (17px line + 1px bottom pad)
+       for this compact menu label: tight 14px line box, no bottom padding.
+       `:global` because the label is rendered inside the Button island. */
+    .menu-toggle :global(a-button-label) {
+      line-height: 14px;
+      padding-bottom: 0;
     }
 
+    /* Breadcrumb "Anta › {page}". The separator is muted; crumbs sit tight
+       (gap: 0) with the separator carrying its own side margins. */
     .topbar-title {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 0;
       font-weight: 550;
       font-size: 0.95rem;
+      line-height: 1em;
       letter-spacing: 0.05ch;
       color: var(--text-1-brand);
       cursor: pointer;
     }
-
-    .topbar-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
+    .topbar-title .crumb-sep {
+      margin-inline: 6px;
+      color: var(--text-4);
+      font-weight: 400;
     }
   }
 </style>
