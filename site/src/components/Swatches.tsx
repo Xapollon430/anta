@@ -22,15 +22,15 @@ const TONES: { id: Tone; label: string }[] = [
 // bg-section is mode-invariant across tones (no tone-specific variant exists in
 // the Figma library) — we still include it as the 5th swatch in every tone row
 // so the layout stays consistent and shows that section is shared.
-const BG_SECTION: TokenRow = { name: 'bg-section', light: '#ffffff', dark: 'hsl(280 9% 4.6% / 1)' }
+const BG_SECTION: TokenRow = { name: 'bg-section', light: '#ffffff', dark: 'hsl(280 20% 0% / 1)' }
 
 const TOKENS: Record<Kind, Partial<Record<Tone, TokenRow[]>>> = {
   bg: {
     neutral: [
-      { name: 'bg-base',    light: '#fbfafb', dark: 'hsl(280 20% 3% / 1)' },
+      { name: 'bg-base',    light: '#fbfafb', dark: 'hsl(280 10% 5.5% / 1)' },
       BG_SECTION,
-      { name: 'bg-pane',    light: '#f6f4f6', dark: 'hsl(280 10% 6% / 1)' },
-      { name: 'bg-block',   light: '#f1eff1', dark: 'hsl(285 7% 7% / 1)' },
+      { name: 'bg-pane',    light: '#f6f4f6', dark: 'hsl(280 10% 7% / 1)' },
+      { name: 'bg-block',   light: '#f1eff1', dark: 'hsl(285 7% 8% / 1)' },
       { name: 'bg-spot',    light: '#ece9ec', dark: 'hsl(285 9% 9% / 1)' },
     ],
     brand: [

@@ -110,21 +110,27 @@ summary { cursor: pointer; }
 p, ul, ol, blockquote, dl { margin: 0 0 1em; }
 pre, figure, hr, .expressive-code { margin: 0 0 1.5em; }
 
-/* Code blocks in the main content blend into the page (transparent fill)
-   at rest and reveal their card background on hover / focus. Gated to
-   hover-capable devices (touch keeps the background always) and scoped to
+/* Code blocks in the main content use the `bg-pane` fill (a static
+   background — no hover change). Overrides the `--code-background` var the
+   EC `pre` reads (specificity-proof vs EC's own rule), and scoped to
    `.content` so the playground's embedded editor is unaffected. */
-@media (hover: hover) {
-  /* Override the `--code-background` var the EC `pre` reads (specificity-
-     proof vs EC's own rule), so the block is transparent at rest. */
-  .content .expressive-code pre {
-    --code-background: transparent;
-    transition: background-color 150ms ease-out;
-  }
-  .content .expressive-code:hover pre,
-  .content .expressive-code:focus-within pre {
-    --code-background: var(--bg-section);
-  }
+.content .expressive-code pre {
+  --code-background: var(--bg-pane);
+}
+
+/* Fuse a <Preview> with the code block that immediately follows it: drop
+   the gap, square the touching corners, and remove the code block's top
+   border so the two panels read as one (Preview's bottom border becomes
+   the single seam between them). */
+.content .preview:has(+ .expressive-code) {
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.content .preview + .expressive-code pre {
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 /* Tone × priority demo on the Title docs page. Scrolls horizontally
@@ -176,31 +182,52 @@ pre code { background: none; padding: 0; }
   position: relative;
 }
 
-/* Nudge the expressive-code copy button flush to the block's top-right
-   corner (1px inset on both axes). */
-.expressive-code .frame .copy {
-  inset-block-start: 2px;
-  inset-inline-end: 2px;
+/* The copy region (`.copy`) is a frosted corner tab: it sits flush in the
+   block's top-right corner with a semi-transparent code-background fill and
+   a slight backdrop blur over the code beneath, hugging the block's rounded
+   corner (top-right) with a rounded bottom-left "peel". The button inside is
+   a bare Anta quaternary control — no background, border, or hover/active
+   fill (EC's tint overlay `div` is hidden); just the icon. */
+.content .expressive-code .frame .copy {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  background: color-mix(in oklch, var(--bg-pane) 60%, transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border-top-right-radius: 5px;
+  border-bottom-left-radius: 8px;
+}
+.content .expressive-code .copy button {
+  background: none;
+  border-radius: 0;
+}
+.content .expressive-code .copy button > div {
+  display: none;
+}
+
+/* EC fades the copy *button* in on frame hover; move that reveal to the
+   whole `.copy` tab so the frosted chip isn't shown empty at rest. */
+@media (hover: hover) {
+  .content .expressive-code .frame .copy {
+    opacity: 0;
+    transition: opacity 150ms ease-out;
+  }
+  .content .expressive-code .frame:hover .copy,
+  .content .expressive-code .frame:focus-within .copy {
+    opacity: 1;
+  }
+  .content .expressive-code .copy button {
+    opacity: 1;
+  }
 }
 
 /* Replace expressive-code's "Copied!" tooltip with an icon swap: on a
    successful copy our script (DocsLayout) sets [data-anta-copied] on the
    button for a moment, turning the copy glyph into a green check. EC's
-   tooltip text is kept in the DOM but visually hidden so screen readers
-   still announce it. */
+   own tooltip bubble (the `.feedback` element + its ::before/::after) is
+   removed entirely — the icon swap is the only feedback. */
 .expressive-code .copy .feedback {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  background: transparent;
-}
-.expressive-code .copy .feedback::after {
-  display: none; /* tooltip arrow */
+  display: none;
 }
 
 .expressive-code .copy button[data-anta-copied]::after {

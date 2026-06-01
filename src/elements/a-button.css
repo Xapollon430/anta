@@ -657,9 +657,14 @@
       &[selected] {
         --button-fg: var(--button-fg-quaternary-hover);
       }
-      /* Pressing returns quaternary to its rest look — declared after
-         :hover so it wins while the pointer is still over the button. */
+      /* Pressing lightens the rest color by 0.05 (oklch L) for a subtle
+         press feedback in light mode — declared after :hover so it wins
+         while the pointer is still over the button. Dark mode returns to
+         the rest color (lightening would brighten the already-light fg). */
       &:active {
+        --button-fg: oklch(from var(--button-fg-quaternary-rest) calc(l + 0.05) c h);
+      }
+      .dark &:active {
         --button-fg: var(--button-fg-quaternary-rest);
       }
     }
