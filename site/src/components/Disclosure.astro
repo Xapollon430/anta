@@ -181,11 +181,15 @@ const Heading = `h${level}` as const
     a.addEventListener('click', (e) => {
       e.preventDefault()
       e.stopPropagation()
-      const details = a.closest('details')
       const headingId = a.closest('[id]')?.id
-      if (!details) return
-      details.open = true
-      if (headingId) location.hash = headingId
+      if (!headingId) return
+      // Open instantly (`openContaining` adds `.no-anim`) so the layout is
+      // final, update the URL without firing a scroll race, then scroll on
+      // the next frame. Doing this directly (not via `hashchange`) keeps the
+      // smooth scroll from being cancelled by the expand animation.
+      const target = openContaining(headingId)
+      history.replaceState(null, '', '#' + headingId)
+      if (target) target.scrollIntoView({ block: 'start' })
     })
   }
 </script>

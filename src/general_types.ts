@@ -161,14 +161,15 @@ export interface AButtonAttributes extends BaseAttributes {
   underline?: 'solid' | 'dashed' | 'dotted'
   /** Size variant. small=22px, medium=26px, large=30px. */
   size?: 'small' | 'medium' | 'large'
-  /** Drop outer padding to zero. Only takes effect on `priority="quaternary"`. */
-  paddingless?: 'true' | 'false' | boolean
-  /** Loading state. */
-  loading?: 'true' | 'false' | boolean
-  /** Disabled state. */
-  disabled?: 'true' | 'false' | boolean
-  /** Toggled-on / pressed state. */
-  selected?: 'true' | 'false' | boolean
+  /** Drop outer padding to zero. Only takes effect on `priority="quaternary"`.
+   *  Presence-based: `''` (or any value) turns it on; omit to turn off. */
+  paddingless?: '' | 'true' | 'false' | boolean
+  /** Loading state. Presence-based (`''` on, omit off). */
+  loading?: '' | 'true' | 'false' | boolean
+  /** Disabled state. Presence-based (`''` on, omit off). */
+  disabled?: '' | 'true' | 'false' | boolean
+  /** Toggled-on / pressed state. Presence-based (`''` on, omit off). */
+  selected?: '' | 'true' | 'false' | boolean
   /** Submit/reset semantics. */
   type?: 'button' | 'submit' | 'reset'
   /** Associate with a form by id when not nested inside it. */

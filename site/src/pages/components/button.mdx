@@ -18,6 +18,8 @@ component (or `<a role="button">` when `href` is set). Tone, priority,
 size, and state are all plain attributes, so the styling is identical
 whether you use the wrapper or author the element by hand.
 
+Play with it in [playground](#playground).
+
 ## Priorities
 
 A button's priority helps control how much attention it draws:
@@ -59,7 +61,7 @@ literal CSS color and the button will adapt to it.
 <Columns>
 <Col>
 
-<Preview>
+<Preview cols={3}>
   <Button label="Save" />
   <Button tone="brand" label="Publish" />
   <Button tone="critical" label="Delete" />
@@ -80,7 +82,7 @@ literal CSS color and the button will adapt to it.
 </Col>
 <Col>
 
-<Preview>
+<Preview cols={3}>
   <Button priority="primary" tone="#ff1493" label="Pinkify" />
   <Button priority="secondary" tone="oklch(0.655 0.261 356.9)" label="Pinkify" />
   <Button priority="tertiary" tone="hsl(328 100% 54%)" label="Pinkify" />
@@ -101,6 +103,9 @@ literal CSS color and the button will adapt to it.
 </Col>
 </Columns>
 
+<Columns>
+<Col>
+
 For custom tones, **primary** keeps the source's hue and chroma but pins
 its *lightness* near the Brand primary's, so any input — too light or too
 dark — still lands at a Brand-like fill (hover / active step the lightness,
@@ -112,6 +117,9 @@ legible button. The full priority × state matrix — rest, hover, active,
 secondary alpha overlay, tertiary fill — is derived automatically, and
 re-tunes between light and dark.
 
+</Col>
+<Col>
+
 If you need pixel-precise color, set `--button-fg` or `--button-bg`
 yourself — inline via `style`, or from your own class or selector. The
 resolver lives in `@layer anta`, so any un-layered rule of yours wins
@@ -121,10 +129,13 @@ too, so there's no state change; to keep distinct states, set the per-state
 variables instead — `--button-bg-{priority}-hover`,
 `--button-bg-{priority}-active`, and the `--button-fg-*` equivalents.
 
+</Col>
+</Columns>
+
 ## Sizes
 
-Three sizes; only the padding changes, so the label keeps the same 15px
-size — readability stays constant while the hit area grows or shrinks:
+<Columns>
+<Col>
 
 <Preview>
   <Button size="small" tone="brand" icon="check" />
@@ -144,12 +155,21 @@ size — readability stays constant while the hit area grows or shrinks:
 <Button tone="brand" size="large"  label="Large" />
 ```
 
+</Col>
+<Col>
+
+Three sizes; only the padding changes, so the label keeps the same 15px
+size — readability stays constant while the hit area grows or shrinks.
+
 Omitting `size` and passing `size="medium"` render identically — the
 wrapper drops the attribute for the medium case so the DOM stays free
 of redundant `size="medium"`.
 
 Height comes from `line-height` (18px) plus vertical padding; font size
-stays 15px across all sizes:
+stays 15px across all sizes.
+
+</Col>
+</Columns>
 
 | size | height | `padding-y` | text-edge `padding-x` | icon-edge `padding-x` |
 |---|---|---|---|---|
@@ -165,8 +185,30 @@ size.
 
 Need a different font size? Style the `<a-button-label>` directly — set
 its `font-size` and `line-height`, and (if the text then sits a little
-high) drop the 1px `padding-bottom` that optically centers the default
-metrics.
+high) drop the 1px `padding-bottom` that optically centers Anta's
+default font.
+
+### Paddingless
+
+Only valid on `priority="quaternary"`. Zeros the outer padding so the
+button sits flush with surrounding prose — useful when you want a
+button to read as an inline link inside a sentence:
+
+{/* Keep the prose + button on one source line — MDX's remark pass
+     promotes any text-only line inside JSX to its own `<p>`, which
+     would split the button out of the surrounding paragraph and
+     break inline flow. */}
+<Preview>
+  <p style={{ maxWidth: '480px', margin: 0, lineHeight: 1.6 }}>If you're familiar with the basics, click <Button tone="critical" priority="quaternary" paddingless label="here" /> to skip the live demo.</p>
+</Preview>
+
+```tsx
+<p>
+  If you're familiar with the basics, click
+  <Button tone="critical" priority="quaternary" paddingless label="here" />
+  to skip ahead to the live demo.
+</p>
+```
 
 ## Icons
 
@@ -219,11 +261,39 @@ Icon-only buttons get an accessible name automatically — the wrapper
 sets `aria-label={icon}` so `<Button icon="trash" />` ships with the
 name "trash". Pass your own `aria-label` to override.
 
+### Children alongside label & icon
+
+<Columns>
+<Col>
+
+Children render after the label and before the trailing icon, so you
+can mix custom inline content — keyboard hints, badges, counters —
+with the prop-driven API.
+
+Children also work without `label` — pass them as the only content.
+
+</Col>
+<Col>
+
+<Preview>
+  <Button tone="brand" label="Save" icon="check">
+    <span style={{ opacity: 0.7 }}>⌘S</span>
+  </Button>
+</Preview>
+
+```tsx
+<Button tone="brand" label="Save" icon="check">
+  <span style={{ opacity: 0.7 }}>⌘S</span>
+</Button>
+```
+
+</Col>
+</Columns>
+
 ## Underline
 
-Only valid on `priority="tertiary"` / `"quaternary"`. Filled chips
-don't need an underline; passing it on `primary` / `secondary` is a
-TypeScript error. Three styles — `solid`, `dashed`, `dotted`:
+<Columns>
+<Col>
 
 <Preview>
   <Button tone="brand" priority="tertiary" underline="solid" label="Solid" />
@@ -237,29 +307,20 @@ TypeScript error. Three styles — `solid`, `dashed`, `dotted`:
 <Button tone="brand" priority="tertiary" underline="dotted" label="Dotted" />
 ```
 
-## Paddingless
+</Col>
+<Col>
 
-Only valid on `priority="quaternary"`. Zeros the outer padding so the
-button sits flush with surrounding prose — useful when you want a
-button to read as an inline link inside a sentence:
+When the button has a [link mode](#link-mode), or you simply want an
+underline stylistically, it supports three styles — `solid`, `dashed`,
+`dotted` (only valid on `priority="tertiary"` / `"quaternary"`).
 
-{/* Keep the prose + button on one source line — MDX's remark pass
-     promotes any text-only line inside JSX to its own `<p>`, which
-     would split the button out of the surrounding paragraph and
-     break inline flow. */}
-<Preview>
-  <p style={{ maxWidth: '480px', margin: 0, lineHeight: 1.6 }}>If you're familiar with the basics, click <Button tone="critical" priority="quaternary" paddingless label="here" /> to skip the live demo.</p>
-</Preview>
-
-```tsx
-<p>
-  If you're familiar with the basics, click
-  <Button tone="critical" priority="quaternary" paddingless label="here" />
-  to skip ahead to the live demo.
-</p>
-```
+</Col>
+</Columns>
 
 ## States
+
+<Columns>
+<Col>
 
 <Preview>
   <Button tone="brand" loading label="Submitting" />
@@ -275,6 +336,9 @@ button to read as an inline link inside a sentence:
 <Button tone="brand" loading disabled label="Critical" />
 ```
 
+</Col>
+<Col>
+
 - **`loading`** — diagonal stripe overlay slides across the button.
   Stripe color follows `currentColor`, so it tracks the tone. Blocks
   clicks via `pointer-events: none`.
@@ -284,11 +348,13 @@ button to read as an inline link inside a sentence:
 - **`selected`** — toggled-on / pressed visual; shares the active
   state's look. Useful for filter chips and icon toggles.
 
+</Col>
+</Columns>
+
 ## Link mode
 
-Setting `href` switches the rendered tag from `<a-button>` to
-`<a role="button">`. Styling is identical — both selectors share the
-same CSS rules.
+<Columns>
+<Col>
 
 <Preview>
   <Button tone="brand" href="#" label="Read the docs" iconTrailing="external-link" />
@@ -297,6 +363,16 @@ same CSS rules.
 ```tsx
 <Button tone="brand" href="/docs" target="_blank" label="Read the docs" />
 ```
+
+</Col>
+<Col>
+
+Setting `href` switches the rendered tag from `<a-button>` to
+`<a role="button">`. Styling is identical — both selectors share the
+same CSS rules.
+
+</Col>
+</Columns>
 
 <Disclosure title="Linking with routing libraries" level={3}>
 
@@ -355,6 +431,9 @@ event:
 For non-anchor buttons, `type="submit"` and `type="reset"` integrate
 with native forms:
 
+<Columns>
+<Col>
+
 <Preview>
   {/* `action="javascript:void(0)"` keeps the live demo from navigating
        on submit; in real code you'd give the form a real action or
@@ -371,20 +450,31 @@ with native forms:
   <Button tone="brand" type="submit" label="Sign up" />
   <Button tone="brand" type="reset"  label="Clear" />
 </form>
-
 {/* Associate with a form by id when the button is outside */}
 <Button tone="brand" type="submit" form="signup" label="Submit from outside" />
 ```
+
+</Col>
+<Col>
 
 `type="submit"` calls `form.requestSubmit()` and also dispatches a
 `submitdetailed` event on the form with `{ formData, submitter: { tag, attrs } }`
 in `detail` — handy for analytics or multi-button forms.
 
+</Col>
+</Columns>
+
 ### Custom click events
+
+<Columns>
+<Col>
 
 `data-custom-event="<name>"` makes the button dispatch a bubbling
 `CustomEvent("<name>")` on click. Use it to instrument analytics
-without taking ownership of `onClick`:
+without taking ownership of `onClick`.
+
+</Col>
+<Col>
 
 <Preview>
   <Button tone="brand" label="Save" data-custom-event="save-clicked" />
@@ -394,25 +484,8 @@ without taking ownership of `onClick`:
 <Button tone="brand" label="Save" data-custom-event="save-clicked" />
 ```
 
-## Children alongside label
-
-Children render after the label and before the trailing icon, so you
-can mix custom inline content — keyboard hints, badges, counters —
-with the prop-driven API:
-
-<Preview>
-  <Button tone="brand" label="Save" icon="check">
-    <span style={{ opacity: 0.7, fontSize: 12 }}>⌘S</span>
-  </Button>
-</Preview>
-
-```tsx
-<Button tone="brand" label="Save" icon="check">
-  <span style={{ opacity: 0.7, fontSize: 12 }}>⌘S</span>
-</Button>
-```
-
-Children also work without `label` — pass them as the only content.
+</Col>
+</Columns>
 
 <Disclosure title="Playground">
 

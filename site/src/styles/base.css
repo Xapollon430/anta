@@ -313,8 +313,9 @@ code[data-copied]::after {
    per direct child, so wide blocks can opt out and use the full width.
    An open <Disclosure> is itself a content lane: it spans the track but
    keeps its header aligned with regular headings and its prose at 960,
-   while a `.columns` / `.full-bleed` child (e.g. the playground) breaks
-   out. Prose looks unchanged; only the opted-out blocks span the track. */
+   while a `.full-bleed` child (e.g. the playground) breaks out. Prose
+   looks unchanged; only the opted-out blocks span the track. (`.columns`
+   stays within the 960 measure — it is no longer a breakout.) */
 .content > .disclosure {
   max-width: none;
 }
@@ -332,8 +333,8 @@ code[data-copied]::after {
   max-width: 960px;
   margin-inline: auto;
 }
-.content > :is(.columns, .full-bleed),
-.disclosure > .body > :is(.columns, .full-bleed) {
+.content > .full-bleed,
+.disclosure > .body > .full-bleed {
   max-width: none;
 }
 
@@ -351,6 +352,9 @@ code[data-copied]::after {
 .columns {
   display: flex;
   flex-direction: column;
+  /* Default column gap (used in row mode below); override per-instance. */
+  --columns-gap: 20px;
+  column-gap: var(--columns-gap);
   /* No vertical gap when stacked — the stacked blocks' own margins
      handle that spacing. The horizontal gap is added in row mode. */
 }
@@ -358,7 +362,7 @@ code[data-copied]::after {
   .columns {
     flex-direction: row;
     align-items: start;
-    column-gap: var(--columns-gap, 24px);
+    column-gap: var(--columns-gap);
   }
   /* Default: every child is an equal column with a sensible min width. */
   .columns > * {

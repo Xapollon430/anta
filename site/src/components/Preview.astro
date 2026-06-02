@@ -5,9 +5,17 @@
  * no client hydration; relies on the host page's
  * `@antadesign/anta/elements` registration to hydrate any `<a-*>`
  * custom elements inside.
+ *
+ * `cols` switches the panel from the default wrap-flex to a centered
+ * grid of N equal-gap columns — handy when you want children to land
+ * on tidy rows (e.g. two rows of three) without flex line-break hacks.
  */
+interface Props {
+  cols?: number
+}
+const { cols } = Astro.props
 ---
-<div class="preview">
+<div class="preview" data-cols={cols} style={cols ? `--preview-cols: ${cols}` : undefined}>
   <slot />
 </div>
 
@@ -22,6 +30,14 @@
     border: 1px solid var(--border-5);
     border-radius: 6px;
     background: var(--bg-section);
-        margin-bottom: 4px;
+    margin-bottom: 4px;
+  }
+
+  /* `cols` mode: a centered grid of N max-content columns. Same 12px
+     gap on both axes — no doubled row gap from flex line-break spacers. */
+  .preview[data-cols] {
+    display: grid;
+    grid-template-columns: repeat(var(--preview-cols), max-content);
+    justify-content: center;
   }
 </style>

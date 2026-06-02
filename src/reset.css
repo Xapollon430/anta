@@ -120,11 +120,8 @@
   }
   a:hover {
     color: var(--link-color-hover);
-    /* Underline color set to the hover token directly (rather than
-       `currentColor`) so it repaints in lockstep with `color` — a
-       few browsers latch onto the old currentColor value
-       otherwise. */
-    text-decoration-color: var(--link-color-hover);
+    /* Underline color is left as the resting hairline (the base rule's
+       `currentColor` mix) — only the thickness grows on hover. */
     text-decoration-thickness: 1px;
   }
   a:active {

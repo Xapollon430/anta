@@ -413,6 +413,11 @@
       outline-offset: 1px;
     }
 
+    /* Selected gets a 0.5px inset ring in the current fg color. */
+    &[selected] {
+      box-shadow: inset 0 0 0 0.5px currentColor;
+    }
+
     /* Quaternary: instant in every direction — hover-in, press, and
        return to rest all snap with no transition. */
     &[priority="quaternary"] {
