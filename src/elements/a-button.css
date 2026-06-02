@@ -208,16 +208,16 @@
     --button-bg-primary-hover: #5f4bc3;
     --button-bg-primary-active: #7460d7;
 
-    --button-bg-secondary-rest: #7460d726;
-    --button-bg-secondary-hover: #7460d733;
-    --button-bg-secondary-active: #7460d740;
+    --button-bg-secondary-rest: #7460d733;
+    --button-bg-secondary-hover: #7460d740;
+    --button-bg-secondary-active: #7460d74d;
     --button-fg-secondary-rest: #c5baff;
     --button-fg-secondary-hover: #d2cbf6;
 
     --button-fg-tertiary-rest: #ada0ee;
     --button-fg-tertiary-hover: #bcb1f1;
-    --button-bg-tertiary-hover: #7460d726;
-    --button-bg-tertiary-active: #7460d733;
+    --button-bg-tertiary-hover: #7460d733;
+    --button-bg-tertiary-active: #7460d740;
 
     --button-fg-quaternary-rest: #ada0ee;
     --button-fg-quaternary-hover: #c7bef4;
@@ -229,16 +229,16 @@
     --button-bg-primary-hover: #c9302c;
     --button-bg-primary-active: #de4545;
 
-    --button-bg-secondary-rest: #de454526;
-    --button-bg-secondary-hover: #de454533;
-    --button-bg-secondary-active: #de454540;
+    --button-bg-secondary-rest: #de454533;
+    --button-bg-secondary-hover: #de454540;
+    --button-bg-secondary-active: #de45454d;
     --button-fg-secondary-rest: #ffabac;
     --button-fg-secondary-hover: #f4c2c2;
 
     --button-fg-tertiary-rest: #e78e90;
     --button-fg-tertiary-hover: #efa4a4;
-    --button-bg-tertiary-hover: #de454526;
-    --button-bg-tertiary-active: #de454533;
+    --button-bg-tertiary-hover: #de454533;
+    --button-bg-tertiary-active: #de454540;
 
     --button-fg-quaternary-rest: #e78e90;
     --button-fg-quaternary-hover: #ffabac;
@@ -250,16 +250,16 @@
     --button-bg-primary-hover: #1f6eb2;
     --button-bg-primary-active: #2686d9;
 
-    --button-bg-secondary-rest: #2686d926;
-    --button-bg-secondary-hover: #2686d933;
-    --button-bg-secondary-active: #2686d940;
+    --button-bg-secondary-rest: #2686d933;
+    --button-bg-secondary-hover: #2686d940;
+    --button-bg-secondary-active: #2686d94d;
     --button-fg-secondary-rest: #9ed2ff;
     --button-fg-secondary-hover: #bad6f3;
 
     --button-fg-tertiary-rest: #7db6e8;
     --button-fg-tertiary-hover: #93c5ec;
-    --button-bg-tertiary-hover: #2686d926;
-    --button-bg-tertiary-active: #2686d933;
+    --button-bg-tertiary-hover: #2686d933;
+    --button-bg-tertiary-active: #2686d940;
 
     --button-fg-quaternary-rest: #7db6e8;
     --button-fg-quaternary-hover: #a6cdef;
@@ -271,16 +271,16 @@
     --button-bg-primary-hover: #2a7e43;
     --button-bg-primary-active: #329550;
 
-    --button-bg-secondary-rest: #32955026;
-    --button-bg-secondary-hover: #32955033;
-    --button-bg-secondary-active: #32955040;
+    --button-bg-secondary-rest: #32955033;
+    --button-bg-secondary-hover: #32955040;
+    --button-bg-secondary-active: #3295504d;
     --button-fg-secondary-rest: #8ceca9;
     --button-fg-secondary-hover: #b3e5c2;
 
     --button-fg-tertiary-rest: #74cd8e;
     --button-fg-tertiary-hover: #88d7a0;
-    --button-bg-tertiary-hover: #32955026;
-    --button-bg-tertiary-active: #32955033;
+    --button-bg-tertiary-hover: #32955033;
+    --button-bg-tertiary-active: #32955040;
 
     --button-fg-quaternary-rest: #74cd8e;
     --button-fg-quaternary-hover: #9ddeb1;
@@ -292,16 +292,16 @@
     --button-bg-primary-hover: #995200;
     --button-bg-primary-active: #ae6613;
 
-    --button-bg-secondary-rest: #c3741626;
-    --button-bg-secondary-hover: #c3741633;
-    --button-bg-secondary-active: #c3741640;
+    --button-bg-secondary-rest: #c3741633;
+    --button-bg-secondary-hover: #c3741640;
+    --button-bg-secondary-active: #c374164d;
     --button-fg-secondary-rest: #f7c06e;
     --button-fg-secondary-hover: #f3cc91;
 
     --button-fg-tertiary-rest: #e1a452;
     --button-fg-tertiary-hover: #edb25a;
-    --button-bg-tertiary-hover: #c3741626;
-    --button-bg-tertiary-active: #c3741633;
+    --button-bg-tertiary-hover: #c3741633;
+    --button-bg-tertiary-active: #c3741640;
 
     --button-fg-quaternary-rest: #e1a452;
     --button-fg-quaternary-hover: #f0bf75;
@@ -613,9 +613,9 @@
       --_tone-fg-strong-l: 0.85;
       --_tone-fg-c: 0.11;
       --_tone-bg-l: 0.58;
-      --_tone-bg-a-rest: 0.15;
-      --_tone-bg-a-hover: 0.20;
-      --_tone-bg-a-active: 0.25;
+      --_tone-bg-a-rest: 0.20;
+      --_tone-bg-a-hover: 0.25;
+      --_tone-bg-a-active: 0.30;
       /* Primary fill lightness, dark mode (Brand inverts rest/hover and
          lifts active to read against a dark page). */
       --_tone-primary-l-rest: 0.45;
