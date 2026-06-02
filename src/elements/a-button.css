@@ -397,7 +397,7 @@
       }
     }
 
-    &[disabled="true"] {
+    &[disabled] {
       pointer-events: none;
       cursor: not-allowed;
       /* Skip transitions on disabled — a `.dark` toggle would flash
@@ -457,7 +457,7 @@
       }
     }
 
-    &[priority="quaternary"][paddingless="true"] {
+    &[priority="quaternary"][paddingless] {
       --button-padding-x: 0;
       --button-padding-y: 0;
     }
@@ -503,7 +503,7 @@
       padding-inline-end: max(0px, var(--button-padding-x) - 2px);
     }
 
-    &[loading="true"] {
+    &[loading] {
       position: relative;
       pointer-events: none;
       cursor: wait;
@@ -565,11 +565,17 @@
       --_tone-bg-a-rest: 0.10;     /* tinted-bg alpha (rest) */
       --_tone-bg-a-hover: 0.15;    /* tinted-bg alpha (hover) */
       --_tone-bg-a-active: 0.20;   /* tinted-bg alpha (active) */
+      --_tone-primary-l-rest: 0.5;     /* primary-fill lightness (rest) */
+      --_tone-primary-l-hover: 0.45;   /* primary-fill lightness (hover) */
+      --_tone-primary-l-active: 0.4;   /* primary-fill lightness (active) */
 
-      /* Primary — source color as-is. */
-      --button-bg-primary-rest: var(--button-tone-source);
-      --button-bg-primary-hover: color-mix(in srgb, var(--button-tone-source), black 12%);
-      --button-bg-primary-active: color-mix(in srgb, var(--button-tone-source), black 22%);
+      /* Primary — source hue & chroma, lightness pinned near Brand's
+         primary fill so any input lands at a Brand-like lightness instead
+         of using the raw color. Re-tunes for dark mode through the knobs
+         (the `.dark` block below), exactly like the Brand tone does. */
+      --button-bg-primary-rest:   oklch(from var(--button-tone-source) var(--_tone-primary-l-rest) c h);
+      --button-bg-primary-hover:  oklch(from var(--button-tone-source) var(--_tone-primary-l-hover) c h);
+      --button-bg-primary-active: oklch(from var(--button-tone-source) var(--_tone-primary-l-active) c h);
       --button-fg-primary-rest: var(--button-primary-fg);
 
       /* Secondary / tertiary / quaternary fg — source hue, pinned L/C. */
@@ -605,6 +611,11 @@
       --_tone-bg-a-rest: 0.15;
       --_tone-bg-a-hover: 0.20;
       --_tone-bg-a-active: 0.25;
+      /* Primary fill lightness, dark mode (Brand inverts rest/hover and
+         lifts active to read against a dark page). */
+      --_tone-primary-l-rest: 0.45;
+      --_tone-primary-l-hover: 0.5;
+      --_tone-primary-l-active: 0.57;
     }
 
     /* Wire the per-tone vars into the final fg/bg colors. Secondary
@@ -649,7 +660,10 @@
       }
     }
     &[priority="quaternary"] {
-      --button-fg: var(--button-fg-quaternary-rest);
+      /* Rest fg is the quaternary tone at 82% alpha — slightly faded, so a
+         quaternary button reads as quieter than a (full-opacity) tertiary
+         one. Hover / active restore full opacity. */
+      --button-fg: color-mix(in oklch, var(--button-fg-quaternary-rest) 82%, transparent);
       --button-bg: transparent;
       &:hover {
         --button-fg: var(--button-fg-quaternary-hover);
@@ -672,7 +686,7 @@
     /* Set bg/color directly (not the vars) so inline-style
        `--button-bg` overrides can't keep a disabled button alive.
        Secondary disabled is the default; other priorities override below. */
-    &[disabled="true"] {
+    &[disabled] {
       background-color: var(--bg-secondary-disabled);
       color: var(--fg-disabled);
       &[priority="primary"] {

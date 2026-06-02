@@ -184,10 +184,15 @@ export const Button = ({
     underline,
     // 'medium' (and unset) is the implicit default — emit no DOM attr.
     size: size && size !== 'medium' ? size : undefined,
-    paddingless: paddingless ? 'true' : undefined,
-    loading: loading ? 'true' : undefined,
-    disabled: disabled ? 'true' : undefined,
-    selected: selected ? 'true' : undefined,
+    // Boolean attributes: emit a presence attribute (empty string) when on,
+    // omit when off — `attr=""` is the canonical boolean-attribute form and
+    // renders consistently across React / Preact. The CSS matches these by
+    // presence (`[disabled]`, not `[disabled="true"]`), so any present form
+    // works. (ARIA attributes below stay string-valued — ARIA needs "true".)
+    paddingless: paddingless ? '' : undefined,
+    loading: loading ? '' : undefined,
+    disabled: disabled ? '' : undefined,
+    selected: selected ? '' : undefined,
     tabIndex: disabled ? -1 : 0,
     'aria-disabled': disabled || loading ? 'true' : undefined,
     'aria-busy': loading ? 'true' : undefined,

@@ -20,14 +20,10 @@ whether you use the wrapper or author the element by hand.
 
 ## Priorities
 
-Four priorities, each with a distinct visual signature:
+A button's priority helps control how much attention it draws:
 
-| Priority | Visual |
-|---|---|
-| `primary` | Saturated fill. Main call to action. |
-| `secondary` | Pastel background, no border. Everyday button — the default. |
-| `tertiary` | Background-less at rest, fills on hover. Dense toolbars. |
-| `quaternary` | Text only — no background, no border, no transitions. |
+<Columns>
+<Col>
 
 <Preview>
   <Button tone="brand" priority="primary" label="Publish" />
@@ -43,76 +39,92 @@ Four priorities, each with a distinct visual signature:
 <Button tone="brand" priority="quaternary" label="Clarify" />
 ```
 
+</Col>
+<Col>
+
+- `primary` — Saturated fill. Main call to action.
+- `secondary` — Pastel background, no border. Everyday button — the default.
+- `tertiary` — Background-less at rest, fills on hover. Dense toolbars.
+- `quaternary` — Text only — no background, no border, no transitions.
+
+</Col>
+</Columns>
+
 ## Tones
+
+Six named tones — `neutral` (default), `brand`, `critical`, `info`,
+`success`, `warning`. In addition, a custom `tone` is possible: pass any
+literal CSS color and the button will adapt to it.
 
 <Columns>
 <Col>
 
-Six named tones — `neutral` (default), `brand`, `critical`, `info`,
-`success`, `warning`:
-
 <Preview>
-  <Button label="Neutral" />
-  <Button tone="brand" label="Brand" />
-  <Button tone="critical" label="Critical" />
-  <Button tone="info" label="Info" />
-  <Button tone="success" label="Success" />
-  <Button tone="warning" label="Warning" />
+  <Button label="Save" />
+  <Button tone="brand" label="Publish" />
+  <Button tone="critical" label="Delete" />
+  <Button tone="info" label="Preview" />
+  <Button tone="success" label="Approve" />
+  <Button tone="warning" label="Archive" />
 </Preview>
 
 ```tsx
-<Button label="Neutral" />
-<Button tone="brand" label="Brand" />
-<Button tone="critical" label="Critical" />
-<Button tone="info" label="Info" />
-<Button tone="success" label="Success" />
-<Button tone="warning" label="Warning" />
+<Button label="Save" />
+<Button tone="brand" label="Publish" />
+<Button tone="critical" label="Delete" />
+<Button tone="info" label="Preview" />
+<Button tone="success" label="Approve" />
+<Button tone="warning" label="Archive" />
 ```
 
 </Col>
 <Col>
 
-Plus a one-off custom tone — pass any literal CSS color as `tone`:
-
 <Preview>
-  <Button tone="#ff1493" label="Pink hex" />
-  <Button tone="oklch(0.6 0.25 30)" label="oklch one-off" />
-  <Button tone="hsl(160 84% 39%)" label="Mint HSL" />
-  <Button tone="rebeccapurple" label="Named color" />
+  <Button priority="primary" tone="#ff1493" label="Pinkify" />
+  <Button priority="secondary" tone="oklch(0.655 0.261 356.9)" label="Pinkify" />
+  <Button priority="tertiary" tone="hsl(328 100% 54%)" label="Pinkify" />
+  <Button priority="primary" tone="mediumaquamarine" label="Mintify" />
+  <Button priority="secondary" tone="rgb(102 205 170)" label="Mintify" />
+  <Button priority="tertiary" tone="lch(75.7% 39.2 167.8)" label="Mintify" />
 </Preview>
 
 ```tsx
-<Button tone="#ff1493" label="Pink hex" />
-<Button tone="oklch(0.6 0.25 30)" label="oklch one-off" />
-<Button tone="hsl(160 84% 39%)" label="Mint HSL" />
-<Button tone="rebeccapurple" label="Named color" />
-```
-
-For custom tones, **primary** uses the color as-is, while **secondary**,
-**tertiary**, and **quaternary** take only its *hue* — lightness, chroma,
-and alpha come from the brand-tone curve (via `oklch()` relative color),
-so pale or low-chroma inputs (`tone="#cccccc"`, `tone="white"`) still
-produce a legible button. The full priority × state matrix — rest, hover,
-active, secondary alpha overlay, tertiary fill — is derived automatically,
-in light and dark.
-
-If you need pixel-precise color, set `--button-fg` or
-`--button-bg` directly via `style` —
-inline declarations beat the resolver.
-
-Dark mode reuses the same curve. To pair light/dark variants for a
-custom tone, scope it yourself:
-
-```css
-.dark a-button[tone="…"] { --button-tone-source: …; }
+<Button priority="primary"   tone="#ff1493"                  label="Pinkify" />
+<Button priority="secondary" tone="oklch(0.655 0.261 356.9)" label="Pinkify" />
+<Button priority="tertiary"  tone="hsl(328 100% 54%)"        label="Pinkify" />
+<Button priority="primary"   tone="mediumaquamarine"         label="Mintify" />
+<Button priority="secondary" tone="rgb(102 205 170)"         label="Mintify" />
+<Button priority="tertiary"  tone="lch(75.7% 39.2 167.8)"    label="Mintify" />
 ```
 
 </Col>
 </Columns>
 
+For custom tones, **primary** keeps the source's hue and chroma but pins
+its *lightness* near the Brand primary's, so any input — too light or too
+dark — still lands at a Brand-like fill (hover / active step the lightness,
+and the label keeps the standard primary text color). **Secondary**,
+**tertiary**, and **quaternary** take only its *hue* — lightness, chroma,
+and alpha come from the brand-tone curve (via `oklch()` relative color), so
+pale or low-chroma inputs (`tone="#cccccc"`, `tone="white"`) still produce a
+legible button. The full priority × state matrix — rest, hover, active,
+secondary alpha overlay, tertiary fill — is derived automatically, and
+re-tunes between light and dark.
+
+If you need pixel-precise color, set `--button-fg` or `--button-bg`
+yourself — inline via `style`, or from your own class or selector. The
+resolver lives in `@layer anta`, so any un-layered rule of yours wins
+regardless of specificity (and inline beats everything). The same override
+also pins hover and active to that color — it overrides the per-state rules
+too, so there's no state change; to keep distinct states, set the per-state
+variables instead — `--button-bg-{priority}-hover`,
+`--button-bg-{priority}-active`, and the `--button-fg-*` equivalents.
+
 ## Sizes
 
-Three sizes; only padding changes (font size stays at 15px):
+Three sizes; only the padding changes, so the label keeps the same 15px
+size — readability stays constant while the hit area grows or shrinks:
 
 <Preview>
   <Button size="small" tone="brand" icon="check" />
@@ -151,12 +163,41 @@ an edge needs less breathing room than a glyph — so only the side a
 full padding. The gap between an icon and the label is `0.5ch` at every
 size.
 
-## Icon-only
+Need a different font size? Style the `<a-button-label>` directly — set
+its `font-size` and `line-height`, and (if the text then sits a little
+high) drop the 1px `padding-bottom` that optically centers the default
+metrics.
+
+## Icons
+
+The wrapper renders content in this order inside the button:
+
+```
+icon → label → children → iconTrailing
+```
+
+Pair `icon` and/or `iconTrailing` with a `label` for an icon-plus-text
+chip. `children` (if any) lands between `label` and `iconTrailing`:
+
+<Preview>
+  <Button tone="brand" icon="check" label="Confirm" />
+  <Button tone="brand" iconTrailing="external-link" label="Read the docs" />
+  <Button tone="brand" icon="filter" iconTrailing="chevron-down" label="Filter" />
+</Preview>
+
+```tsx
+<Button tone="brand" icon="check" label="Confirm" />
+<Button tone="brand" iconTrailing="external-link" label="Read the docs" />
+<Button tone="brand" icon="filter" iconTrailing="chevron-down" label="Filter" />
+```
+
+Icon shape names come from the `IconShape` union — see the
+[Icon](/components/icon) page for the full set.
+
+### Icon-only
 
 Pass `icon` alone — no `label`, no `iconTrailing`, no `children` — and
-the button collapses to a square. No opt-in attribute: the CSS detects
-icon-only mode structurally via `:has(> a-icon:only-child)`, so the
-square padding + min-size pin apply automatically.
+the button collapses to a square.
 
 <Preview>
   <Button tone="brand" icon="dots-vertical" size="small" />
@@ -218,32 +259,6 @@ button to read as an inline link inside a sentence:
 </p>
 ```
 
-## Leading and trailing icons
-
-Slots render in this order inside the button:
-
-```
-icon → label → children → iconTrailing
-```
-
-Pair `icon` and/or `iconTrailing` with a `label` for an icon-plus-text
-chip. `children` (if any) lands between `label` and `iconTrailing`:
-
-<Preview>
-  <Button tone="brand" icon="check" label="Confirm" />
-  <Button tone="brand" iconTrailing="external-link" label="Read the docs" />
-  <Button tone="brand" icon="info" iconTrailing="chevron-down" label="Filter" />
-</Preview>
-
-```tsx
-<Button tone="brand" icon="check" label="Confirm" />
-<Button tone="brand" iconTrailing="external-link" label="Read the docs" />
-<Button tone="brand" icon="info" iconTrailing="chevron-down" label="Filter" />
-```
-
-Icon shape names come from the `IconShape` union — see the
-[Icon](/components/icon) page for the full set.
-
 ## States
 
 <Preview>
@@ -273,18 +288,17 @@ Icon shape names come from the `IconShape` union — see the
 
 Setting `href` switches the rendered tag from `<a-button>` to
 `<a role="button">`. Styling is identical — both selectors share the
-same CSS rules. Form-submission props (`type`, `form`) are TypeScript
-errors in anchor mode; navigation takes over.
+same CSS rules.
 
 <Preview>
-  <Button tone="brand" href="#" rel="noopener" label="Read the docs" iconTrailing="external-link" />
+  <Button tone="brand" href="#" label="Read the docs" iconTrailing="external-link" />
 </Preview>
 
 ```tsx
-<Button tone="brand" href="/docs" target="_blank" rel="noopener" label="Read the docs" />
+<Button tone="brand" href="/docs" target="_blank" label="Read the docs" />
 ```
 
-<Disclosure title="Linking with routing libraries">
+<Disclosure title="Linking with routing libraries" level={3}>
 
 Anta's CSS targets `a-button, a[role="button"]` — an anchor (`<a>`) with
 `role="button"` and the right attributes gets the styling. That means anta doesn't
@@ -331,7 +345,12 @@ other routing library.
 
 </Disclosure>
 
-## Form submission
+## Special events
+
+Beyond a plain click, a `Button` can drive a native form or emit your own
+event:
+
+### Form submission
 
 For non-anchor buttons, `type="submit"` and `type="reset"` integrate
 with native forms:
@@ -361,7 +380,7 @@ with native forms:
 `submitdetailed` event on the form with `{ formData, submitter: { tag, attrs } }`
 in `detail` — handy for analytics or multi-button forms.
 
-## Custom click events
+### Custom click events
 
 `data-custom-event="<name>"` makes the button dispatch a bubbling
 `CustomEvent("<name>")` on click. Use it to instrument analytics

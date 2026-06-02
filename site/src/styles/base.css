@@ -154,7 +154,7 @@ pre, figure, hr, .expressive-code { margin: 0 0 1.5em; }
 
 code {
   font-family: var(--monospace);
-  font-size: 0.9em;
+  font-size: 0.933em;
   color: inherit;
   background: color-mix(in srgb, currentColor 6%, transparent);
   border: none;
@@ -189,8 +189,8 @@ pre code { background: none; padding: 0; }
    a bare Anta quaternary control — no background, border, or hover/active
    fill (EC's tint overlay `div` is hidden); just the icon. */
 .content .expressive-code .frame .copy {
-  inset-block-start: 0;
-  inset-inline-end: 0;
+  inset-block-start: 1px;
+  inset-inline-end: 1px;
   background: color-mix(in oklch, var(--bg-pane) 60%, transparent);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
@@ -216,6 +216,10 @@ pre code { background: none; padding: 0; }
   mask-size: 16px;
   -webkit-mask-position: center;
   mask-position: center;
+  /* Match the quaternary button: the icon (same `inlineButtonForeground`
+     as the quaternary tone) is faded to 82% alpha at rest. The green-check
+     copied state keeps full opacity (its rule below overrides this). */
+  background-color: color-mix(in oklch, var(--ec-frm-inlBtnFg) 82%, transparent);
 }
 
 /* EC fades the copy *button* in on frame hover; move that reveal to the
