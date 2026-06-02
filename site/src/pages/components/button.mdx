@@ -177,6 +177,9 @@ stays 15px across all sizes.
 | `medium` (default) | 26px | 4px | 8px | 6px |
 | `large` | 30px | 6px | 12px | 10px |
 
+<Columns>
+<Col>
+
 The **icon-edge** padding is the text-edge value minus 2px — an icon at
 an edge needs less breathing room than a glyph — so only the side a
 (leading or trailing) icon occupies is trimmed; the text side keeps the
@@ -188,11 +191,23 @@ its `font-size` and `line-height`, and (if the text then sits a little
 high) drop the 1px `padding-bottom` that optically centers Anta's
 default font.
 
+</Col>
+<Col>
+
+By default a button packs its content to the start, so when buttons share
+a width — a vertical menu, equal grid cells — their labels line up on a
+common left edge, which usually reads best in a list.
+
+To center the label inside a wider button instead, set
+`justify-content: center` on it (the tones grid above does exactly this).
+
+</Col>
+</Columns>
+
 ### Paddingless
 
-Only valid on `priority="quaternary"`. Zeros the outer padding so the
-button sits flush with surrounding prose — useful when you want a
-button to read as an inline link inside a sentence:
+<Columns>
+<Col>
 
 {/* Keep the prose + button on one source line — MDX's remark pass
      promotes any text-only line inside JSX to its own `<p>`, which
@@ -203,63 +218,84 @@ button to read as an inline link inside a sentence:
 </Preview>
 
 ```tsx
-<p>
-  If you're familiar with the basics, click
-  <Button tone="critical" priority="quaternary" paddingless label="here" />
-  to skip ahead to the live demo.
-</p>
+If you're familiar with the basics, click
+<Button tone="critical" priority="quaternary" paddingless label="here" />
+to skip ahead to the live demo.
 ```
+
+</Col>
+<Col>
+
+Only valid on `priority="quaternary"`. Zeros the outer padding so the
+button sits flush with surrounding prose — useful when you want a
+button to read as an inline link inside a sentence.
+
+</Col>
+</Columns>
 
 ## Icons
 
-The wrapper renders content in this order inside the button:
+<Columns>
+<Col>
 
-```
-icon → label → children → iconTrailing
-```
-
-Pair `icon` and/or `iconTrailing` with a `label` for an icon-plus-text
-chip. `children` (if any) lands between `label` and `iconTrailing`:
-
-<Preview>
-  <Button tone="brand" icon="check" label="Confirm" />
-  <Button tone="brand" iconTrailing="external-link" label="Read the docs" />
-  <Button tone="brand" icon="filter" iconTrailing="chevron-down" label="Filter" />
-</Preview>
-
-```tsx
-<Button tone="brand" icon="check" label="Confirm" />
-<Button tone="brand" iconTrailing="external-link" label="Read the docs" />
-<Button tone="brand" icon="filter" iconTrailing="chevron-down" label="Filter" />
-```
+The wrapper renders content in this order inside the button: `icon` →
+`label` → `children` → `iconTrailing`.
 
 Icon shape names come from the `IconShape` union — see the
 [Icon](/components/icon) page for the full set.
 
-### Icon-only
+`children` (if any) lands between `label` and `iconTrailing`.
 
-Pass `icon` alone — no `label`, no `iconTrailing`, no `children` — and
-the button collapses to a square.
+</Col>
+<Col>
 
 <Preview>
-  <Button tone="brand" icon="dots-vertical" size="small" />
+  <Button tone="brand" priority="primary" icon="check" label="Confirm" />
+  <Button tone="brand" iconTrailing="external-link" label="Read the docs" />
+  <Button tone="brand" priority="tertiary" icon="filter" iconTrailing="chevron-down" label="Filter" />
+</Preview>
+
+```tsx
+<Button tone="brand" priority="primary" icon="check" label="Confirm" />
+<Button tone="brand" iconTrailing="external-link" label="Read the docs" />
+<Button tone="brand" priority="tertiary" icon="filter" iconTrailing="chevron-down" label="Filter" />
+```
+
+</Col>
+</Columns>
+
+### Icon-only
+
+<Columns>
+<Col>
+
+<Preview>
+  <Button tone="neutral" icon="dots-vertical" size="small" />
   <Button tone="critical" icon="trash" />
   <Button tone="brand" icon="check" size="large" />
 </Preview>
 
 ```tsx
-<Button tone="brand"    icon="dots-vertical" size="small" />
+<Button tone="neutral"  icon="dots-vertical" size="small" />
 <Button tone="critical" icon="trash" />
 <Button tone="brand"    icon="check"          size="large" />
 ```
 
-A min-size is pinned to a square matching the labeled-button height
-(22px / 26px / 30px for small / medium / large) so icon-only and
-labeled buttons line up, and a tight flex parent can't clip the icon.
+</Col>
+<Col>
+
+Pass `icon` alone — no `label`, no `iconTrailing`, no `children` — and
+the button collapses to a square. A min-size is pinned to a square
+matching the labeled-button height (22px / 26px / 30px for small /
+medium / large) so icon-only and labeled buttons line up, and a tight
+flex parent can't clip the icon.
 
 Icon-only buttons get an accessible name automatically — the wrapper
 sets `aria-label={icon}` so `<Button icon="trash" />` ships with the
 name "trash". Pass your own `aria-label` to override.
+
+</Col>
+</Columns>
 
 ### Children alongside label & icon
 
@@ -440,18 +476,18 @@ with native forms:
        intercept via JS. */}
   <form id="signup-demo" action="javascript:void(0)" style={{ display: 'flex', gap: '8px' }}>
     <Button tone="brand" type="submit" label="Sign up" />
-    <Button tone="brand" type="reset" label="Clear" />
+    <Button tone="brand" priority="tertiary" type="reset" label="Clear" />
   </form>
-  <Button tone="brand" type="submit" form="signup-demo" label="Submit from outside" />
+  <Button tone="neutral" type="submit" form="signup-demo" label="Submit from outside" />
 </Preview>
 
 ```tsx
 <form id="signup">
   <Button tone="brand" type="submit" label="Sign up" />
-  <Button tone="brand" type="reset"  label="Clear" />
+  <Button tone="brand" priority="tertiary" type="reset" label="Clear" />
 </form>
 {/* Associate with a form by id when the button is outside */}
-<Button tone="brand" type="submit" form="signup" label="Submit from outside" />
+<Button tone="neutral" type="submit" form="signup" label="Submit from outside" />
 ```
 
 </Col>

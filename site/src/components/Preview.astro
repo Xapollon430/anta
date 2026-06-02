@@ -40,4 +40,9 @@ const { cols } = Astro.props
     grid-template-columns: repeat(var(--preview-cols), max-content);
     justify-content: center;
   }
+  /* Grid cells stretch each button to the column width; center the
+     button's own content so the label isn't left-aligned in the wider box. */
+  .preview[data-cols] :global(a-button) {
+    justify-content: center;
+  }
 </style>

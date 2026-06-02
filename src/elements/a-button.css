@@ -55,7 +55,7 @@
     --button-timing-in: 75ms ease-in;
     --button-timing-active: 50ms linear;
     --button-timing-out: 150ms ease-out;
-    --button-loading-duration: 1s;
+    --button-loading-duration: 0.5s;
   }
 
   a-button[tone="brand"],
