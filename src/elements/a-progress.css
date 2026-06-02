@@ -1,8 +1,8 @@
 @layer anta {
   a-progress {
-    --progress-bg: var(--bg-block);
+    --progress-bg: var(--bg-4);
     --progress-border-color: var(--border-4);
-    --progress-indicator-bg: var(--bg-spot);
+    --progress-indicator-bg: var(--bg-5);
     /* Right-edge fade: from the indicator's own bg to the border
        colour, both opaque. Tone variants automatically re-tint because
        both endpoint tokens (`--progress-indicator-bg`,
@@ -31,9 +31,9 @@
   }
   
   a-progress[tone="info"] {
-    --progress-bg: var(--bg-block-info);
+    --progress-bg: var(--bg-4-info);
     --progress-border-color: var(--border-4-info);
-    --progress-indicator-bg: var(--bg-spot-info);
+    --progress-indicator-bg: var(--bg-5-info);
     --progress-text-color: var(--text-2-info);
     --progress-hint-color: var(--text-3-info);
   }

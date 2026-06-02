@@ -29,12 +29,12 @@ Anta exposes four independent imports. Tokens + elements + the JSX layer are the
 
 | Import | Provides | Skip if… |
 |---|---|---|
-| `@antadesign/anta/tokens.css` | The CSS custom properties — `--bg-base`, `--text-1…5`, `--border-1…5`, the `.dark`-ancestor toggling, the base `font-size: 15px`. Also declares the `@layer base, anta, components, utilities;` cascade order. | You're applying your own design tokens at the same variable names. |
+| `@antadesign/anta/tokens.css` | The CSS custom properties — `--bg-1…5`, `--text-1…5`, `--border-1…5`, the `.dark`-ancestor toggling, the base `font-size: 15px`. Also declares the `@layer base, anta, components, utilities;` cascade order. | You're applying your own design tokens at the same variable names. |
 | `@antadesign/anta/reset.css` | Modern small reset (box-sizing, margin reset, replaced-element block, form-control font inheritance, text-wrap defaults) plus Anta's typography opinions for `h1-h6`, `strong`, `ul / ol / menu`, `a` / link states. Lives in `@layer anta`. | You already have a reset and don't want Anta's typography defaults. |
 | `@antadesign/anta/elements` | Side-effect import that registers `<a-progress>`, `<a-text>`, `<a-icon>` as custom elements *and* attaches their per-element CSS (also in `@layer anta`). | You're rendering Anta only on the server (no DOM) and never hydrating. |
 | `@antadesign/anta` | The JSX wrappers (`Progress`, `Text`, `Icon`) — typed React/Preact components that emit `<a-*>` tags. | You're writing the `<a-*>` elements by hand and don't need a JSX layer. |
 
-The chain matters: the per-element CSS that ships with `/elements` references variables like `var(--text-1)` and `var(--bg-base)`. Those variables are *only defined* by `tokens.css`. Skip the tokens import and the components render with whatever the surrounding cascade provides — usually nothing styled at all.
+The chain matters: the per-element CSS that ships with `/elements` references variables like `var(--text-1)` and `var(--bg-2)`. Those variables are *only defined* by `tokens.css`. Skip the tokens import and the components render with whatever the surrounding cascade provides — usually nothing styled at all.
 
 ### Cascade layers
 

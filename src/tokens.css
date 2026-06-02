@@ -21,42 +21,43 @@
      See FIGMA.md for the full extraction procedure (figma.variables Plugin
      API + alias resolution). */
 
-  /* Backgrounds — light, neutral */
-  --bg-base: #fbfafb;
-  --bg-pane: #f6f4f6;
-  --bg-block: #f1eff1;
-  --bg-spot: #ece9ec;
-  --bg-section: #ffffff;
+  /* Backgrounds — light, neutral. Numeric elevation scale: 1 = deepest /
+     recessed (was bg-section), 5 = most raised (was bg-spot). */
+  --bg-1: #ffffff;
+  --bg-2: #fbfafb;
+  --bg-3: #f6f4f6;
+  --bg-4: #f1eff1;
+  --bg-5: #ece9ec;
 
-  /* Backgrounds — light, Brand */
-  --bg-base-brand: #fcfcfe;
-  --bg-pane-brand: #f7f6fd;
-  --bg-block-brand: #efeefc;
-  --bg-spot-brand: #e9e5fa;
+  /* Backgrounds — light, Brand (no --bg-1-brand; bg-1 is neutral-only) */
+  --bg-2-brand: #fcfcfe;
+  --bg-3-brand: #f7f6fd;
+  --bg-4-brand: #efeefc;
+  --bg-5-brand: #e9e5fa;
 
   /* Backgrounds — light, Success */
-  --bg-base-success: #f7fcf9;
-  --bg-pane-success: #ecf9f0;
-  --bg-block-success: #e2f5e8;
-  --bg-spot-success: #d9f2e0;
+  --bg-2-success: #f7fcf9;
+  --bg-3-success: #ecf9f0;
+  --bg-4-success: #e2f5e8;
+  --bg-5-success: #d9f2e0;
 
   /* Backgrounds — light, Critical */
-  --bg-base-critical: #fefbfb;
-  --bg-pane-critical: #fdf2f2;
-  --bg-block-critical: #fcebeb;
-  --bg-spot-critical: #fae5e5;
+  --bg-2-critical: #fefbfb;
+  --bg-3-critical: #fdf2f2;
+  --bg-4-critical: #fcebeb;
+  --bg-5-critical: #fae5e5;
 
   /* Backgrounds — light, Warning */
-  --bg-base-warning: #fefbf6;
-  --bg-pane-warning: #fcf4e8;
-  --bg-block-warning: #fbeeda;
-  --bg-spot-warning: #f9e7cd;
+  --bg-2-warning: #fefbf6;
+  --bg-3-warning: #fcf4e8;
+  --bg-4-warning: #fbeeda;
+  --bg-5-warning: #f9e7cd;
 
   /* Backgrounds — light, Info */
-  --bg-base-info: #fbfcfe;
-  --bg-pane-info: #f2f7fd;
-  --bg-block-info: #e9f3fb;
-  --bg-spot-info: #e1eefa;
+  --bg-2-info: #fbfcfe;
+  --bg-3-info: #f2f7fd;
+  --bg-4-info: #e9f3fb;
+  --bg-5-info: #e1eefa;
 
   /* Text — light, neutral */
   --text-1: #050306;
@@ -152,45 +153,46 @@
 .dark {
   font-weight: 400;
 
-  /* Backgrounds — dark, neutral */
-  --bg-base: hsl(280 10% 5.5% / 1);
-  --bg-section: hsl(280 20% 0% / 1);
-  --bg-pane: hsl(280 10% 7% / 1);
-  --bg-block: hsl(285 7% 8% / 1);
-  --bg-spot: hsl(285 9% 9% / 1);
+  /* Backgrounds — dark, neutral. Numeric elevation scale: 1 = deepest /
+     recessed (was bg-section), 5 = most raised (was bg-spot). */
+  --bg-1: #000000;
+  --bg-2: #0e0d0f;
+  --bg-3: #121014;
+  --bg-4: #161316;
+  --bg-5: #1a171b;
 
-  /* Backgrounds — dark, tinted. The Anta 0.2 values converted to HSL,
-     each a touch deeper for dark mode (lightness −1%). */
+  /* Backgrounds — dark, tinted. The Anta 0.2 values,
+     each a touch deeper for dark mode. (No --bg-1-tone; bg-1 is neutral-only.) */
 
   /* Backgrounds — dark, Brand */
-  --bg-base-brand: hsl(251 41% 4% / 1);
-  --bg-pane-brand: hsl(250 41% 8% / 1);
-  --bg-block-brand: hsl(250 40% 10% / 1);
-  --bg-spot-brand: hsl(249 39% 12% / 1);
+  --bg-2-brand: #08060e;
+  --bg-3-brand: #0f0c1d;
+  --bg-4-brand: #130f24;
+  --bg-5-brand: #16132b;
 
   /* Backgrounds — dark, Success */
-  --bg-base-success: hsl(140 60% 2.7% / 1);
-  --bg-pane-success: hsl(138 59% 4.5% / 1);
-  --bg-block-success: hsl(137 54% 5.5% / 1);
-  --bg-spot-success: hsl(138 54% 7% / 1);
+  --bg-2-success: #030b06;
+  --bg-3-success: #051209;
+  --bg-4-success: #06160b;
+  --bg-5-success: #081b0e;
 
   /* Backgrounds — dark, Critical */
-  --bg-base-critical: hsl(358 72% 4% / 1);
-  --bg-pane-critical: hsl(359 70% 7.5% / 1);
-  --bg-block-critical: hsl(359 66% 9% / 1);
-  --bg-spot-critical: hsl(359 63% 11% / 1);
+  --bg-2-critical: #120303;
+  --bg-3-critical: #210606;
+  --bg-4-critical: #260808;
+  --bg-5-critical: #2e0a0b;
 
   /* Backgrounds — dark, Warning */
-  --bg-base-warning: hsl(30 69% 4% / 1);
-  --bg-pane-warning: hsl(30 71% 6.5% / 1);
-  --bg-block-warning: hsl(30 70% 8% / 1);
-  --bg-spot-warning: hsl(30 70% 10% / 1);
+  --bg-2-warning: #110a03;
+  --bg-3-warning: #1c1105;
+  --bg-4-warning: #231406;
+  --bg-5-warning: #2b1a08;
 
   /* Backgrounds — dark, Info */
-  --bg-base-info: hsl(211 77% 4% / 1);
-  --bg-pane-info: hsl(208 73% 7% / 1);
-  --bg-block-info: hsl(208 70% 8.5% / 1);
-  --bg-spot-info: hsl(208 65% 13% / 1);
+  --bg-2-info: #020a12;
+  --bg-3-info: #05131f;
+  --bg-4-info: #071725;
+  --bg-5-info: #0c2337;
 
   /* Text — dark, neutral */
   --text-1: #ece9ec;
