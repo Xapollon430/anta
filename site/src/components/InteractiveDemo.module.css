@@ -422,7 +422,7 @@
 .slider, .number, .text {
   width: 100%;
   border: 1px solid var(--border-4);
-  background: var(--bg-section);
+  background: var(--bg-canvas);
   color: var(--text-1);
   border-radius: 6px;
   padding: 6px 8px;
@@ -475,7 +475,7 @@
 .segBtnActive,
 .segBtnActive:hover,
 .segBtnActive:focus-visible {
-  background: var(--bg-section);
+  background: var(--bg-canvas);
   color: var(--text-1);
   box-shadow: 0 0 2px var(--border-3);
   outline: none;

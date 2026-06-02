@@ -4,6 +4,7 @@
    file does not duplicate it. */
 html, body {
   line-height: 1.5;
+  letter-spacing: 0.02ch;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -44,6 +45,51 @@ html, body {
      desktop a small breathing room; on mobile, enough to clear the
      sticky topbar (height set in the @media block at the bottom). */
   --scroll-padding-top: 1em;
+}
+
+/* Semantic background aliases. Anta now ships an unopinionated numeric
+   background scale (--bg-1 … --bg-5); this site keeps using readable
+   semantic names by mapping them onto that scale — the exact pattern the
+   Colors page recommends to consumers. (--bg-1 / "canvas" is the deepest,
+   neutral-only surface; it has no tinted variant.)
+
+   The selector must include .light/.dark, not just :root: an alias like
+   `--bg-canvas: var(--bg-1)` is computed where it's declared and then
+   inherited, so a :root-only mapping would freeze it at the page's theme and
+   never recompute under a nested `.light`/`.dark` scope (e.g. the Colors
+   page renders both theme rows at once). Re-declaring under each theme class
+   lets `var(--bg-N)` resolve in that element's own context. */
+:root, .light, .dark {
+  --bg-canvas: var(--bg-1);
+  --bg-base:   var(--bg-2);
+  --bg-pane:   var(--bg-3);
+  --bg-block:  var(--bg-4);
+  --bg-spot:   var(--bg-5);
+
+  --bg-base-brand:  var(--bg-2-brand);
+  --bg-pane-brand:  var(--bg-3-brand);
+  --bg-block-brand: var(--bg-4-brand);
+  --bg-spot-brand:  var(--bg-5-brand);
+
+  --bg-base-info:  var(--bg-2-info);
+  --bg-pane-info:  var(--bg-3-info);
+  --bg-block-info: var(--bg-4-info);
+  --bg-spot-info:  var(--bg-5-info);
+
+  --bg-base-success:  var(--bg-2-success);
+  --bg-pane-success:  var(--bg-3-success);
+  --bg-block-success: var(--bg-4-success);
+  --bg-spot-success:  var(--bg-5-success);
+
+  --bg-base-critical:  var(--bg-2-critical);
+  --bg-pane-critical:  var(--bg-3-critical);
+  --bg-block-critical: var(--bg-4-critical);
+  --bg-spot-critical:  var(--bg-5-critical);
+
+  --bg-base-warning:  var(--bg-2-warning);
+  --bg-pane-warning:  var(--bg-3-warning);
+  --bg-block-warning: var(--bg-4-warning);
+  --bg-spot-warning:  var(--bg-5-warning);
 }
 
 /* Document defaults */
@@ -511,7 +557,7 @@ html[data-stream="main"] .changelog section[data-stream="dev"]  { display: none;
   font: inherit;
   font-size: 0.9rem;
   color: var(--text-1);
-  background: var(--bg-section);
+  background: var(--bg-canvas);
   border: 1px solid var(--border-2);
   border-radius: 6px;
   outline: none;

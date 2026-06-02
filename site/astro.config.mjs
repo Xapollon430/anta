@@ -34,15 +34,15 @@ export default defineConfig({
       styleOverrides: {
         borderWidth: '1px',
         borderColor: 'var(--border-5)',
-        codeBackground: 'var(--bg-section)',
+        codeBackground: 'var(--bg-canvas)',
         codePaddingBlock: '0.75rem',
         codePaddingInline: '1rem',
         frames: {
           frameBoxShadowCssValue: 'none',
-          editorBackground: 'var(--bg-section)',
+          editorBackground: 'var(--bg-canvas)',
           editorTabBarBackground: 'var(--bg-pane)',
-          editorActiveTabBackground: 'var(--bg-section)',
-          terminalBackground: 'var(--bg-section)',
+          editorActiveTabBackground: 'var(--bg-canvas)',
+          terminalBackground: 'var(--bg-canvas)',
           terminalTitlebarBackground: 'var(--bg-pane)',
           terminalTitlebarBorderBottomColor: 'var(--border-5)',
           copyIcon: createInlineSvgUrl([

@@ -119,7 +119,7 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
   const examples = useMemo(() => parseExamples(code), [code])
 
   // Track the parent's dark-mode state — drives both Monaco's theme
-  // and the resolved value of --bg-section.
+  // and the resolved value of --bg-canvas.
   useEffect(() => {
     const apply = () => setIsDark(document.documentElement.classList.contains('dark'))
     apply()
@@ -164,10 +164,10 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
   }, [])
 
   // Mirror docs-site dark-mode into Monaco by switching between the
-  // two Shiki themes. We also overlay our `--bg-section` token onto
+  // two Shiki themes. We also overlay our `--bg-canvas` token onto
   // the active theme's `editor.background` so the editor pane blends
   // with the surrounding card instead of using Shiki's default
-  // off-white / dark-navy. `--bg-section` is mode-dependent, so we
+  // off-white / dark-navy. `--bg-canvas` is mode-dependent, so we
   // resolve it here (after the dark class has already flipped) and
   // re-define the theme each time.
   useEffect(() => {
@@ -1158,7 +1158,7 @@ function installShikiBridge(
   monaco.languages.setTokensProvider = origSet
 }
 
-// Re-define both Shiki themes in Monaco with our `--bg-section`
+// Re-define both Shiki themes in Monaco with our `--bg-canvas`
 // painted over `editor.background` / `editorGutter.background`. The
 // resolved color depends on the current `.dark` class; call this on
 // every dark-mode flip so the theme that becomes active picks up the
@@ -1172,7 +1172,7 @@ function overlayBgOnShikiThemes(
     textmateThemeToMonacoTheme: (t: any) => any
   },
 ) {
-  const bg = resolveCssColorToHex('--bg-section')
+  const bg = resolveCssColorToHex('--bg-canvas')
   if (!bg) return
   for (const themeId of bundle.highlighter.getLoadedThemes()) {
     const tmTheme = bundle.highlighter.getTheme(themeId)
