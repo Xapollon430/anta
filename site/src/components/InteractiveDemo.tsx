@@ -18,6 +18,16 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import s from './InteractiveDemo.module.css'
+// Monaco ships its structural CSS as ~110 separate `import './x.css'`
+// side-effect imports inside its ESM build. Vite injects each one
+// live in dev (so the editor looks right under `pnpm dev`) but emits
+// none of them into the production bundle, since they're only reached
+// through the lazily-imported `monaco-editor` chunk. Without these
+// rules the editor's hidden <textarea> (`.inputarea`) falls back to
+// the UA default (border + resize grip) and the layout breaks. Pull
+// in Monaco's concatenated stylesheet statically so it's always part
+// of this island's CSS in both dev and prod.
+import 'monaco-editor/min/vs/editor/editor.main.css'
 
 import { controlsFor, controlsForExample, type Control, type PropEntry } from '../../lib/sandbox/props-form.ts'
 import { bundle, type BundleResult } from '../../lib/sandbox/bundler.ts'
@@ -25,6 +35,7 @@ import { getDemoModules } from '../../lib/sandbox/modules.ts'
 import { replaceProp, readChildren } from '../../lib/sandbox/prop-patch.ts'
 import { readProp } from '../../lib/sandbox/prop-read.ts'
 import { parseExamples, type Example } from '../../lib/sandbox/parse-examples.ts'
+import { throttle } from 'es-toolkit'
 
 /** Path served from `site/public/`. The script is a self-contained
  *  browser ESM bundle of @antadesign/anta/elements + per-element CSS;
@@ -291,33 +302,66 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Form edits don't rewrite `code` on every event — doing so re-synced
+  // Monaco's model and re-parsed every field on each slider tick, which
+  // is what made the inputs feel sticky. Instead each change lands
+  // instantly in the control's local state (see FormField) and is queued
+  // here, keyed by prop (+example). A throttled flush rewrites the source
+  // at most ~7×/s — leading+trailing edges keep the preview live during a
+  // drag rather than only updating on release. Keying by prop means
+  // adjusting two props in quick succession can't drop one: the map keeps
+  // the latest value per key and the flush applies them all.
+  const pendingEditsRef = useRef(
+    new Map<
+      string,
+      { prop: PropEntry; value: string | number | boolean | null; exampleId?: string }
+    >(),
+  )
+
+  const flushFormEdits = useMemo(
+    () =>
+      throttle(() => {
+        const edits = Array.from(pendingEditsRef.current.values())
+        pendingEditsRef.current.clear()
+        if (edits.length === 0) return
+        // Apply every queued edit in one functional update so we read
+        // the LATEST source (a Monaco edit or Reset may have raced) and
+        // commit a single new `code`. Per-example edits re-parse the
+        // boundaries inside the updater — they shift as the file grows.
+        setCode((prev) => {
+          let next = prev
+          for (const { prop, value, exampleId } of edits) {
+            if (!exampleId) {
+              next = replaceProp(next, component, prop.prop, value)
+              continue
+            }
+            const latest = parseExamples(next).find((e) => e.id === exampleId)
+            if (!latest || !latest.tagName) continue
+            next = replaceProp(next, latest.tagName, prop.prop, value, {
+              start: latest.jsxStart,
+              end: latest.jsxEnd,
+            })
+          }
+          return next
+        })
+      }, 150),
+    [component],
+  )
+
+  // Drop any trailing flush if the playground unmounts.
+  useEffect(() => () => flushFormEdits.cancel(), [flushFormEdits])
+
   function handleFormChange(
     prop: PropEntry,
     value: string | number | boolean | null,
     exampleId?: string,
   ) {
-    // Compute the next code from the LATEST committed state via the
-    // functional setter form. A stale closure (e.g. the user pasted
-    // into Monaco while React had not yet committed the resulting
-    // state) would otherwise resurrect an older source and wipe the
-    // paste. When an exampleId is supplied, re-parse inside the
-    // updater so the range we patch is up-to-date with whatever the
-    // latest source looks like — example boundaries shift as the
-    // file grows. The bound tag name comes from the example itself,
-    // not the global `component` prop — examples can use any tag
-    // (`Progress`, `AnimatedProgress`, …) and the form binds to
-    // whichever one the example declared.
-    setCode((prev) => {
-      if (!exampleId) {
-        return replaceProp(prev, component, prop.prop, value)
-      }
-      const latest = parseExamples(prev).find((e) => e.id === exampleId)
-      if (!latest || !latest.tagName) return prev
-      return replaceProp(prev, latest.tagName, prop.prop, value, {
-        start: latest.jsxStart,
-        end: latest.jsxEnd,
-      })
+    pendingEditsRef.current.set(`${exampleId ?? 'root'}::${prop.prop.name}`, {
+      prop,
+      value,
+      exampleId,
     })
+    flushFormEdits()
   }
 
   // ────────────────────────────────────────────────────────────────
@@ -435,7 +479,13 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
               class={s.resetBtn}
               aria-label="Reset props and code"
               title="Reset props and code"
-              onClick={() => setCode(initialCode)}
+              onClick={() => {
+                // Drop any queued form edits so a trailing flush can't
+                // re-apply them on top of the freshly reset source.
+                flushFormEdits.cancel()
+                pendingEditsRef.current.clear()
+                setCode(initialCode)
+              }}
             >
               <a-icon shape="refresh-ccw-dot" style={{ '--icon-size': '14px' } as any} />
             </button>
@@ -616,14 +666,27 @@ function FormField({
   // would do if they leave the field blank.
   const current = read?.kind === 'literal' ? read.value : undefined
 
+  // Optimistic local value: the control reflects the user's input
+  // immediately while the throttled rewrite of `code` catches up
+  // (see `flushFormEdits`). Re-sync from the parsed source whenever it
+  // changes externally — a Monaco edit, a Reset, or the throttled flush
+  // landing the value we just set (a same-value set, so Preact skips
+  // the re-render and there's no feedback loop).
+  const [value, setValue] = useState<string | number | boolean | undefined>(current)
+  useEffect(() => { setValue(current) }, [current])
+  const handle = (v: string | number | boolean | null) => {
+    setValue(v == null ? undefined : v)
+    onChange(v)
+  }
+
   if (c.kind === 'boolean') {
     return (
       <label class={s.fieldBoolean}>
         <input
           type="checkbox"
-          checked={current === true}
+          checked={value === true}
           disabled={fromExpression}
-          onChange={(e) => onChange((e.currentTarget as HTMLInputElement).checked)}
+          onChange={(e) => handle((e.currentTarget as HTMLInputElement).checked)}
         />
         <span>
           <code>{c.name}{entry.optional ? '?' : ''}</code>
@@ -643,15 +706,15 @@ function FormField({
         </span>
         {fromExpression
           ? <span class={s.fieldExpressionBadge}>set by code</span>
-          : c.kind === 'slider' && typeof current === 'number'
-            ? <span class={s.fieldValueLabel}>{current}</span>
+          : c.kind === 'slider' && typeof value === 'number'
+            ? <span class={s.fieldValueLabel}>{value}</span>
             : null}
       </div>
       <FieldControl
         control={c}
-        value={current}
+        value={value}
         disabled={fromExpression}
-        onChange={onChange}
+        onChange={handle}
       />
     </div>
   )

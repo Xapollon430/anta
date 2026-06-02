@@ -254,7 +254,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     width: 240px;
     flex-shrink: 0;
     background: var(--bg-pane);
-    border-right: 1px solid var(--border-5);
+    /* border-right: 1px solid var(--border-5); */
     padding: 24px 12px 24px 24px;
     position: sticky;
     top: 0;
@@ -315,7 +315,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
 
   .brand-links {
     display: flex;
-    gap: 6px;
+    gap: 0;
     margin: -20px 0 24px;
     flex-wrap: wrap;
   }
@@ -324,15 +324,14 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 3px 8px;
-    border: 1px solid var(--border-5);
+    padding: 3px 8px 3px 6px;
     border-radius: 999px;
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.03ch;
     color: var(--text-3);
     text-decoration: none;
-    transition: color 120ms ease-out, border-color 120ms ease-out, background 120ms ease-out;
+    transition: color 120ms ease-out, background 120ms ease-out;
   }
 
   .brand-links a > a-icon {
@@ -343,7 +342,6 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
   .brand-links a:hover,
   .brand-links a:focus-visible {
     color: var(--text-1);
-    border-color: var(--border-3);
     background: var(--bg-section);
     outline: none;
   }
