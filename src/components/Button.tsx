@@ -38,7 +38,7 @@ export type BaseButtonProps = {
     | 'success'
     | 'warning'
     | (string & {})
-  /** Size variant. small=22px, medium=26px, large=30px. Omit the
+  /** Size variant. small=24px, medium=28px, large=32px. Omit the
    *  attribute or pass `'medium'` for the default — both render
    *  identically and emit no DOM attribute.
    *  @defaultValue medium */

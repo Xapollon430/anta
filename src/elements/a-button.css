@@ -46,8 +46,8 @@
     --button-fg-quaternary-hover: #49424c;
 
     /* Layout */
-    --button-padding-x: 8px;
-    --button-padding-y: 4px;
+    --button-padding-x: 9px;
+    --button-padding-y: 5px;
     --button-max-width: 100%;
     --button-max-height: 100%;
 
@@ -427,12 +427,12 @@
     }
 
     &[size="small"] {
-      --button-padding-y: 2px;
-      --button-padding-x: 6px;
+      --button-padding-y: 3px;
+      --button-padding-x: 7px;
     }
     &[size="large"] {
-      --button-padding-y: 6px;
-      --button-padding-x: 12px;
+      --button-padding-y: 7px;
+      --button-padding-x: 13px;
     }
 
     /* Underline only on background-less priorities (tertiary, quaternary).
@@ -472,26 +472,26 @@
        no opt-in attribute: consumers writing raw `<a-button>` get
        icon-button styling just by passing a single `<a-icon>` inside. */
     &:has(> a-icon:only-child) {
-      --button-padding-y: 4px;
-      --button-padding-x: 4px;
-      min-width: 26px;
-      min-height: 26px;
+      --button-padding-y: 5px;
+      --button-padding-x: 5px;
+      min-width: 28px;
+      min-height: 28px;
       /* Centre the icon when the host is given an explicit width / height
          larger than the natural square — without this the icon sits at the
          padding-start edge. No-op when the button is at its intrinsic
          square size. */
       justify-content: center;
       &[size="small"] {
-        --button-padding-y: 2px;
-        --button-padding-x: 2px;
-        min-width: 22px;
-        min-height: 22px;
+        --button-padding-y: 3px;
+        --button-padding-x: 3px;
+        min-width: 24px;
+        min-height: 24px;
       }
       &[size="large"] {
-        --button-padding-y: 6px;
-        --button-padding-x: 6px;
-        min-width: 30px;
-        min-height: 30px;
+        --button-padding-y: 7px;
+        --button-padding-x: 7px;
+        min-width: 32px;
+        min-height: 32px;
       }
     }
 
