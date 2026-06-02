@@ -14,10 +14,44 @@ import api from '../../src/api.json'
 import type { PropDescriptor } from './prop-patch.ts'
 import { findAttribute, listAttributes, locateOpeningTag } from './locate-tag.ts'
 
-/** Framework-internal props that have no place on a documentation
- *  surface — they're plumbing for the renderer, not part of the
- *  component's authored API. */
-const EXCLUDED_PROP_NAMES = new Set(['key', 'ref'])
+/** Props with no place among the playground controls — renderer plumbing
+ *  (`key`, `ref`) or attributes only meaningful in real app code (`id`,
+ *  `title`, `tabIndex`), not for exploring the component. Global to every
+ *  component. */
+const EXCLUDED_PROP_NAMES = new Set(['key', 'ref', 'id', 'title', 'tabIndex'])
+
+/** Per-component control exclusions, applied on top of the global set. */
+const EXCLUDED_BY_COMPONENT: Record<string, Set<string>> = {
+  // Button's anchor/submit attributes are real but niche — keep the panel
+  // focused on appearance + content. `href` / `target` stay (anchor mode).
+  Button: new Set(['download', 'ping', 'rel', 'type', 'form']),
+}
+
+/** Explicit control order per component. Listed names lead in this order;
+ *  any prop not listed keeps its natural (flatten) position after them. The
+ *  discriminated-union prop types can't express this order at the type level
+ *  without collapsing the unions that give them type-safety, so it lives
+ *  here as a display concern. */
+const PROP_ORDER: Record<string, string[]> = {
+  Button: [
+    'priority', 'tone', 'size', 'underline', 'paddingless',
+    'label', 'icon', 'iconTrailing',
+    'loading', 'disabled', 'selected',
+    'href', 'target', 'children', 'className', 'style',
+  ],
+}
+
+/** Props whose validity depends on another prop's value — the discriminated
+ *  unions a flat control list can't express. The predicate receives the
+ *  current control values; a `false` result hides the control. Mirrors
+ *  Button's `PriorityMode` (underline only on tertiary/quaternary,
+ *  paddingless only on quaternary). */
+export const CONDITIONAL_PROPS: Record<string, Record<string, (v: Record<string, unknown>) => boolean>> = {
+  Button: {
+    underline: (v) => v.priority === 'tertiary' || v.priority === 'quaternary',
+    paddingless: (v) => v.priority === 'quaternary',
+  },
+}
 
 export type Control =
   | { kind: 'slider'; name: string; min: number; max: number; step: number; defaultValue?: number; description?: string }
@@ -25,6 +59,10 @@ export type Control =
   | { kind: 'text'; name: string; defaultValue?: string; description?: string }
   | { kind: 'boolean'; name: string; defaultValue?: boolean; description?: string }
   | { kind: 'segmented'; name: string; options: string[]; defaultValue?: string; description?: string }
+  /** Named-tone tabs + a "Custom" tab that reveals a color input. `options`
+   *  are the named literals; a value outside them is treated as a custom
+   *  color. Serialized as a plain string attribute (`tone="…"`). */
+  | { kind: 'tone'; name: string; options: string[]; defaultValue?: string; description?: string }
   /** Read-only entry for props we can't drive with a generic input
    *  — `children`, `style`, `ReactNode`, named references, etc. The
    *  form renders the name + type + description so the prop is
@@ -66,12 +104,26 @@ export function controlsFor(componentName: string): PropEntry[] {
     ? (decl.children as any[])
     : flattenType(decl.type, root)
 
+  const perComponent = EXCLUDED_BY_COMPONENT[componentName]
   const entries: PropEntry[] = []
   for (const p of props) {
     if (EXCLUDED_PROP_NAMES.has(p.name)) continue
+    if (perComponent?.has(p.name)) continue
     const ctl = controlFor(p)
     if (!ctl) continue
     entries.push(ctl)
+  }
+
+  // Apply the explicit display order, if any. Listed names sort to the front
+  // in order; unlisted props tie at the end and keep their relative order
+  // (Array.prototype.sort is stable).
+  const order = PROP_ORDER[componentName]
+  if (order) {
+    const rank = (n: string) => {
+      const i = order.indexOf(n)
+      return i === -1 ? order.length : i
+    }
+    entries.sort((a, b) => rank(a.control.name) - rank(b.control.name))
   }
   return entries
 }
@@ -326,6 +378,20 @@ function controlFor(p: any): PropEntry | null {
       return false
     })
     if (hasOpenString && literals.length > 0) {
+      // `tone` gets a richer control: named-tone tabs + a "Custom" tab with a
+      // color input. Any other open-string union stays a plain text input.
+      if (name === 'tone') {
+        return wrap(
+          {
+            kind: 'tone',
+            name,
+            options: literals.map((x: any) => String(x.value)),
+            defaultValue: readDefaultValueTag(p.comment),
+            description,
+          },
+          { name, kind: 'string' },
+        )
+      }
       return wrap(
         { kind: 'text', name, description },
         { name, kind: 'string' },

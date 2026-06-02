@@ -2,7 +2,7 @@
  * prop-patch.ts — form-control → code edits via targeted string
  * replacement inside the opening tag of a bound JSX element.
  *
- * The InteractiveDemo binds to a target component (e.g. `Progress`).
+ * The Playground binds to a target component (e.g. `Progress`).
  * Every form change calls `replaceProp(code, target, name, value)`:
  * we find `<Target` in the source, locate the named attribute inside
  * the opening tag, and either replace its value, insert it, or remove

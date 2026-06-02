@@ -6,19 +6,19 @@ Stack: Astro 5 static output, Preact islands (`@astrojs/preact`, with `compat: t
 
 The docs site consumes Anta via the workspace symlink (`"@antadesign/anta": "workspace:*"`), so Anta must be built first (`pnpm run build` at the repo root) before `site/` resolves `dist/` artifacts.
 
-## InteractiveDemo playground
+## Playground
 
-The `<InteractiveDemo>` component (`site/src/components/InteractiveDemo.tsx`) is the playground that lands on `/components/<name>/` pages. It is the largest single component in this directory and is intentionally self-contained so that a future migration to a dedicated package (`@antadesign/sandbox` or similar) and a dedicated repository can lift it out without disturbing the rest of the site.
+The `<Playground>` component (`site/src/components/Playground.tsx`) is the playground that lands on `/components/<name>/` pages. It is the largest single component in this directory and is intentionally self-contained so that a future migration to a dedicated package (`@antadesign/sandbox` or similar) and a dedicated repository can lift it out without disturbing the rest of the site.
 
 Supporting code:
 
-- `site/lib/sandbox/` — `bundler.ts`, `modules.ts`, `prop-patch.ts`, `prop-read.ts`, `props-form.ts`, `locate-tag.ts`. These are the long-lived primitives. When the sandbox moves to its own package, these go with it; the docs site is left with just `InteractiveDemo.tsx` consuming the extracted package.
+- `site/lib/sandbox/` — `bundler.ts`, `modules.ts`, `prop-patch.ts`, `prop-read.ts`, `props-form.ts`, `locate-tag.ts`. These are the long-lived primitives. When the sandbox moves to its own package, these go with it; the docs site is left with just `Playground.tsx` consuming the extracted package.
 - `site/scripts/copy-esbuild-wasm.mjs` — copies `esbuild.wasm` into `site/public/` so the iframe can fetch `/esbuild.wasm` directly.
 - `site/scripts/build-iframe-runtime.mjs` — pre-builds `site/public/iframe-anta-runtime.js`, a self-contained ESM bundle of `@antadesign/anta/elements` + per-element CSS that the iframe dynamic-imports to register custom elements on its own `customElements` registry.
 
 ### Monaco is bundled from npm (no CDN)
 
-Monaco lives in `dependencies` as `monaco-editor` and is bundled by Vite into the playground's lazy chunk. The wiring is in `InteractiveDemo.tsx`'s mount effect:
+Monaco lives in `dependencies` as `monaco-editor` and is bundled by Vite into the playground's lazy chunk. The wiring is in `Playground.tsx`'s mount effect:
 
 ```ts
 import('monaco-editor')                                                         // namespace
@@ -36,7 +36,7 @@ We only register workers for languages the playground actually uses. Adding JSON
 
 ## Adding a component docs page
 
-Create `site/src/pages/components/{name}.mdx` with `layout: ../../layouts/DocsLayout.astro`. For an interactive demo, drop `<InteractiveDemo client:load component="…" layout="side" initialCode={…} />` near the top.
+Create `site/src/pages/components/{name}.mdx` with `layout: ../../layouts/DocsLayout.astro`. For an interactive demo, drop `<Playground client:load component="…" layout="side" initialCode={…} />` near the top.
 
 ```sh
 pnpm run dev                 # ← run from the REPO ROOT (see below); the dev command for all work

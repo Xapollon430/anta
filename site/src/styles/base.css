@@ -404,7 +404,7 @@ code[data-copied]::after {
 }
 
 /* Fill the content track (bounded by both sidebars). Used by widgets
-   that need real estate (the InteractiveDemo playground, wide
+   that need real estate (the Playground playground, wide
    visualisations). */
 .full-bleed {
   max-width: none;

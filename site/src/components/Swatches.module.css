@@ -129,7 +129,6 @@
 .blockHeading p {
   margin: 0;
   color: var(--text-2);
-  max-width: 720px;
 }
 
 .themeRows {

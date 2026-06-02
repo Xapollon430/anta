@@ -2,7 +2,7 @@
 layout: ../../layouts/DocsLayout.astro
 title: Button
 ---
-import InteractiveDemo from '../../components/InteractiveDemo'
+import Playground from '../../components/Playground'
 import Preview from '../../components/Preview.astro'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
@@ -173,9 +173,9 @@ stays 15px across all sizes.
 
 | size | height | `padding-y` | text-edge `padding-x` | icon-edge `padding-x` |
 |---|---|---|---|---|
-| `small` | 22px | 2px | 6px | 4px |
-| `medium` (default) | 26px | 4px | 8px | 6px |
-| `large` | 30px | 6px | 12px | 10px |
+| `small` | 24px | 3px | 7px | 5px |
+| `medium` (default) | 28px | 5px | 9px | 7px |
+| `large` | 32px | 7px | 13px | 11px |
 
 <Columns>
 <Col>
@@ -286,7 +286,7 @@ Icon shape names come from the `IconShape` union — see the
 
 Pass `icon` alone — no `label`, no `iconTrailing`, no `children` — and
 the button collapses to a square. A min-size is pinned to a square
-matching the labeled-button height (22px / 26px / 30px for small /
+matching the labeled-button height (24px / 28px / 32px for small /
 medium / large) so icon-only and labeled buttons line up, and a tight
 flex parent can't clip the icon.
 
@@ -525,13 +525,14 @@ without taking ownership of `onClick`.
 
 <Disclosure title="Playground">
 
-<InteractiveDemo
+<Playground
   client:visible
   component="Button"
   layout="side"
   panelHeight={400}
   initialCode={buttonDemoCode}
-  initialCss={`a-button { align-self: start; }`}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: center; justify-content: center; }`}
 />
 
 </Disclosure>

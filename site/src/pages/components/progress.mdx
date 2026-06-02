@@ -2,7 +2,7 @@
 layout: ../../layouts/DocsLayout.astro
 title: Progress
 ---
-import InteractiveDemo from '../../components/InteractiveDemo'
+import Playground from '../../components/Playground'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
 import Preview from '../../components/Preview.astro'
@@ -57,7 +57,7 @@ function AnimatedProgress({ speed = 1 }) {
 
 <Disclosure title="Playground">
 
-<InteractiveDemo
+<Playground
   client:visible
   component="Progress"
   layout="side"

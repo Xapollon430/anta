@@ -3,7 +3,7 @@ layout: ../../layouts/DocsLayout.astro
 title: Title
 ---
 import { Title, Text, Icon } from '@antadesign/anta'
-import InteractiveDemo from '../../components/InteractiveDemo'
+import Playground from '../../components/Playground'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
 import titleDemoCode from './title.demo.ts'
@@ -185,7 +185,7 @@ component.
 
 <Disclosure title="Playground">
 
-<InteractiveDemo
+<Playground
   client:visible
   component="Title"
   layout="side"

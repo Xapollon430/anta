@@ -1,7 +1,7 @@
 /**
- * InteractiveDemo — single-component playground.
+ * Playground — single-component playground.
  *
- *   <InteractiveDemo component="Progress" initialCode={`...`} client:load />
+ *   <Playground component="Progress" initialCode={`...`} client:load />
  *
  * Renders three regions:
  *   - A live preview, isolated inside an iframe so user CSS / DOM
@@ -17,7 +17,7 @@
  * See site/lib/sandbox/* for the moving parts.
  */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
-import s from './InteractiveDemo.module.css'
+import s from './Playground.module.css'
 // Monaco ships its structural CSS as ~110 separate `import './x.css'`
 // side-effect imports inside its ESM build. Vite injects each one
 // live in dev (so the editor looks right under `pnpm dev`) but emits
@@ -29,7 +29,7 @@ import s from './InteractiveDemo.module.css'
 // of this island's CSS in both dev and prod.
 import 'monaco-editor/min/vs/editor/editor.main.css'
 
-import { controlsFor, controlsForExample, type Control, type PropEntry } from '../../lib/sandbox/props-form.ts'
+import { controlsFor, controlsForExample, CONDITIONAL_PROPS, type Control, type PropEntry } from '../../lib/sandbox/props-form.ts'
 import { bundle, type BundleResult } from '../../lib/sandbox/bundler.ts'
 import { getDemoModules } from '../../lib/sandbox/modules.ts'
 import { replaceProp, readChildren } from '../../lib/sandbox/prop-patch.ts'
@@ -72,7 +72,7 @@ interface Props {
 
 type Tab = 'props' | 'code' | 'css'
 
-export default function InteractiveDemo({ component, initialCode, initialCss = '', layout = 'stacked', panelHeight = 400 }: Props) {
+export default function Playground({ component, initialCode, initialCss = '', layout = 'stacked', panelHeight = 400 }: Props) {
   const [code, setCode] = useState(initialCode)
   // CSS state is independent of the code — the user owns it. The CSS
   // tab is unconditionally available; no auto-seed from any className
@@ -576,7 +576,7 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
                   {controls.length === 0 && (
                     <div class={s.fieldHint}>No props detected for {component}. Check api.json.</div>
                   )}
-                  {controls.map((entry) => (
+                  {visibleControls(controls, component, code).map((entry) => (
                     <FormField
                       key={entry.control.name}
                       entry={entry}
@@ -712,6 +712,29 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
 // ──────────────────────────────────────────────────────────────────
 // Form field
 
+/** Filter out controls whose discriminated-union condition isn't met by the
+ *  current values (e.g. Button's `underline` only shows on tertiary /
+ *  quaternary priority). Reads each dependency's live value from the code. */
+function visibleControls(
+  controls: PropEntry[],
+  componentName: string,
+  code: string,
+  range?: { start: number; end: number },
+): PropEntry[] {
+  const conds = CONDITIONAL_PROPS[componentName]
+  if (!conds) return controls
+  const values: Record<string, unknown> = {}
+  for (const e of controls) {
+    if (e.prop.kind === 'children' || e.prop.kind === 'style-css') continue
+    const r = readProp(code, componentName, e.prop, range)
+    if (r?.kind === 'literal') values[e.control.name] = r.value
+  }
+  return controls.filter((e) => {
+    const pred = conds[e.control.name]
+    return !pred || pred(values)
+  })
+}
+
 function FormField({
   entry,
   code,
@@ -769,8 +792,7 @@ function FormField({
           onChange={(e) => handle((e.currentTarget as HTMLInputElement).checked)}
         />
         <span>
-          <code>{c.name}{entry.optional ? '?' : ''}</code>
-          {c.description ? <span class={s.fieldHint}> — {c.description}</span> : null}
+          <span class={s.fieldName} title={c.description}>{c.name}</span>
         </span>
         {fromExpression ? <span class={s.fieldExpressionBadge}>set by code</span> : null}
       </label>
@@ -781,8 +803,7 @@ function FormField({
     <div class={s.field}>
       <div class={s.fieldLabel}>
         <span>
-          <code>{c.name}{entry.optional ? '?' : ''}</code>
-          {c.description ? <span class={s.fieldHint}> — {c.description}</span> : null}
+          <span class={s.fieldName} title={c.description}>{c.name}</span>
         </span>
         {fromExpression
           ? <span class={s.fieldExpressionBadge}>set by code</span>
@@ -886,6 +907,60 @@ function FieldControl({
         </div>
       )
     }
+    case 'tone': {
+      // Named-tone tabs + a "Custom" tab. Mode is derived from the value:
+      // a value outside `options` (a color literal) means custom. The color
+      // picker only reflects valid hex; a hand-typed `oklch(…)` stays in the
+      // code and shows beside the picker without being overwritten.
+      const v = typeof value === 'string' ? value : undefined
+      const selected = v ?? control.defaultValue
+      const isCustom = v !== undefined && !control.options.includes(v)
+      const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v ?? '') ? (v as string) : '#ff1493'
+      return (
+        <div class={`${s.toneControl} ${cls}`}>
+          <div class={s.segment} role="radiogroup" aria-label={control.name}>
+            {control.options.map((opt) => {
+              const active = !isCustom && selected === opt
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  class={active ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
+                  onClick={() => onChange(opt)}
+                  disabled={disabled}
+                >
+                  {opt}
+                </button>
+              )
+            })}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={isCustom}
+              class={isCustom ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
+              onClick={() => onChange(isCustom ? (v as string) : '#ff1493')}
+              disabled={disabled}
+            >
+              Custom
+            </button>
+          </div>
+          {isCustom && (
+            <div class={s.toneCustomRow}>
+              <input
+                type="color"
+                class={s.toneColor}
+                value={hex}
+                onInput={(e) => onChange((e.currentTarget as HTMLInputElement).value)}
+                disabled={disabled}
+              />
+              <code>{v}</code>
+            </div>
+          )}
+        </div>
+      )
+    }
     case 'documentation':
       // Read-only documentation row — no input, just the type
       // string so the panel doubles as a prop reference.
@@ -955,7 +1030,7 @@ function ExampleAccordion({
               Code tab if they want to change anything. */}
           {example.kind === 'jsx' && controls.length > 0 && (
             <div class={s.form}>
-              {controls.map((entry) => (
+              {visibleControls(controls, example.tagName!, code, { start: example.jsxStart, end: example.jsxEnd }).map((entry) => (
                 <FormField
                   key={entry.control.name}
                   entry={entry}

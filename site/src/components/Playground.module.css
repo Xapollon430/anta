@@ -448,9 +448,21 @@
   align-items: stretch;
   gap: 2px;
   padding: 3px;
-  background: var(--bg-block);
+  background: var(--bg-spot);
   border-radius: 6px;
   align-self: flex-start;
+  /* Tabs that don't fit the panel scroll horizontally rather than wrap or
+     push the panel wider. */
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+/* Prop name — plain monospace value, not a copyable code pill. */
+.fieldName {
+  font-family: var(--monospace);
+  font-size: 12px;
+  color: var(--text-1);
 }
 
 .segBtn {
@@ -479,6 +491,33 @@
   color: var(--text-1);
   box-shadow: 0 0 2px var(--border-3);
   outline: none;
+}
+
+/* Tone control: the named/Custom tab row plus, when Custom is active, a
+   color input + the current value beneath. */
+.toneControl {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.toneCustomRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toneColor {
+  inline-size: 28px;
+  block-size: 28px;
+  padding: 0;
+  border: 0.5px solid var(--border-4);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+.toneCustomRow code {
+  font-size: 12px;
+  color: var(--text-3);
 }
 
 .editorHost {

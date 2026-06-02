@@ -3,7 +3,7 @@
  * imports against. esbuild's resolve plugin maps `@antadesign/anta` (and
  * friends) to virtual files whose content is a tiny shim that reads from
  * `window.__demo_modules__` on the iframe's window. The iframe is seeded
- * with that object on first load (see InteractiveDemo's iframe wiring).
+ * with that object on first load (see Playground's iframe wiring).
  *
  * Keep the surface small: only modules we expect playground code to need.
  * Unknown imports become compile errors with a friendly message — the
@@ -25,7 +25,7 @@ export const moduleManifest: Record<string, string[]> = {
 }
 
 /** Build the registry the iframe's `window.__demo_modules__` is seeded
- *  with. Called once per InteractiveDemo mount. */
+ *  with. Called once per Playground mount. */
 export function getDemoModules(): Record<string, Record<string, unknown>> {
   return {
     '@antadesign/anta': {

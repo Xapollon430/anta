@@ -5,5 +5,5 @@
  */
 export default `import { Button } from '@antadesign/anta'
 
-<Button icon="check" label="Brand" tone="brand" iconTrailing="check" />
+<Button priority="secondary" tone="brand" icon="filter" iconTrailing="chevron-down" label="Filter" />
 `

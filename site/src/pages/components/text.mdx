@@ -3,7 +3,7 @@ layout: ../../layouts/DocsLayout.astro
 title: Text
 ---
 import TextDemo from '../../components/TextDemo'
-import InteractiveDemo from '../../components/InteractiveDemo'
+import Playground from '../../components/Playground'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
 import textDemoCode from './text.demo.ts'
@@ -50,7 +50,7 @@ the underline to full alpha.
 
 <Disclosure title="Playground">
 
-<InteractiveDemo
+<Playground
   client:visible
   component="Text"
   layout="side"

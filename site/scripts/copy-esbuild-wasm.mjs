@@ -1,6 +1,6 @@
 /**
  * copy-esbuild-wasm.mjs — copy node_modules/esbuild-wasm/esbuild.wasm into
- * site/public/ so the InteractiveDemo's bundler can fetch it at runtime
+ * site/public/ so the Playground's bundler can fetch it at runtime
  * via `/esbuild.wasm`. Runs as part of the `docs` pre-step.
  */
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
