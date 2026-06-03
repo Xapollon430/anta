@@ -5,7 +5,7 @@
  * `customElements` registry and injects the per-element CSS into the
  * document head.
  *
- * The InteractiveDemo's preview iframe (lives at `about:srcdoc`,
+ * The Playground's preview iframe (lives at `about:srcdoc`,
  * has its own customElements registry, can't share the parent's)
  * dynamic-imports this URL on first load.
  *

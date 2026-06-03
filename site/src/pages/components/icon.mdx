@@ -19,7 +19,7 @@ any custom icons you generate yourself.
 > way without the wrapping element. Use `<Icon>` when you need a
 > standalone icon outside of any other component.
 
-<Disclosure title="Props">
+<Disclosure title="Component props">
 
 <PropsTable component="Icon" />
 
@@ -49,6 +49,13 @@ size too — useful for sizing whole regions of UI at once:
 ```css
 .toolbar { --icon-size: 18px; }
 ```
+
+> The `<Icon size>` wrapper sets `--icon-size` inline, so it works
+> everywhere. Hand-authoring the raw element's `size` *attribute*
+> (`<a-icon size="18">`) instead relies on typed `attr()` (Chrome 133+);
+> on browsers without it (iOS Safari, Firefox) the attribute is ignored
+> and the icon falls back to the 16px default. Prefer `<Icon size>` for
+> exact custom sizes.
 
 ## Adding your own icons
 

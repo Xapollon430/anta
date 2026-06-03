@@ -72,6 +72,12 @@
     font-weight: 600;
   }
 
+  /* Keep inline `<code>` from inflating the line box of the prose it
+     sits in — `1em` pins its line height to its own font size. */
+  code {
+    line-height: 1em;
+  }
+
   /* Prose lists (ul, ol) get a tight 3ch left padding so markers
      hug the text, and items get a small bottom margin so
      consecutive ones breathe. Markers are toned all the way down
@@ -108,35 +114,23 @@
     color: var(--link-color);
     text-decoration: underline;
     text-decoration-style: solid;
-    text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);
+    text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
     text-decoration-thickness: 0.5px;
     text-underline-offset: 3px;
   }
   a:hover {
     color: var(--link-color-hover);
-    /* Underline color set to the hover token directly (rather than
-       `currentColor`) so it repaints in lockstep with `color` — a
-       few browsers latch onto the old currentColor value
-       otherwise. */
-    text-decoration-color: var(--link-color-hover);
+    /* Underline color is left as the resting hairline (the base rule's
+       `currentColor` mix) — only the thickness grows on hover. */
     text-decoration-thickness: 1px;
   }
   a:active {
-    text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);
+    text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
   }
 
-  /* Text selection — full-chroma brand color at 15% alpha. Using
-     OKLCH relative-color syntax (not `color-mix` with `transparent`)
-     keeps the chroma intact: mixing toward `transparent` interpolates
-     in OKLCH and pulls L/C toward zero, which washes the result out.
-     `calc(c * 1.5)` bumps the saturation modestly above the source
-     token so the highlight reads as clearly brand-coloured rather
-     than a neutral grey. No `color` override on the selection, so
-     the selected text keeps its original color and contrast is
-     preserved automatically. `--text-1-brand` inverts between light
-     and dark, so the effect tracks the active palette unaided. */
+  /* Text selection — brand color at 15% alpha. */
   ::selection {
-    background: oklch(from var(--text-1-brand) l calc(c * 1.5) h / 0.15);
+    background: color-mix(in srgb, var(--text-1-brand), transparent 85%);
   }
 
   /* ───── Tables ───────────────────────────────────────────────── */

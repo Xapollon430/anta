@@ -3,7 +3,7 @@ layout: ../../layouts/DocsLayout.astro
 title: Title
 ---
 import { Title, Text, Icon } from '@antadesign/anta'
-import InteractiveDemo from '../../components/InteractiveDemo'
+import Playground from '../../components/Playground'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
 import titleDemoCode from './title.demo.ts'
@@ -21,21 +21,13 @@ Raw `<h1>`–`<h6>` get the same default styling via anta's reset, so
 reach for a real heading tag when SEO matters and you don't need the
 `tone` / `priority` props. Use `<Title>` when you do.
 
-<InteractiveDemo
-  client:load
-  component="Title"
-  layout="side"
-  initialCode={titleDemoCode}
-  initialCss={`.preview { align-items: center; justify-content: center; min-height: 100%; }`}
-/>
-
 ## Levels in context
 
 Six levels interleaved with paragraphs of `<Text>`, all rendered with
 `tone="brand"` against a branded surface so the type scale and
 vertical rhythm read clearly.
 
-<div style={{ background: 'var(--bg-pane-brand)', padding: '24px 32px', borderRadius: 8 }}>
+<div style={{ background: 'var(--bg-pane-brand)', padding: '24px 32px', borderRadius: '8px', border: '1px solid var(--border-4-brand)' }}>
   <Title level={1} tone="brand">Level 1 — page title</Title>
   <Text tone="brand">
     Donec a tincidunt elit. Mauris vehicula, est nec porta cursus,
@@ -81,8 +73,8 @@ vertical rhythm read clearly.
 ## Children
 
 `<Title>` accepts arbitrary children — there are intentionally no
-`leadingIcon` / `trailingIcon` props because children are the API. Drop
-any inline content beside the title text.
+`icon` / `iconTrailing` props because children are the API. Drop any
+inline content beside the title text.
 
 <Title level={3}>
   <Icon shape="book-open" /> Section with a leading icon
@@ -191,7 +183,19 @@ ignore ARIA headings — if SEO matters, write raw `<h{level}>` instead
 (it gets the same visual treatment from the reset) and skip the
 component.
 
-<Disclosure title="Props">
+<Disclosure title="Playground">
+
+<Playground
+  client:visible
+  component="Title"
+  layout="side"
+  initialCode={titleDemoCode}
+  initialCss={`.preview { align-items: center; justify-content: center; min-height: 100%; }`}
+/>
+
+</Disclosure>
+
+<Disclosure title="Component props">
 
 <PropsTable component="Title" />
 

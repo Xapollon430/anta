@@ -68,11 +68,13 @@ export const ICON_SHAPES = [
   'not-equal',
   'play',
   'plus',
+  'pointer',
   'presentation',
   'refresh-ccw-dot',
   'refresh',
   'regex',
   'repeat',
+  'rotate-ccw',
   'rss',
   'runs-history',
   'scroll-text',
@@ -251,11 +253,13 @@ declare module '@antadesign/anta' {
     'not-equal': true
     'play': true
     'plus': true
+    'pointer': true
     'presentation': true
     'refresh-ccw-dot': true
     'refresh': true
     'regex': true
     'repeat': true
+    'rotate-ccw': true
     'rss': true
     'runs-history': true
     'scroll-text': true

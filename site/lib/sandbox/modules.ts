@@ -3,7 +3,7 @@
  * imports against. esbuild's resolve plugin maps `@antadesign/anta` (and
  * friends) to virtual files whose content is a tiny shim that reads from
  * `window.__demo_modules__` on the iframe's window. The iframe is seeded
- * with that object on first load (see InteractiveDemo's iframe wiring).
+ * with that object on first load (see Playground's iframe wiring).
  *
  * Keep the surface small: only modules we expect playground code to need.
  * Unknown imports become compile errors with a friendly message — the
@@ -18,14 +18,14 @@ import * as preactHooks from 'preact/hooks'
  *  resolve plugin uses these names to emit a deterministic shim per
  *  module. Each name must exist on `getDemoModules()[path]` at runtime. */
 export const moduleManifest: Record<string, string[]> = {
-  '@antadesign/anta': ['Progress', 'Text', 'Title', 'Icon', 'configure'],
+  '@antadesign/anta': ['Progress', 'Text', 'Title', 'Icon', 'Button', 'configure'],
   '@antadesign/anta/elements': [],  // side-effect only
   'preact': ['createElement', 'Fragment', 'h', 'render'],
   'preact/hooks': ['useState', 'useEffect', 'useRef', 'useMemo', 'useCallback', 'useReducer'],
 }
 
 /** Build the registry the iframe's `window.__demo_modules__` is seeded
- *  with. Called once per InteractiveDemo mount. */
+ *  with. Called once per Playground mount. */
 export function getDemoModules(): Record<string, Record<string, unknown>> {
   return {
     '@antadesign/anta': {
@@ -33,6 +33,7 @@ export function getDemoModules(): Record<string, Record<string, unknown>> {
       Text: (anta as any).Text,
       Title: (anta as any).Title,
       Icon: (anta as any).Icon,
+      Button: (anta as any).Button,
       configure: (anta as any).configure,
     },
     '@antadesign/anta/elements': {},

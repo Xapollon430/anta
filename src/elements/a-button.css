@@ -1,0 +1,733 @@
+@layer anta {
+  /* Shared constants + the neutral tone tokens — neutral is the
+     implicit default, so unset buttons inherit these directly. Named
+     tones (brand, critical, info, success, warning) override via
+     `[tone="X"]` selectors below.
+     Neutral chip uses a softer 5% rest alpha (other tones use 10%). */
+  a-button,
+  a[role="button"] {
+    --button-primary-fg: #ffffff;
+
+    --button-focus: #503cb4;
+
+    --bg-primary-disabled: #ece9ec;
+    --bg-secondary-disabled: #f6f4f6;
+    --fg-disabled-primary: #afa9b1;
+    --fg-disabled: #afa9b1;
+
+    --button-loading-stripe: 14px;
+    --button-loading-stripe-gap: 16px;
+    --button-loading-period: 30px;
+    --button-loading-angle: 125deg;
+    /* Project the diagonal period onto x so the slide loops seamlessly. */
+    --button-loading-x-period: calc(
+      var(--button-loading-period) / cos(var(--button-loading-angle) - 90deg)
+    );
+    --button-loading-opacity: 0.25;
+    --button-loading-blur: 2.5px;
+
+    --button-bg-primary-rest: #635b65;
+    --button-bg-primary-hover: #534c57;
+    --button-bg-primary-active: #49424c;
+    --button-fg-primary-rest: var(--button-primary-fg);
+
+    --button-bg-secondary-rest: #45374c12;
+    --button-bg-secondary-hover: #44374b1a;
+    --button-bg-secondary-active: #44374b26;
+    --button-fg-secondary-rest: #534c57;
+    --button-fg-secondary-hover: #49424c;
+
+    --button-fg-tertiary-rest: #635b65;
+    --button-fg-tertiary-hover: #534c57;
+    --button-bg-tertiary-hover: #44374b0d;
+    --button-bg-tertiary-active: #44374b1a;
+
+    --button-fg-quaternary-rest: #635b65;
+    --button-fg-quaternary-hover: #49424c;
+
+    /* Layout */
+    --button-padding-x: 9px;
+    --button-padding-y: 5px;
+    --button-max-width: 100%;
+    --button-max-height: 100%;
+
+    /* Transitions */
+    --button-timing-in: 75ms ease-in;
+    --button-timing-active: 50ms linear;
+    --button-timing-out: 150ms ease-out;
+    --button-loading-duration: 0.5s;
+  }
+
+  a-button[tone="brand"],
+  a[role="button"][tone="brand"] {
+    --button-bg-primary-rest: #5f4bc3;
+    --button-bg-primary-hover: #503cb4;
+    --button-bg-primary-active: #483493;
+    --button-fg-primary-rest: var(--button-primary-fg);
+
+    --button-bg-secondary-rest: #7460d71a;
+    --button-bg-secondary-hover: #7460d726;
+    --button-bg-secondary-active: #7460d733;
+    --button-fg-secondary-rest: #5f4bc3;
+    --button-fg-secondary-hover: #503cb4;
+
+    --button-fg-tertiary-rest: #5f4bc3;
+    --button-fg-tertiary-hover: #503cb4;
+    --button-bg-tertiary-hover: #7460d71a;
+    --button-bg-tertiary-active: #7460d726;
+
+    --button-fg-quaternary-rest: #5f4bc3;
+    --button-fg-quaternary-hover: #483493;
+  }
+
+  /* Critical/warning tertiary active steps heavier (20% vs 15%). */
+  a-button[tone="critical"],
+  a[role="button"][tone="critical"] {
+    --button-bg-primary-rest: #c9302c;
+    --button-bg-primary-hover: #b02120;
+    --button-bg-primary-active: #a01c1c;
+    --button-fg-primary-rest: var(--button-primary-fg);
+
+    --button-bg-secondary-rest: #de45451a;
+    --button-bg-secondary-hover: #de454526;
+    --button-bg-secondary-active: #de454533;
+    --button-fg-secondary-rest: #c9302c;
+    --button-fg-secondary-hover: #b02120;
+
+    --button-fg-tertiary-rest: #c9302c;
+    --button-fg-tertiary-hover: #b02120;
+    --button-bg-tertiary-hover: #de45451a;
+    --button-bg-tertiary-active: #de454533;
+
+    --button-fg-quaternary-rest: #c9302c;
+    --button-fg-quaternary-hover: #a01c1c;
+  }
+
+  a-button[tone="info"],
+  a[role="button"][tone="info"] {
+    --button-bg-primary-rest: #1f6eb2;
+    --button-bg-primary-hover: #1a5b93;
+    --button-bg-primary-active: #175082;
+    --button-fg-primary-rest: var(--button-primary-fg);
+
+    --button-bg-secondary-rest: #2686d91a;
+    --button-bg-secondary-hover: #2686d926;
+    --button-bg-secondary-active: #2686d933;
+    --button-fg-secondary-rest: #1f6eb2;
+    --button-fg-secondary-hover: #1a5b93;
+
+    --button-fg-tertiary-rest: #1f6eb2;
+    --button-fg-tertiary-hover: #1a5b93;
+    --button-bg-tertiary-hover: #2686d91a;
+    --button-bg-tertiary-active: #2686d926;
+
+    --button-fg-quaternary-rest: #1f6eb2;
+    --button-fg-quaternary-hover: #175082;
+  }
+
+  a-button[tone="success"],
+  a[role="button"][tone="success"] {
+    --button-bg-primary-rest: #2a7e43;
+    --button-bg-primary-hover: #226737;
+    --button-bg-primary-active: #1f5c31;
+    --button-fg-primary-rest: var(--button-primary-fg);
+
+    --button-bg-secondary-rest: #3295501a;
+    --button-bg-secondary-hover: #32955026;
+    --button-bg-secondary-active: #32955033;
+    --button-fg-secondary-rest: #2a7e43;
+    --button-fg-secondary-hover: #226737;
+
+    --button-fg-tertiary-rest: #2a7e43;
+    --button-fg-tertiary-hover: #226737;
+    --button-bg-tertiary-hover: #3295501a;
+    --button-bg-tertiary-active: #32955026;
+
+    --button-fg-quaternary-rest: #2a7e43;
+    --button-fg-quaternary-hover: #1f5c31;
+  }
+
+  a-button[tone="warning"],
+  a[role="button"][tone="warning"] {
+    --button-bg-primary-rest: #c37416;
+    --button-bg-primary-hover: #ae6613;
+    --button-bg-primary-active: #995200;
+    --button-fg-primary-rest: var(--button-primary-fg);
+
+    --button-bg-secondary-rest: #c374161a;
+    --button-bg-secondary-hover: #c3741626;
+    --button-bg-secondary-active: #c3741633;
+    --button-fg-secondary-rest: #c37416;
+    --button-fg-secondary-hover: #ae6613;
+
+    --button-fg-tertiary-rest: #c37416;
+    --button-fg-tertiary-hover: #ae6613;
+    --button-bg-tertiary-hover: #c374161a;
+    --button-bg-tertiary-active: #c3741633;
+
+    --button-fg-quaternary-rest: #c37416;
+    --button-fg-quaternary-hover: #995200;
+  }
+
+  /* Dark mode — heavier alphas (30/40% vs 10/15%) so chips stay legible
+     against a dark page bg. Neutral's anchor flips to a lilac (#e4d1ef);
+     mixing a dark gray into a dark bg yields no contrast. The constants
+     block also carries the neutral tone tokens since neutral is the
+     implicit default. */
+  .dark a-button,
+  .dark a[role="button"] {
+    --button-focus: #a897fc;
+
+    --bg-primary-disabled: #272329;
+    --bg-secondary-disabled: #1d1a1e;
+    --fg-disabled-primary: #776e77;
+    --fg-disabled: #635b65;
+
+    --button-bg-primary-rest: #534c57;
+    --button-bg-primary-hover: #635b65;
+    --button-bg-primary-active: #938d96;
+
+    --button-bg-secondary-rest: #e4d1ef1c;
+    --button-bg-secondary-hover: #e4d1ef24;
+    --button-bg-secondary-active: #e4d1ef2e;
+    --button-fg-secondary-rest: #c1b9c1;
+    --button-fg-secondary-hover: #d4ced4;
+
+    --button-fg-tertiary-rest: #afa9b1;
+    --button-fg-tertiary-hover: #afa9b1;
+    --button-bg-tertiary-hover: #e4d1ef14;
+    --button-bg-tertiary-active: #e4d1ef21;
+
+    --button-fg-quaternary-rest: #afa9b1;
+    --button-fg-quaternary-hover: #cac4ca;
+  }
+
+  .dark a-button[tone="brand"],
+  .dark a[role="button"][tone="brand"] {
+    --button-bg-primary-rest: #503cb4;
+    --button-bg-primary-hover: #5f4bc3;
+    --button-bg-primary-active: #7460d7;
+
+    --button-bg-secondary-rest: #7460d73b;
+    --button-bg-secondary-hover: #7460d747;
+    --button-bg-secondary-active: #7460d754;
+    --button-fg-secondary-rest: #c5baff;
+    --button-fg-secondary-hover: #d2cbf6;
+
+    --button-fg-tertiary-rest: #ada0ee;
+    --button-fg-tertiary-hover: #bcb1f1;
+    --button-bg-tertiary-hover: #7460d73b;
+    --button-bg-tertiary-active: #7460d747;
+
+    --button-fg-quaternary-rest: #ada0ee;
+    --button-fg-quaternary-hover: #c7bef4;
+  }
+
+  .dark a-button[tone="critical"],
+  .dark a[role="button"][tone="critical"] {
+    --button-bg-primary-rest: #b02120;
+    --button-bg-primary-hover: #c9302c;
+    --button-bg-primary-active: #de4545;
+
+    --button-bg-secondary-rest: #de45453b;
+    --button-bg-secondary-hover: #de454547;
+    --button-bg-secondary-active: #de454554;
+    --button-fg-secondary-rest: #ffabac;
+    --button-fg-secondary-hover: #f4c2c2;
+
+    --button-fg-tertiary-rest: #e78e90;
+    --button-fg-tertiary-hover: #efa4a4;
+    --button-bg-tertiary-hover: #de45453b;
+    --button-bg-tertiary-active: #de454547;
+
+    --button-fg-quaternary-rest: #e78e90;
+    --button-fg-quaternary-hover: #ffabac;
+  }
+
+  .dark a-button[tone="info"],
+  .dark a[role="button"][tone="info"] {
+    --button-bg-primary-rest: #1a5b93;
+    --button-bg-primary-hover: #1f6eb2;
+    --button-bg-primary-active: #2686d9;
+
+    --button-bg-secondary-rest: #2686d93b;
+    --button-bg-secondary-hover: #2686d947;
+    --button-bg-secondary-active: #2686d954;
+    --button-fg-secondary-rest: #9ed2ff;
+    --button-fg-secondary-hover: #bad6f3;
+
+    --button-fg-tertiary-rest: #7db6e8;
+    --button-fg-tertiary-hover: #93c5ec;
+    --button-bg-tertiary-hover: #2686d93b;
+    --button-bg-tertiary-active: #2686d947;
+
+    --button-fg-quaternary-rest: #7db6e8;
+    --button-fg-quaternary-hover: #a6cdef;
+  }
+
+  .dark a-button[tone="success"],
+  .dark a[role="button"][tone="success"] {
+    --button-bg-primary-rest: #226737;
+    --button-bg-primary-hover: #2a7e43;
+    --button-bg-primary-active: #329550;
+
+    --button-bg-secondary-rest: #3295503b;
+    --button-bg-secondary-hover: #32955047;
+    --button-bg-secondary-active: #32955054;
+    --button-fg-secondary-rest: #8ceca9;
+    --button-fg-secondary-hover: #b3e5c2;
+
+    --button-fg-tertiary-rest: #74cd8e;
+    --button-fg-tertiary-hover: #88d7a0;
+    --button-bg-tertiary-hover: #3295503b;
+    --button-bg-tertiary-active: #32955047;
+
+    --button-fg-quaternary-rest: #74cd8e;
+    --button-fg-quaternary-hover: #9ddeb1;
+  }
+
+  .dark a-button[tone="warning"],
+  .dark a[role="button"][tone="warning"] {
+    --button-bg-primary-rest: #7f410b;
+    --button-bg-primary-hover: #995200;
+    --button-bg-primary-active: #ae6613;
+
+    --button-bg-secondary-rest: #c374163b;
+    --button-bg-secondary-hover: #c3741647;
+    --button-bg-secondary-active: #c3741654;
+    --button-fg-secondary-rest: #f7c06e;
+    --button-fg-secondary-hover: #f3cc91;
+
+    --button-fg-tertiary-rest: #e1a452;
+    --button-fg-tertiary-hover: #edb25a;
+    --button-bg-tertiary-hover: #c374163b;
+    --button-bg-tertiary-active: #c3741647;
+
+    --button-fg-quaternary-rest: #e1a452;
+    --button-fg-quaternary-hover: #f0bf75;
+  }
+
+  a-button,
+  a[role="button"] {
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5ch;
+    overflow: hidden;
+    cursor: pointer;
+    /* Don't shrink in a flex parent — `overflow: hidden` would clip
+       the icon/label silently. Consumers can opt back in if needed. */
+    flex-shrink: 0;
+
+    color: var(--button-fg);
+    background-color: var(--button-bg);
+    border-radius: 4px;
+    text-decoration: none;
+
+    font-size: 15px;
+    font-family: var(--sans-serif);
+    font-weight: 450;
+    /* All upstream axes must be re-stated here — `font-variation-settings`
+       replaces, it doesn't merge with inherited values. Dropping
+       "slnt"/"ital" would revert them to the font file's non-zero
+       defaults and Safari would render button labels italic. */
+    font-variation-settings: "wdth" 88, "slnt" 0, "ital" 0;
+    line-height: 18px;
+    letter-spacing: 0.05ch;
+
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+    white-space: nowrap;
+
+    max-width: var(--button-max-width);
+    max-height: var(--button-max-height);
+    padding-inline: var(--button-padding-x);
+    padding-block: var(--button-padding-y);
+
+    & > a-button-label {
+      display: inline-block;
+      text-overflow: ellipsis;
+      text-wrap: nowrap;
+      white-space: nowrap;
+      overflow: hidden;
+      min-width: 0;
+      /* Optical centering: a 17px line box + 1px bottom padding keeps the
+         label box at 18px (so button heights are unchanged) while nudging
+         the glyphs up ~0.5px, which reads as vertically centered for the
+         Antithesis-sans metrics. */
+      line-height: 17px;
+      padding-bottom: 1px;
+      /* Switch to flex when the label has inline children so they
+         align on a baseline with a small gap. */
+      &:has(> *) {
+        display: inline-flex;
+        gap: 0.25ch;
+      }
+    }
+
+    & > * {
+      pointer-events: none;
+    }
+
+    & a-icon {
+      transition: color var(--button-timing-out);
+    }
+
+    transition:
+      color var(--button-timing-out),
+      background-color var(--button-timing-out);
+
+    &:hover,
+    &:focus-visible {
+      transition:
+        color var(--button-timing-in),
+        background-color var(--button-timing-in);
+      & a-icon {
+        transition: color var(--button-timing-in);
+      }
+    }
+
+    &:active,
+    &[selected] {
+      transition:
+        color var(--button-timing-active),
+        background-color var(--button-timing-active);
+      & a-icon {
+        transition: color var(--button-timing-active);
+      }
+    }
+
+    &[disabled] {
+      pointer-events: none;
+      cursor: not-allowed;
+      /* Skip transitions on disabled — a `.dark` toggle would flash
+         the underlying tone hue mid-resolve. */
+      transition: none;
+      & a-icon {
+        transition: none;
+      }
+    }
+
+    &:focus-visible {
+      outline: 1px solid var(--button-focus);
+      outline-offset: 1px;
+    }
+
+    /* Selected gets a 0.5px inset ring in the current fg color. */
+    &[selected] {
+      box-shadow: inset 0 0 0 0.5px currentColor;
+    }
+
+    /* Quaternary: instant in every direction — hover-in, press, and
+       return to rest all snap with no transition. */
+    &[priority="quaternary"] {
+      --button-timing-in: 0s;
+      --button-timing-active: 0s;
+      --button-timing-out: 0s;
+    }
+
+    &[size="small"] {
+      --button-padding-y: 3px;
+      --button-padding-x: 7px;
+    }
+    &[size="large"] {
+      --button-padding-y: 7px;
+      --button-padding-x: 13px;
+    }
+
+    /* Underline only on background-less priorities (tertiary, quaternary).
+       Rest: 0.5px hairline at 75% alpha. Hover (and sustained [selected]):
+       1px thickness at 100% alpha. Active returns to rest. Mirrors the
+       prose-link rule used by <Text>. */
+    &[priority="tertiary"],
+    &[priority="quaternary"] {
+      &[underline="solid"] {
+        text-decoration: underline solid;
+      }
+      &[underline="dashed"] {
+        text-decoration: underline dashed;
+      }
+      &[underline="dotted"] {
+        text-decoration: underline dotted;
+      }
+      &[underline] {
+        text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+        &[selected] {
+          text-decoration-color: var(--button-fg);
+          text-decoration-thickness: 1px;
+        }
+        /* Hover only on real-pointer devices — gating avoids the sticky
+           hover-underline that lingers after a tap on touch screens. */
+        @media (hover: hover) and (pointer: fine) {
+          &:hover {
+            text-decoration-color: var(--button-fg);
+            text-decoration-thickness: 1px;
+          }
+        }
+      }
+    }
+
+    &[priority="quaternary"][paddingless] {
+      --button-padding-x: 0;
+      --button-padding-y: 0;
+    }
+
+    /* Icon-only — square padding plus a min-size pin when the button
+       has exactly one child and it's an `a-icon`. Purely structural,
+       no opt-in attribute: consumers writing raw `<a-button>` get
+       icon-button styling just by passing a single `<a-icon>` inside. */
+    &:has(> a-icon:only-child) {
+      --button-padding-y: 5px;
+      --button-padding-x: 5px;
+      min-width: 28px;
+      min-height: 28px;
+      /* Centre the icon when the host is given an explicit width / height
+         larger than the natural square — without this the icon sits at the
+         padding-start edge. No-op when the button is at its intrinsic
+         square size. */
+      justify-content: center;
+      &[size="small"] {
+        --button-padding-y: 3px;
+        --button-padding-x: 3px;
+        min-width: 24px;
+        min-height: 24px;
+      }
+      &[size="large"] {
+        --button-padding-y: 7px;
+        --button-padding-x: 7px;
+        min-width: 32px;
+        min-height: 32px;
+      }
+    }
+
+    /* Optical side padding: an icon at an edge needs less breathing room
+       than a text edge, so tighten the padding on whichever side a
+       (non-only) icon occupies — leading icon trims the start, trailing
+       icon trims the end — to ~2px under the text-edge padding (8px → 6px
+       at medium). `max(0px, …)` keeps paddingless/quaternary at 0.
+       Icon-only buttons are handled by the rule above. */
+    &:has(> a-icon:first-child:not(:only-child)) {
+      padding-inline-start: max(0px, var(--button-padding-x) - 2px);
+    }
+    &:has(> a-icon:last-child:not(:only-child)) {
+      padding-inline-end: max(0px, var(--button-padding-x) - 2px);
+    }
+
+    &[loading] {
+      position: relative;
+      pointer-events: none;
+      cursor: wait;
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        /* Overshoot left by one x-period so the loop seam lines up. */
+        left: calc(0px - var(--button-loading-x-period));
+        right: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          var(--button-loading-angle),
+          transparent 0,
+          transparent var(--button-loading-stripe-gap),
+          currentColor var(--button-loading-stripe-gap),
+          currentColor
+            calc(
+              var(--button-loading-stripe-gap) + var(--button-loading-stripe)
+            )
+        );
+        opacity: var(--button-loading-opacity);
+        filter: blur(var(--button-loading-blur));
+        will-change: transform;
+        animation: btn-loading-slide var(--button-loading-duration) linear
+          infinite;
+        /* Desync instances so a row doesn't pulse in lockstep. */
+        animation-delay: -9999s;
+      }
+    }
+
+    /* Custom tone — any non-named `tone` value. Primary uses the literal
+       color as-is; the other priorities derive from the source HUE via
+       oklch relative color, with lightness/chroma/alpha pinned near Brand
+       so any hue reads like a sibling of the named tones. The `--_tone-*`
+       knobs below are the only numbers to tune; the dark block re-tunes
+       them and the formulas resolve against whichever value computes.
+       JSX wrapper writes `--button-tone-source` inline for SSR / older
+       engines; the typed attr() fallback picks up raw `<a-button tone="…">`
+       on Chrome 133+ / Safari 18.2+. (oklch relative color: Chrome 119+,
+       Safari 16.4+, Firefox 128+.) */
+    &[tone]:not(
+        [tone="brand"],
+        [tone="neutral"],
+        [tone="critical"],
+        [tone="info"],
+        [tone="success"],
+        [tone="warning"]
+      ) {
+      --button-tone-source: attr(tone type(<color>), transparent);
+
+      /* Tunable knobs (light mode). */
+      --_tone-fg-l: 0.46;          /* fg rest lightness */
+      --_tone-fg-strong-l: 0.40;   /* fg hover / active lightness */
+      --_tone-fg-c: 0.17;          /* fg chroma */
+      --_tone-bg-l: 0.54;          /* tinted-bg lightness */
+      --_tone-bg-c: 0.16;          /* tinted-bg chroma */
+      --_tone-bg-a-rest: 0.10;     /* tinted-bg alpha (rest) */
+      --_tone-bg-a-hover: 0.15;    /* tinted-bg alpha (hover) */
+      --_tone-bg-a-active: 0.20;   /* tinted-bg alpha (active) */
+      --_tone-primary-l-rest: 0.5;     /* primary-fill lightness (rest) */
+      --_tone-primary-l-hover: 0.45;   /* primary-fill lightness (hover) */
+      --_tone-primary-l-active: 0.4;   /* primary-fill lightness (active) */
+
+      /* Primary — source hue & chroma, lightness pinned near Brand's
+         primary fill so any input lands at a Brand-like lightness instead
+         of using the raw color. Re-tunes for dark mode through the knobs
+         (the `.dark` block below), exactly like the Brand tone does. */
+      --button-bg-primary-rest:   oklch(from var(--button-tone-source) var(--_tone-primary-l-rest) c h);
+      --button-bg-primary-hover:  oklch(from var(--button-tone-source) var(--_tone-primary-l-hover) c h);
+      --button-bg-primary-active: oklch(from var(--button-tone-source) var(--_tone-primary-l-active) c h);
+      --button-fg-primary-rest: var(--button-primary-fg);
+
+      /* Secondary / tertiary / quaternary fg — source hue, pinned L/C. */
+      --button-fg-secondary-rest:   oklch(from var(--button-tone-source) var(--_tone-fg-l) var(--_tone-fg-c) h);
+      --button-fg-secondary-hover:  oklch(from var(--button-tone-source) var(--_tone-fg-strong-l) var(--_tone-fg-c) h);
+      --button-fg-tertiary-rest:    oklch(from var(--button-tone-source) var(--_tone-fg-l) var(--_tone-fg-c) h);
+      --button-fg-tertiary-hover:   oklch(from var(--button-tone-source) var(--_tone-fg-strong-l) var(--_tone-fg-c) h);
+      --button-fg-quaternary-rest:  oklch(from var(--button-tone-source) var(--_tone-fg-l) var(--_tone-fg-c) h);
+      --button-fg-quaternary-hover: oklch(from var(--button-tone-source) var(--_tone-fg-strong-l) var(--_tone-fg-c) h);
+
+      /* Tinted backgrounds — source hue, pinned L, brand-like alphas. */
+      --button-bg-secondary-rest:   oklch(from var(--button-tone-source) var(--_tone-bg-l) var(--_tone-bg-c) h / var(--_tone-bg-a-rest));
+      --button-bg-secondary-hover:  oklch(from var(--button-tone-source) var(--_tone-bg-l) var(--_tone-bg-c) h / var(--_tone-bg-a-hover));
+      --button-bg-secondary-active: oklch(from var(--button-tone-source) var(--_tone-bg-l) var(--_tone-bg-c) h / var(--_tone-bg-a-active));
+      --button-bg-tertiary-hover:   oklch(from var(--button-tone-source) var(--_tone-bg-l) var(--_tone-bg-c) h / var(--_tone-bg-a-rest));
+      --button-bg-tertiary-active:  oklch(from var(--button-tone-source) var(--_tone-bg-l) var(--_tone-bg-c) h / var(--_tone-bg-a-hover));
+    }
+
+    /* Custom tone, dark mode — same formulas, re-tuned knobs: lighter fg
+       and heavier tint alphas to read against a dark page. */
+    .dark &[tone]:not(
+        [tone="brand"],
+        [tone="neutral"],
+        [tone="critical"],
+        [tone="info"],
+        [tone="success"],
+        [tone="warning"]
+      ) {
+      --_tone-fg-l: 0.78;
+      --_tone-fg-strong-l: 0.85;
+      --_tone-fg-c: 0.11;
+      --_tone-bg-l: 0.58;
+      --_tone-bg-a-rest: 0.23;
+      --_tone-bg-a-hover: 0.28;
+      --_tone-bg-a-active: 0.33;
+      /* Primary fill lightness, dark mode (Brand inverts rest/hover and
+         lifts active to read against a dark page). */
+      --_tone-primary-l-rest: 0.45;
+      --_tone-primary-l-hover: 0.5;
+      --_tone-primary-l-active: 0.57;
+    }
+
+    /* Wire the per-tone vars into the final fg/bg colors. Secondary
+       is the default — declared unscoped so a bare `a-button` consumer
+       selector can override it without bumping specificity. Primary,
+       tertiary, and quaternary match an explicit `[priority="…"]` attr
+       and win on specificity (primary's constant fg beats the unscoped
+       :hover on source order). */
+    --button-fg: var(--button-fg-secondary-rest);
+    --button-bg: var(--button-bg-secondary-rest);
+    /* Hover styling is gated to real-pointer devices so it doesn't stick
+       after a tap on touch screens (where :hover lingers until the next
+       tap elsewhere). :active / [selected] below stay ungated — they're
+       the correct press feedback on touch. */
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        --button-fg: var(--button-fg-secondary-hover);
+        --button-bg: var(--button-bg-secondary-hover);
+      }
+    }
+    &:active,
+    &[selected] {
+      --button-fg: var(--button-fg-secondary-hover);
+      --button-bg: var(--button-bg-secondary-active);
+    }
+    &[priority="primary"] {
+      --button-fg: var(--button-fg-primary-rest);
+      --button-bg: var(--button-bg-primary-rest);
+      @media (hover: hover) and (pointer: fine) {
+        &:hover {
+          --button-bg: var(--button-bg-primary-hover);
+        }
+      }
+      &:active,
+      &[selected] {
+        --button-bg: var(--button-bg-primary-active);
+      }
+    }
+    &[priority="tertiary"] {
+      --button-fg: var(--button-fg-tertiary-rest);
+      --button-bg: transparent;
+      @media (hover: hover) and (pointer: fine) {
+        &:hover {
+          --button-fg: var(--button-fg-tertiary-hover);
+          --button-bg: var(--button-bg-tertiary-hover);
+        }
+      }
+      &:active,
+      &[selected] {
+        --button-fg: var(--button-fg-tertiary-hover);
+        --button-bg: var(--button-bg-tertiary-active);
+      }
+    }
+    &[priority="quaternary"] {
+      /* Rest fg is the quaternary tone at 82% alpha — slightly faded, so a
+         quaternary button reads as quieter than a (full-opacity) tertiary
+         one. Hover / active restore full opacity. */
+      --button-fg: color-mix(in oklch, var(--button-fg-quaternary-rest) 82%, transparent);
+      --button-bg: transparent;
+      @media (hover: hover) and (pointer: fine) {
+        &:hover {
+          --button-fg: var(--button-fg-quaternary-hover);
+        }
+      }
+      &[selected] {
+        --button-fg: var(--button-fg-quaternary-hover);
+      }
+      /* Pressing lightens the rest color by 0.05 (oklch L) for a subtle
+         press feedback in light mode — declared after :hover so it wins
+         while the pointer is still over the button. Dark mode returns to
+         the rest color (lightening would brighten the already-light fg). */
+      &:active {
+        --button-fg: oklch(from var(--button-fg-quaternary-rest) calc(l + 0.05) c h);
+      }
+      .dark &:active {
+        --button-fg: var(--button-fg-quaternary-rest);
+      }
+    }
+
+    /* Set bg/color directly (not the vars) so inline-style
+       `--button-bg` overrides can't keep a disabled button alive.
+       Secondary disabled is the default; other priorities override below. */
+    &[disabled] {
+      background-color: var(--bg-secondary-disabled);
+      color: var(--fg-disabled);
+      &[priority="primary"] {
+        background-color: var(--bg-primary-disabled);
+        color: var(--fg-disabled-primary);
+      }
+      &[priority="tertiary"],
+      &[priority="quaternary"] {
+        background-color: transparent;
+        color: var(--fg-disabled);
+      }
+    }
+  }
+}
+
+@keyframes btn-loading-slide {
+  to {
+    transform: translateX(var(--button-loading-x-period));
+  }
+}

@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="715" height="482" fill="none" viewBox="0 0 715 482">
   <g clip-path="url(#bdr-a)">
     <rect width="715" height="482" fill="var(--bg-pane)" rx="12"/>
-    <rect width="192" height="148" x="35" y="78" fill="var(--bg-section)" rx="8"/>
-    <rect width="306" height="144" x="35" y="290" fill="var(--bg-section)" rx="8"/>
-    <rect width="306" height="144" x="369" y="290" fill="var(--bg-section)" rx="8"/>
+    <rect width="192" height="148" x="35" y="78" fill="var(--bg-canvas)" rx="8"/>
+    <rect width="306" height="144" x="35" y="290" fill="var(--bg-canvas)" rx="8"/>
+    <rect width="306" height="144" x="369" y="290" fill="var(--bg-canvas)" rx="8"/>
     <rect width="192" height="148" x="259" y="78" fill="var(--bg-base)" rx="8"/>
     <rect width="191" height="147" x="483.5" y="78.5" fill="var(--bg-pane)" stroke="var(--border-5)" rx="7.5"/>
     <rect width="135.5" height="91.5" x="63.25" y="106.25" fill="var(--bg-base)" stroke="var(--border-5)" stroke-width=".5" rx="3.75"/>
-    <rect width="249.5" height="87.5" x="63.25" y="318.25" fill="var(--bg-section)" stroke="var(--border-2)" stroke-width=".5" rx="3.75"/>
-    <rect width="249.5" height="87.5" x="397.25" y="318.25" fill="var(--bg-section)" stroke="var(--border-1)" stroke-width=".5" rx="3.75"/>
+    <rect width="249.5" height="87.5" x="63.25" y="318.25" fill="var(--bg-canvas)" stroke="var(--border-2)" stroke-width=".5" rx="3.75"/>
+    <rect width="249.5" height="87.5" x="397.25" y="318.25" fill="var(--bg-canvas)" stroke="var(--border-1)" stroke-width=".5" rx="3.75"/>
     <rect width="135.5" height="91.5" x="287.25" y="106.25" fill="var(--bg-pane)" stroke="var(--border-4)" stroke-width=".5" rx="3.75"/>
     <rect width="135.5" height="91.5" x="511.25" y="106.25" fill="var(--bg-block)" stroke="var(--border-3)" stroke-width=".5" rx="3.75"/>
     <g filter="url(#bdr-b)">
@@ -94,7 +94,7 @@
       <feBlend in="SourceGraphic" in2="effect1_dropShadow" mode="normal" result="shape"/>
     </filter>
     <clipPath id="bdr-a">
-      <rect width="715" height="482" fill="var(--bg-section)" rx="12"/>
+      <rect width="715" height="482" fill="var(--bg-canvas)" rx="12"/>
     </clipPath>
   </defs>
 </svg>

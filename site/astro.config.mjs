@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import mdx from '@astrojs/mdx';
-import astroExpressiveCode from 'astro-expressive-code';
+import astroExpressiveCode, { createInlineSvgUrl } from 'astro-expressive-code';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import remarkDirective from 'remark-directive';
@@ -14,41 +14,6 @@ import rehypeTableWrap from './lib/rehype-table-wrap.mjs';
 import rehypeChangelogSections from './lib/rehype-changelog-sections.mjs';
 import remarkUnwrapJsxParagraph from './lib/remark-unwrap-jsx-paragraph.mjs';
 import remarkUnwrapImages from './lib/remark-unwrap-images.mjs';
-import { spawn } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-
-function regenDocsOnChange() {
-  const siteDir = fileURLToPath(new URL('.', import.meta.url));
-  const readme = fileURLToPath(new URL('../README.md', import.meta.url));
-  const changelog = fileURLToPath(new URL('../CHANGELOG.md', import.meta.url));
-  const srcDir = fileURLToPath(new URL('../src/', import.meta.url));
-
-  const run = (script, label, logger) => {
-    logger.info(`${label} → regenerating`);
-    const child = spawn('pnpm', ['run', script], { cwd: siteDir, stdio: 'inherit' });
-    child.on('error', (err) => logger.error(`${label} failed: ${err.message}`));
-  };
-
-  let pagesTimer, apiTimer;
-  const debounce = (ref, fn) => { clearTimeout(ref.t); ref.t = setTimeout(fn, 100); };
-  const pagesRef = {}, apiRef = {};
-
-  return {
-    name: 'anta:regen-docs',
-    hooks: {
-      'astro:server:setup': ({ server, logger }) => {
-        server.watcher.add([readme, changelog, `${srcDir}**/*.ts`, `${srcDir}**/*.tsx`]);
-        server.watcher.on('change', (file) => {
-          if (file === readme || file === changelog) {
-            debounce(pagesRef, () => run('docs:pages', `${file === readme ? 'README.md' : 'CHANGELOG.md'} changed`, logger));
-          } else if (file.startsWith(srcDir) && /\.(ts|tsx)$/.test(file)) {
-            debounce(apiRef, () => run('docs:api', 'JSDoc source changed', logger));
-          }
-        });
-      },
-    },
-  };
-}
 
 export default defineConfig({
   site: 'https://antadesign.dev',
@@ -69,22 +34,40 @@ export default defineConfig({
       styleOverrides: {
         borderWidth: '1px',
         borderColor: 'var(--border-5)',
-        codeBackground: 'var(--bg-section)',
+        codeBackground: 'var(--bg-canvas)',
         codePaddingBlock: '0.75rem',
         codePaddingInline: '1rem',
         frames: {
           frameBoxShadowCssValue: 'none',
-          editorBackground: 'var(--bg-section)',
+          editorBackground: 'var(--bg-canvas)',
           editorTabBarBackground: 'var(--bg-pane)',
-          editorActiveTabBackground: 'var(--bg-section)',
-          terminalBackground: 'var(--bg-section)',
+          editorActiveTabBackground: 'var(--bg-canvas)',
+          terminalBackground: 'var(--bg-canvas)',
           terminalTitlebarBackground: 'var(--bg-pane)',
           terminalTitlebarBorderBottomColor: 'var(--border-5)',
+          copyIcon: createInlineSvgUrl([
+            `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'>`,
+            `<rect width='14' height='14' x='8' y='8' rx='2' ry='2'/>`,
+            `<path d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/>`,
+            `</svg>`,
+          ]),
+          // Style the copy button like an Anta neutral *tertiary* icon
+          // button: borderless, transparent at rest, with the same icon
+          // color and purple-tinted fill (and opacities) Anta uses for the
+          // tertiary rest/hover/active states. Values are per-theme so the
+          // dark scope (`.dark`) gets Anta's dark-mode tertiary palette.
+          // (One unavoidable gap: EC only animates the background fill, so
+          // the icon color can't darken on hover the way Anta's does.)
+          inlineButtonForeground: ({ theme }) => (theme.type === 'dark' ? '#afa9b1' : '#635b65'),
+          inlineButtonBorderOpacity: '0',
+          inlineButtonBackground: ({ theme }) => (theme.type === 'dark' ? '#e4d1ef' : '#44374b'),
+          inlineButtonBackgroundIdleOpacity: '0',
+          inlineButtonBackgroundHoverOrFocusOpacity: ({ theme }) => (theme.type === 'dark' ? '0.1' : '0.05'),
+          inlineButtonBackgroundActiveOpacity: ({ theme }) => (theme.type === 'dark' ? '0.15' : '0.1'),
         },
       },
     }),
     mdx(),
-    regenDocsOnChange(),
   ],
   trailingSlash: 'always',
   markdown: {

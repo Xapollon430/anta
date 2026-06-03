@@ -15,44 +15,70 @@
   scroll-margin-top: calc(var(--tabs-height) * 1.5);
 }
 
-.toneTabs {
-  display: flex;
+/* ─── Segmented control ──────────────────────────────────────────────────
+   Unified style shared by the documentation tone tabs (Colors) and the
+   a11y segments (Accessibility). Surface is bg-block. */
+.toneTabs,
+.a11ySegment {
+  display: inline-flex;
   flex-wrap: nowrap;
   align-items: stretch;
-  gap: 4px;
+  gap: 3px;
+  padding: 3px;
+  background: var(--bg-block);
   border: 0.5px solid var(--border-4);
-  background: var(--bg-pane);
-  padding: 4px;
   border-radius: 6px;
-  align-self: flex-start;
-  /* Cap at parent width so the tabs scroll horizontally instead of
-     wrapping or pushing the page wider when there are too many tones
-     for the viewport. */
+  /* Cap at parent width so a long control list scrolls horizontally instead
+     of pushing the page wider than the content column. */
   max-width: 100%;
   overflow-x: auto;
   scrollbar-width: thin;
+}
+
+/* Tone tabs are also sticky page-nav, nudged in to the 960 prose left edge
+   (the page is a full-width lane). The margin collapses to 0 once the track
+   is narrower than the readable measure. */
+.toneTabs {
+  align-self: flex-start;
+  margin-inline-start: max(0px, calc((100% - 960px) / 2));
   position: sticky;
   top: var(--scroll-padding-top, 0);
   z-index: 5;
 }
 
-/* The tabs are anchor links (per-tone navigation) but should read as
-   tabs — strip every facet of the global `<a>` styling in every state.
-   The selectors below cover :link / :visited / :hover / :focus / :active
-   so no global rule can sneak underline, link-color, or thickness changes
-   back in. Tab colors are managed below by `:hover` and the `.toneTabActive`
-   class. */
+/* ─── Full-bleed layout ──────────────────────────────────────────────────
+   `.page` carries the global `full-bleed` class, so it spans the whole
+   content track. Theme rows fill that track; prose blocks are capped to the
+   960 readable measure and centred so they line up with the page <h1>. */
+.page .blockHeading,
+.page .description {
+  max-width: 960px;
+  margin-inline: auto;
+  width: 100%;
+}
+.page .description p {
+  /* keep paragraphs at a comfortable measure even though the block is 960 */
+  max-width: 720px;
+}
+.page .themeRows {
+  max-width: none;
+}
+
+/* Items. Tone tabs are <a> (per-tone navigation) so the selector list strips
+   every facet of the global `<a>` styling across all link pseudos; a11y
+   segments are <button>. The shared reset covers both. */
 .toneTab,
 .toneTab:link,
 .toneTab:visited,
 .toneTab:hover,
 .toneTab:focus,
-.toneTab:active {
+.toneTab:active,
+.a11ySegBtn {
   appearance: none;
   border: none;
   background: transparent;
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   line-height: 1.2;
   color: var(--text-3);
   padding: 4px 8px 5px;
@@ -67,22 +93,25 @@
 }
 
 .toneTab:hover,
-.toneTab:focus {
-  color: var(--text-2);
+.toneTab:focus,
+.a11ySegBtn:hover,
+.a11ySegBtn:focus {
+  color: var(--text-1);
 }
 
-/* The selector list mirrors `.toneTab`'s anchor-pseudo coverage so the
-   active state's specificity matches at every link state. Without
-   `:link` / `:visited` here, the base group's `.toneTab:link` (0,2,0)
-   would beat `.toneTabActive` (0,1,0) and the active tab would render
-   with the inactive color and background. */
+/* Active state. The `:link` / `:visited` / `:hover` / `:focus` coverage keeps
+   the active styling winning over the base group at every link state (so the
+   active tab doesn't fall back to the inactive look on hover). */
 .toneTabActive,
 .toneTabActive:link,
 .toneTabActive:visited,
 .toneTabActive:hover,
 .toneTabActive:focus,
-.toneTabActive:active {
-  background: var(--bg-section);
+.toneTabActive:active,
+.a11ySegBtnActive,
+.a11ySegBtnActive:hover,
+.a11ySegBtnActive:focus {
+  background: var(--bg-canvas);
   color: var(--text-1);
   box-shadow: 0 0 2px var(--border-3);
 }
@@ -100,7 +129,6 @@
 .blockHeading p {
   margin: 0;
   color: var(--text-2);
-  max-width: 720px;
 }
 
 .themeRows {
@@ -111,7 +139,7 @@
 
 .themeRow {
   border-radius: 8px;
-  padding-block: 24px;
+  padding-block: 24px 48px;
   overflow-x: auto;
   min-width: 0;
 }
@@ -145,6 +173,8 @@
   gap: 12px;
   padding-inline: 30px;
   min-width: max-content;
+  max-width: 1024px;
+  margin-inline: auto;
 }
 
 @media (max-width: 900px) {
@@ -161,7 +191,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  background: var(--bg-section);
+  background: var(--bg-canvas);
   border: 0.5px solid var(--border-4);
   border-radius: 6px;
   min-width: 0;
@@ -189,7 +219,7 @@
   position: relative;
   height: 56px;
   border-radius: 4px;
-  background: var(--bg-section);
+  background: var(--bg-canvas);
   border: 1px solid var(--border-4);
 }
 
@@ -235,35 +265,75 @@
   color: inherit;
 }
 
-.exampleScroll {
-  overflow-x: auto;
-  min-width: 0;
+/* Card light/dark divergence example — sits inside a <Preview>. The preview is
+   split into two themed halves (left .light, right .dark), each painting its
+   page background (bg-2) with a centered card. The negative margin cancels the
+   <Preview>'s 24px padding so the halves fill it edge-to-edge. */
+.cardSplit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-self: stretch;
+  width: calc(100% + 48px);
+  margin: -24px;
+  border-radius: 6px;
+  overflow: hidden;
 }
-
-.bgExampleSvg {
-  min-width: 715px;
-  display: block;
+.cardCell {
+  position: relative;
+  background: var(--bg-2);
+  padding: 40px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
-.bgExampleSvg svg {
-  display: block;
-  width: 100%;
-  height: auto;
+/* Corner label noting the surface token the half paints with. */
+.cellTag {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font-family: var(--monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--text-4);
 }
-
-/* Reserve the illustration's aspect ratio on the wrapper so the
-   browser knows the height before the SVG paints — prevents the rest
-   of the page from shifting when content below the illustration
-   hydrates. The 715:431 ratio matches the SVG's intrinsic viewBox. */
-.bgExampleSvg {
-  aspect-ratio: 715 / 431;
+.cardCell:first-child {
+  border-right: 1px solid var(--border-5);
 }
-
-.exampleHeading {
-  /* Anchor target inside .page already has scroll-margin-top, so
-     anchor jumps to "#background-illustration" land below the sticky
-     tone tabs naturally. */
-  margin: 0 0 12px;
+.card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  padding: 14px 16px 30px;
+  max-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+/* Corner label noting the Anta token the card surface resolves to. */
+.cardTag {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  font-family: var(--monospace);
+  font-size: 0.7rem;
+  color: var(--text-4);
+}
+.cardTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.cardText {
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+@media (max-width: 640px) {
+  .cardSplit { grid-template-columns: 1fr; }
+  .cardCell:first-child {
+    border-right: none;
+    border-bottom: 1px solid var(--border-5);
+  }
 }
 
 .borderExample {
@@ -276,7 +346,7 @@
   flex: 1;
   height: 140px;
   border-radius: 6px;
-  background: var(--bg-section);
+  background: var(--bg-canvas);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -301,47 +371,12 @@
   align-items: center;
 }
 
-.a11ySegment {
-  display: inline-flex;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  gap: 2px;
-  padding: 3px;
-  background: var(--bg-pane);
-  border: 0.5px solid var(--border-4);
-  border-radius: 6px;
-  /* Cap each segment at the parent control-row's width so a long
-     condition list scrolls horizontally instead of pushing the page
-     wider than the content column. */
-  max-width: 100%;
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
+/* `.a11ySegment` / `.a11ySegBtn` / `.a11ySegBtnActive` are styled by the
+   unified "Segmented control" rules near the top of this file. */
 .a11ySegmentLabel {
   font-size: 0.75rem;
   color: var(--text-4);
   padding: 0 6px 0 4px;
-}
-.a11ySegBtn {
-  appearance: none;
-  border: none;
-  background: transparent;
-  font: inherit;
-  font-size: 0.8rem;
-  line-height: 1.2;
-  color: var(--text-3);
-  padding: 4px 8px 5px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 150ms ease-out, color 150ms ease-out;
-}
-.a11ySegBtn:hover { color: var(--text-2); }
-.a11ySegBtnActive,
-.a11ySegBtnActive:hover,
-.a11ySegBtnActive:focus {
-  background: var(--bg-section);
-  color: var(--text-1);
-  box-shadow: 0 0 2px var(--border-3);
 }
 
 .a11yScroll {
@@ -482,5 +517,5 @@
   line-height: 0.7;
   vertical-align: -1px;
 }
-.a11yPass { color: oklch(0.55 0.16 145); }
-.a11yFail { color: oklch(0.55 0.20 25); }
+.a11yPass { color: #2a7e43; }
+.a11yFail { color: #c9302c; }

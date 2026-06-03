@@ -24,6 +24,14 @@ export { Title } from './components/Title'
 export type { TitleProps } from './components/Title'
 export { Icon } from './components/Icon'
 export type { IconProps } from './components/Icon'
+export { Button } from './components/Button'
+export type {
+  ButtonProps,
+  BaseButtonProps,
+  ContentMode,
+  SubmitMode,
+  PriorityMode,
+} from './components/Button'
 export { ICON_SHAPES, ICON_SYNONYMS } from './elements/a-icon.shapes'
 export { Sticker } from './components/Sticker'
 export type { StickerProps } from './components/Sticker'

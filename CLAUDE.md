@@ -30,6 +30,15 @@ pnpm run build:types  # tsc: emit .d.ts declarations
 pnpm run typecheck    # Type check without emit
 ```
 
+### Running the dev server — always `pnpm run dev` from the repo root
+
+**For any dev work — editing the anta package *or* the docs site — run `pnpm run dev` from the repo root** (run it in the background; it's long-lived). It does both halves together:
+
+- a `nodemon -w src` watcher that **rebuilds `dist`** (and regenerates the site's `docs:*` artifacts) on every change to anta's `src/**/*.{ts,tsx,css}`, and
+- the docs site's `astro dev` (HMR for `site/`).
+
+The docs site consumes anta from the built `dist/` (workspace symlink), so this is what propagates an anta-source change through to the running site. **Do not** run `cd site && pnpm run dev` for package work — that starts only the site's Astro dev and will *not* rebuild `dist`, so anta `src` edits won't show up and you'd be stuck manually rebuilding + restarting. Pure `site/` edits (`.mdx`, Astro/Preact components) HMR fine under either, but the root command is the one to use so package edits Just Work too.
+
 **Important**: esbuild runs in non-bundle mode (no `--bundle` flag). It compiles each entry point individually but does **not** process CSS imports — it leaves `import "./a-progress.css"` in the JS output without copying the CSS file. The `build:css` step copies CSS files manually. When adding a new component, add its CSS files to `build:css`.
 
 Uses `jsx: "react-jsx"` with `jsxImportSource: "@antadesign/anta"` (automatic transform). The compiled output self-references the package via the exports map: `import { jsx } from "@antadesign/anta/jsx-runtime"`.
@@ -125,6 +134,7 @@ The same rule applies anywhere we lighten/darken/desaturate a color: prefer `col
 
 - **Declarative DOM** — Web components are pure declarative. **No element class — neither the constructor nor `attributeChangedCallback` nor any handler — may call `setAttribute`, mutate `className`, set inline `style`, or otherwise change anything on the host element that's visible in the DOM tree.** The host's attributes and inline styles must come from the JSX wrapper (or from the consumer writing `<a-…>` directly). Only shadow-internal elements may be mutated from JS.
 - **ARIA goes in JSX wrappers, not web components.** All `role`, `aria-*`, `tabindex`, etc., are added by `src/components/<Name>.tsx` as attribute pass-through, never by `AXxxElement.constructor`. This keeps the web component re-renderable from any reactive engine without state churning the DOM, and keeps the elements usable in non-React/Preact contexts where the consumer adds ARIA themselves. The single exception is when the wrapper passes a value through (e.g. `aria-valuenow={value}`); the wrapper is a thin JSX→DOM bridge and that's its job.
+- **Boolean attributes — emit presence, match by presence.** A JSX wrapper maps each boolean prop to `prop ? '' : undefined` — never the raw boolean, never `'true'`. The empty string renders the canonical presence form `attr=""` *consistently across React and Preact*; `undefined` omits the attribute. (Passing the raw boolean is non-portable: Preact stringifies `true` → `attr="true"`, while React 19 renders `attr=""`. `'true'` works but leaves a verbose, misleading `attr="true"` in the DOM.) The element's CSS must then match by **presence** — `a-button[disabled]`, **not** `[disabled="true"]` — so it catches `=""`, `="true"`, and bare presence alike, which also makes hand-authored `<a-… disabled>` work. This is safe against false-positives because the falsy state is always *absence*: `prop ? '' : undefined` makes `false → undefined`, which every React/Preact version omits (and even a raw boolean `false` is dropped by every current version — Preact always removes `false`; React drops `false` for both known boolean attrs and unknown/custom attrs since v16). The exception is **ARIA** attributes, which stay string-valued (`aria-pressed={selected ? 'true' : undefined}`) because ARIA is value-based, not presence-based.
 - **Don't add new web components without a strong reason.** Each one occupies a global tag name. Prefer adding props to existing elements before introducing a new tag.
 - **Shadow DOM pattern** — Web components use shadow DOM. The external CSS file (`a-{name}.css`) styles the host element and handles light/dark mode via `.dark` ancestor. The shadow DOM `<style>` declares only structural defaults on `:host`.
 - **CSS variables for variant values** — Use `--{component}-*` variables for any property that changes across variants (tone, dark mode). In the base rule, declare all variables first, then leave an empty line before regular properties.
@@ -135,6 +145,7 @@ The same rule applies anywhere we lighten/darken/desaturate a color: prefer `col
 - **Types** — Use React global types (e.g. `React.CSSProperties`) without importing React. Components must be compatible with both React and Preact.
 - **Auto-registration** — `elements/index.ts` auto-registers all custom elements in browser contexts.
 - **Component-token-first** — Each component defines its own CSS custom properties. Global tokens will be added later.
+- **Document defaults with `@defaultValue`** — Every optional prop whose default isn't obvious (enums, numbers like `size`/`level`/`max`, a default tone/priority) **must** carry a `@defaultValue <value>` TSDoc tag on its declaration in `src/components/<Name>.tsx`. This is the single source of truth: TypeDoc captures it into `site/src/api.json`, `PropsTable.astro` renders it as the **Default** column, and the playground's `props-form.ts` reads it for control defaults. State the default *only* in the tag — don't also write "Defaults to …" in the prose description (the Default column would duplicate it). Skip the tag for booleans that default to `false` (obvious) and for required props (no default).
 - **Docs-in-sync** — When you rename a component prop, rename a `--{component}-*` token, add a token, or remove one, **update `site/src/pages/components/{name}.mdx` in the same change** so the docs page tracks the source of truth. The same applies to default values, prop type unions, and to any consumer-facing API note in `README.md`. Drift between the source and the docs site is the single most common bug report — easier to keep them in lockstep than to chase the divergence later.
 
 ## Adding a new component

@@ -4,19 +4,54 @@
  * `PropsTable.astro` (the static reference table); reusing it here keeps
  * the playground form in lockstep with the documented prop set.
  *
- * Walk: `api.children` → find the `{ComponentName}Props` interface → take
- * its `children` (the props), drop inherited ones (the `BaseProps` grab
- * bag — `className`, `style`, `children` are out of scope for v1's form),
- * and map each remaining prop's type into a `Control` descriptor.
+ * Walk: `api.children` → find the `{ComponentName}Props` declaration →
+ * collect its prop list (direct `children` for an `interface` declaration,
+ * or `flattenType` over `decl.type` for a `type` alias built from
+ * intersections / discriminated unions) → map each prop's type into a
+ * `Control` descriptor.
  */
 import api from '../../src/api.json'
 import type { PropDescriptor } from './prop-patch.ts'
 import { findAttribute, listAttributes, locateOpeningTag } from './locate-tag.ts'
 
-/** Framework-internal props that have no place on a documentation
- *  surface — they're plumbing for the renderer, not part of the
- *  component's authored API. */
-const EXCLUDED_PROP_NAMES = new Set(['key', 'ref'])
+/** Props with no place among the playground controls — renderer plumbing
+ *  (`key`, `ref`) or attributes only meaningful in real app code (`id`,
+ *  `title`, `tabIndex`), not for exploring the component. Global to every
+ *  component. */
+const EXCLUDED_PROP_NAMES = new Set(['key', 'ref', 'id', 'title', 'tabIndex'])
+
+/** Per-component control exclusions, applied on top of the global set. */
+const EXCLUDED_BY_COMPONENT: Record<string, Set<string>> = {
+  // Button's anchor/submit attributes are real but niche — keep the panel
+  // focused on appearance + content. `href` / `target` stay (anchor mode).
+  Button: new Set(['download', 'ping', 'rel', 'type', 'form']),
+}
+
+/** Explicit control order per component. Listed names lead in this order;
+ *  any prop not listed keeps its natural (flatten) position after them. The
+ *  discriminated-union prop types can't express this order at the type level
+ *  without collapsing the unions that give them type-safety, so it lives
+ *  here as a display concern. */
+const PROP_ORDER: Record<string, string[]> = {
+  Button: [
+    'priority', 'tone', 'size', 'underline', 'paddingless',
+    'label', 'icon', 'iconTrailing',
+    'loading', 'disabled', 'selected',
+    'href', 'target', 'children', 'className', 'style',
+  ],
+}
+
+/** Props whose validity depends on another prop's value — the discriminated
+ *  unions a flat control list can't express. The predicate receives the
+ *  current control values; a `false` result hides the control. Mirrors
+ *  Button's `PriorityMode` (underline only on tertiary/quaternary,
+ *  paddingless only on quaternary). */
+export const CONDITIONAL_PROPS: Record<string, Record<string, (v: Record<string, unknown>) => boolean>> = {
+  Button: {
+    underline: (v) => v.priority === 'tertiary' || v.priority === 'quaternary',
+    paddingless: (v) => v.priority === 'quaternary',
+  },
+}
 
 export type Control =
   | { kind: 'slider'; name: string; min: number; max: number; step: number; defaultValue?: number; description?: string }
@@ -24,6 +59,10 @@ export type Control =
   | { kind: 'text'; name: string; defaultValue?: string; description?: string }
   | { kind: 'boolean'; name: string; defaultValue?: boolean; description?: string }
   | { kind: 'segmented'; name: string; options: string[]; defaultValue?: string; description?: string }
+  /** Named-tone tabs + a "Custom" tab that reveals a color input. `options`
+   *  are the named literals; a value outside them is treated as a custom
+   *  color. Serialized as a plain string attribute (`tone="…"`). */
+  | { kind: 'tone'; name: string; options: string[]; defaultValue?: string; description?: string }
   /** Read-only entry for props we can't drive with a generic input
    *  — `children`, `style`, `ReactNode`, named references, etc. The
    *  form renders the name + type + description so the prop is
@@ -39,30 +78,175 @@ export interface PropEntry {
 }
 
 /** Walk api.json for a component's prop schema. Returns `[]` if the
- *  component (or its `{Name}Props` interface) isn't in the doc set. */
+ *  component (or its `{Name}Props` interface) isn't in the doc set.
+ *
+ *  Two declaration shapes are supported:
+ *
+ *    1. `interface FooProps extends BaseProps { … }` — typedoc emits
+ *       the prop list as `decl.children`, including inherited members
+ *       (with `flags.isInherited`). Read directly.
+ *    2. `type FooProps = X & Y & Z` (intersection of named types and
+ *       inline object literals) — typedoc emits `decl.type` describing
+ *       the structure. `flattenType` walks it, recursing through
+ *       intersections, unions of object literals (discriminated
+ *       unions), reflections (`{ … }`), and named references back
+ *       into `api.children`.
+ *
+ *  Both paths converge on a flat prop list, then map each prop to a
+ *  `Control`. */
 export function controlsFor(componentName: string): PropEntry[] {
   const ifaceName = `${componentName}Props`
   const root: any = api as any
-  const iface = root.children?.find((c: any) => c.name === ifaceName)
-  if (!iface) return []
+  const decl = root.children?.find((c: any) => c.name === ifaceName)
+  if (!decl) return []
 
-  // Include component-own props plus inherited props from BaseProps
-  // (`className`, `style`, `children`). The former get full editors;
-  // the latter typically render as `documentation` rows so the form
-  // doubles as a complete prop reference — that's why a separate
-  // static Props table isn't needed on the docs page. Framework
-  // plumbing (`key`, `ref`) stays out.
-  const props = (iface.children ?? []).filter(
-    (p: any) => !EXCLUDED_PROP_NAMES.has(p.name),
-  )
+  const props = decl.children
+    ? (decl.children as any[])
+    : flattenType(decl.type, root)
 
+  const perComponent = EXCLUDED_BY_COMPONENT[componentName]
   const entries: PropEntry[] = []
   for (const p of props) {
+    if (EXCLUDED_PROP_NAMES.has(p.name)) continue
+    if (perComponent?.has(p.name)) continue
     const ctl = controlFor(p)
     if (!ctl) continue
     entries.push(ctl)
   }
+
+  // Apply the explicit display order, if any. Listed names sort to the front
+  // in order; unlisted props tie at the end and keep their relative order
+  // (Array.prototype.sort is stable).
+  const order = PROP_ORDER[componentName]
+  if (order) {
+    const rank = (n: string) => {
+      const i = order.indexOf(n)
+      return i === -1 ? order.length : i
+    }
+    entries.sort((a, b) => rank(a.control.name) - rank(b.control.name))
+  }
   return entries
+}
+
+/** Recursively flatten a typedoc type node into a list of prop
+ *  declarations shaped like the `children` of an interface. Handles
+ *  intersections (merge by name, first non-`never` wins), unions of
+ *  object literals (merge by name, take the union of literal value
+ *  spaces across branches — that's how `priority` ends up with all
+ *  four values from the three `PriorityMode` branches), reflections
+ *  (inline `{ … }` types — take their `children` verbatim), and
+ *  references to other named types in `api.children` (recurse on
+ *  their `type` if a type alias, or use their `children` if an
+ *  interface). Anything else returns `[]`. */
+function flattenType(type: any, root: any): any[] {
+  if (!type) return []
+  switch (type.type) {
+    case 'intersection': {
+      const seen = new Map<string, any>()
+      for (const member of type.types ?? []) {
+        for (const field of flattenType(member, root)) {
+          const existing = seen.get(field.name)
+          if (!existing || isNeverType(existing.type)) {
+            seen.set(field.name, field)
+          }
+        }
+      }
+      return [...seen.values()].filter((f) => !isNeverType(f.type))
+    }
+    case 'union': {
+      const byName = new Map<string, any[]>()
+      for (const branch of type.types ?? []) {
+        for (const field of flattenType(branch, root)) {
+          if (!byName.has(field.name)) byName.set(field.name, [])
+          byName.get(field.name)!.push(field)
+        }
+      }
+      const merged: any[] = []
+      for (const occurrences of byName.values()) {
+        const m = mergeUnionField(occurrences)
+        if (m) merged.push(m)
+      }
+      return merged
+    }
+    case 'reflection':
+      return (type.declaration?.children ?? []) as any[]
+    case 'reference': {
+      const target = root.children?.find((c: any) => c.name === type.name)
+      if (!target) return []
+      if (target.children) return target.children as any[]
+      return flattenType(target.type, root)
+    }
+    default:
+      return []
+  }
+}
+
+/** Merge multiple appearances of the same prop across union branches.
+ *  `never` branches are dropped from the type merge — they're the
+ *  discriminator pattern used to forbid a prop in one variant (e.g.
+ *  `type?: never` on the anchor branch of Button's `SubmitMode`). If
+ *  every branch is `never`, the prop collapses to nothing and we
+ *  return null. For
+ *  literal / literal-union types we take the union of all values
+ *  across branches; for any other shape we keep the first documented
+ *  branch. The merged prop is marked optional whenever any branch
+ *  marks it optional OR any branch types it as `never` — in the
+ *  latter case the prop can be omitted by selecting that variant. */
+function mergeUnionField(fields: any[]): any | null {
+  const real = fields.filter((f) => !isNeverType(f.type))
+  if (real.length === 0) return null
+  const optional =
+    fields.some((f) => f.flags?.isOptional) || real.length < fields.length
+
+  if (real.length === 1) {
+    return {
+      ...real[0],
+      flags: { ...real[0].flags, isOptional: optional },
+    }
+  }
+
+  const allLiteralish = real.every((f) => isLiteralOrLiteralUnion(f.type))
+  if (allLiteralish) {
+    const collected: any[] = []
+    for (const f of real) collectLiterals(f.type, collected)
+    const seenValues = new Set<string>()
+    const dedup: any[] = []
+    for (const lit of collected) {
+      const k = `${typeof lit.value}:${lit.value}`
+      if (seenValues.has(k)) continue
+      seenValues.add(k)
+      dedup.push(lit)
+    }
+    const mergedType =
+      dedup.length === 1 ? dedup[0] : { type: 'union', types: dedup }
+    return {
+      ...(real.find((f) => f.comment) ?? real[0]),
+      type: mergedType,
+      flags: { ...real[0].flags, isOptional: optional },
+    }
+  }
+  return {
+    ...(real.find((f) => f.comment) ?? real[0]),
+    flags: { ...real[0].flags, isOptional: optional },
+  }
+}
+
+function isNeverType(t: any): boolean {
+  return t?.type === 'intrinsic' && t?.name === 'never'
+}
+
+function isLiteralOrLiteralUnion(t: any): boolean {
+  if (!t) return false
+  if (t.type === 'literal') return true
+  if (t.type === 'union' && Array.isArray(t.types)) {
+    return t.types.every((x: any) => x.type === 'literal')
+  }
+  return false
+}
+
+function collectLiterals(t: any, out: any[]): void {
+  if (t.type === 'literal') out.push(t)
+  else if (t.type === 'union') for (const x of t.types ?? []) collectLiterals(x, out)
 }
 
 function controlFor(p: any): PropEntry | null {
@@ -72,6 +256,15 @@ function controlFor(p: any): PropEntry | null {
 
   const t = p.type
   if (!t) return null
+
+  // Skip function-typed props (event handlers like `onClick`, `onChange`,
+  // etc.). They aren't meaningfully editable from a UI panel, and showing
+  // them as documentation rows clutters the list. TypeDoc represents a
+  // function type as a `reflection` whose `declaration.signatures[]` is
+  // populated with the call signature.
+  if (t.type === 'reflection' && Array.isArray(t.declaration?.signatures) && t.declaration.signatures.length > 0) {
+    return null
+  }
 
   const wrap = (control: Control, prop: PropDescriptor): PropEntry => ({
     control, prop, optional,
@@ -118,8 +311,21 @@ function controlFor(p: any): PropEntry | null {
     // Fall through to the documentation row for anything else.
   }
 
-  // `union` of all `literal` members → segmented buttons.
+  // `union` of all `literal` members → segmented buttons. Boolean-only
+  // literal unions (`true | false`) reduce to a plain boolean control
+  // — that's how discriminated-union booleans (one branch sets `true`,
+  // the other `false`) appear after the prop merger flattens them.
   if (t.type === 'union' && Array.isArray(t.types)) {
+    // Boolean-only literal union (`true | false`) — render as a boolean
+    // toggle. Catches discriminated-union booleans after merging.
+    const allBoolean = t.types.length > 0 && t.types.every((x: any) => x.type === 'literal' && typeof x.value === 'boolean')
+    if (allBoolean) {
+      return wrap(
+        { kind: 'boolean', name, description },
+        { name, kind: 'boolean' },
+      )
+    }
+    // All string literals → segmented buttons.
     const literals = t.types.filter((x: any) => x.type === 'literal' && typeof x.value === 'string')
     if (literals.length === t.types.length && literals.length > 0) {
       const options = literals.map((x: any) => String(x.value))
@@ -158,7 +364,56 @@ function controlFor(p: any): PropEntry | null {
         { name, kind: 'number' },
       )
     }
+    // Mixed union: literal members + an open string (the `(string & {})`
+    // TypeScript trick used by e.g. Button's `tone` to keep literal
+    // autocomplete while accepting any CSS color). Surface as a plain
+    // text input so the user can type either a literal name or a custom
+    // value. The `string` can appear raw or wrapped in an intersection
+    // with a reflection (TypeDoc's representation of `string & {}`).
+    const hasOpenString = t.types.some((x: any) => {
+      if (x.type === 'intrinsic' && x.name === 'string') return true
+      if (x.type === 'intersection' && Array.isArray(x.types)) {
+        return x.types.some((y: any) => y.type === 'intrinsic' && y.name === 'string')
+      }
+      return false
+    })
+    if (hasOpenString && literals.length > 0) {
+      // `tone` gets a richer control: named-tone tabs + a "Custom" tab with a
+      // color input. Any other open-string union stays a plain text input.
+      if (name === 'tone') {
+        return wrap(
+          {
+            kind: 'tone',
+            name,
+            options: literals.map((x: any) => String(x.value)),
+            defaultValue: readDefaultValueTag(p.comment),
+            description,
+          },
+          { name, kind: 'string' },
+        )
+      }
+      return wrap(
+        { kind: 'text', name, description },
+        { name, kind: 'string' },
+      )
+    }
     // Fall through.
+  }
+
+  // Icon-name types (`icon` / `iconTrailing`) — an open-ended set of
+  // string keys, far too many for segmented buttons. In api.json these
+  // surface either as a `reference` to the `IconShape` alias (the JSX
+  // wrapper props) or as the inlined `keyof IconShapes` typeOperator (the
+  // raw element attrs). Either way, render a text input so the user can
+  // type a shape name; the value emits as a string attribute.
+  if (
+    (t.type === 'reference' && t.name === 'IconShape') ||
+    (t.type === 'typeOperator' && t.operator === 'keyof')
+  ) {
+    return wrap(
+      { kind: 'text', name, description },
+      { name, kind: 'string' },
+    )
   }
 
   // Anything else — `ReactNode`, `CSSProperties`, named references,

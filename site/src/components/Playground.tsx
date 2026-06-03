@@ -1,7 +1,7 @@
 /**
- * InteractiveDemo — single-component playground.
+ * Playground — single-component playground.
  *
- *   <InteractiveDemo component="Progress" initialCode={`...`} client:load />
+ *   <Playground component="Progress" initialCode={`...`} client:load />
  *
  * Renders three regions:
  *   - A live preview, isolated inside an iframe so user CSS / DOM
@@ -17,7 +17,7 @@
  * See site/lib/sandbox/* for the moving parts.
  */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
-import s from './InteractiveDemo.module.css'
+import s from './Playground.module.css'
 // Monaco ships its structural CSS as ~110 separate `import './x.css'`
 // side-effect imports inside its ESM build. Vite injects each one
 // live in dev (so the editor looks right under `pnpm dev`) but emits
@@ -29,7 +29,7 @@ import s from './InteractiveDemo.module.css'
 // of this island's CSS in both dev and prod.
 import 'monaco-editor/min/vs/editor/editor.main.css'
 
-import { controlsFor, controlsForExample, type Control, type PropEntry } from '../../lib/sandbox/props-form.ts'
+import { controlsFor, controlsForExample, CONDITIONAL_PROPS, type Control, type PropEntry } from '../../lib/sandbox/props-form.ts'
 import { bundle, type BundleResult } from '../../lib/sandbox/bundler.ts'
 import { getDemoModules } from '../../lib/sandbox/modules.ts'
 import { replaceProp, readChildren } from '../../lib/sandbox/prop-patch.ts'
@@ -41,6 +41,10 @@ import { throttle } from 'es-toolkit'
  *  browser ESM bundle of @antadesign/anta/elements + per-element CSS;
  *  built by `site/scripts/build-iframe-runtime.mjs`. */
 const IFRAME_RUNTIME_URL = '/iframe-anta-runtime.js'
+
+/** The prose column width (matches the 960px measure in base.css). The
+ *  playground starts here and can't be resized narrower. */
+const COLUMN_WIDTH = 960
 
 // Lazily loaded inside an effect so the docs page paints without
 // blocking on Monaco's ~1.5 MB bundle.
@@ -68,7 +72,7 @@ interface Props {
 
 type Tab = 'props' | 'code' | 'css'
 
-export default function InteractiveDemo({ component, initialCode, initialCss = '', layout = 'stacked', panelHeight = 400 }: Props) {
+export default function Playground({ component, initialCode, initialCss = '', layout = 'stacked', panelHeight = 400 }: Props) {
   const [code, setCode] = useState(initialCode)
   // CSS state is independent of the code — the user owns it. The CSS
   // tab is unconditionally available; no auto-seed from any className
@@ -87,6 +91,15 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
   const [panelWidth, setPanelWidth] = useState(400)
   const draggingRef = useRef(false)
   const bodyRef = useRef<HTMLDivElement | null>(null)
+  // Whole-widget size, driven by the bottom-right corner grip (side
+  // layout). Width is the *preferred* width: `null` means "full track"
+  // and sticks there; a number is held until the track squeezes it
+  // (see `width: min(--pg-w, 100%)`). Centered, so only the preview
+  // (the 1fr grid column) grows — the panel keeps its width.
+  const [widgetWidth, setWidgetWidth] = useState<number | null>(COLUMN_WIDTH)
+  const [widgetHeight, setWidgetHeight] = useState(panelHeight)
+  const rootRef = useRef<HTMLElement | null>(null)
+  const cornerDraggingRef = useRef(false)
   const [isDark, setIsDark] = useState<boolean>(() =>
     typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
   )
@@ -106,7 +119,7 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
   const examples = useMemo(() => parseExamples(code), [code])
 
   // Track the parent's dark-mode state — drives both Monaco's theme
-  // and the resolved value of --bg-section.
+  // and the resolved value of --bg-canvas.
   useEffect(() => {
     const apply = () => setIsDark(document.documentElement.classList.contains('dark'))
     apply()
@@ -151,10 +164,10 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
   }, [])
 
   // Mirror docs-site dark-mode into Monaco by switching between the
-  // two Shiki themes. We also overlay our `--bg-section` token onto
+  // two Shiki themes. We also overlay our `--bg-canvas` token onto
   // the active theme's `editor.background` so the editor pane blends
   // with the surrounding card instead of using Shiki's default
-  // off-white / dark-navy. `--bg-section` is mode-dependent, so we
+  // off-white / dark-navy. `--bg-canvas` is mode-dependent, so we
   // resolve it here (after the dark class has already flipped) and
   // re-define the theme each time.
   useEffect(() => {
@@ -389,6 +402,47 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
     try { e.currentTarget.releasePointerCapture(e.pointerId) } catch {}
   }
 
+  // Bottom-right corner grip — resizes the whole widget. Width grows
+  // symmetrically about the widget's centre (it's centered in the lane),
+  // so the grip tracks the right edge while the widget stays aligned;
+  // capped at the available track and snapped to "full" (sticks) at the
+  // edge. Height grows downward, capped at 90vh.
+  function startCornerResize(e: any) {
+    if (layout !== 'side') return
+    e.preventDefault()
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
+    cornerDraggingRef.current = true
+  }
+  function onCornerMove(e: any) {
+    if (!cornerDraggingRef.current || !rootRef.current || !bodyRef.current) return
+    // The section's flow container is the disclosure body; the
+    // astro-island wrapper in between is display:contents (zero box),
+    // so walk past any such wrappers to a real layout box.
+    let container = rootRef.current.parentElement
+    while (container && getComputedStyle(container).display === 'contents') {
+      container = container.parentElement
+    }
+    if (!container) return
+    const cr = container.getBoundingClientRect()
+    const maxW = cr.width // the full-bleed track (already inside the lane padding)
+    const centerX = cr.left + cr.width / 2
+    const w = 2 * (e.clientX - centerX)
+    if (w >= maxW - 8) {
+      setWidgetWidth(null) // snap to full track + stick there
+    } else {
+      // Floor at the prose column width (960) so the widget never gets
+      // narrower than a normal text block; cap at the track.
+      setWidgetWidth(Math.min(maxW, Math.max(COLUMN_WIDTH, w)))
+    }
+    const b = bodyRef.current.getBoundingClientRect()
+    // Floor at the originally-prescribed height; cap at 90vh.
+    setWidgetHeight(Math.max(panelHeight, Math.min(window.innerHeight * 0.9, e.clientY - b.top)))
+  }
+  function endCornerResize(e: any) {
+    cornerDraggingRef.current = false
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch {}
+  }
+
   function handleEditorChange(next: string | undefined) {
     if (next == null) return
     // Update only if the model's value drifted from React state. When
@@ -408,7 +462,20 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
   const bodyClass = layout === 'side' ? `${s.body} ${s.bodySide}` : s.body
 
   return (
-    <section class={`${s.root} full-bleed`}>
+    <section
+      ref={rootRef}
+      class={s.root}
+      style={
+        layout === 'side'
+          ? ({
+              '--pg-w': widgetWidth == null ? '100%' : `${widgetWidth}px`,
+              width: 'min(var(--pg-w), 100%)',
+              maxWidth: 'none', // let the corner grip widen past 960
+              marginInline: 'auto',
+            } as any)
+          : undefined
+      }
+    >
       <div
         class={bodyClass}
         ref={bodyRef}
@@ -443,7 +510,7 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
           />
         )}
 
-        <div class={s.panel} style={{ '--demo-panel-h': `${panelHeight}px` } as any}>
+        <div class={s.panel} style={{ '--demo-panel-h': `${widgetHeight}px` } as any}>
           <div class={s.tabs} role="tablist">
             <button
               type="button"
@@ -474,8 +541,8 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
             </button>
             {/* Reset edits to props / code. CSS is intentionally
                 preserved — the user owns it independently. */}
-            <button
-              type="button"
+            <a-button
+              priority="quaternary"
               class={s.resetBtn}
               aria-label="Reset props and code"
               title="Reset props and code"
@@ -487,8 +554,8 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
                 setCode(initialCode)
               }}
             >
-              <a-icon shape="refresh-ccw-dot" style={{ '--icon-size': '14px' } as any} />
-            </button>
+              <a-icon shape="rotate-ccw" size="14" />
+            </a-button>
           </div>
           {/* Both panels are stacked in the same grid cell so the
               panel sizes to the taller of the two — switching tabs
@@ -509,7 +576,7 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
                   {controls.length === 0 && (
                     <div class={s.fieldHint}>No props detected for {component}. Check api.json.</div>
                   )}
-                  {controls.map((entry) => (
+                  {visibleControls(controls, component, code).map((entry) => (
                     <FormField
                       key={entry.control.name}
                       entry={entry}
@@ -611,6 +678,19 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
             </div>
           </div>
         </div>
+
+        {layout === 'side' && (
+          <div
+            class={s.cornerResize}
+            role="separator"
+            aria-label="Resize playground"
+            title="Drag to resize"
+            onPointerDown={startCornerResize}
+            onPointerMove={onCornerMove}
+            onPointerUp={endCornerResize}
+            onPointerCancel={endCornerResize}
+          />
+        )}
       </div>
 
       {compileError && (
@@ -631,6 +711,29 @@ export default function InteractiveDemo({ component, initialCode, initialCss = '
 
 // ──────────────────────────────────────────────────────────────────
 // Form field
+
+/** Filter out controls whose discriminated-union condition isn't met by the
+ *  current values (e.g. Button's `underline` only shows on tertiary /
+ *  quaternary priority). Reads each dependency's live value from the code. */
+function visibleControls(
+  controls: PropEntry[],
+  componentName: string,
+  code: string,
+  range?: { start: number; end: number },
+): PropEntry[] {
+  const conds = CONDITIONAL_PROPS[componentName]
+  if (!conds) return controls
+  const values: Record<string, unknown> = {}
+  for (const e of controls) {
+    if (e.prop.kind === 'children' || e.prop.kind === 'style-css') continue
+    const r = readProp(code, componentName, e.prop, range)
+    if (r?.kind === 'literal') values[e.control.name] = r.value
+  }
+  return controls.filter((e) => {
+    const pred = conds[e.control.name]
+    return !pred || pred(values)
+  })
+}
 
 function FormField({
   entry,
@@ -689,8 +792,7 @@ function FormField({
           onChange={(e) => handle((e.currentTarget as HTMLInputElement).checked)}
         />
         <span>
-          <code>{c.name}{entry.optional ? '?' : ''}</code>
-          {c.description ? <span class={s.fieldHint}> — {c.description}</span> : null}
+          <span class={s.fieldName} title={c.description}>{c.name}</span>
         </span>
         {fromExpression ? <span class={s.fieldExpressionBadge}>set by code</span> : null}
       </label>
@@ -701,8 +803,7 @@ function FormField({
     <div class={s.field}>
       <div class={s.fieldLabel}>
         <span>
-          <code>{c.name}{entry.optional ? '?' : ''}</code>
-          {c.description ? <span class={s.fieldHint}> — {c.description}</span> : null}
+          <span class={s.fieldName} title={c.description}>{c.name}</span>
         </span>
         {fromExpression
           ? <span class={s.fieldExpressionBadge}>set by code</span>
@@ -806,6 +907,60 @@ function FieldControl({
         </div>
       )
     }
+    case 'tone': {
+      // Named-tone tabs + a "Custom" tab. Mode is derived from the value:
+      // a value outside `options` (a color literal) means custom. The color
+      // picker only reflects valid hex; a hand-typed `oklch(…)` stays in the
+      // code and shows beside the picker without being overwritten.
+      const v = typeof value === 'string' ? value : undefined
+      const selected = v ?? control.defaultValue
+      const isCustom = v !== undefined && !control.options.includes(v)
+      const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v ?? '') ? (v as string) : '#ff1493'
+      return (
+        <div class={`${s.toneControl} ${cls}`}>
+          <div class={s.segment} role="radiogroup" aria-label={control.name}>
+            {control.options.map((opt) => {
+              const active = !isCustom && selected === opt
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  class={active ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
+                  onClick={() => onChange(opt)}
+                  disabled={disabled}
+                >
+                  {opt}
+                </button>
+              )
+            })}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={isCustom}
+              class={isCustom ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
+              onClick={() => onChange(isCustom ? (v as string) : '#ff1493')}
+              disabled={disabled}
+            >
+              Custom
+            </button>
+          </div>
+          {isCustom && (
+            <div class={s.toneCustomRow}>
+              <input
+                type="color"
+                class={s.toneColor}
+                value={hex}
+                onInput={(e) => onChange((e.currentTarget as HTMLInputElement).value)}
+                disabled={disabled}
+              />
+              <code>{v}</code>
+            </div>
+          )}
+        </div>
+      )
+    }
     case 'documentation':
       // Read-only documentation row — no input, just the type
       // string so the panel doubles as a prop reference.
@@ -875,7 +1030,7 @@ function ExampleAccordion({
               Code tab if they want to change anything. */}
           {example.kind === 'jsx' && controls.length > 0 && (
             <div class={s.form}>
-              {controls.map((entry) => (
+              {visibleControls(controls, example.tagName!, code, { start: example.jsxStart, end: example.jsxEnd }).map((entry) => (
                 <FormField
                   key={entry.control.name}
                   entry={entry}
@@ -901,7 +1056,13 @@ function ExampleAccordion({
 // pipeline still applies anta tokens for typography and colors;
 // removing the body background just lets the host card paint behind.
 const IFRAME_SRCDOC = `<!DOCTYPE html><html class="dark"><head><meta charset="utf-8"><style>
-  html, body { margin: 0; background: transparent; font-family: var(--sans-serif, sans-serif); }
+  /* Pin the Antithesis-sans variable font's slnt / ital axes to 0.
+     Safari leaves variable-font axes at the font file's internal
+     defaults unless they're explicitly set — and our font ships
+     with non-zero defaults — so without this the preview iframe
+     renders italic on Safari only. \`font-style: normal\` is the
+     belt to the variation-settings braces. */
+  html, body { margin: 0; background: transparent; font-family: var(--sans-serif, sans-serif); font-style: normal; font-variation-settings: "slnt" 0, "ital" 0; }
   body { padding: 24px; overflow: auto; box-sizing: border-box; min-height: 100%; }
   /* Preview default layout: a column-flex with 16px gap so multiple
      examples stack vertically with consistent breathing room. The
@@ -1072,7 +1233,7 @@ function installShikiBridge(
   monaco.languages.setTokensProvider = origSet
 }
 
-// Re-define both Shiki themes in Monaco with our `--bg-section`
+// Re-define both Shiki themes in Monaco with our `--bg-canvas`
 // painted over `editor.background` / `editorGutter.background`. The
 // resolved color depends on the current `.dark` class; call this on
 // every dark-mode flip so the theme that becomes active picks up the
@@ -1086,7 +1247,7 @@ function overlayBgOnShikiThemes(
     textmateThemeToMonacoTheme: (t: any) => any
   },
 ) {
-  const bg = resolveCssColorToHex('--bg-section')
+  const bg = resolveCssColorToHex('--bg-canvas')
   if (!bg) return
   for (const themeId of bundle.highlighter.getLoadedThemes()) {
     const tmTheme = bundle.highlighter.getTheme(themeId)

@@ -2,10 +2,12 @@ import type { BaseProps } from "../general_types"
 
 export interface TitleProps extends BaseProps {
   /** Heading level, 1-6. Drives font-size, line-height, and vertical
-   *  rhythm. Also surfaced to assistive tech via `aria-level`. Defaults
-   *  to 2 (h1 is typically reserved for the page title). */
+   *  rhythm. Also surfaced to assistive tech via `aria-level`
+   *  (h1 is typically reserved for the page title).
+   *  @defaultValue 2 */
   level?: 1 | 2 | 3 | 4 | 5 | 6
-  /** Visual priority. Maps to text-1..text-5. Defaults to 'primary' (text-1). */
+  /** Visual priority. Maps to text-1..text-5 (`primary` = text-1).
+   *  @defaultValue primary */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
   tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
@@ -17,7 +19,7 @@ export interface TitleProps extends BaseProps {
  * Renders an `<a-title>` styled tag (no JS, no shadow DOM) with
  * `role="heading"` and `aria-level={level}` set by this wrapper for
  * accessibility. Children can be anything — text, icons, badges, links
- * — so there are no `leadingIcon` / `trailingIcon` props; just compose
+ * — so there are no `icon` / `iconTrailing` props; just compose
  * inside.
  *
  * Raw `<h1>`-`<h6>` get the same visual styling via `src/reset.css`,

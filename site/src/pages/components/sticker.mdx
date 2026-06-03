@@ -19,6 +19,10 @@ motion.
 > elements directly via `setAttribute` instead of using the JSX
 > wrappers — see *Non-React consumers* below.
 
+The full set is also published as a [Telegram sticker pack](https://t.me/addstickers/SnoutyAntithesis).
+
+<StickerDemo client:load />
+
 ## Props
 
 Both flavors share the same base props; the animated flavor adds `paused`.
@@ -39,10 +43,6 @@ Same as the static base, plus:
 | Prop | Type | Description |
 |---|---|---|
 | `paused?` | `boolean \| number` | `true` freezes at the current frame; a number freezes at that time in seconds. Omit (or pass `false`) to play. |
-
-## Built-in stickers
-
-<StickerDemo client:load />
 
 ## Sizing
 

@@ -1,0 +1,568 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Button
+---
+import Playground from '../../components/Playground'
+import Preview from '../../components/Preview.astro'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
+import Columns from '../../components/Columns.astro'
+import Col from '../../components/Col.astro'
+import buttonDemoCode from './button.demo.ts'
+import { Button } from '@antadesign/anta'
+
+# Button
+
+An action control. The `Button` JSX wrapper renders an `<a-button>` web
+component (or `<a role="button">` when `href` is set). Tone, priority,
+size, and state are all plain attributes, so the styling is identical
+whether you use the wrapper or author the element by hand.
+
+Play with it in [playground](#playground).
+
+## Priorities
+
+A button's priority helps control how much attention it draws:
+
+<Columns>
+<Col>
+
+<Preview>
+  <Button tone="brand" priority="primary" label="Publish" />
+  <Button tone="brand" priority="secondary" label="Move" />
+  <Button tone="brand" priority="tertiary" label="Cancel" />
+  <Button tone="brand" priority="quaternary" label="Remind" />
+</Preview>
+
+```tsx
+<Button tone="brand" priority="primary"    label="Publish" />
+<Button tone="brand" priority="secondary"  label="Move" />
+<Button tone="brand" priority="tertiary"   label="Cancel" />
+<Button tone="brand" priority="quaternary" label="Remind" />
+```
+
+</Col>
+<Col>
+
+- `primary` — Saturated fill. Main call to action.
+- `secondary` — Pastel background, no border. Everyday button — the default.
+- `tertiary` — Background-less at rest, fills on hover. Dense toolbars.
+- `quaternary` — Text only — no background, no border, no transitions.
+
+</Col>
+</Columns>
+
+## Tones
+
+Six named tones — `neutral` (default), `brand`, `critical`, `info`,
+`success`, `warning`. In addition, a custom `tone` is possible: pass any
+literal CSS color and the button will adapt to it.
+
+<Columns>
+<Col>
+
+<Preview cols={3}>
+  <Button label="Save" />
+  <Button tone="brand" label="Publish" />
+  <Button tone="critical" label="Delete" />
+  <Button tone="info" label="Preview" />
+  <Button tone="success" label="Approve" />
+  <Button tone="warning" label="Archive" />
+</Preview>
+
+```tsx
+<Button label="Save" />
+<Button tone="brand" label="Publish" />
+<Button tone="critical" label="Delete" />
+<Button tone="info" label="Preview" />
+<Button tone="success" label="Approve" />
+<Button tone="warning" label="Archive" />
+```
+
+</Col>
+<Col>
+
+<Preview cols={3}>
+  <Button priority="primary" tone="#ff1493" label="Pinkify" />
+  <Button priority="secondary" tone="oklch(0.655 0.261 356.9)" label="Pinkify" />
+  <Button priority="tertiary" tone="hsl(328 100% 54%)" label="Pinkify" />
+  <Button priority="primary" tone="mediumaquamarine" label="Mintify" />
+  <Button priority="secondary" tone="rgb(102 205 170)" label="Mintify" />
+  <Button priority="tertiary" tone="lch(75.7% 39.2 167.8)" label="Mintify" />
+</Preview>
+
+```tsx
+<Button priority="primary"   tone="#ff1493"                  label="Pinkify" />
+<Button priority="secondary" tone="oklch(0.655 0.261 356.9)" label="Pinkify" />
+<Button priority="tertiary"  tone="hsl(328 100% 54%)"        label="Pinkify" />
+<Button priority="primary"   tone="mediumaquamarine"         label="Mintify" />
+<Button priority="secondary" tone="rgb(102 205 170)"         label="Mintify" />
+<Button priority="tertiary"  tone="lch(75.7% 39.2 167.8)"    label="Mintify" />
+```
+
+</Col>
+</Columns>
+
+<Columns>
+<Col>
+
+For custom tones, **primary** keeps the source's hue and chroma but pins
+its *lightness* near the Brand primary's, so any input — too light or too
+dark — still lands at a Brand-like fill (hover / active step the lightness,
+and the label keeps the standard primary text color). **Secondary**,
+**tertiary**, and **quaternary** take only its *hue* — lightness, chroma,
+and alpha come from the brand-tone curve (via `oklch()` relative color), so
+pale or low-chroma inputs (`tone="#cccccc"`, `tone="white"`) still produce a
+legible button. The full priority × state matrix — rest, hover, active,
+secondary alpha overlay, tertiary fill — is derived automatically, and
+re-tunes between light and dark.
+
+</Col>
+<Col>
+
+If you need pixel-precise color, set `--button-fg` or `--button-bg`
+yourself — inline via `style`, or from your own class or selector. The
+resolver lives in `@layer anta`, so any un-layered rule of yours wins
+regardless of specificity (and inline beats everything). The same override
+also pins hover and active to that color — it overrides the per-state rules
+too, so there's no state change; to keep distinct states, set the per-state
+variables instead — `--button-bg-{priority}-hover`,
+`--button-bg-{priority}-active`, and the `--button-fg-*` equivalents.
+
+</Col>
+</Columns>
+
+## Sizes
+
+<Columns>
+<Col>
+
+<Preview>
+  <Button size="small" tone="brand" icon="check" />
+  <Button size="small" tone="brand" icon="check" label="Small" />
+  <Button size="small" tone="brand" label="Small" />
+  <Button size="medium" tone="brand" icon="check" />
+  <Button size="medium" tone="brand" icon="check" label="Medium" />
+  <Button size="medium" tone="brand" label="Medium" />
+  <Button size="large" tone="brand" icon="check" />
+  <Button size="large" tone="brand" icon="check" label="Large" />
+  <Button size="large" tone="brand" label="Large" />
+</Preview>
+
+```tsx
+<Button tone="brand" size="small"  label="Small" />
+<Button tone="brand" size="medium" label="Medium" /> // default
+<Button tone="brand" size="large"  label="Large" />
+```
+
+</Col>
+<Col>
+
+Three sizes; only the padding changes, so the label keeps the same 15px
+size — readability stays constant while the hit area grows or shrinks.
+
+Omitting `size` and passing `size="medium"` render identically — the
+wrapper drops the attribute for the medium case so the DOM stays free
+of redundant `size="medium"`.
+
+Height comes from `line-height` (18px) plus vertical padding; font size
+stays 15px across all sizes.
+
+</Col>
+</Columns>
+
+| size | height | `padding-y` | text-edge `padding-x` | icon-edge `padding-x` |
+|---|---|---|---|---|
+| `small` | 24px | 3px | 7px | 5px |
+| `medium` (default) | 28px | 5px | 9px | 7px |
+| `large` | 32px | 7px | 13px | 11px |
+
+<Columns>
+<Col>
+
+The **icon-edge** padding is the text-edge value minus 2px — an icon at
+an edge needs less breathing room than a glyph — so only the side a
+(leading or trailing) icon occupies is trimmed; the text side keeps the
+full padding. The gap between an icon and the label is `0.5ch` at every
+size.
+
+Need a different font size? Style the `<a-button-label>` directly — set
+its `font-size` and `line-height`, and (if the text then sits a little
+high) drop the 1px `padding-bottom` that optically centers Anta's
+default font.
+
+</Col>
+<Col>
+
+By default a button packs its content to the start, so when buttons share
+a width — a vertical menu, equal grid cells — their labels line up on a
+common left edge, which usually reads best in a list.
+
+To center the label inside a wider button instead, set
+`justify-content: center` on it (the tones grid above does exactly this).
+
+</Col>
+</Columns>
+
+### Paddingless
+
+<Columns>
+<Col>
+
+{/* Keep the prose + button on one source line — MDX's remark pass
+     promotes any text-only line inside JSX to its own `<p>`, which
+     would split the button out of the surrounding paragraph and
+     break inline flow. */}
+<Preview>
+  <p style={{ maxWidth: '480px', margin: 0, lineHeight: 1.6 }}>If you're familiar with the basics, click <Button tone="critical" priority="quaternary" paddingless label="here" /> to skip the live demo.</p>
+</Preview>
+
+```tsx
+If you're familiar with the basics, click
+<Button tone="critical" priority="quaternary" paddingless label="here" />
+to skip ahead to the live demo.
+```
+
+</Col>
+<Col>
+
+Only valid on `priority="quaternary"`. Zeros the outer padding so the
+button sits flush with surrounding prose — useful when you want a
+button to read as an inline link inside a sentence.
+
+</Col>
+</Columns>
+
+## Icons
+
+<Columns>
+<Col>
+
+The wrapper renders content in this order inside the button: `icon` →
+`label` → `children` → `iconTrailing`.
+
+Icon shape names come from the `IconShape` union — see the
+[Icon](/components/icon) page for the full set.
+
+`children` (if any) lands between `label` and `iconTrailing`.
+
+</Col>
+<Col>
+
+<Preview>
+  <Button tone="brand" priority="primary" icon="check" label="Confirm" />
+  <Button tone="brand" iconTrailing="external-link" label="Read the docs" />
+  <Button tone="brand" priority="tertiary" icon="filter" iconTrailing="chevron-down" label="Filter" />
+</Preview>
+
+```tsx
+<Button tone="brand" priority="primary" icon="check" label="Confirm" />
+<Button tone="brand" iconTrailing="external-link" label="Read the docs" />
+<Button tone="brand" priority="tertiary" icon="filter" iconTrailing="chevron-down" label="Filter" />
+```
+
+</Col>
+</Columns>
+
+### Icon-only
+
+<Columns>
+<Col>
+
+<Preview>
+  <Button tone="neutral" icon="dots-vertical" size="small" />
+  <Button tone="critical" icon="trash" />
+  <Button tone="brand" icon="check" size="large" />
+</Preview>
+
+```tsx
+<Button tone="neutral"  icon="dots-vertical" size="small" />
+<Button tone="critical" icon="trash" />
+<Button tone="brand"    icon="check"          size="large" />
+```
+
+</Col>
+<Col>
+
+Pass `icon` alone — no `label`, no `iconTrailing`, no `children` — and
+the button collapses to a square. A min-size is pinned to a square
+matching the labeled-button height (24px / 28px / 32px for small /
+medium / large) so icon-only and labeled buttons line up, and a tight
+flex parent can't clip the icon.
+
+Icon-only buttons get an accessible name automatically — the wrapper
+sets `aria-label={icon}` so `<Button icon="trash" />` ships with the
+name "trash". Pass your own `aria-label` to override.
+
+</Col>
+</Columns>
+
+### Children alongside label & icon
+
+<Columns>
+<Col>
+
+Children render after the label and before the trailing icon, so you
+can mix custom inline content — keyboard hints, badges, counters —
+with the prop-driven API.
+
+Children also work without `label` — pass them as the only content.
+
+</Col>
+<Col>
+
+<Preview>
+  <Button tone="brand" label="Save" icon="check">
+    <span style={{ opacity: 0.7 }}>⌘S</span>
+  </Button>
+</Preview>
+
+```tsx
+<Button tone="brand" label="Save" icon="check">
+  <span style={{ opacity: 0.7 }}>⌘S</span>
+</Button>
+```
+
+</Col>
+</Columns>
+
+## Underline
+
+<Columns>
+<Col>
+
+<Preview>
+  <Button tone="brand" priority="tertiary" underline="solid" label="Solid" />
+  <Button tone="brand" priority="tertiary" underline="dashed" label="Dashed" />
+  <Button tone="brand" priority="tertiary" underline="dotted" label="Dotted" />
+</Preview>
+
+```tsx
+<Button tone="brand" priority="tertiary" underline="solid"  label="Solid" />
+<Button tone="brand" priority="tertiary" underline="dashed" label="Dashed" />
+<Button tone="brand" priority="tertiary" underline="dotted" label="Dotted" />
+```
+
+</Col>
+<Col>
+
+When the button has a [link mode](#link-mode), or you simply want an
+underline stylistically, it supports three styles — `solid`, `dashed`,
+`dotted` (only valid on `priority="tertiary"` / `"quaternary"`).
+
+</Col>
+</Columns>
+
+## States
+
+<Columns>
+<Col>
+
+<Preview>
+  <Button tone="brand" loading label="Submitting" />
+  <Button tone="brand" disabled label="Locked" />
+  <Button tone="brand" selected label="Toggled on" />
+  <Button tone="brand" loading disabled label="Critical" />
+</Preview>
+
+```tsx
+<Button tone="brand" loading label="Submitting" />
+<Button tone="brand" disabled label="Locked" />
+<Button tone="brand" selected label="Toggled on" />
+<Button tone="brand" loading disabled label="Critical" />
+```
+
+</Col>
+<Col>
+
+- **`loading`** — diagonal stripe overlay slides across the button.
+  Stripe color follows `currentColor`, so it tracks the tone. Blocks
+  clicks via `pointer-events: none`.
+- **`disabled`** — locks the colors to the disabled palette, sets
+  `pointer-events: none`, and removes the button from the tab order.
+  Beats inline `--button-bg` overrides.
+- **`selected`** — toggled-on / pressed visual; shares the active
+  state's look. Useful for filter chips and icon toggles.
+
+</Col>
+</Columns>
+
+## Link mode
+
+<Columns>
+<Col>
+
+<Preview>
+  <Button tone="brand" href="#" label="Read the docs" iconTrailing="external-link" />
+</Preview>
+
+```tsx
+<Button tone="brand" href="/docs" target="_blank" label="Read the docs" />
+```
+
+</Col>
+<Col>
+
+Setting `href` switches the rendered tag from `<a-button>` to
+`<a role="button">`. Styling is identical — both selectors share the
+same CSS rules.
+
+</Col>
+</Columns>
+
+<Disclosure title="Linking with routing libraries" level={3}>
+
+Anta's CSS targets `a-button, a[role="button"]` — an anchor (`<a>`) with
+`role="button"` and the right attributes gets the styling. That means anta doesn't
+need an `as` / `asChild` / `component` prop or per-framework integrations.
+Compose your own thin wrapper around
+your library's `Link` component — which renders an `<a>`, so it matches the
+selector.
+
+```tsx
+// LinkButton.tsx — anta-styled link for client-side routing
+import { Link, type LinkProps } from 'react-router-dom'
+import type { IconShape } from '@antadesign/anta'
+
+type LinkButtonProps = LinkProps & {
+  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning'
+  priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary'
+  size?: 'small' | 'medium' | 'large'
+  icon?: IconShape
+  iconTrailing?: IconShape
+  label?: string
+}
+
+export const LinkButton = ({
+  tone, priority, size, icon, iconTrailing, label, children, ...rest
+}: LinkButtonProps) => (
+  <Link role="button" tone={tone} priority={priority} size={size} {...rest}>
+    {icon && <a-icon shape={icon} aria-hidden="true" />}
+    {label != null && <a-button-label>{label}</a-button-label>}
+    {children}
+    {iconTrailing && <a-icon shape={iconTrailing} aria-hidden="true" />}
+  </Link>
+)
+```
+
+Usage:
+
+```tsx
+<LinkButton to="/dashboard" tone="brand" label="Dashboard" />
+<LinkButton to="/docs" priority="tertiary" iconTrailing="external-link" label="Docs" />
+```
+
+This approach would work for Next.js `<Link>`, TanStack Router, or any
+other routing library.
+
+</Disclosure>
+
+## Special events
+
+Beyond a plain click, a `Button` can drive a native form or emit your own
+event:
+
+### Form submission
+
+For non-anchor buttons, `type="submit"` and `type="reset"` integrate
+with native forms:
+
+<Columns>
+<Col>
+
+<Preview>
+  {/* `action="javascript:void(0)"` keeps the live demo from navigating
+       on submit; in real code you'd give the form a real action or
+       intercept via JS. */}
+  <form id="signup-demo" action="javascript:void(0)" style={{ display: 'flex', gap: '8px' }}>
+    <Button tone="brand" type="submit" label="Sign up" />
+    <Button tone="brand" priority="tertiary" type="reset" label="Clear" />
+  </form>
+  <Button tone="neutral" type="submit" form="signup-demo" label="Submit from outside" />
+</Preview>
+
+```tsx
+<form id="signup">
+  <Button tone="brand" type="submit" label="Sign up" />
+  <Button tone="brand" priority="tertiary" type="reset" label="Clear" />
+</form>
+{/* Associate with a form by id when the button is outside */}
+<Button tone="neutral" type="submit" form="signup" label="Submit from outside" />
+```
+
+</Col>
+<Col>
+
+`type="submit"` calls `form.requestSubmit()` and also dispatches a
+`submitdetailed` event on the form with `{ formData, submitter: { tag, attrs } }`
+in `detail` — handy for analytics or multi-button forms.
+
+</Col>
+</Columns>
+
+### Custom click events
+
+<Columns>
+<Col>
+
+`data-custom-event="<name>"` makes the button dispatch a bubbling
+`CustomEvent("<name>")` on click. Use it to instrument analytics
+without taking ownership of `onClick`.
+
+</Col>
+<Col>
+
+<Preview>
+  <Button tone="brand" label="Save" data-custom-event="save-clicked" />
+</Preview>
+
+```tsx
+<Button tone="brand" label="Save" data-custom-event="save-clicked" />
+```
+
+</Col>
+</Columns>
+
+<Disclosure title="Playground">
+
+<Playground
+  client:visible
+  component="Button"
+  layout="side"
+  panelHeight={400}
+  initialCode={buttonDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: center; justify-content: center; }`}
+/>
+
+</Disclosure>
+
+<Disclosure title="Component props">
+
+<PropsTable component="Button" />
+
+</Disclosure>
+
+<Disclosure title="Component tokens">
+
+Override any of these on a single instance
+(`style={{ '--button-padding-x': '12px' }}`) or on a selector wrapping
+the button (e.g. a tone or variant of your own). Color tokens are
+dual-declared `hex; oklch`; alpha fills use `color-mix(in oklch, …)`
+with a hex8 fallback first.
+
+| Token | Description |
+|---|---|
+| `--button-fg` | Text and icon color. Resolved per tone × priority × state. |
+| `--button-bg` | Background fill. |
+| `--button-focus` | Focus-ring outline color. |
+| `--button-padding-x`<br />`--button-padding-y` | Inner spacing. |
+| `--button-timing-in`<br />`--button-timing-out`<br />`--button-timing-active` | Per-state transitions — hover-in `75ms ease-in`, return-to-rest `150ms ease-out`, press `50ms linear`. Quaternary zeroes all three. |
+| `--button-loading-duration` | One slide cycle for the loading stripe (default `1s`). |
+| `--button-loading-angle` | Stripe angle (default `125deg`). |
+| `--button-loading-period` | Stripe + gap along the gradient axis (default `30px`). |
+| `--button-loading-stripe`<br />`--button-loading-stripe-gap` | Stripe geometry (default `14px` / `16px`). |
+| `--button-loading-opacity` | Overlay opacity (default `0.25`). |
+| `--button-loading-blur` | Stripe-edge softening (default `2.5px`). |
+
+</Disclosure>

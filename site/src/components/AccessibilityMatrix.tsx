@@ -5,7 +5,7 @@ type Tone = 'neutral' | 'brand' | 'info' | 'success' | 'critical' | 'warning'
 type Mode = 'light' | 'dark'
 
 // ─── Color resolution ─────────────────────────────────────────────────────
-// One shared canvas resolves any CSS color (hex, hex+alpha, oklch, color-mix)
+// One shared canvas resolves any CSS color (hex, hex+alpha, color-mix)
 // to its sRGB pixel value. Compositing text-over-bg is a 2-step paint:
 // fill bg, then fill text on top, then read back the final pixel — alpha is
 // handled natively by the canvas, which is exactly what we want for
@@ -117,99 +117,75 @@ function apcaMin(sizePx: number, weight: Weight): number {
   return bold ? 90 : 100
 }
 
-// ─── Token data — borrowed from Swatches' TOKENS by tone ──────────────────
-// We re-declare a minimal subset (just the bg/text rows we need) so this
-// component stays self-contained.
-const BG_SECTION = { name: 'bg-section', light: '#ffffff', dark: '#171519' } as const
+// ─── Token data — resolved live from tokens.css ───────────────────────────
+// We only declare the token *names* per tone here; the actual light/dark
+// color values are read at runtime from the real CSS custom properties (see
+// `resolveTokens`). This keeps the matrix in lockstep with `src/tokens.css`
+// — change a token there and the table recomputes, no hand-syncing.
+type TokenRow = { name: string; light: string; dark: string }
 
-const BG: Record<Tone, { name: string; light: string; dark: string }[]> = {
-  neutral: [
-    { name: 'bg-base',    light: '#fbfafb', dark: '#100e11' },
-    BG_SECTION,
-    { name: 'bg-pane',    light: '#f6f4f6', dark: '#1d1a1e' },
-    { name: 'bg-block',   light: '#f1eff1', dark: '#272329' },
-    { name: 'bg-spot',    light: '#ece9ec', dark: '#302b31' },
-  ],
-  brand: [
-    { name: 'bg-base-brand',  light: '#fcfcfe', dark: '#0f0c1d' },
-    BG_SECTION,
-    { name: 'bg-pane-brand',  light: '#f7f6fd', dark: '#16122b' },
-    { name: 'bg-block-brand', light: '#efeefc', dark: '#1c1736' },
-    { name: 'bg-spot-brand',  light: '#e9e5fa', dark: '#201b3e' },
-  ],
-  info: [
-    { name: 'bg-base-info',  light: '#fbfcfe', dark: '#04111f' },
-    BG_SECTION,
-    { name: 'bg-pane-info',  light: '#f2f7fd', dark: '#071b2c' },
-    { name: 'bg-block-info', light: '#e9f3fb', dark: '#092034' },
-    { name: 'bg-spot-info',  light: '#e1eefa', dark: '#0d273e' },
-  ],
-  success: [
-    { name: 'bg-base-success',  light: '#f7fcf9', dark: '#05140a' },
-    BG_SECTION,
-    { name: 'bg-pane-success',  light: '#ecf9f0', dark: '#081f0f' },
-    { name: 'bg-block-success', light: '#e2f5e8', dark: '#0c2814' },
-    { name: 'bg-spot-success',  light: '#d9f2e0', dark: '#0d2b16' },
-  ],
-  critical: [
-    { name: 'bg-base-critical',  light: '#fefbfb', dark: '#1f0506' },
-    BG_SECTION,
-    { name: 'bg-pane-critical',  light: '#fdf2f2', dark: '#33090a' },
-    { name: 'bg-block-critical', light: '#fcebeb', dark: '#400d0e' },
-    { name: 'bg-spot-critical',  light: '#fae5e5', dark: '#471011' },
-  ],
-  warning: [
-    { name: 'bg-base-warning',  light: '#fefbf6', dark: '#160d04' },
-    BG_SECTION,
-    { name: 'bg-pane-warning',  light: '#fcf4e8', dark: '#241506' },
-    { name: 'bg-block-warning', light: '#fbeeda', dark: '#2b1908' },
-    { name: 'bg-spot-warning',  light: '#f9e7cd', dark: '#311d0a' },
-  ],
+// Numeric background scale: bg-1 (deepest, neutral-only) … bg-5 (most raised).
+// Tinted tones have no bg-1 variant, so they lead with the shared neutral bg-1.
+const BG_NAMES: Record<Tone, string[]> = {
+  neutral:  ['bg-1', 'bg-2',          'bg-3',          'bg-4',          'bg-5'],
+  brand:    ['bg-1', 'bg-2-brand',    'bg-3-brand',    'bg-4-brand',    'bg-5-brand'],
+  info:     ['bg-1', 'bg-2-info',     'bg-3-info',     'bg-4-info',     'bg-5-info'],
+  success:  ['bg-1', 'bg-2-success',  'bg-3-success',  'bg-4-success',  'bg-5-success'],
+  critical: ['bg-1', 'bg-2-critical', 'bg-3-critical', 'bg-4-critical', 'bg-5-critical'],
+  warning:  ['bg-1', 'bg-2-warning',  'bg-3-warning',  'bg-4-warning',  'bg-5-warning'],
 }
 
-const TEXT: Record<Tone, { name: string; light: string; dark: string }[]> = {
-  neutral: [
-    { name: 'text-1', light: '#050306', dark: '#ece9ec' },
-    { name: 'text-2', light: '#302b31', dark: '#c1b9c1' },
-    { name: 'text-3', light: '#635b65', dark: '#9f99a1' },
-    { name: 'text-4', light: '#878089', dark: '#776e77' },
-    { name: 'text-5', light: '#9f99a1', dark: '#635b65' },
-  ],
-  brand: [
-    { name: 'text-1-brand', light: '#2e1e7b',   dark: '#c5baff'   },
-    { name: 'text-2-brand', light: '#483493',   dark: '#ada0ee'   },
-    { name: 'text-3-brand', light: '#483493cc', dark: '#ada0eecc' },
-    { name: 'text-4-brand', light: '#48349399', dark: '#ada0ee99' },
-    { name: 'text-5-brand', light: '#48349366', dark: '#ada0ee66' },
-  ],
-  info: [
-    { name: 'text-1-info', light: '#003969',   dark: '#9ed2ff'   },
-    { name: 'text-2-info', light: '#1c3ba0',   dark: '#7ebaf2'   },
-    { name: 'text-3-info', light: '#1c3ba0cc', dark: '#7ebaf2cc' },
-    { name: 'text-4-info', light: '#1c3ba099', dark: '#7ebaf299' },
-    { name: 'text-5-info', light: '#1c3ba066', dark: '#7ebaf266' },
-  ],
-  success: [
-    { name: 'text-1-success', light: '#0a3a14',   dark: '#bbe9c7'   },
-    { name: 'text-2-success', light: '#15512c',   dark: '#9bd6ad'   },
-    { name: 'text-3-success', light: '#15512ccc', dark: '#9bd6adcc' },
-    { name: 'text-4-success', light: '#15512c99', dark: '#9bd6ad99' },
-    { name: 'text-5-success', light: '#15512c66', dark: '#9bd6ad66' },
-  ],
-  critical: [
-    { name: 'text-1-critical', light: '#5e0a0a',   dark: '#ffc8ca'   },
-    { name: 'text-2-critical', light: '#841115',   dark: '#f29ba0'   },
-    { name: 'text-3-critical', light: '#841115cc', dark: '#f29ba0cc' },
-    { name: 'text-4-critical', light: '#84111599', dark: '#f29ba099' },
-    { name: 'text-5-critical', light: '#84111566', dark: '#f29ba066' },
-  ],
-  warning: [
-    { name: 'text-1-warning', light: '#451f00',   dark: '#ffd699'   },
-    { name: 'text-2-warning', light: '#693109',   dark: '#f0bb73'   },
-    { name: 'text-3-warning', light: '#693109cc', dark: '#f0bb73cc' },
-    { name: 'text-4-warning', light: '#69310999', dark: '#f0bb7399' },
-    { name: 'text-5-warning', light: '#69310966', dark: '#f0bb7366' },
-  ],
+const TEXT_NAMES: Record<Tone, string[]> = {
+  neutral:  ['text-1',          'text-2',          'text-3',          'text-4',          'text-5'],
+  brand:    ['text-1-brand',    'text-2-brand',    'text-3-brand',    'text-4-brand',    'text-5-brand'],
+  info:     ['text-1-info',     'text-2-info',     'text-3-info',     'text-4-info',     'text-5-info'],
+  success:  ['text-1-success',  'text-2-success',  'text-3-success',  'text-4-success',  'text-5-success'],
+  critical: ['text-1-critical', 'text-2-critical', 'text-3-critical', 'text-4-critical', 'text-5-critical'],
+  warning:  ['text-1-warning',  'text-2-warning',  'text-3-warning',  'text-4-warning',  'text-5-warning'],
+}
+
+// Resolve a set of `--token` names to concrete sRGB strings, in BOTH themes,
+// regardless of the page's current theme. tokens.css scopes light values to
+// `:root, .light` and dark values to `.dark`, so we read each name off two
+// offscreen probes — one under `.light`, one under `.dark`. Assigning the
+// token to `color` and reading it back via getComputedStyle evaluates the
+// hsl()/hex/alpha into an `rgb()`/`rgba()` string the contrast canvas paints
+// directly. Tokens are static CSS, so this runs once on mount.
+function resolveTokens(names: readonly string[]): TokenRow[] {
+  const makeProbe = (cls: string) => {
+    const host = document.createElement('div')
+    host.className = cls
+    host.style.cssText = 'position:absolute;left:-9999px;top:-9999px;pointer-events:none;visibility:hidden'
+    const probe = document.createElement('span')
+    host.appendChild(probe)
+    document.body.appendChild(host)
+    return { host, probe }
+  }
+  const light = makeProbe('light')
+  const dark = makeProbe('dark')
+  const read = (probe: HTMLElement, name: string) => {
+    probe.style.color = `var(--${name})`
+    return getComputedStyle(probe).color
+  }
+  const rows = names.map((name) => ({
+    name,
+    light: read(light.probe, name),
+    dark: read(dark.probe, name),
+  }))
+  light.host.remove()
+  dark.host.remove()
+  return rows
+}
+
+function mapTones(source: Record<Tone, string[]>): Record<Tone, TokenRow[]> {
+  return {
+    neutral:  resolveTokens(source.neutral),
+    brand:    resolveTokens(source.brand),
+    info:     resolveTokens(source.info),
+    success:  resolveTokens(source.success),
+    critical: resolveTokens(source.critical),
+    warning:  resolveTokens(source.warning),
+  }
 }
 
 const SIZES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20] as const
@@ -307,7 +283,7 @@ function buildSampleShadow(condition: Condition, dark: boolean): string {
   // with a slight vertical eye-misalignment. 50 % alpha keeps the
   // ghost secondary so the primary glyph is still the dominant read.
   if (condition === 'diplopia') {
-    return '30px -5px 0 color-mix(in oklch, currentColor 50%, transparent)'
+    return '30px -5px 0 color-mix(in srgb, currentColor 50%, transparent)'
   }
   // Photophobia, dark mode only: light glyph halates outward in its
   // own bright color. In light mode the visual is carried by the
@@ -325,16 +301,17 @@ function buildCellDynamicRange(condition: Condition, dark: boolean): string {
 }
 // Photophobia HDR overlay — light mode only. Each bg tier has its
 // own HDR PNG at a tuned PQ peak (generated by
-// `site/scripts/generate-hdr-white.mjs`): `bg-section` at 10 000
-// nits down to `bg-spot` at 150 nits. In dark mode the wash would
-// dominate; that mode uses brightness + text glow instead.
+// `site/scripts/generate-hdr-white.mjs`): bg-1 at 10 000 nits down to
+// bg-5 at 150 nits. In dark mode the wash would dominate; that mode
+// uses brightness + text glow instead. (PNG filenames keep the old
+// tier names: 1=section, 2=base, 3=pane, 4=block, 5=spot.)
 function cellGlowUrl(bgName: string, condition: Condition, dark: boolean): string {
   if (condition !== 'light-sensitivity' || dark) return 'none'
-  if (bgName.startsWith('bg-section')) return 'url("/hdr-white-section.png")'
-  if (bgName.startsWith('bg-base'))    return 'url("/hdr-white-base.png")'
-  if (bgName.startsWith('bg-pane'))    return 'url("/hdr-white-pane.png")'
-  if (bgName.startsWith('bg-block'))   return 'url("/hdr-white-block.png")'
-  if (bgName.startsWith('bg-spot'))    return 'url("/hdr-white-spot.png")'
+  if (bgName.startsWith('bg-1')) return 'url("/hdr-white-section.png")'
+  if (bgName.startsWith('bg-2')) return 'url("/hdr-white-base.png")'
+  if (bgName.startsWith('bg-3')) return 'url("/hdr-white-pane.png")'
+  if (bgName.startsWith('bg-4')) return 'url("/hdr-white-block.png")'
+  if (bgName.startsWith('bg-5')) return 'url("/hdr-white-spot.png")'
   return 'none'
 }
 
@@ -623,10 +600,16 @@ function writeUrlState(state: State) {
 
 export default function AccessibilityMatrix() {
   // Gate the whole island behind a hydration flag — the cells reach for
-  // a `<canvas>` during render to resolve oklch/alpha colors to sRGB,
+  // a `<canvas>` during render to resolve alpha-mixed colors to sRGB,
   // and that's not available during SSR.
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
+
+  // Resolve token colors from live CSS once, after mount (needs the DOM).
+  const [resolved, setResolved] = useState<{ BG: Record<Tone, TokenRow[]>; TEXT: Record<Tone, TokenRow[]> } | null>(null)
+  useEffect(() => {
+    setResolved({ BG: mapTones(BG_NAMES), TEXT: mapTones(TEXT_NAMES) })
+  }, [])
 
   const dark = useDarkObserver()
   const mode: Mode = dark ? 'dark' : 'light'
@@ -659,10 +642,10 @@ export default function AccessibilityMatrix() {
   const sampleShadow = buildSampleShadow(condition, dark)
   const sampleFilter = buildSampleFilter(condition, dark)
 
-  const bgs = BG[tone]
-  const texts = TEXT[tone]
+  if (!mounted || !resolved) return null
 
-  if (!mounted) return null
+  const bgs = resolved.BG[tone]
+  const texts = resolved.TEXT[tone]
 
   return (
     <section class={s.block}>

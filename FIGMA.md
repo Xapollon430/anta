@@ -69,14 +69,15 @@ A "Light" / "Dark" pair on the dynamic collection has its own mode IDs (e.g. `1:
 
 ### 4. Naming convention in code
 
-- Strip the category folder from the Figma name: `background/bg-base` → `--bg-base`, `text/text-2-brand` → `--text-2-brand`, `border/border-3-info` → `--border-3-info`.
+- Strip the category folder from the Figma name: `text/text-2-brand` → `--text-2-brand`, `border/border-3-info` → `--border-3-info`.
+- **Backgrounds are an exception**: the Figma library still names them `bg-base`/`bg-section`/`bg-pane`/`bg-block`/`bg-spot`, but in code they ship as a numeric elevation scale `--bg-1 … --bg-5` (`bg-section`→`--bg-1`, `bg-base`→`--bg-2`, `bg-pane`→`--bg-3`, `bg-block`→`--bg-4`, `bg-spot`→`--bg-5`; tinted `bg-base-info`→`--bg-2-info`, etc.). Map the Figma name to its number when extracting.
 - Light values go on `:root`, dark values go on `.dark` (matching Anta's existing `.dark` ancestor convention — see `src/elements/a-progress.css`).
 
 ### 5. Token naming categories present
 
 Confirmed via the dump on 2026-05-01:
 
-- **Backgrounds**: `bg-base`, `bg-pane`, `bg-block`, `bg-spot`, `bg-section` — each (except `bg-section`) has tones `-brand`, `-warning`, `-critical`, `-info`, `-success`. `bg-section` is neutral-only.
+- **Backgrounds** (Figma names; code numbers them `--bg-1…5` — see §4): `bg-section`(→1), `bg-base`(→2), `bg-pane`(→3), `bg-block`(→4), `bg-spot`(→5) — each (except `bg-section`/`--bg-1`) has tones `-brand`, `-warning`, `-critical`, `-info`, `-success`. `bg-section`/`--bg-1` is neutral-only.
 - **Texts**: `text-1` through `text-5`, plus `text-white`. Each numbered token has tones `-brand`, `-success`, `-warning`, `-critical`, `-info`. `text-white` is mode-invariant.
 - **Borders**: `border-1` through `border-5`. Each has tones `-brand`, `-warning`, `-critical`, `-info`, `-success`.
 - Tone naming: `-critical` (not `-error`), `-warning` (not `-allert`). Component variant labels in Figma use `tone=error` / `tone=allert`, which **map to** `-critical` / `-warning` in the variable names.

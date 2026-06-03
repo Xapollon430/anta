@@ -7,10 +7,26 @@ interface Props {
 }
 
 const { component } = Astro.props
-
-// Find the component's props interface (e.g., "Progress" → "ProgressProps")
 const propsName = `${component}Props`
-const iface = (api as any).children?.find((c: any) => c.name === propsName)
+
+// id → node index so `reference` types (e.g. ButtonProps → BaseButtonProps)
+// can be resolved to their declarations.
+const byId = new Map<number, any>()
+;(function index(n: any) {
+  if (typeof n?.id === 'number') byId.set(n.id, n)
+  ;(n?.children ?? []).forEach(index)
+})(api as any)
+
+const root = (api as any).children?.find((c: any) => c.name === propsName)
+
+// A union member is a *value* (string / number / boolean literal) → render
+// it as a copyable code pill. Everything else (type keywords like `string`,
+// `boolean`, `number`, and named types like `IconShape`) is a *type* →
+// render as plain tertiary-coloured monospace text, no pill.
+function isLiteralValue(part: string): boolean {
+  const s = part.trim()
+  return /^'.*'$/.test(s) || /^-?\d+(\.\d+)?$/.test(s) || s === 'true' || s === 'false'
+}
 
 function renderType(type: any): string {
   if (!type) return '—'
@@ -21,14 +37,28 @@ function renderType(type: any): string {
       return typeof type.value === 'string' ? `'${type.value}'` : String(type.value)
     case 'union':
       return type.types.map(renderType).join(' | ')
+    case 'intersection': {
+      // `(string & {})` — the "string but keep literal autocomplete"
+      // idiom — collapses to plain `string`.
+      const parts = type.types.map(renderType)
+      if (parts.includes('string')) return 'string'
+      return parts.filter((p: string) => p !== '—').join(' & ') || '—'
+    }
     case 'reference':
-      if (type.name) return type.name
-      return '—'
+      return type.name || '—'
     case 'array':
       return `${renderType(type.elementType)}[]`
+    case 'reflection': {
+      // Function type → render its first signature, e.g. `(e) => void`.
+      const sig = type.declaration?.signatures?.[0]
+      if (sig) {
+        const params = (sig.parameters ?? []).map((p: any) => p.name).join(', ')
+        return `(${params}) => ${renderType(sig.type)}`
+      }
+      return '—'
+    }
     case 'typeOperator':
-      // Surface known canonical aliases by name rather than inlining.
-      // The IconShape type is `keyof IconShapes` — show it as `IconShape`.
+      // The IconShape type is `keyof IconShapes` — show it by its alias.
       if (type.operator === 'keyof' && type.target?.name === 'IconShapes') {
         return 'IconShape'
       }
@@ -38,29 +68,129 @@ function renderType(type: any): string {
   }
 }
 
-// TypeDoc splits a JSDoc summary into parts (`text` prose + `code`
-// spans whose `text` keeps its backticks), so joining the raw `text`
-// of every part reconstructs the original markdown source. Render it
-// as inline markdown (no wrapping <p>) so `` `code` ``, **bold**,
-// links, etc. in prop descriptions display formatted in the table.
+// Reconstruct inline markdown from TypeDoc's comment-summary parts
+// (`text` prose + `code` spans keep their backticks) and render it so
+// `` `code` ``, **bold**, links, etc. format in the table.
 function renderDescription(comment: any): string {
   if (!comment?.summary) return ''
   const md = comment.summary.map((part: any) => part.text).join('')
   return marked.parseInline(md) as string
 }
 
-const props = iface?.children
-  ?.filter((p: any) => !p.inheritedFrom)
-  ?.sort((a: any, b: any) => {
-    // Required props first, then alphabetical
-    const aOpt = a.flags?.isOptional ? 1 : 0
-    const bOpt = b.flags?.isOptional ? 1 : 0
-    if (aOpt !== bOpt) return aOpt - bOpt
-    return a.name.localeCompare(b.name)
-  }) ?? []
+// The default value is the prop's `@defaultValue` / `@default` tag — the
+// single source of truth, also read by the playground's props form.
+// TypeDoc wraps the tag body in a ```fence```; strip it to the bare value.
+function readDefault(comment: any): string {
+  const tags = comment?.blockTags
+  if (!Array.isArray(tags)) return ''
+  for (const tag of tags) {
+    if (tag.tag !== '@defaultValue' && tag.tag !== '@default') continue
+    const raw = (tag.content ?? []).map((p: any) => p.text ?? '').join('').trim()
+    if (!raw) continue
+    return raw
+      .replace(/^```[a-zA-Z]*\s*\n?/, '')
+      .replace(/\n?```$/, '')
+      .replace(/^`|`$/g, '')
+      .trim()
+  }
+  return ''
+}
 
-const inherited = iface?.children
-  ?.filter((p: any) => p.inheritedFrom) ?? []
+// Flatten a props declaration into a deduped list, following type-alias
+// intersections (`ButtonProps = A & B & …`), the branches of any union
+// member (the discriminated `PriorityMode` / `SubmitMode`), and
+// references to other declarations. Props from `BaseProps` are tagged
+// `fromBase` so they render in the collapsed "inherited" section.
+//
+// Duplicate names (a prop that appears in several union branches, e.g.
+// `priority`) merge: their rendered types union together, the prop is
+// optional if optional in any branch, and the richest comment wins.
+const EXCLUDED = new Set(['key', 'ref'])
+
+function isNever(t: any) {
+  return t?.type === 'intrinsic' && t.name === 'never'
+}
+
+function hasDoc(comment: any) {
+  return !!(comment?.summary?.length || comment?.blockTags?.length)
+}
+
+function mergeTypes(a: string, b: string): string {
+  const parts = [...a.split(' | '), ...b.split(' | ')]
+    .map((s) => s.trim())
+    .filter(Boolean)
+  return [...new Set(parts)].join(' | ')
+}
+
+function collect(decl: any) {
+  const out = new Map<string, any>()
+  const seen = new Set<any>()
+
+  // `fromUnion` = the prop lives inside a discriminated-union branch, so
+  // it's conditional and reads as optional even if its branch declares it
+  // required (e.g. `href` in the anchor branch of SubmitMode).
+  function addProp(c: any, fromBase: boolean, fromUnion: boolean) {
+    if (!c?.name || EXCLUDED.has(c.name)) return
+    if (c.kind !== 1024) return // properties only
+    if (isNever(c.type)) return // union-branch exclusions (`type?: never`)
+    const base = fromBase || !!c.inheritedFrom
+    const optional = !!c.flags?.isOptional || fromUnion
+    const type = renderType(c.type)
+    const existing = out.get(c.name)
+    if (!existing) {
+      out.set(c.name, { name: c.name, type, optional, comment: c.comment, fromBase: base })
+      return
+    }
+    existing.type = mergeTypes(existing.type, type)
+    existing.optional = existing.optional || optional
+    if (!hasDoc(existing.comment) && hasDoc(c.comment)) existing.comment = c.comment
+    existing.fromBase = existing.fromBase && base
+  }
+
+  function visitDecl(node: any, fromBase: boolean, fromUnion: boolean) {
+    if (!node || seen.has(node)) return
+    seen.add(node)
+    // Interfaces carry inherited members in `children` already; object
+    // type aliases (BaseButtonProps) carry their props there too.
+    if (Array.isArray(node.children)) node.children.forEach((c: any) => addProp(c, fromBase, fromUnion))
+    // Type aliases (intersections, unions) carry the shape in `type`.
+    if (node.type) visitType(node.type, fromBase, fromUnion)
+  }
+
+  function visitType(t: any, fromBase: boolean, fromUnion: boolean) {
+    if (!t) return
+    if (t.type === 'intersection') {
+      t.types.forEach((m: any) => visitType(m, fromBase, fromUnion))
+      return
+    }
+    if (t.type === 'union') {
+      t.types.forEach((m: any) => visitType(m, fromBase, true))
+      return
+    }
+    if (t.type === 'reference') {
+      const target = typeof t.target === 'number' ? byId.get(t.target) : null
+      visitDecl(target, fromBase || t.name === 'BaseProps', fromUnion)
+      return
+    }
+    if (t.type === 'reflection') {
+      ;(t.declaration?.children ?? []).forEach((c: any) => addProp(c, fromBase, fromUnion))
+    }
+  }
+
+  visitDecl(decl, false, false)
+  return [...out.values()]
+}
+
+const all = root ? collect(root) : []
+const props = all
+  .filter((p) => !p.fromBase)
+  .sort((a, b) => {
+    const aOpt = a.optional ? 1 : 0
+    const bOpt = b.optional ? 1 : 0
+    if (aOpt !== bOpt) return aOpt - bOpt // required first
+    return a.name.localeCompare(b.name)
+  })
+const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeCompare(b.name))
 ---
 
 {props.length > 0 && (
@@ -70,23 +200,71 @@ const inherited = iface?.children
         <tr>
           <th>Prop</th>
           <th>Type</th>
+          <th>Default</th>
           <th>Description</th>
         </tr>
       </thead>
       <tbody>
-        {props.map((p: any) => (
+        {props.map((p: any) => {
+          const def = readDefault(p.comment)
+          return (
           <tr>
+            <td><span class="prop-name">{p.name}{p.optional ? <span class="opt">?</span> : null}</span></td>
             <td>
-              <code>{p.name}{p.flags?.isOptional ? '?' : ''}</code>
+              {p.type === '—' ? <span class="empty">—</span> : (
+                <span class="type-list">
+                  {p.type.split(' | ').map((t: string) => {
+                    const v = t.trim()
+                    return isLiteralValue(v)
+                      ? <code>{v.replace(/^'|'$/g, '')}</code>
+                      : <span class="type-name">{v}</span>
+                  })}
+                </span>
+              )}
             </td>
-            <td><code>{renderType(p.type)}</code></td>
+            <td>{def ? <code>{def}</code> : <span class="empty">—</span>}</td>
             <td set:html={renderDescription(p.comment)} />
           </tr>
-        ))}
+        )})}
       </tbody>
     </table>
   </div>
 )}
+
+<style>
+  /* Each union member renders as its own code pill, stacked one per line
+     (no `|` separator). */
+  .type-list {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  /* Prop name: monospace text, no code-pill chrome. */
+  .prop-name {
+    font-family: var(--monospace);
+    font-size: 0.9em;
+    font-weight: 475;
+  }
+  /* The optional `?` is its own element (text-3, not selectable) so a
+     double-click selects just the name and copying omits the `?`. */
+  .opt {
+    color: var(--text-5);
+    user-select: none;
+  }
+  /* Type names (primitives + named types) — monospace, tertiary, no pill.
+     Literal values stay as copyable <code> pills. */
+  .type-name {
+    font-family: var(--monospace);
+    font-size: 0.9em;
+    color: var(--text-3);
+  }
+  /* "No value" em-dash placeholders (Type / Default columns). */
+  .empty {
+    color: var(--text-5);
+  }
+</style>
 
 {inherited.length > 0 && (
   <details>
@@ -97,17 +275,32 @@ const inherited = iface?.children
           <tr>
             <th>Prop</th>
             <th>Type</th>
+            <th>Default</th>
             <th>Description</th>
           </tr>
         </thead>
         <tbody>
-          {inherited.map((p: any) => (
+          {inherited.map((p: any) => {
+            const def = readDefault(p.comment)
+            return (
             <tr>
-              <td><code>{p.name}?</code></td>
-              <td><code>{renderType(p.type)}</code></td>
+              <td><span class="prop-name">{p.name}<span class="opt">?</span></span></td>
+              <td>
+              {p.type === '—' ? <span class="empty">—</span> : (
+                <span class="type-list">
+                  {p.type.split(' | ').map((t: string) => {
+                    const v = t.trim()
+                    return isLiteralValue(v)
+                      ? <code>{v.replace(/^'|'$/g, '')}</code>
+                      : <span class="type-name">{v}</span>
+                  })}
+                </span>
+              )}
+            </td>
+              <td>{def ? <code>{def}</code> : <span class="empty">—</span>}</td>
               <td set:html={renderDescription(p.comment)} />
             </tr>
-          ))}
+          )})}
         </tbody>
       </table>
     </div>

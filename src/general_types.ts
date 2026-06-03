@@ -1,3 +1,5 @@
+import type { IconShape } from './elements/a-icon.shapes'
+
 /** Common props for JSX component wrappers. */
 export interface BaseProps {
   /** CSS class name. Merged with any internal classes by the component. */
@@ -6,10 +8,22 @@ export interface BaseProps {
   style?: React.CSSProperties
   /** Child elements. When provided, replaces the component's default label/content. */
   children?: React.ReactNode
+  /** HTML `id` attribute. */
+  id?: string
+  /** HTML `title` attribute — native browser tooltip on hover. */
+  title?: string
+  /** Tab order. Set to `-1` to skip the element when tabbing. */
+  tabIndex?: number
+  /** Any `data-*` attribute is forwarded to the rendered element. */
+  [key: `data-${string}`]: unknown
+  /** Any `aria-*` attribute is forwarded to the rendered element. */
+  [key: `aria-${string}`]: unknown
 }
 
 /** Attributes for intrinsic custom elements (`<a-*>` tags) in JSX. */
 export interface BaseAttributes {
+  /** React/Preact reconciliation key when rendered inside a list. */
+  key?: string | number | null
   /** HTML `class` attribute (standard DOM). */
   class?: string
   /** React/Preact-style class name. Alias for `class`. */
@@ -141,13 +155,15 @@ export interface AStickerAnimatedAttributes extends BaseAttributes {
 }
 
 /**
- * Attributes for the `<a-icon>` custom element. The `shape` attribute
- * value is typed as `string` here so the element accepts any consumer's
- * generated shapes. The JSX wrapper (`Icon`) narrows it to `IconShape`.
+ * Attributes for the `<a-icon>` custom element. `shape` is typed as
+ * `IconShape` (`keyof IconShapes`); the `IconShapes` interface is
+ * module-augmentable, so consumers who generate their own shape sets
+ * via `declare module '@antadesign/anta' { interface IconShapes { … } }`
+ * get those keys accepted automatically.
  */
 export interface AIconAttributes extends BaseAttributes {
   /** Which icon to render. */
-  shape?: string
+  shape?: IconShape
   /** Width and height in pixels. Mapped to the `--icon-size` custom
    *  property via the CSS Values 5 typed `attr()` function — Chrome
    *  133+ and Safari 18.2+ only. Firefox hasn't shipped typed
@@ -164,4 +180,43 @@ export interface AIconAttributes extends BaseAttributes {
   'aria-label'?: string
   /** Hides decorative icons from screen readers. */
   'aria-hidden'?: 'true' | 'false' | boolean
+}
+
+/**
+ * Attributes for the `<a-button>` custom element. For the typed JSX
+ * wrapper use `Button` from `@antadesign/anta`.
+ */
+export interface AButtonAttributes extends BaseAttributes {
+  /** Visual emphasis. */
+  priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary'
+  /** Semantic tone, or any literal CSS color for a one-off custom tone. */
+  tone?:
+    | 'neutral'
+    | 'brand'
+    | 'critical'
+    | 'info'
+    | 'success'
+    | 'warning'
+    | (string & {})
+  /** Underline style. Only renders on `priority="tertiary" | "quaternary"`. */
+  underline?: 'solid' | 'dashed' | 'dotted'
+  /** Size variant. small=22px, medium=26px, large=30px. */
+  size?: 'small' | 'medium' | 'large'
+  /** Drop outer padding to zero. Only takes effect on `priority="quaternary"`.
+   *  Presence-based: `''` (or any value) turns it on; omit to turn off. */
+  paddingless?: '' | 'true' | 'false' | boolean
+  /** Loading state. Presence-based (`''` on, omit off). */
+  loading?: '' | 'true' | 'false' | boolean
+  /** Disabled state. Presence-based (`''` on, omit off). */
+  disabled?: '' | 'true' | 'false' | boolean
+  /** Toggled-on / pressed state. Presence-based (`''` on, omit off). */
+  selected?: '' | 'true' | 'false' | boolean
+  /** Submit/reset semantics. */
+  type?: 'button' | 'submit' | 'reset'
+  /** Associate with a form by id when not nested inside it. */
+  form?: string
+  /** Custom event name dispatched (bubbling) on click. */
+  'data-custom-event'?: string
+  'aria-disabled'?: 'true' | 'false' | boolean
+  'aria-busy'?: 'true' | 'false' | boolean
 }

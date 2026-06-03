@@ -3,7 +3,7 @@ layout: ../../layouts/DocsLayout.astro
 title: Text
 ---
 import TextDemo from '../../components/TextDemo'
-import InteractiveDemo from '../../components/InteractiveDemo'
+import Playground from '../../components/Playground'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
 import textDemoCode from './text.demo.ts'
@@ -20,14 +20,6 @@ in the middle of other text.
 `Text` also owns Anta's prose-link styling. Links nested inside
 `<Text>` are styled by the design system — there are no per-page
 overrides to maintain.
-
-<InteractiveDemo
-  client:load
-  component="Text"
-  layout="side"
-  initialCode={textDemoCode}
-  initialCss={`.preview { align-items: center; justify-content: center; min-height: 100%; }`}
-/>
 
 ## Link behavior
 
@@ -56,7 +48,19 @@ the underline to full alpha.
 
 <TextDemo client:load />
 
-<Disclosure title="Props">
+<Disclosure title="Playground">
+
+<Playground
+  client:visible
+  component="Text"
+  layout="side"
+  initialCode={textDemoCode}
+  initialCss={`.preview { align-items: center; justify-content: center; min-height: 100%; }`}
+/>
+
+</Disclosure>
+
+<Disclosure title="Component props">
 
 <PropsTable component="Text" />
 

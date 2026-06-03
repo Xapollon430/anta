@@ -48,7 +48,7 @@ export function jsxs(type: ComponentType, props: Record<string, unknown> | null,
 
 export { _Fragment as Fragment }
 
-import type { AProgressAttributes, ATextAttributes, ATitleAttributes, AIconAttributes, AStickerAttributes, AStickerAnimatedAttributes, BaseAttributes } from './general_types'
+import type { AProgressAttributes, ATextAttributes, ATitleAttributes, AIconAttributes, AButtonAttributes, AStickerAttributes, AStickerAnimatedAttributes, BaseAttributes } from './general_types'
 
 export namespace JSX {
   export type IntrinsicElements = React.JSX.IntrinsicElements & {
@@ -60,6 +60,8 @@ export namespace JSX {
     'a-text': ATextAttributes
     'a-title': ATitleAttributes
     'a-icon': AIconAttributes
+    'a-button': AButtonAttributes
+    'a-button-label': BaseAttributes
     'a-sticker': AStickerAttributes
     'a-sticker-animated': AStickerAnimatedAttributes
   }

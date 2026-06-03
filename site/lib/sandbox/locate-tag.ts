@@ -2,7 +2,7 @@
  * locate-tag.ts — find the opening JSX tag of a named element inside
  * a source string. No AST library; uses a small bracket-balanced scan.
  *
- * The InteractiveDemo's form-↔-code sync only needs to know:
+ * The Playground's form-↔-code sync only needs to know:
  *   - where the target element's opening tag starts
  *   - where the opening tag ends (`>` or `/>`)
  *   - what the inside of the tag looks like (so we can find / replace

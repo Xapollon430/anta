@@ -2,9 +2,12 @@
 layout: ../../layouts/DocsLayout.astro
 title: Progress
 ---
-import InteractiveDemo from '../../components/InteractiveDemo'
+import Playground from '../../components/Playground'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
+import Preview from '../../components/Preview.astro'
+import AnimatedProgress from '../../components/AnimatedProgress'
+import { Progress } from '@antadesign/anta'
 // The demo source lives in a sibling `.ts` file rather than inline
 // here because Astro's MDX pipeline trims leading whitespace from
 // JSX-attribute template literals, which scrambles the indentation
@@ -17,14 +20,53 @@ import progressDemoCode from './progress.demo.ts'
 A progress indicator for displaying task completion. Consists of a track
 (background bar), an indicator (filled portion), and an optional label area.
 
-<InteractiveDemo
-  client:load
+<Preview>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+    <Progress value={60} />
+    <Progress value={42} label="Uploading files…" hint="3 of 7" />
+    <Progress value={75} tone="info" label="Processing" />
+    <Progress value={60} label="Uploading" hint="3 of 5" style={{ borderBottomWidth: '1px' }} />
+    <AnimatedProgress client:visible speed={2} />
+  </div>
+</Preview>
+
+```tsx
+// Minimum invocation — just a value.
+<Progress value={60} />
+
+// Pair the value with a descriptive label and a right-aligned hint.
+<Progress value={42} label="Uploading files…" hint="3 of 7" />
+
+// tone="info" re-tints every internal color via the --*-info token cascade.
+<Progress value={75} tone="info" label="Processing" />
+
+// The host pre-declares border colour + style with width 0 — give it any
+// width to opt in; the colour auto-tracks the tone.
+<Progress value={60} label="Uploading" hint="3 of 5" style={{ borderBottomWidth: '1px' }} />
+
+// Animate by driving `value` over time.
+function AnimatedProgress({ speed = 1 }) {
+  const [v, setV] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setV((x) => (x + speed) % 101), 50)
+    return () => clearInterval(id)
+  }, [speed])
+  return <Progress value={v} label="Animated" />
+}
+```
+
+<Disclosure title="Playground">
+
+<Playground
+  client:visible
   component="Progress"
   layout="side"
   initialCode={progressDemoCode}
 />
 
-<Disclosure title="Props">
+</Disclosure>
+
+<Disclosure title="Component props">
 
 <PropsTable component="Progress" />
 

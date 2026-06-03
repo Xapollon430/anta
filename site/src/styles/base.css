@@ -4,6 +4,7 @@
    file does not duplicate it. */
 html, body {
   line-height: 1.5;
+  letter-spacing: 0.02ch;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -46,11 +47,70 @@ html, body {
   --scroll-padding-top: 1em;
 }
 
+/* Semantic background aliases. Anta now ships an unopinionated numeric
+   background scale (--bg-1 … --bg-5); this site keeps using readable
+   semantic names by mapping them onto that scale — the exact pattern the
+   Colors page recommends to consumers. (--bg-1 / "canvas" is the deepest,
+   neutral-only surface; it has no tinted variant.)
+
+   The selector must include .light/.dark, not just :root: an alias like
+   `--bg-canvas: var(--bg-1)` is computed where it's declared and then
+   inherited, so a :root-only mapping would freeze it at the page's theme and
+   never recompute under a nested `.light`/`.dark` scope (e.g. the Colors
+   page renders both theme rows at once). Re-declaring under each theme class
+   lets `var(--bg-N)` resolve in that element's own context. */
+:root, .light, .dark {
+  --bg-canvas: var(--bg-1);
+  --bg-base:   var(--bg-2);
+  --bg-pane:   var(--bg-3);
+  --bg-block:  var(--bg-4);
+  --bg-spot:   var(--bg-5);
+
+  --bg-base-brand:  var(--bg-2-brand);
+  --bg-pane-brand:  var(--bg-3-brand);
+  --bg-block-brand: var(--bg-4-brand);
+  --bg-spot-brand:  var(--bg-5-brand);
+
+  --bg-base-info:  var(--bg-2-info);
+  --bg-pane-info:  var(--bg-3-info);
+  --bg-block-info: var(--bg-4-info);
+  --bg-spot-info:  var(--bg-5-info);
+
+  --bg-base-success:  var(--bg-2-success);
+  --bg-pane-success:  var(--bg-3-success);
+  --bg-block-success: var(--bg-4-success);
+  --bg-spot-success:  var(--bg-5-success);
+
+  --bg-base-critical:  var(--bg-2-critical);
+  --bg-pane-critical:  var(--bg-3-critical);
+  --bg-block-critical: var(--bg-4-critical);
+  --bg-spot-critical:  var(--bg-5-critical);
+
+  --bg-base-warning:  var(--bg-2-warning);
+  --bg-pane-warning:  var(--bg-3-warning);
+  --bg-block-warning: var(--bg-4-warning);
+  --bg-spot-warning:  var(--bg-5-warning);
+}
+
 /* Document defaults */
 html {
   color: var(--text-2);
   background: var(--bg-base);
   scroll-padding-top: var(--scroll-padding-top);
+  /* Match native UI (form controls, scrollbars, overscroll/rubber-band
+     background) to the active theme. `.dark` is toggled on <html>. */
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+/* Smooth-scroll anchor jumps (e.g. the "On this page" TOC), but respect
+   users who ask for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 html, body {
@@ -94,13 +154,36 @@ summary { cursor: pointer; }
 .header-anchor:active {
   text-decoration: underline;
   text-decoration-style: dotted;
-  text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);
+  text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
 
 p, ul, ol, blockquote, dl { margin: 0 0 1em; }
 pre, figure, hr, .expressive-code { margin: 0 0 1.5em; }
+
+/* Code blocks in the main content use the `bg-pane` fill (a static
+   background — no hover change). Overrides the `--code-background` var the
+   EC `pre` reads (specificity-proof vs EC's own rule), and scoped to
+   `.content` so the playground's embedded editor is unaffected. */
+.content .expressive-code pre {
+  --code-background: var(--bg-pane);
+}
+
+/* Fuse a <Preview> with the code block that immediately follows it: drop
+   the gap, square the touching corners, and remove the code block's top
+   border so the two panels read as one (Preview's bottom border becomes
+   the single seam between them). */
+.content .preview:has(+ .expressive-code) {
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.content .preview + .expressive-code pre {
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
 
 /* Tone × priority demo on the Title docs page. Scrolls horizontally
    when the columns don't fit; titles inside the grid drop their
@@ -123,9 +206,9 @@ pre, figure, hr, .expressive-code { margin: 0 0 1.5em; }
 
 code {
   font-family: var(--monospace);
-  font-size: 0.9em;
+  font-size: 0.933em;
   color: inherit;
-  background: color-mix(in oklch, currentColor 6%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
   border: none;
   padding: 0.25em 0.4ch 0.2em;
   border-radius: 3px;
@@ -139,12 +222,97 @@ pre code { background: none; padding: 0; }
   position: relative;
 }
 
+/* Inline code pills read too faint at 6% on dark surfaces — bump the
+   tint to 10% in dark mode. Scoped to inline code so `pre code` (which
+   is background-less) is untouched. */
+.dark :not(pre) > code {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
 .copyable {
   cursor: copy;
   position: relative;
 }
 
-[data-copied]::after {
+/* The copy region (`.copy`) is a frosted corner tab: it sits flush in the
+   block's top-right corner with a semi-transparent code-background fill and
+   a slight backdrop blur over the code beneath, hugging the block's rounded
+   corner (top-right) with a rounded bottom-left "peel". The button inside is
+   a bare Anta quaternary control — no background, border, or hover/active
+   fill (EC's tint overlay `div` is hidden); just the icon. */
+.content .expressive-code .frame .copy {
+  inset-block-start: 1px;
+  inset-inline-end: 1px;
+  background: color-mix(in oklch, var(--bg-pane) 60%, transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border-top-right-radius: 5px;
+  border-bottom-left-radius: 8px;
+}
+.content .expressive-code .copy button {
+  background: none;
+  border-radius: 0;
+}
+.content .expressive-code .copy button > div {
+  display: none;
+}
+/* EC's empty `<div aria-live="polite">` live region adds width to the .copy
+   tab; the copy confirmation is our green-check icon swap, so it's not used —
+   drop it from layout. */
+.content .expressive-code .copy > div[aria-live] {
+  display: none;
+}
+/* Pin the icon glyph to a fixed 16px, centered. EC sizes the button larger
+   on touch (2.5rem vs the 2rem hover-capable size) and the icon's mask uses
+   `mask-size: auto`, which fills the button box — so a bigger button scaled
+   the glyph up too. Fixing the mask size decouples the icon from the button:
+   the button can grow for a bigger tap target while the icon stays 16px.
+   Applies to the green-check state too (it only swaps the mask image). */
+.content .expressive-code .copy button::after {
+  margin: 0;
+  -webkit-mask-size: 16px;
+  mask-size: 16px;
+  -webkit-mask-position: center;
+  mask-position: center;
+  /* Match the quaternary button: the icon (same `inlineButtonForeground`
+     as the quaternary tone) is faded to 82% alpha at rest. The green-check
+     copied state keeps full opacity (its rule below overrides this). */
+  background-color: color-mix(in oklch, var(--ec-frm-inlBtnFg) 82%, transparent);
+}
+
+/* EC fades the copy *button* in on frame hover; move that reveal to the
+   whole `.copy` tab so the frosted chip isn't shown empty at rest. */
+@media (hover: hover) {
+  .content .expressive-code .frame .copy {
+    opacity: 0;
+    transition: opacity 150ms ease-out;
+  }
+  .content .expressive-code .frame:hover .copy,
+  .content .expressive-code .frame:focus-within .copy {
+    opacity: 1;
+  }
+  .content .expressive-code .copy button {
+    opacity: 1;
+  }
+}
+
+/* Replace expressive-code's "Copied!" tooltip with an icon swap: on a
+   successful copy our script (DocsLayout) sets [data-anta-copied] on the
+   button for a moment, turning the copy glyph into a green check. EC's
+   own tooltip bubble (the `.feedback` element + its ::before/::after) is
+   removed entirely — the icon swap is the only feedback. */
+.expressive-code .copy .feedback {
+  display: none;
+}
+
+.expressive-code .copy button[data-anta-copied]::after {
+  background-color: var(--text-1-success);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+/* Necessary for astro expressive code hover copy button */
+:is(code, .copyable, .demoCell)[data-copied]::after {
   content: attr(data-copied);
   position: absolute;
   top: 0;
@@ -175,7 +343,7 @@ pre code { background: none; padding: 0; }
    same 6% tint over the page's base color so the toast reads as an
    opaque ghost of the original pill. */
 code[data-copied]::after {
-  background: color-mix(in oklch, currentColor 6%, var(--bg-base));
+  background: color-mix(in srgb, currentColor 6%, var(--bg-base));
 }
 
 @keyframes copy-toast {
@@ -198,15 +366,88 @@ code[data-copied]::after {
   }
 }
 
-/* Escape `.content`'s 960px max-width to fill the available width
-   to the right of the sidebar. Used by widgets that need real
-   estate (the InteractiveDemo playground, future wide visualisations).
-   `.content` has `overflow: visible` (default), so children with
-   width > 960px are allowed to extend right; they cap at the
-   viewport's right edge minus the same gutter the prose uses. */
-.full-bleed {
-  width: calc(100vw - var(--page-sidebar-width) - 2 * var(--page-content-pad));
+/* Content lane: `.content` fills the whole track between the sidebars
+   (see DocsLayout), and the 960px readable prose measure is applied
+   per direct child, so wide blocks can opt out and use the full width.
+   An open <Disclosure> is itself a content lane: it spans the track but
+   keeps its header aligned with regular headings and its prose at 960,
+   while a `.full-bleed` child (e.g. the playground) breaks out. Prose
+   looks unchanged; only the opted-out blocks span the track. (`.columns`
+   stays within the 960 measure — it is no longer a breakout.) */
+.content > .disclosure {
   max-width: none;
+}
+.disclosure > summary {
+  max-width: 960px;
+  margin-inline: auto;
+}
+.disclosure > .body {
+  /* Query container for any `.columns` placed inside a disclosure. */
+  container-type: inline-size;
+}
+
+.content > *,
+.disclosure > .body > * {
+  max-width: 960px;
+  margin-inline: auto;
+}
+.content > .full-bleed,
+.disclosure > .body > .full-bleed {
+  max-width: none;
+}
+/* Islands (`client:*` components) render inside an `<astro-island>` that's
+   `display: contents`, so the measure above can't reach their content and a
+   direct-content demo would spill past the 960 prose. Constrain the island's
+   content to the same measure; opt into full width with an inner `.full-bleed`.
+   (The playground island lives in a Disclosure and is intentionally left at
+   the wider track, so it isn't matched here.) */
+.content > astro-island > * {
+  max-width: 960px;
+  margin-inline: auto;
+}
+.content > astro-island > .full-bleed {
+  max-width: none;
+}
+
+/* Fill the content track (bounded by both sidebars). Used by widgets
+   that need real estate (the Playground playground, wide
+   visualisations). */
+.full-bleed {
+  max-width: none;
+}
+
+/* Multi-column section (<Columns> / <Col>). Stacked by default; switches
+   to equal side-by-side columns once the content track is wide enough.
+   Keyed to `.content`'s inline size (container query) — i.e. the
+   edge-to-edge width between the sidebars — not the viewport. */
+.columns {
+  display: flex;
+  flex-direction: column;
+  /* Default column gap (used in row mode below); override per-instance. */
+  --columns-gap: 20px;
+  column-gap: var(--columns-gap);
+  /* No vertical gap when stacked — the stacked blocks' own margins
+     handle that spacing. The horizontal gap is added in row mode. */
+}
+@container (min-width: 950px) {
+  .columns {
+    flex-direction: row;
+    align-items: start;
+    column-gap: var(--columns-gap);
+  }
+  /* Default: every child is an equal column with a sensible min width. */
+  .columns > * {
+    flex: 1;
+    min-width: 320px;
+  }
+  /* <Col>: width / min / max driven by inline custom props. */
+  .columns > .col {
+    flex-grow: var(--col-grow, 1);
+    flex-shrink: 1;
+    flex-basis: var(--col-basis, 0);
+    min-width: var(--col-min, 320px);
+    max-width: var(--col-max, none);
+  }
 }
 
 /* Wraps every <table> in MDX/markdown content (injected by the
@@ -215,11 +456,14 @@ code[data-copied]::after {
    *inside* the column instead of the whole page picking up a
    horizontal scrollbar. The table itself keeps default `display:
    table` semantics. */
+/* Wraps stay within the 960px prose measure and centre by default (via
+   `.content > *`); to let a table use the full content track, wrap it in
+   a `.full-bleed` element. `overflow-x: auto` keeps a too-wide table
+   scrolling inside its column rather than the whole page. */
 .table-wrap {
-  max-width: 100%;
   overflow-x: auto;
   scrollbar-width: thin;
-  margin: 0 0 24px;
+  margin: 0 auto 24px;
 }
 /* The wrap owns the bottom margin; zero it on the inner table so a
    wrapped table doesn't stack its own `.content table` margin on top
@@ -235,7 +479,10 @@ code[data-copied]::after {
    rendered-MDX context where full-width is what you want. */
 .content table {
   width: 100%;
-  margin: 0 0 24px;
+  /* `auto` inline margins so an un-wrapped table (raw `<table>` JSX, which
+     `rehype-table-wrap` doesn't wrap) still centers in the 960 measure like
+     the prose — without it the table left-aligns while paragraphs center. */
+  margin: 0 auto 24px;
 }
 
 /* Changelog stream filter. The /changelog/ page wraps each version
@@ -316,7 +563,7 @@ html[data-stream="main"] .changelog section[data-stream="dev"]  { display: none;
   font: inherit;
   font-size: 0.9rem;
   color: var(--text-1);
-  background: var(--bg-section);
+  background: var(--bg-canvas);
   border: 1px solid var(--border-2);
   border-radius: 6px;
   outline: none;
@@ -324,6 +571,44 @@ html[data-stream="main"] .changelog section[data-stream="dev"]  { display: none;
 }
 .iconFilter:focus {
   border-color: var(--border-1);
+}
+
+/* Demo segmented tabs (e.g. the Sticker gallery's Static / Animated switch).
+   Mirrors the segmented controls used elsewhere on the site. */
+.demoSeg {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 3px;
+  padding: 3px;
+  background: var(--bg-block);
+  border: 0.5px solid var(--border-4);
+  border-radius: 6px;
+}
+.demoSegBtn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  color: var(--text-3);
+  padding: 4px 10px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 150ms ease-out, color 150ms ease-out;
+}
+.demoSegBtn:hover,
+.demoSegBtn:focus-visible {
+  color: var(--text-1);
+}
+.demoSegBtnActive,
+.demoSegBtnActive:hover,
+.demoSegBtnActive:focus-visible {
+  background: var(--bg-canvas);
+  color: var(--text-1);
+  box-shadow: 0 0 2px var(--border-3);
+  outline: none;
 }
 
 /* On mobile the sticky topbar is 44px tall, so anchor-scrolls need to

@@ -130,7 +130,13 @@ jobs:
                 exit 0
               fi
               echo "Keeping newest successful deployment: ${keep}"
-              ids=$(echo "${sorted}" | awk -F'\t' -v k="${keep}" '$3 != k {print $3}')
+              # Delete every OTHER deployment — but only ones in a terminal
+              # state. An in-flight build (building / active / queued / idle)
+              # must be left alone: force-deleting the running deploy orphans
+              # it in Cloudflare and leaves its GitHub "Cloudflare Pages" check
+              # stuck on "Building" forever.
+              ids=$(echo "${sorted}" | awk -F'\t' -v k="${keep}" '
+                $3 != k && ($2 == "success" || $2 == "failure" || $2 == "canceled" || $2 == "skipped") { print $3 }')
               ;;
           esac
 

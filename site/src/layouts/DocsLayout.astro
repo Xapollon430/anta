@@ -2,7 +2,10 @@
 import '@antadesign/anta/tokens.css'
 import '@antadesign/anta/reset.css'
 import '../styles/base.css'
-import { Icon } from '@antadesign/anta'
+// Docs-site-only extra icon shapes (generated via Anta's generate-icons
+// script), registered on `<a-icon>` per the "Adding your own icons" guide.
+import '../icons/docs-icons.css'
+import { Button, Icon } from '@antadesign/anta'
 
 interface Props {
   title?: string
@@ -92,13 +95,29 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+    {/* Tints mobile Safari's toolbar / URL-bar to match the document
+        background. Driven from the theme script below (the theme is a
+        manual `.dark` class, not prefers-color-scheme, so a media-based
+        meta can't track it). Default is the light value. */}
+    <meta name="theme-color" content="#fbfafb" />
     <script is:inline>
       // Apply the theme before paint so there's no flash. Preference
       // order: explicit user choice in localStorage → OS-level
       // prefers-color-scheme. Once the user has clicked the toggle,
       // localStorage holds the preference forever.
       const KEY = 'anta-theme'
-      const apply = (m) => document.documentElement.classList.toggle('dark', m)
+      // Mobile-Safari toolbar tint per theme — tracks `--bg-2` in
+      // anta's tokens.css (keep in sync if that token changes).
+      const THEME_COLOR = { light: '#fbfafb', dark: '#0e0d0f' }
+      // Central theme application: flips `.dark` on <html> and keeps the
+      // theme-color meta in sync. Exposed so the toggle handler (a
+      // separate, later script) reuses the exact same logic.
+      const apply = (m) => {
+        document.documentElement.classList.toggle('dark', m)
+        const tc = document.querySelector('meta[name="theme-color"]')
+        if (tc) tc.setAttribute('content', m ? THEME_COLOR.dark : THEME_COLOR.light)
+      }
+      window.__antaApplyTheme = apply
       const stored = localStorage.getItem(KEY)
       if (stored === 'dark' || stored === 'light') {
         apply(stored === 'dark')
@@ -115,33 +134,48 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
   <body>
     <header class="topbar">
       <span class="topbar-title">
-        <img class="topbar-logo" src="/anta-logo.svg" alt="" width="32" height="32" />
-        Anta design system
+        Anta{title && <Fragment><span class="crumb-sep">›</span>{title}</Fragment>}
       </span>
-      <button class="menu-toggle" aria-label="Open menu" type="button">
-        <span class="menu-label">MENU</span>
-        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-          <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </button>
+      <Button
+        class="menu-toggle"
+        priority="tertiary"
+        size="large"
+        label="MENU"
+        iconTrailing="menu"
+        aria-label="Open menu"
+      />
     </header>
     <div class="layout">
       <aside class="sidebar">
         <span class="logo">
           <img src="/anta-logo.svg" alt="" width="32" height="32" />
           <span class="logo-label">Anta</span>
-          <button class="theme-toggle" type="button" aria-label="Switch theme">
+          <Button class="theme-toggle" priority="tertiary" size="large" aria-label="Switch theme">
             <Icon shape="sun" size={18} />
             <Icon shape="moon" size={18} />
-          </button>
+          </Button>
         </span>
         <div class="brand-links">
-          <a href="https://github.com/antithesishq/anta" target="_blank" rel="noopener" aria-label="GitHub repository">
-            <Icon shape="github-logo" size={14} /> GitHub
-          </a>
-          <a href="https://www.npmjs.com/package/@antadesign/anta?activeTab=versions" target="_blank" rel="noopener" aria-label={npmVersion ? `npm package v${npmVersion}` : 'npm package'}>
-            <Icon shape="cube" size={14} /> {npmVersion ? `npm v${npmVersion}` : 'npm'}
-          </a>
+          <Button
+            class="brand-link"
+            href="https://github.com/antithesishq/anta"
+            target="_blank"
+            rel="noopener"
+            priority="tertiary"
+            icon="github-logo"
+            label="GitHub"
+            aria-label="GitHub repository"
+          />
+          <Button
+            class="brand-link"
+            href="https://www.npmjs.com/package/@antadesign/anta?activeTab=versions"
+            target="_blank"
+            rel="noopener"
+            priority="tertiary"
+            icon="cube"
+            label={npmVersion ? `npm v${npmVersion}` : 'npm'}
+            aria-label={npmVersion ? `npm package v${npmVersion}` : 'npm package'}
+          />
         </div>
         <menu>
           <li><a href="/" aria-current={isCurrent('/') ? 'page' : undefined}><Icon shape="info" size={18} /> Overview</a></li>
@@ -152,47 +186,81 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
         </menu>
         <h4>Components</h4>
         <menu>
+          <li><a href="/components/button/" aria-current={isCurrent('/components/button/') ? 'page' : undefined}><Icon shape="pointer" size={18} /> Button</a></li>
+          <li><a href="/components/icon/" aria-current={isCurrent('/components/icon/') ? 'page' : undefined}><Icon shape="bug" size={18} /> Icon</a></li>
           <li><a href="/components/progress/" aria-current={isCurrent('/components/progress/') ? 'page' : undefined}><Icon shape="hourglass" size={18} /> Progress</a></li>
+          <li><a href="/components/sticker/" aria-current={isCurrent('/components/sticker/') ? 'page' : undefined}><Icon shape="sticker" size={18} /> Sticker</a></li>
+          <li><a href="/components/table/" aria-current={isCurrent('/components/table/') ? 'page' : undefined}><Icon shape="table-2" size={18} /> Table</a></li>
           <li><a href="/components/text/" aria-current={isCurrent('/components/text/') ? 'page' : undefined}><Icon shape="text-initial" size={18} /> Text</a></li>
           <li><a href="/components/title/" aria-current={isCurrent('/components/title/') ? 'page' : undefined}><Icon shape="case-sensitive" size={18} /> Title</a></li>
-          <li><a href="/components/icon/" aria-current={isCurrent('/components/icon/') ? 'page' : undefined}><Icon shape="bug" size={18} /> Icon</a></li>
-          <li><a href="/components/table/" aria-current={isCurrent('/components/table/') ? 'page' : undefined}><Icon shape="table-2" size={18} /> Table</a></li>
-          <li><a href="/components/sticker/" aria-current={isCurrent('/components/sticker/') ? 'page' : undefined}><Icon shape="sparkles" size={18} /> Sticker</a></li>
         </menu>
       </aside>
       <main class="content">
+        {/* Mobile-only: opens the "On this page" TOC as a right-side
+            slide-out (the .toc-rail is hidden on mobile otherwise).
+            Absolutely positioned in the content's top-right corner. */}
+        <Button
+          class="toc-toggle"
+          priority="tertiary"
+          underline="dotted"
+          label="On this page"
+          aria-label="Open table of contents"
+        />
         <slot />
       </main>
+      <aside class="toc-rail">
+        <a-toc></a-toc>
+      </aside>
     </div>
     <div class="backdrop" aria-hidden="true"></div>
 
     <script>
       const backdrop = document.querySelector('.backdrop')
+      // Two mobile slide-outs share the backdrop: the nav sidebar (menu)
+      // and the "On this page" TOC. Opening one closes the other so they
+      // never overlap (both slide in from the right).
       const setMenu = (open: boolean) => {
         document.body.dataset.menuOpen = open ? 'true' : 'false'
+        if (open) document.body.dataset.tocOpen = 'false'
+      }
+      const setToc = (open: boolean) => {
+        document.body.dataset.tocOpen = open ? 'true' : 'false'
+        if (open) document.body.dataset.menuOpen = 'false'
       }
       const toggleMenu = () => setMenu(document.body.dataset.menuOpen !== 'true')
+      const toggleToc = () => setToc(document.body.dataset.tocOpen !== 'true')
+      const closeAll = () => {
+        setMenu(false)
+        setToc(false)
+      }
       document.querySelectorAll('.menu-toggle, .topbar-title').forEach((el) => {
         el.addEventListener('click', toggleMenu)
       })
-      backdrop?.addEventListener('click', () => setMenu(false))
+      document.querySelector('.toc-toggle')?.addEventListener('click', toggleToc)
+      backdrop?.addEventListener('click', closeAll)
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') setMenu(false)
+        if (e.key === 'Escape') closeAll()
       })
+      // Tapping a TOC entry navigates via hash — close the panel after.
+      window.addEventListener('hashchange', () => setToc(false))
 
-      // Theme toggle — flips the `.dark` class on <html> and persists
-      // the choice in localStorage. The inline head script handles
+      // Theme toggle — flips the `.dark` class on <html> (and the
+      // theme-color meta) via the shared `apply` from the inline head
+      // script, then persists the choice. The inline head script handles
       // the no-flash application on subsequent page loads.
       const THEME_KEY = 'anta-theme'
+      const applyTheme = (window as any).__antaApplyTheme
+        ?? ((m: boolean) => document.documentElement.classList.toggle('dark', m))
       document.querySelector('.theme-toggle')?.addEventListener('click', () => {
         const nextDark = !document.documentElement.classList.contains('dark')
-        document.documentElement.classList.toggle('dark', nextDark)
+        applyTheme(nextDark)
         localStorage.setItem(THEME_KEY, nextDark ? 'dark' : 'light')
       })
     </script>
 
     <script>
       import '@antadesign/anta/elements'
+      import '../components/a-toc.ts'
 
       document.addEventListener('click', (e) => {
         const target = (e.target as HTMLElement)?.closest?.('code, .copyable') as HTMLElement | null
@@ -204,6 +272,19 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
           target.addEventListener('animationend', () => delete target.dataset.copied, { once: true })
           target.dataset.copied = text
         }).catch(() => {})
+      })
+
+      // Expressive-code copy buttons: instead of EC's "Copied!" tooltip
+      // (hidden via CSS), flip the copy glyph to a green check for a
+      // moment by toggling `[data-anta-copied]` on the button.
+      document.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement)?.closest?.('.expressive-code .copy button') as
+          | (HTMLElement & { _antaCopyTimer?: ReturnType<typeof setTimeout> })
+          | null
+        if (!btn) return
+        btn.dataset.antaCopied = 'true'
+        clearTimeout(btn._antaCopyTimer)
+        btn._antaCopyTimer = setTimeout(() => { delete btn.dataset.antaCopied }, 1400)
       })
 
       // Anchor-based "scroll preservation" for tone-tab navigation.
@@ -285,30 +366,15 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     flex: 1;
   }
 
+  /* Theme toggle is a tertiary icon <a-button> (Anta owns fg/hover),
+     forced to a square with a circular radius. We only swap which icon
+     shows per mode: sun in light, moon in dark. */
   .theme-toggle {
-    appearance: none;
-    border: none;
-    background: transparent;
-    color: var(--text-3);
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
+    padding-inline: 8px;
+    padding-block: 8px;
+    border-radius: 999px;
     justify-content: center;
-    cursor: pointer;
-    transition: color 120ms ease-out, background 120ms ease-out;
   }
-
-  .theme-toggle:hover,
-  .theme-toggle:focus-visible {
-    color: var(--text-1);
-    background: var(--bg-section);
-    outline: none;
-  }
-
-  /* Show the icon that matches the current mode: sun in light mode,
-     moon in dark mode. */
   .theme-toggle a-icon[shape="moon"] { display: none; }
   :global(.dark) .theme-toggle a-icon[shape="sun"] { display: none; }
   :global(.dark) .theme-toggle a-icon[shape="moon"] { display: inline-block; }
@@ -320,35 +386,19 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     flex-wrap: wrap;
   }
 
-  .brand-links a {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px 3px 6px;
+  /* GitHub / npm are tertiary anta anchor-buttons (`<a role="button">`).
+     Anta owns the tertiary hover/active; we just shrink the font and tune
+     the rest colour. (Site styles are un-layered, so they beat anta's
+     `@layer anta` defaults.) */
+  .brand-link {
+    font-size: 12px;
     border-radius: 999px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.03ch;
-    color: var(--text-3);
-    text-decoration: none;
-    transition: color 120ms ease-out, background 120ms ease-out;
+    gap: 5px;
+    padding-left: 7px;
+    --button-fg-tertiary-rest: var(--text-3);
   }
-
-  .brand-links a > a-icon {
-    color: var(--text-4-brand);
-    transition: color 120ms ease-out;
-  }
-
-  .brand-links a:hover,
-  .brand-links a:focus-visible {
-    color: var(--text-1);
-    background: var(--bg-section);
-    outline: none;
-  }
-
-  .brand-links a:hover > a-icon,
-  .brand-links a:focus-visible > a-icon {
-    color: var(--text-1-brand);
+  .brand-link :global(a-icon) {
+    --icon-size: 14px;
   }
 
   .sidebar h4 {
@@ -395,21 +445,87 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     color: var(--text-1-brand);
   }
 
+  /* Fill the whole track between the sidebars. The 960px prose measure
+     is applied per-child in base.css (`.content > *`) so wide blocks
+     (`.columns`, `.full-bleed`) can opt out and use the full width.
+     `container-type: inline-size` makes this the query container for
+     `.columns`' column/stack switch. */
   .content {
     flex: 1;
     min-width: 0;
-    max-width: 960px;
     padding: 32px;
+    container-type: inline-size;
+  }
+
+  /* The in-content "On this page" TOC trigger is mobile-only; on desktop
+     the .toc-rail is always visible, so the button is hidden. */
+  .toc-toggle {
+    display: none;
+  }
+
+  /* Right "On this page" rail — mirrors the left sidebar's width and
+     sticky full-height behaviour. Holds the <a-toc> web component. */
+  .toc-rail {
+    width: 240px;
+    flex-shrink: 0;
+    padding: 32px 16px 32px 4px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
   }
 
   .topbar { display: none; }
   .backdrop { display: none; }
 
   @media (max-width: 900px) {
-    .logo { display: none; }
+    /* The full logo row (logo + "Anta" wordmark + theme toggle) shows at
+       the top of the slide-out sidebar, exactly like desktop — so it keeps
+       its base styles here (no mobile override). */
 
     .content {
-      padding-inline: 16px;
+      /* Asymmetric on mobile: a touch more breathing room on the left
+         (start) than the right (end). `padding-inline: <start> <end>`. */
+      padding-inline: 20px 12px;
+      /* Positioning context for the absolutely-placed TOC trigger. */
+      position: relative;
+    }
+
+    /* The "On this page" trigger floats in the content's top-right corner. */
+    .toc-toggle {
+      display: inline-flex;
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      z-index: 5;
+      font-size: 14px;
+    }
+
+    /* On mobile the TOC rail becomes a right-side slide-out panel (mirrors
+       the nav sidebar), revealed by the .toc-toggle button. */
+    .toc-rail {
+      display: block;
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100dvh;
+      width: min(280px, 80vw);
+      padding: 24px;
+      background: var(--bg-canvas);
+      border-left: 1px solid var(--border-5);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 250ms ease-out;
+      z-index: 20;
+    }
+
+    body[data-toc-open="true"] .toc-rail {
+      transform: translateX(0);
+    }
+
+    body[data-toc-open="true"] .backdrop {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .sidebar {
@@ -426,7 +542,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
       display: block;
       position: fixed;
       inset: 0;
-      background: color-mix(in oklch, var(--text-1) 30%, transparent);
+      background: color-mix(in srgb, var(--text-1) 30%, transparent);
       opacity: 0;
       pointer-events: none;
       transition: opacity 250ms ease-out;
@@ -447,52 +563,50 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
       align-items: center;
       gap: 8px;
       height: 44px;
-      padding: 0 10px;
+      /* A touch more room on the left (start) than the right (end). */
+      padding-block: 0;
+      padding-inline: 18px 6px;
       position: sticky;
       top: 0;
       z-index: 10;
-      background: var(--bg-section);
-      border-bottom: 1px solid var(--border-5);
+      background: var(--bg-block);
+      border-bottom: 1px solid var(--border-4);
     }
 
+    /* The menu button is an Anta tertiary <Button> (background-less, fills
+       on hover), pushed to the right of the topbar. The smaller font-size +
+       letter-spacing (inherited by the label; the icon stays its absolute
+       16px) bring the "MENU" text back to its previous compact look. */
     .menu-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
       margin-left: auto;
-      height: 28px;
-      padding: 0 6px;
-      background: transparent;
-      border: none;
-      color: inherit;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-
-    .menu-toggle:hover { background: var(--bg-spot); }
-
-    .menu-label {
-      font-size: 0.75rem;
-      font-weight: 600;
+      font-size: 14px;
       letter-spacing: 0.05em;
-      color: var(--text-2);
+    }
+    /* Override Anta's label optical-centering (17px line + 1px bottom pad)
+       for this compact menu label: tight 14px line box, no bottom padding.
+       `:global` because the label is rendered inside the Button island. */
+    .menu-toggle :global(a-button-label) {
+      line-height: 14px;
+      padding-bottom: 0;
     }
 
+    /* Breadcrumb "Anta › {page}". The separator is muted; crumbs sit tight
+       (gap: 0) with the separator carrying its own side margins. */
     .topbar-title {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 0;
       font-weight: 550;
       font-size: 0.95rem;
+      line-height: 1em;
       letter-spacing: 0.05ch;
       color: var(--text-1-brand);
       cursor: pointer;
     }
-
-    .topbar-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
+    .topbar-title .crumb-sep {
+      margin-inline: 6px;
+      color: var(--text-4);
+      font-weight: 400;
     }
   }
 </style>
