@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'preact/hooks'
+import { Button } from '@antadesign/anta'
 import * as Stickers from '@antadesign/anta/stickers'
 
 // Pull the bare names from the barrel by stripping the `Sticker` prefix
@@ -13,6 +14,11 @@ function exportKey(pascal: string, animated: boolean) {
   return animated ? `Sticker${pascal}Animated` : `Sticker${pascal}`
 }
 
+const MODES = [
+  { id: 'static', label: 'Static' },
+  { id: 'animated', label: 'Animated' },
+] as const
+
 export default function StickerDemo() {
   const [mode, setMode] = useState<'animated' | 'static'>('static')
   const [paused, setPaused] = useState<boolean | number>(false)
@@ -25,25 +31,39 @@ export default function StickerDemo() {
   }, [query])
 
   return (
-    <div>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+    <div class="full-bleed">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 960, margin: '0 auto 16px' }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div class="demoSeg" role="tablist" aria-label="Sticker variant">
+            {MODES.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                role="tab"
+                aria-selected={mode === m.id}
+                class={mode === m.id ? 'demoSegBtn demoSegBtnActive' : 'demoSegBtn'}
+                onClick={() => setMode(m.id)}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+          {mode === 'animated' && (
+            <div style={{ display: 'flex' }}>
+              <Button priority="tertiary" tone="brand" icon="circle-play" label="Play all" onClick={() => setPaused(false)} />
+              <Button priority="tertiary" tone="brand" icon="circle-pause" label="Pause all" onClick={() => setPaused(true)} />
+              <Button priority="tertiary" tone="brand" icon="octagon-pause" label="Freeze at 1s" onClick={() => setPaused(1)} />
+            </div>
+          )}
+        </div>
         <input
           type="search"
           value={query}
           onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
           placeholder={`Search ${NAMES.length} stickers…`}
           class="iconFilter"
+          style={{ margin: 0 }}
         />
-        <button onClick={() => setMode(mode === 'animated' ? 'static' : 'animated')}>
-          {mode === 'animated' ? 'Show static' : 'Show animated'}
-        </button>
-        {mode === 'animated' && (
-          <>
-            <button onClick={() => setPaused(false)}>Play all</button>
-            <button onClick={() => setPaused(true)}>Pause all</button>
-            <button onClick={() => setPaused(1)}>Freeze at 1s</button>
-          </>
-        )}
       </div>
       {filtered.length === 0 ? (
         <p class="demoLabel" style={{ padding: '24px 0' }}>No stickers match “{query}”.</p>
@@ -51,7 +71,8 @@ export default function StickerDemo() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, 174px)',
+            justifyContent: 'center',
             gap: 16,
           }}
         >
@@ -59,10 +80,10 @@ export default function StickerDemo() {
             const Cmp = (Stickers as Record<string, (p: any) => any>)[exportKey(pascal, mode === 'animated')]
             if (!Cmp) return null
             const props = mode === 'animated'
-              ? { size: 128, paused, label: pascal }
-              : { size: 128, label: pascal }
+              ? { size: 174, paused, label: pascal }
+              : { size: 174, label: pascal }
             return (
-              <div key={pascal} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <div key={pascal} class="copyable" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                 <Cmp {...props} />
                 <span class="demoLabel">{pascal}</span>
               </div>
