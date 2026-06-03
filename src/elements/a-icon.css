@@ -26,12 +26,18 @@
   }
 
   /* `<a-icon size="N">` only — typed `attr()` (CSS Values 5, Chrome
-     133+). In Safari/Firefox the typed form is unsupported, the
-     declaration is invalid, the override is discarded, and the base
-     16px wins. Consumers that need custom sizes there should route
-     through the `<Icon size={N}>` JSX wrapper, which sets
-     `--icon-size` inline. */
-  a-icon[size] {
-    --icon-size: attr(size px, 16px);
+     133+). Safari/Firefox don't support the typed form, but a custom
+     property parses permissively, so without the `@supports` guard the
+     invalid `attr()` would still land on `--icon-size` and only fail
+     later when `width: var(--icon-size)` substitutes it — collapsing the
+     icon to `auto` → 0×0. The guard keeps the override off unsupported
+     engines so the plain `--icon-size: 16px` base wins (visible 16px
+     icon, not 0). Consumers that need an exact custom size everywhere
+     should route through the `<Icon size={N}>` JSX wrapper, which sets
+     `--icon-size` inline as a plain length. */
+  @supports (width: attr(size px, 16px)) {
+    a-icon[size] {
+      --icon-size: attr(size px, 16px);
+    }
   }
 }

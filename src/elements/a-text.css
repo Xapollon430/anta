@@ -76,8 +76,11 @@
      On hover the underline color is repeated so it tracks the priority
      color rather than the global --link-color-hover. */
   a-text a, a-text a:link, a-text a:visited { color: var(--text-link-color); }
-  a-text a:hover {
-    color: var(--text-link-hover);
-    text-decoration-color: var(--text-link-hover);
+  /* Hover only on real-pointer devices — avoids sticky hover after a tap. */
+  @media (hover: hover) and (pointer: fine) {
+    a-text a:hover {
+      color: var(--text-link-hover);
+      text-decoration-color: var(--text-link-hover);
+    }
   }
 }

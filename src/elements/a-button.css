@@ -454,10 +454,17 @@
         text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
         text-decoration-thickness: 1px;
         text-underline-offset: 3px;
-        &:hover,
         &[selected] {
           text-decoration-color: var(--button-fg);
           text-decoration-thickness: 1px;
+        }
+        /* Hover only on real-pointer devices — gating avoids the sticky
+           hover-underline that lingers after a tap on touch screens. */
+        @media (hover: hover) and (pointer: fine) {
+          &:hover {
+            text-decoration-color: var(--button-fg);
+            text-decoration-thickness: 1px;
+          }
         }
       }
     }
@@ -631,9 +638,15 @@
        :hover on source order). */
     --button-fg: var(--button-fg-secondary-rest);
     --button-bg: var(--button-bg-secondary-rest);
-    &:hover {
-      --button-fg: var(--button-fg-secondary-hover);
-      --button-bg: var(--button-bg-secondary-hover);
+    /* Hover styling is gated to real-pointer devices so it doesn't stick
+       after a tap on touch screens (where :hover lingers until the next
+       tap elsewhere). :active / [selected] below stay ungated — they're
+       the correct press feedback on touch. */
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        --button-fg: var(--button-fg-secondary-hover);
+        --button-bg: var(--button-bg-secondary-hover);
+      }
     }
     &:active,
     &[selected] {
@@ -643,8 +656,10 @@
     &[priority="primary"] {
       --button-fg: var(--button-fg-primary-rest);
       --button-bg: var(--button-bg-primary-rest);
-      &:hover {
-        --button-bg: var(--button-bg-primary-hover);
+      @media (hover: hover) and (pointer: fine) {
+        &:hover {
+          --button-bg: var(--button-bg-primary-hover);
+        }
       }
       &:active,
       &[selected] {
@@ -654,9 +669,11 @@
     &[priority="tertiary"] {
       --button-fg: var(--button-fg-tertiary-rest);
       --button-bg: transparent;
-      &:hover {
-        --button-fg: var(--button-fg-tertiary-hover);
-        --button-bg: var(--button-bg-tertiary-hover);
+      @media (hover: hover) and (pointer: fine) {
+        &:hover {
+          --button-fg: var(--button-fg-tertiary-hover);
+          --button-bg: var(--button-bg-tertiary-hover);
+        }
       }
       &:active,
       &[selected] {
@@ -670,8 +687,10 @@
          one. Hover / active restore full opacity. */
       --button-fg: color-mix(in oklch, var(--button-fg-quaternary-rest) 82%, transparent);
       --button-bg: transparent;
-      &:hover {
-        --button-fg: var(--button-fg-quaternary-hover);
+      @media (hover: hover) and (pointer: fine) {
+        &:hover {
+          --button-fg: var(--button-fg-quaternary-hover);
+        }
       }
       &[selected] {
         --button-fg: var(--button-fg-quaternary-hover);

@@ -95,13 +95,29 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+    {/* Tints mobile Safari's toolbar / URL-bar to match the document
+        background. Driven from the theme script below (the theme is a
+        manual `.dark` class, not prefers-color-scheme, so a media-based
+        meta can't track it). Default is the light value. */}
+    <meta name="theme-color" content="#fbfafb" />
     <script is:inline>
       // Apply the theme before paint so there's no flash. Preference
       // order: explicit user choice in localStorage → OS-level
       // prefers-color-scheme. Once the user has clicked the toggle,
       // localStorage holds the preference forever.
       const KEY = 'anta-theme'
-      const apply = (m) => document.documentElement.classList.toggle('dark', m)
+      // Mobile-Safari toolbar tint per theme — tracks `--bg-2` in
+      // anta's tokens.css (keep in sync if that token changes).
+      const THEME_COLOR = { light: '#fbfafb', dark: '#0e0d0f' }
+      // Central theme application: flips `.dark` on <html> and keeps the
+      // theme-color meta in sync. Exposed so the toggle handler (a
+      // separate, later script) reuses the exact same logic.
+      const apply = (m) => {
+        document.documentElement.classList.toggle('dark', m)
+        const tc = document.querySelector('meta[name="theme-color"]')
+        if (tc) tc.setAttribute('content', m ? THEME_COLOR.dark : THEME_COLOR.light)
+      }
+      window.__antaApplyTheme = apply
       const stored = localStorage.getItem(KEY)
       if (stored === 'dark' || stored === 'light') {
         apply(stored === 'dark')
@@ -134,10 +150,10 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
         <span class="logo">
           <img src="/anta-logo.svg" alt="" width="32" height="32" />
           <span class="logo-label">Anta</span>
-          <a-button class="theme-toggle" priority="tertiary" size="large" aria-label="Switch theme">
-            <a-icon shape="sun" size="18"></a-icon>
-            <a-icon shape="moon" size="18"></a-icon>
-          </a-button>
+          <Button class="theme-toggle" priority="tertiary" size="large" aria-label="Switch theme">
+            <Icon shape="sun" size={18} />
+            <Icon shape="moon" size={18} />
+          </Button>
         </span>
         <div class="brand-links">
           <Button
@@ -228,13 +244,16 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
       // Tapping a TOC entry navigates via hash — close the panel after.
       window.addEventListener('hashchange', () => setToc(false))
 
-      // Theme toggle — flips the `.dark` class on <html> and persists
-      // the choice in localStorage. The inline head script handles
+      // Theme toggle — flips the `.dark` class on <html> (and the
+      // theme-color meta) via the shared `apply` from the inline head
+      // script, then persists the choice. The inline head script handles
       // the no-flash application on subsequent page loads.
       const THEME_KEY = 'anta-theme'
+      const applyTheme = (window as any).__antaApplyTheme
+        ?? ((m: boolean) => document.documentElement.classList.toggle('dark', m))
       document.querySelector('.theme-toggle')?.addEventListener('click', () => {
         const nextDark = !document.documentElement.classList.contains('dark')
-        document.documentElement.classList.toggle('dark', nextDark)
+        applyTheme(nextDark)
         localStorage.setItem(THEME_KEY, nextDark ? 'dark' : 'light')
       })
     </script>

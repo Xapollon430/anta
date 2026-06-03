@@ -97,6 +97,12 @@ html {
   color: var(--text-2);
   background: var(--bg-base);
   scroll-padding-top: var(--scroll-padding-top);
+  /* Match native UI (form controls, scrollbars, overscroll/rubber-band
+     background) to the active theme. `.dark` is toggled on <html>. */
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
 }
 
 /* Smooth-scroll anchor jumps (e.g. the "On this page" TOC), but respect
