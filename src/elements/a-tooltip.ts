@@ -226,7 +226,10 @@ export class ATooltipElement extends HTMLElementBase {
     if (name === 'delay' && this.listening) this.makeDebouncedShow()
   }
 
-  /** (Re)build the show debounce with the CURRENT `delay`. */
+  /** (Re)build the show debounce with the CURRENT `delay` (rebuilt when the
+   *  `delay` attribute changes). Re-armed on each hover move (trailing), and
+   *  fed the latest cursor event, so it shows at the cursor and so moving back
+   *  onto an anchor after the tooltip was dismissed re-arms it. */
   private makeDebouncedShow() {
     this.debouncedShow?.cancel()
     this.debouncedShow = debounce((e?: MouseEvent) => this.show(e), this.delay)
@@ -413,7 +416,8 @@ export class ATooltipElement extends HTMLElementBase {
     if (e.key === 'Escape') this.hide() // Escape dismisses immediately
   }
 
-  /** Open now if another tooltip is hot (skip delay), else after `delay`. */
+  /** Open now if another tooltip is hot (skip delay), else (re)arm the delayed
+   *  show with the latest cursor event. */
   private trigger(e?: MouseEvent) {
     if (isHot()) {
       this.debouncedShow?.cancel()
@@ -445,6 +449,9 @@ export class ATooltipElement extends HTMLElementBase {
       if (this.shown) {
         if (!this.isStatic) this.positionToMouse(e)
       } else {
+        // (Re)arm the delayed show. This also re-arms after the tooltip was
+        // dismissed without leaving the anchor — e.g. moving back onto the
+        // outer box after a nested inner tooltip claimed and hid it.
         this.trigger(e)
       }
     }
