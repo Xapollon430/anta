@@ -80,7 +80,7 @@ export interface ATextAttributes extends BaseAttributes {
   /** Type scale. `small` = 13/16, `medium` (default) = 15/20, `large` = 17/24. */
   size?: 'small' | 'medium' | 'large'
   /** Render as inline-block instead of the default block. */
-  inline?: boolean | string
+  inline?: boolean | ''
   /** Truncate to N lines with a trailing ellipsis. The attribute value
    *  carries the line count (e.g. `"1"`, `"3"`); the count is also
    *  available via the `--line-clamp` CSS custom property set inline. */
@@ -88,7 +88,7 @@ export interface ATextAttributes extends BaseAttributes {
   /** Marks the host as expandable when paired with `truncate`. Adds
    *  the fade-out mask; the JSX wrapper renders the chevron and owns
    *  the click/keyboard expansion logic. */
-  expandable?: boolean | string
+  expandable?: boolean | ''
   /** ARIA disclosure state, mirrors the JSX wrapper's `expanded` flag. */
   'aria-expanded'?: boolean | 'true' | 'false'
 }
@@ -224,13 +224,13 @@ export interface AButtonAttributes extends BaseAttributes {
   size?: 'small' | 'medium' | 'large'
   /** Drop outer padding to zero. Only takes effect on `priority="quaternary"`.
    *  Presence-based: `''` (or any value) turns it on; omit to turn off. */
-  paddingless?: '' | 'true' | 'false' | boolean
+  paddingless?: boolean | ''
   /** Loading state. Presence-based (`''` on, omit off). */
-  loading?: '' | 'true' | 'false' | boolean
+  loading?: boolean | ''
   /** Disabled state. Presence-based (`''` on, omit off). */
-  disabled?: '' | 'true' | 'false' | boolean
+  disabled?: boolean | ''
   /** Toggled-on / pressed state. Presence-based (`''` on, omit off). */
-  selected?: '' | 'true' | 'false' | boolean
+  selected?: boolean | ''
   /** Submit/reset semantics. */
   type?: 'button' | 'submit' | 'reset'
   /** Associate with a form by id when not nested inside it. */
