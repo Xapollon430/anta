@@ -215,6 +215,29 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     <div class="backdrop" aria-hidden="true"></div>
 
     <script>
+      // Interface Kit — dev-only visual styling tool, mounted on every docs
+      // page during local development. interface-kit is a React 19 tool run
+      // under preact/compat via the `useEffectEvent` shim wired up in
+      // astro.config.mjs; it renders nothing inline and injects its own
+      // floating paintbrush button + editor panel into the document.
+      //
+      // The `import.meta.env.DEV` guard is statically `false` in the
+      // production build, so Vite dead-code-eliminates this whole block — the
+      // dynamic imports below are dropped and interface-kit (plus its ~420 KB
+      // React→preact chunk) never enter the deployed bundle. That's also why
+      // `interface-kit` is a devDependency rather than a dependency.
+      if (import.meta.env.DEV) {
+        const [{ render, createElement }, { InterfaceKit }] = await Promise.all([
+          import('preact/compat'),
+          import('interface-kit/react'),
+        ])
+        const mount = document.createElement('div')
+        document.body.appendChild(mount)
+        render(createElement(InterfaceKit, { enabled: true }), mount)
+      }
+    </script>
+
+    <script>
       const backdrop = document.querySelector('.backdrop')
       // Two mobile slide-outs share the backdrop: the nav sidebar (menu)
       // and the "On this page" TOC. Opening one closes the other so they
