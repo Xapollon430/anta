@@ -64,6 +64,7 @@
   },
   "dependencies": {
     "clsx": "^2.1.0",
+    "es-toolkit": "^1.47.0",
     "lottie-web": "^5.13.0"
   },
   "peerDependencies": {

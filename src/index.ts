@@ -37,6 +37,8 @@ export { Sticker } from './components/Sticker'
 export type { StickerProps } from './components/Sticker'
 export { StickerAnimated } from './components/StickerAnimated'
 export type { StickerAnimatedProps } from './components/StickerAnimated'
+export { Tooltip } from './components/Tooltip'
+export type { TooltipProps } from './components/Tooltip'
 export type { BaseProps, BaseAttributes } from './general_types'
 export { configure } from './jsx-runtime'
 

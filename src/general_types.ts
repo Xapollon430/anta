@@ -183,6 +183,26 @@ export interface AIconAttributes extends BaseAttributes {
 }
 
 /**
+ * Attributes for the `<a-tooltip>` custom element. Placed as a child of the
+ * element it annotates (content as children). For the typed JSX wrapper use
+ * `Tooltip` from `@antadesign/anta`.
+ */
+export interface ATooltipAttributes extends BaseAttributes {
+  /** Show delay in milliseconds. Never use `0` — use ~`50`. Defaults to 250. */
+  delay?: number | string
+  /** Preferred side; auto-flips when there's no room. Defaults to `'bottom'`. */
+  placement?: 'top' | 'bottom'
+  /** Pin under the anchor instead of following the cursor. Presence-based
+   *  (`''` on, omit off). */
+  static?: boolean | ''
+  /** Make the bubble hoverable/clickable (pointer events on, stays open while
+   *  hovered). Implies `static`. Presence-based (`''` on, omit off). */
+  interactive?: boolean | ''
+  /** HTML `id`. */
+  id?: string
+}
+
+/**
  * Attributes for the `<a-button>` custom element. For the typed JSX
  * wrapper use `Button` from `@antadesign/anta`.
  */

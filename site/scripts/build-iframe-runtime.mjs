@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
 
 const root = new URL('../..', import.meta.url)
+const tokensCss = fileURLToPath(new URL('src/tokens.css', root))
 const resetCss = fileURLToPath(new URL('src/reset.css', root))
 const elementsEntry = fileURLToPath(new URL('src/elements/index.ts', root))
 const outFile = fileURLToPath(new URL('site/public/iframe-anta-runtime.js', root))
@@ -26,12 +27,14 @@ const outFile = fileURLToPath(new URL('site/public/iframe-anta-runtime.js', root
 await mkdir(dirname(outFile), { recursive: true })
 
 await build({
-  // Virtual entry: pull reset.css's `@layer anta` rules (base link
-  // styling, list resets, etc.) in alongside the element registrations
-  // so the iframe ends up with the same anchor underlines, etc., the
-  // docs site shows.
+  // Virtual entry: pull in the design tokens (so component CSS that
+  // references `--bg-*` / `--text-*` / `--border-*` resolves the same way
+  // it does on the docs site — e.g. the tooltip's frosted background) plus
+  // reset.css's `@layer anta` rules (base link styling, list resets, etc.)
+  // alongside the element registrations, so the iframe matches the real
+  // site's appearance.
   stdin: {
-    contents: `import ${JSON.stringify(resetCss)}; import ${JSON.stringify(elementsEntry)};`,
+    contents: `import ${JSON.stringify(tokensCss)}; import ${JSON.stringify(resetCss)}; import ${JSON.stringify(elementsEntry)};`,
     resolveDir: fileURLToPath(root),
     loader: 'ts',
   },
