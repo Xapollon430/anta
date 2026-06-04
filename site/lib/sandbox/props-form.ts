@@ -58,7 +58,11 @@ export type Control =
   | { kind: 'number'; name: string; defaultValue?: number; description?: string }
   | { kind: 'text'; name: string; defaultValue?: string; description?: string }
   | { kind: 'boolean'; name: string; defaultValue?: boolean; description?: string }
-  | { kind: 'segmented'; name: string; options: string[]; defaultValue?: string; description?: string }
+  /** `clearable` adds a leading "none" button that removes the
+   *  attribute entirely. Set for optional props with no `@defaultValue`,
+   *  where omitting the attribute is a meaningful state the radiogroup
+   *  otherwise can't express (e.g. Button's `underline`). */
+  | { kind: 'segmented'; name: string; options: string[]; defaultValue?: string; clearable?: boolean; description?: string }
   /** Named-tone tabs + a "Custom" tab that reveals a color input. `options`
    *  are the named literals; a value outside them is treated as a custom
    *  color. Serialized as a plain string attribute (`tone="…"`). */
@@ -340,8 +344,12 @@ function controlFor(p: any): PropEntry | null {
       // attribute when the user picks the default, hiding the
       // selection from the rendered output.
       const defaultValue = readDefaultValueTag(p.comment)
+      // An optional prop with no documented default can be omitted
+      // entirely — surface that as a leading "none" button rather than
+      // leaving the radiogroup with no active selection.
+      const clearable = optional && defaultValue === undefined
       return wrap(
-        { kind: 'segmented', name, options, defaultValue, description },
+        { kind: 'segmented', name, options, defaultValue, clearable, description },
         { name, kind: 'literal-union' },
       )
     }
