@@ -118,11 +118,15 @@
     text-decoration-thickness: 0.5px;
     text-underline-offset: 3px;
   }
-  a:hover {
-    color: var(--link-color-hover);
-    /* Underline color is left as the resting hairline (the base rule's
-       `currentColor` mix) — only the thickness grows on hover. */
-    text-decoration-thickness: 1px;
+  /* Hover only on real-pointer devices — gating avoids the sticky hover
+     color that lingers after a tap on touch screens. */
+  @media (hover: hover) and (pointer: fine) {
+    a:hover {
+      color: var(--link-color-hover);
+      /* Underline color is left as the resting hairline (the base rule's
+         `currentColor` mix) — only the thickness grows on hover. */
+      text-decoration-thickness: 1px;
+    }
   }
   a:active {
     text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
