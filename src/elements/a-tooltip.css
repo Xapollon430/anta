@@ -30,13 +30,13 @@
     --tooltip-max-width: min(calc(100vw - 20px), 80ch);
   }
 
-  /* Dark: a slightly more transparent black frost, and the shadow becomes
-     a soft light halo (text-1 is light in dark mode) instead of a drop
-     shadow — same recipe the legacy used. */
+  /* Dark: a slightly more transparent black frost. A solid black cast shadow
+     for lift, plus an inset 1px white ring so the bubble's edge stays crisp
+     against dark page content. */
   .dark a-tooltip {
     --tooltip-bg: color-mix(in oklch, var(--bg-1) 70%, transparent);
     --tooltip-shadow:
-      0 0 8px color-mix(in oklch, var(--text-1) 10%, transparent),
-      0 0 1px color-mix(in oklch, var(--text-1) 80%, transparent);
+      0 2px 16px #000,
+      inset 0 0 0 1px color-mix(in oklch, white 50%, transparent);
   }
 }

@@ -6,6 +6,10 @@ import './a-tooltip.css'
 const MARGIN = 4
 /** Approx pointer height — how far below the cursor the bubble sits in follow mode. */
 const CURSOR_SIZE = 16
+/** The bubble's horizontal padding (matches `padding: 5px 8px` in the shadow
+ *  style). In cursor-follow mode the bubble is shifted left by this so the
+ *  cursor lands at the start of the text, not to the left of the whole bubble. */
+const PADDING_X = 8
 /** Default show delay (ms) when nothing else is open. Never use 0 — use ~50. */
 const DEFAULT_DELAY = 250
 /** Enter/exit fade duration (ms). Mirrors `--_dur` in the shadow style. */
@@ -306,7 +310,9 @@ export class ATooltipElement extends HTMLElementBase {
       const vw = view.innerWidth
       const vh = view.innerHeight
 
-      let left = e.clientX + MARGIN
+      // Shift left by the bubble's left padding so the cursor sits at the
+      // start of the text rather than to the left of the whole bubble.
+      let left = e.clientX - PADDING_X
       if (left + box.width > vw) left = vw - box.width - MARGIN
       left = Math.max(MARGIN, left)
 
