@@ -384,7 +384,7 @@ pre code { background: none; padding: 0; }
    text-4 at rest → text-2 on hover → back to text-4 while pressed. */
 .content .expressive-code .frame .header { color: var(--text-4); }
 .content .expressive-code .frame .header:hover { color: var(--text-2); }
-.content .expressive-code .frame .header:active { color: var(--text-4); }
+.content .expressive-code .frame .header:active { color: var(--text-3); }
 
 /* Chevron — repurpose the ::before EC used for the tab outline / dots. */
 .content .expressive-code .frame.has-title:not(.is-terminal) .header::before,
