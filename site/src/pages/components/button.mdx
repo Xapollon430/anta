@@ -34,7 +34,7 @@ A button's priority helps control how much attention it draws:
   <Button tone="brand" priority="quaternary" label="Remind" />
 </Preview>
 
-```tsx
+```tsx folded
 <Button tone="brand" priority="primary"    label="Publish" />
 <Button tone="brand" priority="secondary"  label="Move" />
 <Button tone="brand" priority="tertiary"   label="Cancel" />
@@ -45,9 +45,9 @@ A button's priority helps control how much attention it draws:
 <Col>
 
 - `primary` — Saturated fill. Main call to action.
-- `secondary` — Pastel background, no border. Everyday button — the default.
-- `tertiary` — Background-less at rest, fills on hover. Dense toolbars.
-- `quaternary` — Text only — no background, no border, no transitions.
+- `secondary` — Lighter background. Default priority.
+- `tertiary` — Background-less at rest, fills on hover.
+- `quaternary` — Text only, no background.
 
 </Col>
 </Columns>
@@ -70,7 +70,7 @@ literal CSS color and the button will adapt to it.
   <Button tone="warning" label="Archive" />
 </Preview>
 
-```tsx
+```tsx folded
 <Button label="Save" />
 <Button tone="brand" label="Publish" />
 <Button tone="critical" label="Delete" />
@@ -91,7 +91,7 @@ literal CSS color and the button will adapt to it.
   <Button priority="tertiary" tone="lch(75.7% 39.2 167.8)" label="Mintify" />
 </Preview>
 
-```tsx
+```tsx folded
 <Button priority="primary"   tone="#ff1493"                  label="Pinkify" />
 <Button priority="secondary" tone="oklch(0.655 0.261 356.9)" label="Pinkify" />
 <Button priority="tertiary"  tone="hsl(328 100% 54%)"        label="Pinkify" />
@@ -149,7 +149,7 @@ variables instead — `--button-bg-{priority}-hover`,
   <Button size="large" tone="brand" label="Large" />
 </Preview>
 
-```tsx
+```tsx folded
 <Button tone="brand" size="small"  label="Small" />
 <Button tone="brand" size="medium" label="Medium" /> // default
 <Button tone="brand" size="large"  label="Large" />
@@ -158,15 +158,13 @@ variables instead — `--button-bg-{priority}-hover`,
 </Col>
 <Col>
 
-Three sizes; only the padding changes, so the label keeps the same 15px
-size — readability stays constant while the hit area grows or shrinks.
+Three sizes (`medium` is default); only the padding changes, so the label
+keeps the same 15px size — readability stays constant while the hit area
+grows or shrinks.
 
-Omitting `size` and passing `size="medium"` render identically — the
-wrapper drops the attribute for the medium case so the DOM stays free
-of redundant `size="medium"`.
-
-Height comes from `line-height` (18px) plus vertical padding; font size
-stays 15px across all sizes.
+Height comes from `line-height` (18px) plus vertical padding, which is
+calibrated for 15px font-size of TT Interphases to get visual vertical
+centering.
 
 </Col>
 </Columns>
@@ -217,7 +215,7 @@ To center the label inside a wider button instead, set
   <p style={{ maxWidth: '480px', margin: 0, lineHeight: 1.6 }}>If you're familiar with the basics, click <Button tone="critical" priority="quaternary" paddingless label="here" /> to skip the live demo.</p>
 </Preview>
 
-```tsx
+```tsx folded
 If you're familiar with the basics, click
 <Button tone="critical" priority="quaternary" paddingless label="here" />
 to skip ahead to the live demo.
@@ -238,28 +236,25 @@ button to read as an inline link inside a sentence.
 <Columns>
 <Col>
 
-The wrapper renders content in this order inside the button: `icon` →
-`label` → `children` → `iconTrailing`.
-
-Icon shape names come from the `IconShape` union — see the
-[Icon](/components/icon) page for the full set.
-
-`children` (if any) lands between `label` and `iconTrailing`.
-
-</Col>
-<Col>
-
 <Preview>
   <Button tone="brand" priority="primary" icon="check" label="Confirm" />
   <Button tone="brand" iconTrailing="external-link" label="Read the docs" />
   <Button tone="brand" priority="tertiary" icon="filter" iconTrailing="chevron-down" label="Filter" />
 </Preview>
 
-```tsx
+```tsx folded
 <Button tone="brand" priority="primary" icon="check" label="Confirm" />
 <Button tone="brand" iconTrailing="external-link" label="Read the docs" />
 <Button tone="brand" priority="tertiary" icon="filter" iconTrailing="chevron-down" label="Filter" />
 ```
+
+</Col>
+<Col>
+
+The wrapper renders content in this order inside the button: `icon` →
+`label` → `children` → `iconTrailing`. Icon shape names come from the
+`IconShape` union — see the [Icon](/components/icon) page for the full
+set. `children` (if any) lands between `label` and `iconTrailing`.
 
 </Col>
 </Columns>
@@ -275,7 +270,7 @@ Icon shape names come from the `IconShape` union — see the
   <Button tone="brand" icon="check" size="large" />
 </Preview>
 
-```tsx
+```tsx folded
 <Button tone="neutral"  icon="dots-vertical" size="small" />
 <Button tone="critical" icon="trash" />
 <Button tone="brand"    icon="check"          size="large" />
@@ -302,26 +297,26 @@ name "trash". Pass your own `aria-label` to override.
 <Columns>
 <Col>
 
-Children render after the label and before the trailing icon, so you
-can mix custom inline content — keyboard hints, badges, counters —
-with the prop-driven API.
-
-Children also work without `label` — pass them as the only content.
-
-</Col>
-<Col>
-
 <Preview>
   <Button tone="brand" label="Save" icon="check">
     <span style={{ opacity: 0.7 }}>⌘S</span>
   </Button>
 </Preview>
 
-```tsx
+```tsx folded
 <Button tone="brand" label="Save" icon="check">
   <span style={{ opacity: 0.7 }}>⌘S</span>
 </Button>
 ```
+
+</Col>
+<Col>
+
+Children render after the label and before the trailing icon, so you
+can mix custom inline content — keyboard hints, badges, counters —
+with the prop-driven API.
+
+Children also work without `label` — pass them as the only content.
 
 </Col>
 </Columns>
@@ -337,7 +332,7 @@ Children also work without `label` — pass them as the only content.
   <Button tone="brand" priority="tertiary" underline="dotted" label="Dotted" />
 </Preview>
 
-```tsx
+```tsx folded
 <Button tone="brand" priority="tertiary" underline="solid"  label="Solid" />
 <Button tone="brand" priority="tertiary" underline="dashed" label="Dashed" />
 <Button tone="brand" priority="tertiary" underline="dotted" label="Dotted" />
@@ -365,7 +360,7 @@ underline stylistically, it supports three styles — `solid`, `dashed`,
   <Button tone="brand" loading disabled label="Critical" />
 </Preview>
 
-```tsx
+```tsx folded
 <Button tone="brand" loading label="Submitting" />
 <Button tone="brand" disabled label="Locked" />
 <Button tone="brand" selected label="Toggled on" />
@@ -396,7 +391,7 @@ underline stylistically, it supports three styles — `solid`, `dashed`,
   <Button tone="brand" href="#" label="Read the docs" iconTrailing="external-link" />
 </Preview>
 
-```tsx
+```tsx folded
 <Button tone="brand" href="/docs" target="_blank" label="Read the docs" />
 ```
 
@@ -419,7 +414,7 @@ Compose your own thin wrapper around
 your library's `Link` component — which renders an `<a>`, so it matches the
 selector.
 
-```tsx
+```tsx folded
 // LinkButton.tsx — anta-styled link for client-side routing
 import { Link, type LinkProps } from 'react-router-dom'
 import type { IconShape } from '@antadesign/anta'
@@ -447,7 +442,7 @@ export const LinkButton = ({
 
 Usage:
 
-```tsx
+```tsx folded
 <LinkButton to="/dashboard" tone="brand" label="Dashboard" />
 <LinkButton to="/docs" priority="tertiary" iconTrailing="external-link" label="Docs" />
 ```
@@ -462,13 +457,16 @@ other routing library.
 Beyond a plain click, a `Button` can drive a native form or emit your own
 event:
 
+<Columns>
+<Col>
+
 ### Form submission
 
 For non-anchor buttons, `type="submit"` and `type="reset"` integrate
-with native forms:
-
-<Columns>
-<Col>
+with native forms. `type="submit"` calls `form.requestSubmit()` and also
+dispatches a `submitdetailed` event on the form with
+`{ formData, submitter: { tag, attrs } }` in `detail` — handy for
+analytics or multi-button forms.
 
 <Preview>
   {/* `action="javascript:void(0)"` keeps the live demo from navigating
@@ -481,7 +479,7 @@ with native forms:
   <Button tone="neutral" type="submit" form="signup-demo" label="Submit from outside" />
 </Preview>
 
-```tsx
+```tsx folded
 <form id="signup">
   <Button tone="brand" type="submit" label="Sign up" />
   <Button tone="brand" priority="tertiary" type="reset" label="Clear" />
@@ -493,30 +491,17 @@ with native forms:
 </Col>
 <Col>
 
-`type="submit"` calls `form.requestSubmit()` and also dispatches a
-`submitdetailed` event on the form with `{ formData, submitter: { tag, attrs } }`
-in `detail` — handy for analytics or multi-button forms.
-
-</Col>
-</Columns>
-
 ### Custom click events
-
-<Columns>
-<Col>
 
 `data-custom-event="<name>"` makes the button dispatch a bubbling
 `CustomEvent("<name>")` on click. Use it to instrument analytics
 without taking ownership of `onClick`.
 
-</Col>
-<Col>
-
 <Preview>
   <Button tone="brand" label="Save" data-custom-event="save-clicked" />
 </Preview>
 
-```tsx
+```tsx folded
 <Button tone="brand" label="Save" data-custom-event="save-clicked" />
 ```
 

@@ -1,4 +1,5 @@
 import { HTMLElementBase } from "../anta_helpers";
+import "./a-button.css";
 
 declare global {
   interface Document {
@@ -86,3 +87,7 @@ export function register_a_button() {
     customElements.define("a-button", AButtonElement);
   }
 }
+
+// Importing this module registers the element (granular entry point). The
+// barrel re-exports it, so importing the barrel registers it too. Idempotent.
+register_a_button();

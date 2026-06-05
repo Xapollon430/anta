@@ -891,6 +891,22 @@ function FieldControl({
       const selected = value !== undefined ? value : control.defaultValue
       return (
         <div class={`${s.segment} ${cls}`} role="radiogroup" aria-label={control.name}>
+          {control.clearable && (
+            // Optional prop with no default — "none" clears the attribute
+            // so the omitted state is selectable, and stays lit while
+            // nothing else is chosen.
+            <button
+              key="__none"
+              type="button"
+              role="radio"
+              aria-checked={selected === undefined}
+              class={selected === undefined ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
+              onClick={() => onChange(null)}
+              disabled={disabled}
+            >
+              none
+            </button>
+          )}
           {control.options.map((opt) => (
             <button
               key={opt}

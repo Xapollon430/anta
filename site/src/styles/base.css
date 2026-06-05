@@ -184,6 +184,24 @@ pre, figure, hr, .expressive-code { margin: 0 0 1.5em; }
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
+/* When the fused block is foldable, the header is the top panel (not the pre):
+   square the frame's clip and the header's top, and drop the header's top
+   border so the Preview's bottom border is the single seam (matching the
+   non-foldable `pre` rule above). The header still rounds its own bottom
+   corners when folded. */
+.content .preview + .expressive-code .frame.has-title:not(.is-terminal),
+.content .preview + .expressive-code .frame.is-terminal,
+.content .preview + .expressive-code .frame[data-foldable]:not(.has-title):not(.is-terminal) {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.content .preview + .expressive-code .frame.has-title:not(.is-terminal) .header,
+.content .preview + .expressive-code .frame.is-terminal .header,
+.content .preview + .expressive-code .frame[data-foldable]:not(.has-title):not(.is-terminal) .header {
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
 
 /* Tone × priority demo on the Title docs page. Scrolls horizontally
    when the columns don't fit; titles inside the grid drop their
@@ -278,6 +296,180 @@ pre code { background: none; padding: 0; }
      as the quaternary tone) is faded to 82% alpha at rest. The green-check
      copied state keeps full opacity (its rule below overrides this). */
   background-color: color-mix(in oklch, var(--ec-frm-inlBtnFg) 82%, transparent);
+}
+
+/* ── Code-block title bars + folding ───────────────────────────────────────
+   ONE shared treatment for the editor "titled" frame, the terminal frame, and
+   any block authored `folded` (lib/ec-foldable.mjs forces a header onto an
+   otherwise plain block so it can fold). EC draws different chrome per frame
+   type (an editor tab, terminal traffic-light dots); we collapse it into a
+   single plain bar — a bg-4 strip with a 1px border-5 outline, a chevron at the
+   left, then the label — and make the whole bar a fold toggle.
+
+   The chevron glyph is anta's `chevron-down`, delivered as a mask (no element
+   injection); it points down when expanded and rotates to point right when
+   folded. Folding collapses the body via a `grid-template-rows: 1fr → 0fr`
+   transition (the same technique as Disclosure.astro). `overflow: hidden` on
+   the figure lets its 5.5px border-radius clip the header's corners, so the
+   bar rounds all four corners as the body collapses — no radius animation. */
+
+.content .expressive-code {
+  --fold-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  /* Fixed bar height — used for both the header `min-height` and the grid's
+     header track, so the header never resizes while the body animates. */
+  --fold-header-h: 2.25rem;
+}
+
+/* Figure → 2-row grid (header auto, body 1fr); .copy is absolute, out of flow.
+   Low specificity is fine — EC doesn't set grid-template-rows. */
+.content .expressive-code .frame.has-title,
+.content .expressive-code .frame.is-terminal,
+.content .expressive-code .frame[data-foldable] {
+  display: grid;
+  grid-template-rows: var(--fold-header-h) 1fr;
+  overflow: hidden;
+}
+.content .expressive-code .frame.has-title > pre,
+.content .expressive-code .frame.is-terminal > pre,
+.content .expressive-code .frame[data-foldable] > pre {
+  min-height: 0;
+  /* Clipped by default so no scrollbar renders while the body collapses or
+     grows. Scrolling is restored only once expanded + settled (below). */
+  overflow: clip;
+}
+/* Expanded + settled → restore EC's scrollable body (wide code scrolls). The
+   flip back to `auto` is deferred until the expand animation finishes (overflow
+   is a discrete property), mirroring Disclosure's body; folding reverts to the
+   clipped base rule immediately. */
+.content .expressive-code .frame.has-title:not([data-folded]) > pre,
+.content .expressive-code .frame.is-terminal:not([data-folded]) > pre,
+.content .expressive-code .frame[data-foldable]:not([data-folded]) > pre {
+  overflow: auto;
+}
+/* A folded-authored PLAIN block is a frameless code block to EC, so it keeps a
+   rounded, fully-bordered top — square it off so the body meets the forced
+   header flush, like the titled/terminal frames do. */
+.content .expressive-code .frame[data-foldable]:not(.has-title):not(.is-terminal) > pre {
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* The bar. Editor needs `:not(.is-terminal)` so the `.content` prefix tips it
+   past EC's own `.has-title:not(.is-terminal)` rules; terminal/plain win via
+   `.content` alone. */
+.content .expressive-code .frame.has-title:not(.is-terminal) .header,
+.content .expressive-code .frame.is-terminal .header,
+.content .expressive-code .frame[data-foldable]:not(.has-title):not(.is-terminal) .header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  /* Fixed bar height (≈ the original titled-header height) so it stays constant
+     in every state and matches across editor/terminal/plain frames. EC pads
+     these headers differently (the terminal header gets extra padding-block),
+     which made them different heights — zero that and pin the height here. */
+  min-height: var(--fold-header-h);
+  padding-block: 0;
+  padding-inline: 8px;
+  border: 1px solid var(--border-5);
+  background: var(--bg-4);
+  cursor: pointer;
+}
+.content .expressive-code .frame .header:focus-visible {
+  outline: 2px solid var(--border-2);
+  outline-offset: -2px;
+}
+/* Bar tint — the chevron (currentColor) and label (inherit) follow this:
+   text-4 at rest → text-2 on hover → back to text-4 while pressed. */
+.content .expressive-code .frame .header { color: var(--text-4); }
+.content .expressive-code .frame .header:hover { color: var(--text-2); }
+.content .expressive-code .frame .header:active { color: var(--text-3); }
+
+/* Chevron — repurpose the ::before EC used for the tab outline / dots. */
+.content .expressive-code .frame.has-title:not(.is-terminal) .header::before,
+.content .expressive-code .frame.is-terminal .header::before,
+.content .expressive-code .frame[data-foldable]:not(.has-title):not(.is-terminal) .header::before {
+  content: "";
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  position: static;
+  inset: auto;
+  opacity: 1;
+  /* Follows the header's color (text-4 rest → text-2 hover → text-4 active). */
+  background: currentColor;
+  -webkit-mask: var(--fold-chevron) center / contain no-repeat;
+          mask: var(--fold-chevron) center / contain no-repeat;
+}
+
+/* Drop the rest of EC's chrome — editor tab connector + the terminal dots'
+   ::after half. (::before is the chevron; the label is .title or ::after.) */
+.content .expressive-code .frame.has-title:not(.is-terminal) .title::before,
+.content .expressive-code .frame.has-title:not(.is-terminal) .title::after,
+.content .expressive-code .frame.has-title:not(.is-terminal) .header::after,
+.content .expressive-code .frame.is-terminal .header::after {
+  display: none;
+}
+
+/* Label text (titled + terminal use the real .title span). */
+.content .expressive-code .frame.has-title:not(.is-terminal) .title,
+.content .expressive-code .frame.is-terminal .title {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-weight: 450;
+}
+/* Terminal with no title → "Terminal". Folded-authored plain block → "Code". */
+.content .expressive-code .frame.is-terminal .title:empty::before {
+  content: "Terminal";
+}
+.content .expressive-code .frame[data-foldable]:not(.has-title):not(.is-terminal) .header::after {
+  content: "Code";
+  color: inherit;
+  font-weight: 450;
+}
+
+/* Folded: collapse the body (the header track is fixed, so only this row
+   animates — the bar never resizes), drop the body border, hide the copy chip,
+   round the header's bottom corners (EC leaves them square, which let the
+   clipped corner leak), and rotate the chevron. */
+.content .expressive-code .frame[data-folded] { grid-template-rows: var(--fold-header-h) 0fr; }
+.content .expressive-code .frame[data-folded] > pre { border: 0; }
+.content .expressive-code .frame[data-folded] .copy { display: none; }
+.content .expressive-code .frame[data-folded] .header { border-radius: var(--header-border-radius); }
+/* Folded bar gets a slightly deeper surface. Higher specificity than the
+   expanded bar's bg-4 (but NOT touching border-radius, so the preview-fusion
+   top-square still wins). */
+.content .expressive-code .frame.has-title:not(.is-terminal)[data-folded] .header,
+.content .expressive-code .frame.is-terminal[data-folded] .header,
+.content .expressive-code .frame[data-foldable]:not(.has-title):not(.is-terminal)[data-folded] .header {
+  background: var(--bg-3);
+}
+.content .expressive-code .frame.has-title:not(.is-terminal)[data-folded] .header::before,
+.content .expressive-code .frame.is-terminal[data-folded] .header::before,
+.content .expressive-code .frame[data-foldable]:not(.has-title):not(.is-terminal)[data-folded] .header::before {
+  transform: rotate(-90deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .content .expressive-code .frame.has-title,
+  .content .expressive-code .frame.is-terminal,
+  .content .expressive-code .frame[data-foldable] {
+    transition: grid-template-rows 240ms ease;
+    transition-behavior: allow-discrete;
+  }
+  .content .expressive-code .frame .header { transition: border-radius 240ms ease, background-color 240ms ease, color 120ms ease-out; }
+  .content .expressive-code .frame .header::before { transition: transform 150ms ease-out; }
+  /* Defer the body's overflow flip until the expand animation finishes, so the
+     scrollbar never flashes mid-animation (overflow is discrete). */
+  .content .expressive-code .frame.has-title:not([data-folded]) > pre,
+  .content .expressive-code .frame.is-terminal:not([data-folded]) > pre,
+  .content .expressive-code .frame[data-foldable]:not([data-folded]) > pre {
+    transition: overflow 0s 240ms;
+    transition-behavior: allow-discrete;
+  }
 }
 
 /* EC fades the copy *button* in on frame hover; move that reveal to the

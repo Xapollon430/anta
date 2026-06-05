@@ -14,6 +14,7 @@ import rehypeTableWrap from './lib/rehype-table-wrap.mjs';
 import rehypeChangelogSections from './lib/rehype-changelog-sections.mjs';
 import remarkUnwrapJsxParagraph from './lib/remark-unwrap-jsx-paragraph.mjs';
 import remarkUnwrapImages from './lib/remark-unwrap-images.mjs';
+import ecFoldable from './lib/ec-foldable.mjs';
 import { fileURLToPath } from 'node:url';
 
 // React→preact/compat shim that adds the `useEffectEvent` hook (see
@@ -32,6 +33,7 @@ export default defineConfig({
     // alias that bypasses the shim.
     preact({ compat: false }),
     astroExpressiveCode({
+      plugins: [ecFoldable()],
       themes: ['github-light', 'tokyo-night'],
       // Switch themes by the docs site's `.dark` class on <html>,
       // not by `prefers-color-scheme`. The theme toggle in the

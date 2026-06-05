@@ -1,4 +1,5 @@
 import { HTMLElementBase } from '../anta_helpers'
+import './a-text.css'
 
 const SHADOW_STYLE = `
   :host {
@@ -149,3 +150,7 @@ export function register_a_text() {
     customElements.define('a-text', ATextElement)
   }
 }
+
+// Importing this module registers the element (granular entry point). The
+// barrel re-exports it, so importing the barrel registers it too. Idempotent.
+register_a_text()
