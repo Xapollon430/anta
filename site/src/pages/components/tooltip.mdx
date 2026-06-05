@@ -41,7 +41,7 @@ or `interactive` to make it hoverable and clickable (for content like links).
   </div>
 </Preview>
 
-```tsx
+```tsx folded
 // Place <Tooltip> inside the element it describes. Hover or focus the anchor.
 <Button label="Save">
   <Tooltip>Saves your work</Tooltip>
@@ -109,7 +109,7 @@ when you leave. Hover the examples to feel it.
   </div>
 </Preview>
 
-```tsx
+```tsx folded
 // Adjacent — moving from one to the next cross-fades, no blink.
 <Button label="First"><Tooltip>First tooltip</Tooltip></Button>
 <Button label="Second"><Tooltip>Second tooltip</Tooltip></Button>
@@ -170,9 +170,9 @@ the page — those are intentionally not tokens. Every token below is a
 
 | Token | Description |
 |-------|-------------|
-| `--tooltip-bg` *(shadow-only API)* | Bubble background. Defaults to `var(--bg-5)`. |
-| `--tooltip-shadow` *(shadow-only API)* | Bubble drop shadow. Has a distinct light-mode and dark-mode recipe. |
-| `--tooltip-radius` *(shadow-only API)* | Corner radius. Defaults to `3px`. |
-| `--tooltip-max-width` *(shadow-only API)* | Maximum width before content wraps. Defaults to `min(calc(100vw - 20px), 80ch)`. |
+| `--tooltip-bg` | Bubble background. Defaults to `var(--bg-5)`. |
+| `--tooltip-shadow` | Bubble drop shadow. Has a distinct light-mode and dark-mode recipe. |
+| `--tooltip-radius` | Corner radius. Defaults to `3px`. |
+| `--tooltip-max-width` | Maximum width before content wraps. Defaults to `min(calc(100vw - 20px), 80ch)`. |
 
 </Disclosure>
