@@ -216,6 +216,65 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     <div class="backdrop" aria-hidden="true"></div>
 
     <script>
+      // Interface Kit — visual styling tool, mounted on every docs page (in
+      // every build, including production). It's tucked just off the top-right
+      // corner of the viewport and slides into view only when the pointer
+      // enters a 96×96px hotspot in that corner — or while its editor is
+      // active. interface-kit is a React 19 tool run under preact/compat via
+      // the `useEffectEvent` shim wired up in astro.config.mjs; it renders
+      // nothing inline and injects its own floating paintbrush bubble + editor
+      // panel into a shadow DOM under the host it appends to `mountTarget`.
+      //
+      // `enabled: true` is passed explicitly so the kit stays on regardless of
+      // NODE_ENV — its own auto-disable only kicks in when `enabled` is unset.
+      // `mountTarget` lands the kit's shadow host inside our `.ik-mount`
+      // element; a transform on `.ik-mount` becomes the containing block for
+      // the kit's `position: fixed` bubble, which is how we slide it off-screen
+      // and back via CSS (see the `.ik-mount` rules below).
+      const HOTSPOT = 96
+      const [{ render, createElement }, { InterfaceKit }] = await Promise.all([
+        import('preact/compat'),
+        import('interface-kit/react'),
+      ])
+
+      const mount = document.createElement('div')
+      mount.className = 'ik-mount'
+      document.body.appendChild(mount)
+
+      render(
+        createElement(InterfaceKit, {
+          enabled: true,
+          mountTarget: mount,
+          // Pin the bubble in view while the editor is active so it doesn't
+          // slide away mid-edit when the pointer leaves the hotspot.
+          onStateChange: (payload: { snapshot: { isActive: boolean } } | null) => {
+            document.body.dataset.ikActive = payload?.snapshot.isActive ? 'true' : 'false'
+          },
+        }),
+        mount,
+      )
+
+      // Reveal when the pointer is inside the top-right 96×96 corner. We sniff
+      // the region with a `pointermove` listener rather than an overlay element
+      // so we never block clicks on whatever sits in that corner (e.g. the TOC
+      // rail). The kit's bubble lives within the hotspot, so moving onto it
+      // keeps the reveal latched; the active-state flag covers the rest.
+      let revealed = false
+      const setReveal = (on: boolean) => {
+        if (on === revealed) return
+        revealed = on
+        document.body.dataset.ikReveal = on ? 'true' : 'false'
+      }
+      window.addEventListener(
+        'pointermove',
+        (e) => setReveal(e.clientX >= window.innerWidth - HOTSPOT && e.clientY <= HOTSPOT),
+        { passive: true },
+      )
+      // Pointer left the window entirely — tuck it back.
+      document.addEventListener('pointerleave', () => setReveal(false))
+    </script>
+
+    <script>
       const backdrop = document.querySelector('.backdrop')
       // Two mobile slide-outs share the backdrop: the nav sidebar (menu)
       // and the "On this page" TOC. Opening one closes the other so they
@@ -634,6 +693,31 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
       margin-inline: 6px;
       color: var(--text-4);
       font-weight: 400;
+    }
+  }
+</style>
+
+<style is:global>
+  /* Interface Kit launcher — tucked off the top-right corner, revealed when
+     the pointer enters the top-right hotspot or while the editor is active.
+     `.ik-mount` is created at runtime (so it's outside Astro's scoped styles,
+     hence `is:global`) and hosts the kit's shadow DOM. The transform makes it
+     the containing block for the kit's `position: fixed` bubble, so translating
+     it slides the bubble off-screen; the 96px/-96px offset clears the 44px
+     bubble at its 16px top/right inset. Revealed/active state uses
+     `transform: none` so the kit's viewport-relative overlay math stays exact
+     while it's in use. */
+  .ik-mount {
+    transform: translate(96px, -96px);
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  body[data-ik-reveal='true'] .ik-mount,
+  body[data-ik-active='true'] .ik-mount {
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ik-mount {
+      transition: none;
     }
   }
 </style>
