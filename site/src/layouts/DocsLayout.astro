@@ -193,6 +193,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
           <li><a href="/components/table/" aria-current={isCurrent('/components/table/') ? 'page' : undefined}><Icon shape="table-2" size={18} /> Table</a></li>
           <li><a href="/components/text/" aria-current={isCurrent('/components/text/') ? 'page' : undefined}><Icon shape="text-initial" size={18} /> Text</a></li>
           <li><a href="/components/title/" aria-current={isCurrent('/components/title/') ? 'page' : undefined}><Icon shape="case-sensitive" size={18} /> Title</a></li>
+          <li><a href="/components/tooltip/" aria-current={isCurrent('/components/tooltip/') ? 'page' : undefined}><Icon shape="chat" size={18} /> Tooltip</a></li>
         </menu>
       </aside>
       <main class="content">
@@ -285,6 +286,32 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
         btn.dataset.antaCopied = 'true'
         clearTimeout(btn._antaCopyTimer)
         btn._antaCopyTimer = setTimeout(() => { delete btn.dataset.antaCopied }, 1400)
+      })
+
+      // Foldable code blocks: clicking (or Enter/Space on) the header bar of a
+      // framed block — titled, terminal, or one authored `folded` (which gets
+      // a header via lib/ec-foldable.mjs) — toggles `data-folded` on the
+      // figure. base.css animates the collapse + chevron; the EC plugin baked
+      // the header's tabindex/role/aria-expanded. `.copy` is a sibling of
+      // `.header`, not a descendant, so copy clicks never fold.
+      const FOLD_SEL =
+        '.expressive-code .frame.has-title > .header, .expressive-code .frame.is-terminal > .header, .expressive-code .frame[data-foldable] > .header'
+      const toggleFold = (header: HTMLElement) => {
+        const frame = header.closest('.frame') as HTMLElement | null
+        if (!frame) return
+        const folded = frame.toggleAttribute('data-folded')
+        header.setAttribute('aria-expanded', folded ? 'false' : 'true')
+      }
+      document.addEventListener('click', (e) => {
+        const header = (e.target as HTMLElement)?.closest?.(FOLD_SEL) as HTMLElement | null
+        if (header) toggleFold(header)
+      })
+      document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return
+        const header = (e.target as HTMLElement)?.closest?.(FOLD_SEL) as HTMLElement | null
+        if (!header) return
+        e.preventDefault()
+        toggleFold(header)
       })
 
       // Anchor-based "scroll preservation" for tone-tab navigation.

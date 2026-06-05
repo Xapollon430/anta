@@ -15,6 +15,9 @@ importers:
       clsx:
         specifier: ^2.1.0
         version: 2.1.1
+      es-toolkit:
+        specifier: ^1.47.0
+        version: 1.47.0
       lottie-web:
         specifier: ^5.13.0
         version: 5.13.0

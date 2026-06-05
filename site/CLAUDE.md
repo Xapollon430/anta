@@ -13,6 +13,7 @@ The `<Playground>` component (`site/src/components/Playground.tsx`) is the playg
 Supporting code:
 
 - `site/lib/sandbox/` — `bundler.ts`, `modules.ts`, `prop-patch.ts`, `prop-read.ts`, `props-form.ts`, `locate-tag.ts`. These are the long-lived primitives. When the sandbox moves to its own package, these go with it; the docs site is left with just `Playground.tsx` consuming the extracted package.
+  - **`modules.ts` is a hand-maintained allow-list of the exports the sandbox exposes to playground code.** When you add a new anta component (or any new export demo code should be able to `import`), add it to **both** `moduleManifest['@antadesign/anta']` and `getDemoModules()['@antadesign/anta']`, or `import { NewThing }` resolves to `undefined` and the preview silently renders blank. (This is exactly what bit Tooltip — it was missing here.)
 - `site/scripts/copy-esbuild-wasm.mjs` — copies `esbuild.wasm` into `site/public/` so the iframe can fetch `/esbuild.wasm` directly.
 - `site/scripts/build-iframe-runtime.mjs` — pre-builds `site/public/iframe-anta-runtime.js`, a self-contained ESM bundle of `@antadesign/anta/elements` + per-element CSS that the iframe dynamic-imports to register custom elements on its own `customElements` registry.
 
@@ -36,7 +37,11 @@ We only register workers for languages the playground actually uses. Adding JSON
 
 ## Adding a component docs page
 
-Create `site/src/pages/components/{name}.mdx` with `layout: ../../layouts/DocsLayout.astro`. For an interactive demo, drop `<Playground client:load component="…" layout="side" initialCode={…} />` near the top.
+Create `site/src/pages/components/{name}.mdx` with `layout: ../../layouts/DocsLayout.astro`. For an interactive demo, drop `<Playground client:visible component="…" layout="side" initialCode={…} />` near the top.
+
+**Always use the shared `<Playground>` for the interactive demo — never hand-roll a bespoke per-component playground island.** The shared one gives a uniform editor + auto props form (from `api.json`) + isolated preview iframe across every page, and is slated for extraction into its own package; a one-off island fragments that and drifts. The `initialCode` is plain TSX — imports followed by a trailing JSX block that the bundler auto-wraps in a `<>…</>` fragment, so it can hold **multiple sibling or nested elements** (e.g. several anchors each wrapping a `<Tooltip>`); the props panel binds to the first instance of `component`. Keep `initialCode` in a sibling `{name}.demo.ts` (`export default \`…\``) so Astro's MDX pipeline doesn't mangle the template literal's indentation. Reserve custom islands for demos the playground genuinely can't express (e.g. a self-animating `AnimatedProgress`).
+
+The preview iframe loads `tokens.css` + `reset.css` + the registered elements via `site/scripts/build-iframe-runtime.mjs` (→ `public/iframe-anta-runtime.js`), so component CSS that references `--bg-*` / `--text-*` / `--border-*` resolves the same as on the docs site. If a new component's appearance depends on a stylesheet not in that bundle, add it there.
 
 ```sh
 pnpm run dev                 # ← run from the REPO ROOT (see below); the dev command for all work

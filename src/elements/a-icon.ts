@@ -1,4 +1,6 @@
 import { HTMLElementBase } from '../anta_helpers'
+import './a-icon.css'
+import './a-icon.shapes.css'
 
 /**
  * `<a-icon shape="…">` — pure declarative icon element.
@@ -16,3 +18,7 @@ export function register_a_icon() {
     customElements.define('a-icon', AIconElement)
   }
 }
+
+// Importing this module registers the element (granular entry point). The
+// barrel re-exports it, so importing the barrel registers it too. Idempotent.
+register_a_icon()

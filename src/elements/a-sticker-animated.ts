@@ -1,5 +1,6 @@
 import lottie, { type AnimationItem } from 'lottie-web'
 import { HTMLElementBase } from '../anta_helpers'
+import './a-sticker-animated.css'
 
 /**
  * `<a-sticker-animated>` — Lottie-driven sticker carrier.
@@ -113,3 +114,7 @@ export function register_a_sticker_animated() {
     customElements.define('a-sticker-animated', AStickerAnimatedElement)
   }
 }
+
+// Importing this module registers the element (granular entry point). The
+// barrel re-exports it, so importing the barrel registers it too. Idempotent.
+register_a_sticker_animated()

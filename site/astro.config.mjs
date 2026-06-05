@@ -14,6 +14,7 @@ import rehypeTableWrap from './lib/rehype-table-wrap.mjs';
 import rehypeChangelogSections from './lib/rehype-changelog-sections.mjs';
 import remarkUnwrapJsxParagraph from './lib/remark-unwrap-jsx-paragraph.mjs';
 import remarkUnwrapImages from './lib/remark-unwrap-images.mjs';
+import ecFoldable from './lib/ec-foldable.mjs';
 
 export default defineConfig({
   site: 'https://antadesign.dev',
@@ -21,6 +22,7 @@ export default defineConfig({
   integrations: [
     preact({ compat: true }),
     astroExpressiveCode({
+      plugins: [ecFoldable()],
       themes: ['github-light', 'tokyo-night'],
       // Switch themes by the docs site's `.dark` class on <html>,
       // not by `prefers-color-scheme`. The theme toggle in the

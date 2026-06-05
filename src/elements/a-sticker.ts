@@ -1,4 +1,5 @@
 import { HTMLElementBase } from '../anta_helpers'
+import './a-sticker.css'
 
 /**
  * `<a-sticker>` — static sticker carrier.
@@ -41,3 +42,7 @@ export function register_a_sticker() {
     customElements.define('a-sticker', AStickerElement)
   }
 }
+
+// Importing this module registers the element (granular entry point). The
+// barrel re-exports it, so importing the barrel registers it too. Idempotent.
+register_a_sticker()
