@@ -108,9 +108,14 @@
   /* Global link defaults. Hairline underline at 75% alpha;
      underline goes to currentColor (100%) and 1px on hover. Color
      comes from --link-color tokens, which auto-flip in dark mode.
-     Components or specific contexts (nav, headings, buttons)
-     should override as needed. */
-  a, a:link, a:visited {
+     `:not([role="button"])` excludes anchor-buttons (`<a role="button">`,
+     e.g. `<Button href>`): `a:link`/`a:visited` are pseudo-classes with the
+     same (0,1,1) specificity as `a[role="button"]`, so without the exclusion
+     they'd tie and win on source order, giving buttons link colour +
+     underline. Other contexts (nav, headings) still override as needed. */
+  a:not([role="button"]),
+  a:not([role="button"]):link,
+  a:not([role="button"]):visited {
     color: var(--link-color);
     text-decoration: underline;
     text-decoration-style: solid;
@@ -121,14 +126,14 @@
   /* Hover only on real-pointer devices — gating avoids the sticky hover
      color that lingers after a tap on touch screens. */
   @media (hover: hover) and (pointer: fine) {
-    a:hover {
+    a:not([role="button"]):hover {
       color: var(--link-color-hover);
       /* Underline color is left as the resting hairline (the base rule's
          `currentColor` mix) — only the thickness grows on hover. */
       text-decoration-thickness: 1px;
     }
   }
-  a:active {
+  a:not([role="button"]):active {
     text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
   }
 
