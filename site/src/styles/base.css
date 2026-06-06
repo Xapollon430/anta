@@ -326,6 +326,13 @@ pre code { background: none; padding: 0; }
 .content .expressive-code .frame.is-terminal,
 .content .expressive-code .frame[data-foldable] {
   display: grid;
+  /* Clamp the single column to the figure width. Without this the implicit
+     `auto` column grows to the `<pre>`'s longest line (grid items default to
+     `min-width: auto`), and the `<figcaption>` header stretches to that
+     over-wide track — pushing its right border outside the `overflow: hidden`
+     figure (most visible when folded). `minmax(0, 1fr)` pins the column to the
+     container; wide code scrolls inside the `<pre>` (its own `overflow: auto`). */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: var(--fold-header-h) 1fr;
   overflow: hidden;
 }
