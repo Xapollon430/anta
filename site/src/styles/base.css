@@ -252,24 +252,36 @@ pre code { background: none; padding: 0; }
   position: relative;
 }
 
-/* The copy region (`.copy`) is a frosted corner tab: it sits flush in the
-   block's top-right corner with a semi-transparent code-background fill and
-   a slight backdrop blur over the code beneath, hugging the block's rounded
-   corner (top-right) with a rounded bottom-left "peel". The button inside is
-   a bare Anta quaternary control — no background, border, or hover/active
-   fill (EC's tint overlay `div` is hidden); just the icon. */
+/* `.copy` is the positioning box for the copy button (the button itself is a
+   quaternary icon button — see below). On a plain block it's a frosted corner
+   tab in the top-right over the code; framed (titled / terminal / foldable)
+   frames lift it into the header bar instead (rule further down). */
 .content .expressive-code .frame .copy {
   inset-block-start: 1px;
   inset-inline-end: 1px;
+}
+/* Plain (frameless) blocks: the frosted corner tab — a semi-transparent
+   code-bg fill with a slight backdrop blur over the code beneath, hugging the
+   block's rounded top-right corner with a rounded bottom-left "peel". (Framed
+   frames skip this — their header bar is the backdrop.) */
+.content .expressive-code .frame:not(.has-title):not(.is-terminal):not([data-foldable]) .copy {
   background: color-mix(in oklch, var(--bg-pane) 60%, transparent);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   border-top-right-radius: 5px;
   border-bottom-left-radius: 8px;
 }
+/* Anta neutral *quaternary* icon button: a fixed 24px square (EC sizes the
+   button in rems otherwise — ~2rem hover / 2.5rem touch), rounded, with NO
+   background fill in any state — only the icon darkens on hover/active (below).
+   EC's own opaque code-bg fill and its inner-`<div>` hover tint are both
+   suppressed (see above / below). Framed blocks resize this to fill the header
+   (above); plain blocks keep a frosted corner tab behind it (above). */
 .content .expressive-code .copy button {
-  background: none;
-  border-radius: 0;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 6px;
+  background: transparent;
 }
 .content .expressive-code .copy button > div {
   display: none;
@@ -288,14 +300,28 @@ pre code { background: none; padding: 0; }
    Applies to the green-check state too (it only swaps the mask image). */
 .content .expressive-code .copy button::after {
   margin: 0;
+  /* Copy glyph defined here, NOT via EC's `copyIcon` (that pipeline mangles the
+     SVG's stroke-width). Lucide copy on the 24-grid; at the 16px mask below,
+     stroke-width 2.1 → 2.1 × 16/24 = 1.4px effective stroke. */
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='14' height='14' x='8' y='8' rx='2' ry='2'/%3E%3Cpath d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='14' height='14' x='8' y='8' rx='2' ry='2'/%3E%3Cpath d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/%3E%3C/svg%3E");
   -webkit-mask-size: 16px;
   mask-size: 16px;
   -webkit-mask-position: center;
   mask-position: center;
-  /* Match the quaternary button: the icon (same `inlineButtonForeground`
-     as the quaternary tone) is faded to 82% alpha at rest. The green-check
-     copied state keeps full opacity (its rule below overrides this). */
+  /* Turn the copy glyph a quarter-turn. */
+  transform: rotate(90deg);
+  /* Faded to 82% alpha at rest; darkens to full on hover/active (below). The
+     green-check copied state keeps its own color (its rule below overrides). */
   background-color: color-mix(in oklch, var(--ec-frm-inlBtnFg) 82%, transparent);
+  transition: background-color 120ms ease-out;
+}
+/* Icon darkens to full strength on hover/active — the quaternary affordance for
+   framed blocks, and a complement to the tertiary fill on plain blocks. Skipped
+   while copied so the green check keeps its color. */
+.content .expressive-code .copy button:hover:not([data-anta-copied])::after,
+.content .expressive-code .copy button:active:not([data-anta-copied])::after {
+  background-color: var(--ec-frm-inlBtnFg);
 }
 
 /* ── Code-block title bars + folding ───────────────────────────────────────
@@ -444,6 +470,33 @@ pre code { background: none; padding: 0; }
    clipped corner leak), and rotate the chevron. */
 .content .expressive-code .frame[data-folded] { grid-template-rows: var(--fold-header-h) 0fr; }
 .content .expressive-code .frame[data-folded] > pre { border: 0; }
+/* These frames carry a header bar at the top, so the copy button moves up into
+   it (top-right corner) rather than floating over the code, and stays visible
+   without hover. Higher specificity than the hover-reveal rule below, so it
+   wins. It's hidden entirely while folded (next line) — nothing to copy when
+   the body is collapsed. */
+.content .expressive-code .frame.has-title .copy,
+.content .expressive-code .frame.is-terminal .copy,
+.content .expressive-code .frame[data-foldable] .copy {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  /* Slightly dimmed at rest, full on hover. */
+  opacity: 0.8;
+  transition: opacity 120ms ease-out;
+}
+.content .expressive-code .frame.has-title .copy:hover,
+.content .expressive-code .frame.is-terminal .copy:hover,
+.content .expressive-code .frame[data-foldable] .copy:hover {
+  opacity: 1;
+}
+/* The button is a square that fills the full header height (the icon stays 16px,
+   centered) — a bigger, header-tall hit target than the plain-block 24px. */
+.content .expressive-code .frame.has-title .copy button,
+.content .expressive-code .frame.is-terminal .copy button,
+.content .expressive-code .frame[data-foldable] .copy button {
+  inline-size: var(--fold-header-h);
+  block-size: var(--fold-header-h);
+}
 .content .expressive-code .frame[data-folded] .copy { display: none; }
 .content .expressive-code .frame[data-folded] .header { border-radius: var(--header-border-radius); }
 /* Folded bar gets a slightly deeper surface. Higher specificity than the
@@ -505,9 +558,12 @@ pre code { background: none; padding: 0; }
 }
 
 .expressive-code .copy button[data-anta-copied]::after {
-  background-color: var(--text-1-success);
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  background-color: var(--text-4-success);
+  /* Cancel the copy glyph's quarter-turn — the check reads upright. */
+  transform: none;
+  /* stroke-width 2.1 on the 24-grid → 1.4px at the 16px mask size (matches the copy glyph). */
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
 }
 
 /* Necessary for astro expressive code hover copy button */

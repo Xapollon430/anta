@@ -58,6 +58,9 @@ export default defineConfig({
           terminalBackground: 'var(--bg-canvas)',
           terminalTitlebarBackground: 'var(--bg-pane)',
           terminalTitlebarBorderBottomColor: 'var(--border-5)',
+          // NOTE: the copy glyph's stroke is controlled in base.css (the EC
+          // `copyIcon` pipeline mangles/strips the SVG stroke-width). This SVG
+          // still provides the shape; base.css overrides the mask for sizing.
           copyIcon: createInlineSvgUrl([
             `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'>`,
             `<rect width='14' height='14' x='8' y='8' rx='2' ry='2'/>`,
