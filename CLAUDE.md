@@ -79,12 +79,27 @@ useEffect(() => { import('@antadesign/anta/elements') }, [])
 
 ## npm publishing
 
+Two packages publish from this repo: **`@antadesign/anta`** (root) and **`@antadesign/stickers`** (`stickers/`). Both go out as prereleases under the npm `dev` dist-tag. Each version string is immutable on npm — **always bump before publishing**.
+
+> **If asked to publish — or to recall how — walk the user through this, in order.** The order and the `pnpm` vs `npm` distinction are the two easy things to get wrong.
+
+**Publish anta first, then stickers.** `@antadesign/stickers` depends on `@antadesign/anta` via `workspace:*`, which pnpm rewrites to anta's **exact current version** at pack time. So the anta version stickers will pin must already be on npm — and it must be the version that carries whatever exports stickers imports (e.g. `./anta_helpers`, `./general_types`). Publishing stickers against an anta version that isn't published yet (or predates an export it needs) makes `npm install @antadesign/stickers` unresolvable.
+
 ```sh
-npm version prerelease --preid=dev   # Bump: 0.1.1-dev.1 → 0.1.1-dev.2
-npm publish --access public --tag dev  # Publish prerelease under "dev" tag
+# 1) anta — from repo root
+npm version prerelease --preid=dev        # 0.1.1-dev.8 → 0.1.1-dev.9 (or bump the version field by hand)
+npm publish --access public --tag dev     # prepublishOnly rebuilds dist
+
+# 2) stickers — from stickers/
+cd stickers
+pnpm publish --no-git-checks              # access/tag come from its publishConfig
 ```
 
-Each version string is immutable on npm — always bump before publishing.
+- **Use `pnpm publish` for `stickers`, not `npm publish`.** Only pnpm rewrites the `workspace:*` protocol to a real version; `npm publish` would leave `workspace:*` in the tarball and the package would be uninstallable. (anta has no workspace deps, so `npm publish` is fine there.)
+- `stickers/package.json` has `publishConfig: { access: "public", tag: "dev" }`, so its publish needs no `--access` / `--tag` flags. anta passes them explicitly.
+- `prepublishOnly` (anta) / `prepare` (both) rebuild `dist` before the tarball is created, so published output is always fresh.
+- Bumping the `version` field by hand (vs `npm version`) skips the auto git commit + tag. If you tag releases, create the tag manually; otherwise no action needed.
+- 2FA: append `--otp=<code>` if your npm account requires it.
 
 ## Changelog
 

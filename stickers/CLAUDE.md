@@ -38,7 +38,12 @@ pnpm run typecheck
 
 ## Publishing
 
+See the **npm publishing** section in the [root `../CLAUDE.md`](../CLAUDE.md) — it covers both packages and the order that matters. The two package-specific things to remember here:
+
+- **Publish `@antadesign/anta` first.** This package's `workspace:*` dependency on anta is rewritten to anta's exact current version at pack time, so that anta version must already be on npm (and carry the exports this package imports — `./anta_helpers`, `./general_types`).
+- **Use `pnpm publish`, not `npm publish`** — only pnpm rewrites the `workspace:*` protocol. Access + tag come from `publishConfig` (`{ access: "public", tag: "dev" }`), so no flags needed:
+
 ```sh
-npm version prerelease --preid=dev
-npm publish --access public --tag dev
+npm version prerelease --preid=dev   # bump first (immutable versions)
+pnpm publish --no-git-checks
 ```
