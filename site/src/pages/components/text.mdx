@@ -3,6 +3,8 @@ layout: ../../layouts/DocsLayout.astro
 title: Text
 ---
 import TextDemo from '../../components/TextDemo'
+import TruncateDemo from '../../components/TruncateDemo'
+import ExpandableDemo from '../../components/ExpandableDemo'
 import Playground from '../../components/Playground'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
@@ -59,6 +61,46 @@ the underline to full alpha.
 />
 
 </Disclosure>
+
+## Truncation
+
+```tsx
+{/* Single line */}
+<Text truncate>
+  This very long sentence will be cut off with an ellipsis…
+</Text>
+
+{/* Multi-line — pass the line count */}
+<Text truncate={3}>
+  Long paragraph that wraps across many lines but stops at three…
+</Text>
+```
+
+<TruncateDemo client:load />
+
+`truncate` accepts either `true` (or `1`) for a single-line ellipsis or
+any integer ≥ 2 for multi-line clamping. Both modes use
+`-webkit-line-clamp` inside `display: -webkit-box`. Despite the
+`-webkit-` prefix, every major browser supports it (Firefox 68+,
+Chrome, Safari, Edge). The host gets `min-width: 0` so truncation
+works correctly inside flex and grid containers.
+
+## Expandable
+
+```tsx
+<Text truncate expandable>…</Text>
+<Text truncate={3} expandable>…</Text>
+```
+
+Pair `expandable` with `truncate` to let the user reveal the full
+text. Single-line truncation gets a horizontal fade on the right edge;
+multi-line gets a vertical fade over the last line. A chevron-down
+hint appears in the bottom-right corner on hover or keyboard focus.
+The chevron is a real `<button>` carrying `aria-expanded` — clicking it
+(or focusing it and pressing Enter) drops the clamp and reveals the
+full text. `expandable` only takes effect together with `truncate`.
+
+<ExpandableDemo client:load />
 
 <Disclosure title="Component props">
 
