@@ -8,6 +8,8 @@ import ExpandableDemo from '../../components/ExpandableDemo'
 import Playground from '../../components/Playground'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
+import Columns from '../../components/Columns.astro'
+import Col from '../../components/Col.astro'
 import textDemoCode from './text.demo.ts'
 
 # Text
@@ -62,19 +64,12 @@ the underline to full alpha.
 
 </Disclosure>
 
-## Truncation
+## Truncation & expansion
 
-```tsx
-{/* Single line */}
-<Text truncate>
-  This very long sentence will be cut off with an ellipsis…
-</Text>
+<Columns>
+<Col>
 
-{/* Multi-line — pass the line count */}
-<Text truncate={3}>
-  Long paragraph that wraps across many lines but stops at three…
-</Text>
-```
+### Truncate
 
 <TruncateDemo client:load />
 
@@ -85,12 +80,21 @@ any integer ≥ 2 for multi-line clamping. Both modes use
 Chrome, Safari, Edge). The host gets `min-width: 0` so truncation
 works correctly inside flex and grid containers.
 
-## Expandable
+```tsx folded
+{/* Single line */}
+<Text truncate>{longSentence}</Text>
 
-```tsx
-<Text truncate expandable>…</Text>
-<Text truncate={3} expandable>…</Text>
+{/* Multi-line — pass the line count */}
+<Text truncate={2}>{longSentence}</Text>
+<Text truncate={3}>{longSentence}</Text>
 ```
+
+</Col>
+<Col>
+
+### Expandable
+
+<ExpandableDemo client:load />
 
 Pair `expandable` with `truncate` to let the user reveal the full
 text. Single-line truncation gets a horizontal fade on the right edge;
@@ -100,7 +104,14 @@ The chevron is a real `<button>` carrying `aria-expanded` — clicking it
 (or focusing it and pressing Enter) drops the clamp and reveals the
 full text. `expandable` only takes effect together with `truncate`.
 
-<ExpandableDemo client:load />
+```tsx folded
+<Text truncate expandable>{longSentence}</Text>
+<Text truncate={3} expandable>{longSentence}</Text>
+<Text truncate={5} expandable>{longSentence}</Text>
+```
+
+</Col>
+</Columns>
 
 <Disclosure title="Component props">
 
