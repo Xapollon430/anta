@@ -16,5 +16,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
       - run: pnpm run typecheck
+      - name: Build stickers
+        run: pnpm --filter @antadesign/stickers run build
+      - name: Typecheck stickers
+        run: pnpm --filter @antadesign/stickers run typecheck
       - name: Build site
         run: pnpm --filter anta-site build

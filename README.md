@@ -36,7 +36,7 @@ Anta exposes four independent imports. Tokens + elements + the JSX layer are the
 
 The chain matters: the per-element CSS that ships with `/elements` references variables like `var(--text-1)` and `var(--bg-2)`. Those variables are *only defined* by `tokens.css`. Skip the tokens import and the components render with whatever the surrounding cascade provides — usually nothing styled at all.
 
-`@antadesign/anta/elements` registers **all** elements — convenient, but it includes every element's code (and deps). To keep your bundle lean, import only the elements you use from their per-element entry points instead: `import '@antadesign/anta/elements/a-tooltip'` registers just `<a-tooltip>` **and loads just its CSS**. Unused elements — and their dependencies, e.g. `lottie-web` (needed only by `<a-sticker-animated>`) — then never enter your bundle. See [Registering elements](#registering-elements).
+`@antadesign/anta/elements` registers **all** elements — convenient, but it includes every element's code (and deps). To keep your bundle lean, import only the elements you use from their per-element entry points instead: `import '@antadesign/anta/elements/a-tooltip'` registers just `<a-tooltip>` **and loads just its CSS**. Unused elements — and any dependencies they pull in — then never enter your bundle. See [Registering elements](#registering-elements).
 
 ### Cascade layers
 
@@ -79,7 +79,7 @@ import '@antadesign/anta/elements/a-tooltip'  // only <a-tooltip> + its CSS
 import '@antadesign/anta/elements/a-button'   // only <a-button> + its CSS
 ```
 
-Both styles are side-effect imports (the act of importing registers the element), and both are idempotent and SSR-safe. The granular form keeps unused elements — and their dependencies, e.g. `lottie-web`, which only `<a-sticker-animated>` pulls in — out of your bundle.
+Both styles are side-effect imports (the act of importing registers the element), and both are idempotent and SSR-safe. The granular form keeps unused elements — and any dependencies they pull in — out of your bundle.
 
 The cleanest pattern is a **static, synchronous import at your app's entry file** — outside any component, outside any hook:
 

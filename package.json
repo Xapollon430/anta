@@ -26,18 +26,17 @@
       "types": "./dist/elements/*.d.ts",
       "default": "./dist/elements/*.js"
     },
+    "./anta_helpers": {
+      "types": "./dist/anta_helpers.d.ts",
+      "default": "./dist/anta_helpers.js"
+    },
+    "./general_types": {
+      "types": "./dist/general_types.d.ts",
+      "default": "./dist/general_types.js"
+    },
     "./tokens.css": "./dist/tokens.css",
     "./reset.css": "./dist/reset.css",
     "./generate-icons.mjs": "./dist/generate-icons.mjs",
-    "./generate-stickers.mjs": "./dist/generate-stickers.mjs",
-    "./stickers": {
-      "types": "./dist/components/__generated__/stickers/index.d.ts",
-      "default": "./dist/components/__generated__/stickers/index.js"
-    },
-    "./stickers/*": {
-      "types": "./dist/components/__generated__/stickers/*.d.ts",
-      "default": "./dist/components/__generated__/stickers/*.js"
-    },
     "./*": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*"
@@ -45,13 +44,12 @@
   },
   "scripts": {
     "build": "pnpm run build:js && pnpm run build:css && pnpm run build:types",
-    "build:css": "find src -name '*.css' | while IFS= read -r f; do d=\"dist/${f#src/}\"; mkdir -p \"$(dirname \"$d\")\"; cp \"$f\" \"$d\"; done && cp scripts/generate-icons.mjs scripts/generate-stickers.mjs dist/",
+    "build:css": "find src -name '*.css' | while IFS= read -r f; do d=\"dist/${f#src/}\"; mkdir -p \"$(dirname \"$d\")\"; cp \"$f\" \"$d\"; done && cp scripts/generate-icons.mjs dist/",
     "build:js": "esbuild $(find src \\( -name '*.ts' -o -name '*.tsx' \\) ! -name '*.d.ts') --outdir=dist --outbase=src --jsx=automatic --jsx-import-source=@antadesign/anta --format=esm --target=ES2022 --loader:.module.css=local-css --loader:.css=global-css",
     "build:types": "tsc -p src/tsconfig.json",
-    "dev": "nodemon -w src -e ts,tsx,css -x 'pnpm run build && pnpm --filter anta-site run docs' & pnpm --filter anta-site run dev & wait",
+    "dev": "nodemon -w src -w stickers/src -e ts,tsx,css -x 'pnpm run build && pnpm --filter @antadesign/stickers run build && pnpm --filter anta-site run docs' & pnpm --filter anta-site run dev & wait",
     "typecheck": "tsc --noEmit -p src/tsconfig.json",
     "icons": "node scripts/generate-icons.mjs --input src/elements/icons --output src/elements --name a-icon.shapes --internal",
-    "stickers": "node scripts/generate-stickers.mjs --input src/elements/stickers --output src/components/__generated__/stickers --internal",
     "clean": "rm -rf dist",
     "prepare": "pnpm run build",
     "prepublishOnly": "pnpm run build"
@@ -64,8 +62,7 @@
   },
   "dependencies": {
     "clsx": "^2.1.0",
-    "es-toolkit": "^1.47.0",
-    "lottie-web": "^5.13.0"
+    "es-toolkit": "^1.47.0"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"
