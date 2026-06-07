@@ -63,6 +63,11 @@ function renderType(type: any): string {
         return 'IconShape'
       }
       return `${type.operator} ${renderType(type.target)}`
+    case 'unknown':
+      // TypeDoc sometimes stringifies `keyof IconShapes` as an unknown
+      // node (interface members) — show it by its alias too.
+      if (typeof type.name === 'string' && /IconShapes?\b/.test(type.name)) return 'IconShape'
+      return type.name || '—'
     default:
       return type.name || '—'
   }

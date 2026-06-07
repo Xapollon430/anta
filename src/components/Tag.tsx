@@ -4,10 +4,6 @@ import type { IconShape } from '../elements/a-icon.shapes'
 const NAMED_TONES = new Set(['neutral', 'brand', 'info', 'success', 'warning', 'critical'])
 
 export interface TagProps extends BaseProps {
-  /** Leading icon shape. Sits flush before the label, scaled to the pill. */
-  icon?: IconShape
-  /** Trailing icon shape. Renders last, after the value. */
-  iconTrailing?: IconShape
   /** A short "key" shown before the value. When paired with `value` it
    *  renders bold (weight 600), same color. On its own (no `value`) it's
    *  treated as the tag's primary text and keeps the default styling. */
@@ -31,6 +27,10 @@ export interface TagProps extends BaseProps {
   /** Render in normal (mixed) case instead of the default uppercase
    *  (keeps Anta's small body-text letter-spacing; uppercase tracks wider). */
   nocaps?: boolean
+  /** Leading icon shape. Sits flush before the label, scaled to the pill. */
+  icon?: IconShape
+  /** Trailing icon shape. Renders last, after the value. */
+  iconTrailing?: IconShape
 }
 
 /**
