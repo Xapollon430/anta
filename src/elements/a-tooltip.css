@@ -8,6 +8,20 @@
     display: none;
   }
 
+  /* On touch devices, an anchor that owns a tooltip suppresses the long-press
+     text-selection and the iOS callout, so press-and-hold cleanly reveals the
+     bubble (see the long-press handling in a-tooltip.ts) instead of selecting
+     text or popping the system menu. Scoped to coarse/no-hover pointers, so
+     fine-pointer devices keep normal text selection. The anchor is always
+     <a-tooltip>'s direct parent (set in connectedCallback), so `:has(> …)`
+     targets exactly it; `:where()` keeps specificity at 0 for easy override. */
+  @media (hover: none) and (pointer: coarse) {
+    :where(:has(> a-tooltip)) {
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+  }
+
   /* Tooltip exposes only the box "chrome" that lives inside the shadow
      popover and is therefore impossible to reach with plain consumer CSS.
      The bubble's content is slotted light DOM, so its font / colour / size
