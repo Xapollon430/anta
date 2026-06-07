@@ -515,10 +515,14 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     display: none;
   }
 
-  /* Right "On this page" rail — mirrors the left sidebar's width and
-     sticky full-height behaviour. Holds the <a-toc> web component. */
+  /* Right "On this page" rail — narrower than the left nav sidebar to hand
+     the content track ~40px more room (it lets two-column sections stay
+     side-by-side a bit longer before collapsing). Sticky, full-height; holds
+     the <a-toc> web component. It widens back to 240px once it folds into the
+     slide-out panel below (≤1100px), where horizontal room is no longer at a
+     premium. */
   .toc-rail {
-    width: 240px;
+    width: 200px;
     flex-shrink: 0;
     padding: 32px 16px 32px 4px;
     position: sticky;
@@ -558,7 +562,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
       top: 0;
       right: 0;
       height: 100dvh;
-      width: min(280px, 80vw);
+      width: min(240px, 80vw);
       padding: 24px;
       background: var(--bg-canvas);
       border-left: 1px solid var(--border-5);
