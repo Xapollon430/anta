@@ -9,109 +9,151 @@ import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import tagDemoCode from './tag.demo.ts'
-import { Tag, Icon } from '@antadesign/anta'
+import { Tag } from '@antadesign/anta'
 
 # Tag
 
 A compact pill for status, labels, and metadata. The `Tag` JSX wrapper
 renders an `<a-tag>` styled tag — there's no JavaScript, so tone, size,
 and case are all plain attributes and the styling is identical whether
-you use the wrapper or author the element by hand.
+you use the wrapper or author the element by hand. Content is composed
+from `icon`, `label`, `value`, and `iconTrailing` props, the same way
+`Button` works.
 
 Play with it in [playground](#playground).
 
 ## Tones
 
+<Columns>
+<Col>
+
 Omit `tone` for the neutral gray tag, or pick a semantic tone. Color
 comes from the theme tokens, so every tone tracks light and dark mode
 automatically.
 
-<Preview>
-  <Tag>Neutral</Tag>
-  <Tag tone="brand">Brand</Tag>
-  <Tag tone="info">Info</Tag>
-  <Tag tone="success">Success</Tag>
-  <Tag tone="warning">Warning</Tag>
-  <Tag tone="critical">Critical</Tag>
+<Preview gap="4px">
+  <Tag label="Neutral" />
+  <Tag tone="brand" label="Brand" />
+  <Tag tone="info" label="Info" />
+  <Tag tone="success" label="Success" />
+  <Tag tone="warning" label="Warning" />
+  <Tag tone="critical" label="Critical" />
 </Preview>
 
 ```tsx folded
-<Tag>Neutral</Tag>
-<Tag tone="brand">Brand</Tag>
-<Tag tone="info">Info</Tag>
-<Tag tone="success">Success</Tag>
-<Tag tone="warning">Warning</Tag>
-<Tag tone="critical">Critical</Tag>
+<Tag label="Neutral" />
+<Tag tone="brand" label="Brand" />
+<Tag tone="info" label="Info" />
+<Tag tone="success" label="Success" />
+<Tag tone="warning" label="Warning" />
+<Tag tone="critical" label="Critical" />
 ```
 
-### Custom tone
+</Col>
+<Col>
 
 `tone` also accepts any literal CSS color for a one-off tag. The hue is
-kept while lightness and chroma are pinned to the named-tone curve, so
-any color reads like a sibling of the built-in tones in both themes.
+kept while lightness and chroma are pinned to the named-tone curve.
 
-<Preview>
-  <Tag tone="#ff1493">Magenta</Tag>
-  <Tag tone="rebeccapurple">Purple</Tag>
-  <Tag tone="#0d9488">Teal</Tag>
+<Preview gap="4px">
+  <Tag tone="#ff1493" label="Magenta" />
+  <Tag tone="rebeccapurple" label="Purple" />
+  <Tag tone="#0d9488" label="Teal" />
 </Preview>
 
 ```tsx folded
-<Tag tone="#ff1493">Magenta</Tag>
-<Tag tone="rebeccapurple">Purple</Tag>
-<Tag tone="#0d9488">Teal</Tag>
+<Tag tone="#ff1493" label="Magenta" />
+<Tag tone="rebeccapurple" label="Purple" />
+<Tag tone="#0d9488" label="Teal" />
 ```
 
-## Size
+</Col>
+</Columns>
 
-`size="small"` shrinks the pill; `medium` (default) emits no attribute.
+## Icon, label & value
+
+Set `icon` / `iconTrailing` for a leading or trailing glyph (scaled to
+the pill), and pair `label` with `value` for a two-part tag. `value` is
+the primary text (default color and weight); the `label` sits before it
+as a bold "key" (weight 600, same color) with no divider — the weight
+contrast does the separating. Tabular figures are always on, so counts,
+versions, and timers don't reflow.
 
 <Preview>
-  <Tag tone="info">Medium</Tag>
-  <Tag tone="info" size="small">Small</Tag>
+  <Tag tone="success" icon="circle-check" label="Build" value="passed" />
+  <Tag tone="info" icon="hourglass" label="Running" value="20m 16s" />
+  <Tag tone="warning" label="Retries" value="3" iconTrailing="refresh" />
 </Preview>
 
 ```tsx folded
-<Tag tone="info">Medium</Tag>
-<Tag tone="info" size="small">Small</Tag>
-```
-
-## Case
-
-Tags are uppercase by default. Pass `nocaps` to render normal,
-mixed-case text with proportional figures — useful for versions, IDs,
-or any value where casing carries meaning.
-
-<Preview>
-  <Tag tone="brand">v2.1.0</Tag>
-  <Tag tone="brand" nocaps>v2.1.0</Tag>
-</Preview>
-
-```tsx folded
-<Tag tone="brand">v2.1.0</Tag>
-<Tag tone="brand" nocaps>v2.1.0</Tag>
+<Tag tone="success" icon="circle-check" label="Build" value="passed" />
+<Tag tone="info" icon="hourglass" label="Running" value="20m 16s" />
+<Tag tone="warning" label="Retries" value="3" iconTrailing="refresh" />
 ```
 
 ## Segments
 
-Children are light-DOM, so a tag can carry multiple segments: pass more
-than one child and they render with `|` dividers between them. A leading
-`<Icon>` sits flush against its label (no divider).
+For an arbitrary multi-part tag, pass several **children** instead of
+`label` / `value` — each segment after the first gets a hairline divider
+(a leading `icon` stays flush). The divider-less `label` + `value`
+pairing is the exception; everything else segments like this.
 
-<Preview>
-  <Tag tone="warning">
-    <Icon shape="play" />
+<Preview gap="4px">
+  <Tag tone="info">
+    <span>v2.1.0</span>
+    <span>stable</span>
+    <span>x64</span>
+  </Tag>
+  <Tag tone="warning" icon="play">
     <span>Advance</span>
     <span>136s</span>
   </Tag>
 </Preview>
 
 ```tsx folded
-<Tag tone="warning">
-  <Icon shape="play" />
+<Tag tone="info">
+  <span>v2.1.0</span>
+  <span>stable</span>
+  <span>x64</span>
+</Tag>
+<Tag tone="warning" icon="play">
   <span>Advance</span>
   <span>136s</span>
 </Tag>
+```
+
+## Size
+
+`size="small"` shrinks the pill; `medium` (default) emits no attribute.
+Height is intrinsic — it follows the line-height and padding rather than
+a fixed value, so the text is never clipped.
+
+<Preview>
+  <Tag tone="info" label="Medium" />
+  <Tag tone="info" size="small" label="Small" />
+</Preview>
+
+```tsx folded
+<Tag tone="info" label="Medium" />
+<Tag tone="info" size="small" label="Small" />
+```
+
+## Case
+
+Tags are uppercase by default: a tag is a concise marker, not prose, so
+at this small size all-caps reads as a label at a glance and keeps a
+uniform, scannable shape — the word-shape cues that aid long-form
+reading don't matter for a word or two. Pass `nocaps` when the case
+itself carries meaning, like versions, IDs, or codes.
+
+<Preview>
+  <Tag tone="brand" value="v2.1.0" />
+  <Tag tone="brand" nocaps value="v2.1.0" />
+</Preview>
+
+```tsx folded
+<Tag tone="brand" value="v2.1.0" />
+<Tag tone="brand" nocaps value="v2.1.0" />
 ```
 
 <Disclosure title="Playground">
@@ -139,14 +181,18 @@ than one child and they render with `|` dividers between them. A leading
 Override any of these on a single instance
 (`style={{ '--tag-bg': 'var(--bg-5)' }}`) or on a selector wrapping the
 tag. The named tones set `--tag-text` / `--tag-bg` from the theme
-palette; the border and separator derive from `--tag-text`, so a custom
-`--tag-text` retints them automatically.
+palette; the border derives from `--tag-text`, so a custom `--tag-text`
+retints it automatically.
 
 | Token | Description |
 |---|---|
-| `--tag-text` | Text and icon color. The hairline border and segment separator derive from this. |
+| `--tag-text` | Primary text (`value`) and icon color. The hairline border derives from this. |
 | `--tag-bg` | Background fill. |
-| `--tag-border` | Outer hairline. Defaults to `--tag-text` at 5% alpha. |
-| `--tag-separator` | Divider between segments. Defaults to `--tag-text` at 15% alpha. |
+| `--tag-border` | Outer hairline. Defaults to `--tag-text` at 7% alpha. |
+| `--tag-separator` | Divider between segmented children. Defaults to `--tag-text` at 17% alpha. |
+| `--tag-padding-block`<br />`--tag-padding-inline` | Inner spacing. Drives the intrinsic height (small overrides both). |
+| `--tag-gap` | Space between icon / label / value (default `0.5ch`). |
+| `--tag-icon-size` | Leading / trailing icon size (default `13px`, `11px` at `small`). |
+| `--tag-label-weight` | Weight of the `label` key (default `600`). |
 
 </Disclosure>

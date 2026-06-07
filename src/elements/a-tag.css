@@ -1,38 +1,50 @@
 @layer anta {
   /* `<a-tag>` is intentionally CSS-only — no JS, no shadow DOM, no
      `customElements.define`. It's a small uppercase pill / chip styled
-     purely from attributes. Children are light-DOM, so a tag can be
-     *segmented*: multiple children render with `|` separators between
-     them (see the segment rules at the bottom).
+     purely from attributes; the `Tag` JSX wrapper composes its content
+     from `icon` / `label` / `value` / `iconTrailing` props (mirroring
+     `<a-button>`) into the light-DOM child elements styled below.
+
+     Sizing is intrinsic — no fixed height. Like `<a-button>`, the pill's
+     height falls out of `line-height` + `padding-block` + the border, so
+     the text is never clipped and a consumer can retune the padding
+     tokens without fighting a hard height.
 
      Color comes from Anta's theme-aware semantic tokens (`--text-*`,
      `--bg-*`), so the named tones need no `.dark` rules — the tokens
-     re-theme themselves. Only the custom-tone `oklch` knobs are
-     re-tuned for dark mode. Border + separator derive from `--tag-text`
-     once, so every tone (named or custom) gets a matching hairline. */
+     re-theme themselves. Only the custom-tone `oklch` knobs are re-tuned
+     for dark mode. The hairline border derives from `--tag-text`, so
+     every tone (named or custom) gets a matching edge. */
 
   a-tag {
     --tag-text: var(--text-3);
     --tag-bg: var(--bg-4);
-    --tag-border: color-mix(in oklch, var(--tag-text) 5%, transparent);
-    --tag-separator: color-mix(in oklch, var(--tag-text) 15%, transparent);
+    --tag-border: color-mix(in oklch, var(--tag-text) 7%, transparent);
+    --tag-separator: color-mix(in oklch, var(--tag-text) 17%, transparent);
+
+    --tag-padding-block: 1px;
+    --tag-padding-inline: 6px;
+    --tag-icon-size: 13px;
+    --tag-label-weight: 600;
+    --tag-gap: 0.5ch;
 
     display: inline-flex;
     align-items: center;
-    justify-content: flex-start;
+    gap: var(--tag-gap);
     box-sizing: border-box;
-    height: 20px;
-    padding: 2px 6px;
+    max-width: 100%;
     vertical-align: middle;
     overflow: hidden;
-    text-overflow: ellipsis;
-    text-wrap: nowrap;
+    white-space: nowrap;
     -webkit-user-drag: none;
 
     color: var(--tag-text);
     background: var(--tag-bg);
-    border: 1px solid var(--tag-border);
+    border: 0.5px solid var(--tag-border);
     border-radius: 22px;
+
+    padding-block: var(--tag-padding-block);
+    padding-inline: var(--tag-padding-inline);
 
     font-family: var(--sans-serif);
     font-weight: 450;
@@ -40,11 +52,60 @@
     line-height: 16px;
     text-transform: uppercase;
     letter-spacing: 0.08ch;
-    font-feature-settings: 'tnum' 1, "ss01", "case", "calt";
+    /* Tabular figures are always on (so counts / versions / timers don't
+       reflow), plus `ss05` alternate numerals — both layered on top of
+       the default ss01 / case / calt set. */
+    font-feature-settings: 'tnum' 1, 'ss05' 1, 'ss01', 'case', 'calt';
   }
 
-  /* Named tones — re-point text + bg only; border/separator re-derive,
-     and dark mode falls out of the semantic tokens for free. */
+  /* Icons scale to the pill (the default 16px a-icon is too big here) and
+     don't shrink in the flex row. */
+  a-tag a-icon {
+    --icon-size: var(--tag-icon-size);
+    flex: none;
+  }
+
+  /* label / value segments. Each ellipsizes independently if the pill is
+     width-constrained. */
+  a-tag a-tag-label,
+  a-tag a-tag-value {
+    display: inline-block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* `value` is the default, unmodified text — it just inherits the tag's
+     color and base weight. */
+  a-tag a-tag-value { font-weight: 450; }
+  /* `label` is the bold "key" placed before the value: same color, just
+     heavier (weight 600). It only renders as <a-tag-label> when paired
+     with a value — the JSX wrapper drops a lone label into <a-tag-value>
+     so a standalone tag keeps the default styling. No divider; the weight
+     contrast does the separating. */
+  a-tag a-tag-label { font-weight: var(--tag-label-weight); }
+
+  /* Optical edge padding: an icon at an edge needs less room than a text
+     edge, so trim ~2px on whichever side a leading / trailing icon sits.
+     `max(0px, …)` keeps it from going negative at small sizes. */
+  a-tag:has(> a-icon:first-child) { padding-inline-start: max(0px, var(--tag-padding-inline) - 2px); }
+  a-tag:has(> a-icon:last-child)  { padding-inline-end:   max(0px, var(--tag-padding-inline) - 2px); }
+
+  /* Segmented children — when raw children (not the structured label /
+     value) are passed, each segment after the first gets a hairline
+     divider, the legacy multi-part style. Icons and the label / value
+     elements are excluded, so `label` + `value` stay divider-less and a
+     leading / trailing icon sits flush. The flex `gap` sits to the left
+     of the border and `padding-left` balances it on the right. */
+  a-tag
+    > :not(a-icon, a-tag-label, a-tag-value)
+    ~ :not(a-icon, a-tag-label, a-tag-value) {
+    padding-left: var(--tag-gap);
+    border-left: 0.5px solid var(--tag-separator);
+  }
+
+  /* Named tones — re-point text + bg only; the border re-derives, and
+     dark mode falls out of the semantic tokens for free. */
   a-tag[tone="brand"]    { --tag-text: var(--text-2-brand);    --tag-bg: var(--bg-4-brand);    }
   a-tag[tone="info"]     { --tag-text: var(--text-2-info);     --tag-bg: var(--bg-4-info);     }
   a-tag[tone="success"]  { --tag-text: var(--text-2-success);  --tag-bg: var(--bg-4-success);  }
@@ -59,6 +120,7 @@
      `attr()` fallback picks up raw `<a-tag tone="…">` on modern engines.
      (oklch relative color: Chrome 119+, Safari 16.4+, Firefox 128+.) */
   a-tag[tone]:not(
+      [tone="neutral"],
       [tone="brand"],
       [tone="info"],
       [tone="success"],
@@ -69,16 +131,17 @@
 
     --_tag-text-l: 0.46;   /* fg lightness */
     --_tag-text-c: 0.17;   /* fg chroma */
-    --_tag-bg-l: 0.54;     /* tinted-bg lightness */
-    --_tag-bg-c: 0.16;     /* tinted-bg chroma */
-    --_tag-bg-a: 0.18;     /* tinted-bg alpha */
+    --_tag-bg-l: 0.96;     /* tinted-bg lightness — a hair above the named --bg-4 so the tint reads light */
+    --_tag-bg-c: 0.04;     /* tinted-bg chroma — light pastel, like --bg-4-{tone} */
 
     --tag-text: oklch(from var(--tag-tone-source) var(--_tag-text-l) var(--_tag-text-c) h);
-    --tag-bg:   oklch(from var(--tag-tone-source) var(--_tag-bg-l) var(--_tag-bg-c) h / var(--_tag-bg-a));
+    --tag-bg:   oklch(from var(--tag-tone-source) var(--_tag-bg-l) var(--_tag-bg-c) h);
   }
 
-  /* Custom tone, dark mode — lighter fg, heavier tint alpha. */
+  /* Custom tone, dark mode — lighter fg; the tint sits a touch above the
+     dark --bg-4-{tone} lightness so it doesn't read pitch-black. */
   .dark a-tag[tone]:not(
+      [tone="neutral"],
       [tone="brand"],
       [tone="info"],
       [tone="success"],
@@ -87,34 +150,26 @@
     ) {
     --_tag-text-l: 0.80;
     --_tag-text-c: 0.11;
-    --_tag-bg-l: 0.58;
-    --_tag-bg-a: 0.26;
+    --_tag-bg-l: 0.21;
+    --_tag-bg-c: 0.05;
   }
 
   a-tag[size="small"] {
-    height: 16px;
-    padding: 0 4px;
+    --tag-padding-block: 0px;
+    --tag-padding-inline: 4px;
+    --tag-icon-size: 11px;
+
     font-size: 10px;
-    line-height: 12px;
+    line-height: 14px;
   }
 
-  /* Normal-case opt-out: drop the uppercase transform + tabular caps
-     features for proportional, mixed-case text. */
+  /* Normal-case opt-out: drop the uppercase transform for proportional,
+     mixed-case text. Tabular figures + `ss05` stay on (only the case /
+     stylistic-set extras change). */
   a-tag[nocaps] {
     font-size: 12px;
     text-transform: none;
     letter-spacing: normal;
-    font-feature-settings: "lnum", "pnum", "zero", "ss01", "ss04", "case", "calt";
-  }
-
-  /* Segmented tag — give every child after the first a leading divider,
-     and gap each non-final, non-icon child from the next. An `a-icon`
-     never carries a trailing gap (it sits flush against its label). */
-  a-tag > *:not(:last-child):not(a-icon) {
-    padding-right: 0.75ch;
-  }
-  a-tag > *:not(:first-of-type) {
-    padding-left: 0.85ch;
-    border-left: 1px solid var(--tag-separator);
+    font-feature-settings: 'tnum' 1, 'ss05' 1, 'lnum', 'ss01', 'ss04', 'case', 'calt';
   }
 }
