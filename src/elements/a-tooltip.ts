@@ -142,17 +142,34 @@ export class ATooltipElement extends HTMLElementBase {
         text-align: left;
 
         background: var(--tooltip-bg, Canvas);
-        color: var(--text-1, CanvasText);
+        color: var(--text-3, CanvasText);
         box-shadow: var(--tooltip-shadow, 0 1px 8px rgba(0, 0, 0, 0.2));
-        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: var(--tooltip-backdrop-filter, blur(8px));
+        backdrop-filter: var(--tooltip-backdrop-filter, blur(8px));
         padding: 5px 8px;
-        border: none;
+        border: var(--tooltip-border, none);
         border-radius: var(--tooltip-radius, 3px);
         outline: none;
 
+        /* The bubble establishes its own text baseline so inheritable text
+           properties from the anchor (e.g. a Button's condensed "wdth" 88
+           axis, its 0.05ch letter-spacing, an uppercase transform, a custom
+           font) don't bleed into the slotted content. The content is slotted
+           light DOM, so it inherits these *from this container* — making this
+           the single choke point. Values mirror Anta's body text. Consumers
+           still customise a single tooltip by styling their own content
+           element directly (a class on the content overrides what it inherits
+           — see the Tooltip docs). */
+        font-family: var(--sans-serif, system-ui, sans-serif);
         font-size: 14px;
-        line-height: 130%;
         font-weight: 400;
+        font-style: normal;
+        font-stretch: normal;
+        font-variation-settings: "wdth" 100, "slnt" 0, "ital" 0;
+        line-height: 1.5;
+        letter-spacing: 0.02ch;
+        word-spacing: normal;
+        text-transform: none;
         white-space: break-spaces;
         word-break: break-word;
         overflow-wrap: break-word;

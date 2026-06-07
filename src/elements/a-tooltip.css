@@ -28,6 +28,12 @@
       0 0 1px color-mix(in oklch, var(--text-1) 50%, transparent);
     --tooltip-radius: 3px;
     --tooltip-max-width: min(calc(100vw - 20px), 80ch);
+    /* No real border by default — the hairline edge comes from --tooltip-shadow.
+       Set e.g. `1px solid var(--border-5)` for an actual border. */
+    --tooltip-border: none;
+    /* The frost. Set to `none` (with --tooltip-bg: transparent) for a fully
+       see-through bubble. */
+    --tooltip-backdrop-filter: blur(8px);
   }
 
   /* Dark: a slightly more transparent black frost. A solid black cast shadow
