@@ -1,0 +1,152 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Tag
+---
+import Playground from '../../components/Playground'
+import Preview from '../../components/Preview.astro'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
+import Columns from '../../components/Columns.astro'
+import Col from '../../components/Col.astro'
+import tagDemoCode from './tag.demo.ts'
+import { Tag, Icon } from '@antadesign/anta'
+
+# Tag
+
+A compact pill for status, labels, and metadata. The `Tag` JSX wrapper
+renders an `<a-tag>` styled tag — there's no JavaScript, so tone, size,
+and case are all plain attributes and the styling is identical whether
+you use the wrapper or author the element by hand.
+
+Play with it in [playground](#playground).
+
+## Tones
+
+Omit `tone` for the neutral gray tag, or pick a semantic tone. Color
+comes from the theme tokens, so every tone tracks light and dark mode
+automatically.
+
+<Preview>
+  <Tag>Neutral</Tag>
+  <Tag tone="brand">Brand</Tag>
+  <Tag tone="info">Info</Tag>
+  <Tag tone="success">Success</Tag>
+  <Tag tone="warning">Warning</Tag>
+  <Tag tone="critical">Critical</Tag>
+</Preview>
+
+```tsx folded
+<Tag>Neutral</Tag>
+<Tag tone="brand">Brand</Tag>
+<Tag tone="info">Info</Tag>
+<Tag tone="success">Success</Tag>
+<Tag tone="warning">Warning</Tag>
+<Tag tone="critical">Critical</Tag>
+```
+
+### Custom tone
+
+`tone` also accepts any literal CSS color for a one-off tag. The hue is
+kept while lightness and chroma are pinned to the named-tone curve, so
+any color reads like a sibling of the built-in tones in both themes.
+
+<Preview>
+  <Tag tone="#ff1493">Magenta</Tag>
+  <Tag tone="rebeccapurple">Purple</Tag>
+  <Tag tone="#0d9488">Teal</Tag>
+</Preview>
+
+```tsx folded
+<Tag tone="#ff1493">Magenta</Tag>
+<Tag tone="rebeccapurple">Purple</Tag>
+<Tag tone="#0d9488">Teal</Tag>
+```
+
+## Size
+
+`size="small"` shrinks the pill; `medium` (default) emits no attribute.
+
+<Preview>
+  <Tag tone="info">Medium</Tag>
+  <Tag tone="info" size="small">Small</Tag>
+</Preview>
+
+```tsx folded
+<Tag tone="info">Medium</Tag>
+<Tag tone="info" size="small">Small</Tag>
+```
+
+## Case
+
+Tags are uppercase by default. Pass `nocaps` to render normal,
+mixed-case text with proportional figures — useful for versions, IDs,
+or any value where casing carries meaning.
+
+<Preview>
+  <Tag tone="brand">v2.1.0</Tag>
+  <Tag tone="brand" nocaps>v2.1.0</Tag>
+</Preview>
+
+```tsx folded
+<Tag tone="brand">v2.1.0</Tag>
+<Tag tone="brand" nocaps>v2.1.0</Tag>
+```
+
+## Segments
+
+Children are light-DOM, so a tag can carry multiple segments: pass more
+than one child and they render with `|` dividers between them. A leading
+`<Icon>` sits flush against its label (no divider).
+
+<Preview>
+  <Tag tone="warning">
+    <Icon shape="play" />
+    <span>Advance</span>
+    <span>136s</span>
+  </Tag>
+</Preview>
+
+```tsx folded
+<Tag tone="warning">
+  <Icon shape="play" />
+  <span>Advance</span>
+  <span>136s</span>
+</Tag>
+```
+
+<Disclosure title="Playground">
+
+<Playground
+  client:visible
+  component="Tag"
+  layout="side"
+  panelHeight={400}
+  initialCode={tagDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }`}
+/>
+
+</Disclosure>
+
+<Disclosure title="Component props">
+
+<PropsTable component="Tag" />
+
+</Disclosure>
+
+<Disclosure title="Component tokens">
+
+Override any of these on a single instance
+(`style={{ '--tag-bg': 'var(--bg-5)' }}`) or on a selector wrapping the
+tag. The named tones set `--tag-text` / `--tag-bg` from the theme
+palette; the border and separator derive from `--tag-text`, so a custom
+`--tag-text` retints them automatically.
+
+| Token | Description |
+|---|---|
+| `--tag-text` | Text and icon color. The hairline border and segment separator derive from this. |
+| `--tag-bg` | Background fill. |
+| `--tag-border` | Outer hairline. Defaults to `--tag-text` at 5% alpha. |
+| `--tag-separator` | Divider between segments. Defaults to `--tag-text` at 15% alpha. |
+
+</Disclosure>

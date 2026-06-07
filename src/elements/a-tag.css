@@ -1,0 +1,120 @@
+@layer anta {
+  /* `<a-tag>` is intentionally CSS-only — no JS, no shadow DOM, no
+     `customElements.define`. It's a small uppercase pill / chip styled
+     purely from attributes. Children are light-DOM, so a tag can be
+     *segmented*: multiple children render with `|` separators between
+     them (see the segment rules at the bottom).
+
+     Color comes from Anta's theme-aware semantic tokens (`--text-*`,
+     `--bg-*`), so the named tones need no `.dark` rules — the tokens
+     re-theme themselves. Only the custom-tone `oklch` knobs are
+     re-tuned for dark mode. Border + separator derive from `--tag-text`
+     once, so every tone (named or custom) gets a matching hairline. */
+
+  a-tag {
+    --tag-text: var(--text-3);
+    --tag-bg: var(--bg-4);
+    --tag-border: color-mix(in oklch, var(--tag-text) 5%, transparent);
+    --tag-separator: color-mix(in oklch, var(--tag-text) 15%, transparent);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    height: 20px;
+    padding: 2px 6px;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+    -webkit-user-drag: none;
+
+    color: var(--tag-text);
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 22px;
+
+    font-family: var(--sans-serif);
+    font-weight: 450;
+    font-size: 11px;
+    line-height: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.08ch;
+    font-feature-settings: 'tnum' 1, "ss01", "case", "calt";
+  }
+
+  /* Named tones — re-point text + bg only; border/separator re-derive,
+     and dark mode falls out of the semantic tokens for free. */
+  a-tag[tone="brand"]    { --tag-text: var(--text-2-brand);    --tag-bg: var(--bg-4-brand);    }
+  a-tag[tone="info"]     { --tag-text: var(--text-2-info);     --tag-bg: var(--bg-4-info);     }
+  a-tag[tone="success"]  { --tag-text: var(--text-2-success);  --tag-bg: var(--bg-4-success);  }
+  a-tag[tone="warning"]  { --tag-text: var(--text-2-warning);  --tag-bg: var(--bg-4-warning);  }
+  a-tag[tone="critical"] { --tag-text: var(--text-2-critical); --tag-bg: var(--bg-4-critical); }
+
+  /* Custom tone — any non-named `tone` value. Keep the source hue;
+     pin lightness/chroma so any input reads like a sibling of the named
+     tones. Knobs are the only numbers to tune; the dark block re-tunes
+     them and the formulas resolve against whichever value computes.
+     The JSX wrapper writes `--tag-tone-source` inline; the typed
+     `attr()` fallback picks up raw `<a-tag tone="…">` on modern engines.
+     (oklch relative color: Chrome 119+, Safari 16.4+, Firefox 128+.) */
+  a-tag[tone]:not(
+      [tone="brand"],
+      [tone="info"],
+      [tone="success"],
+      [tone="warning"],
+      [tone="critical"]
+    ) {
+    --tag-tone-source: attr(tone type(<color>), currentColor);
+
+    --_tag-text-l: 0.46;   /* fg lightness */
+    --_tag-text-c: 0.17;   /* fg chroma */
+    --_tag-bg-l: 0.54;     /* tinted-bg lightness */
+    --_tag-bg-c: 0.16;     /* tinted-bg chroma */
+    --_tag-bg-a: 0.18;     /* tinted-bg alpha */
+
+    --tag-text: oklch(from var(--tag-tone-source) var(--_tag-text-l) var(--_tag-text-c) h);
+    --tag-bg:   oklch(from var(--tag-tone-source) var(--_tag-bg-l) var(--_tag-bg-c) h / var(--_tag-bg-a));
+  }
+
+  /* Custom tone, dark mode — lighter fg, heavier tint alpha. */
+  .dark a-tag[tone]:not(
+      [tone="brand"],
+      [tone="info"],
+      [tone="success"],
+      [tone="warning"],
+      [tone="critical"]
+    ) {
+    --_tag-text-l: 0.80;
+    --_tag-text-c: 0.11;
+    --_tag-bg-l: 0.58;
+    --_tag-bg-a: 0.26;
+  }
+
+  a-tag[size="small"] {
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 12px;
+  }
+
+  /* Normal-case opt-out: drop the uppercase transform + tabular caps
+     features for proportional, mixed-case text. */
+  a-tag[nocaps] {
+    font-size: 12px;
+    text-transform: none;
+    letter-spacing: normal;
+    font-feature-settings: "lnum", "pnum", "zero", "ss01", "ss04", "case", "calt";
+  }
+
+  /* Segmented tag — give every child after the first a leading divider,
+     and gap each non-final, non-icon child from the next. An `a-icon`
+     never carries a trailing gap (it sits flush against its label). */
+  a-tag > *:not(:last-child):not(a-icon) {
+    padding-right: 0.75ch;
+  }
+  a-tag > *:not(:first-of-type) {
+    padding-left: 0.85ch;
+    border-left: 1px solid var(--tag-separator);
+  }
+}
