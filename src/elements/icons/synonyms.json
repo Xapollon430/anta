@@ -84,5 +84,6 @@
   "download": ["save", "import"],
   "cloud-upload": ["save", "sync", "upload", "send", "export"],
   "link": ["url", "href", "anchor"],
-  "more": ["options", "extra"]
+  "more": ["options", "extra"],
+  "tag": ["label", "badge", "chip"]
 }

@@ -416,7 +416,12 @@ function controlFor(p: any): PropEntry | null {
   // type a shape name; the value emits as a string attribute.
   if (
     (t.type === 'reference' && t.name === 'IconShape') ||
-    (t.type === 'typeOperator' && t.operator === 'keyof')
+    (t.type === 'typeOperator' && t.operator === 'keyof') ||
+    // TypeDoc sometimes serializes `keyof IconShapes` as a stringified
+    // `unknown` node instead of a structured reference / typeOperator —
+    // it does this for interface members (Tag) but not type-literal
+    // members (Button's ContentMode). Treat it the same: a text input.
+    (t.type === 'unknown' && typeof t.name === 'string' && /IconShapes?\b/.test(t.name))
   ) {
     return wrap(
       { kind: 'text', name, description },
