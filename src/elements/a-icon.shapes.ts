@@ -85,6 +85,7 @@ export const ICON_SHAPES = [
   'sun',
   'swatch-book',
   'table-2',
+  'tag',
   'text-highlight',
   'text-initial',
   'timer',
@@ -184,6 +185,7 @@ export const ICON_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   'cloud-upload': ['save', 'sync', 'upload', 'send', 'export'],
   'link': ['url', 'href', 'anchor'],
   'more': ['options', 'extra'],
+  'tag': ['label', 'badge', 'chip'],
 }
 
 declare module '@antadesign/anta' {
@@ -270,6 +272,7 @@ declare module '@antadesign/anta' {
     'sun': true
     'swatch-book': true
     'table-2': true
+    'tag': true
     'text-highlight': true
     'text-initial': true
     'timer': true

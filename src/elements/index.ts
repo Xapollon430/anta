@@ -19,6 +19,8 @@ export { AIconElement, register_a_icon } from './a-icon'
 export { AButtonElement, register_a_button } from './a-button'
 export { ATooltipElement, register_a_tooltip } from './a-tooltip'
 
-// `a-title` is a CSS-only styled tag (no JS / no element module), so its
-// styles can't ride along on a module import — load them here directly.
+// `a-title` and `a-tag` are CSS-only styled tags (no JS / no element
+// module), so their styles can't ride along on a module import — load
+// them here directly.
 import './a-title.css'
+import './a-tag.css'

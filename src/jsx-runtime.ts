@@ -48,7 +48,7 @@ export function jsxs(type: ComponentType, props: Record<string, unknown> | null,
 
 export { _Fragment as Fragment }
 
-import type { AProgressAttributes, ATextAttributes, ATitleAttributes, AIconAttributes, AButtonAttributes, ATooltipAttributes, BaseAttributes } from './general_types'
+import type { AProgressAttributes, ATextAttributes, ATitleAttributes, ATagAttributes, AIconAttributes, AButtonAttributes, ATooltipAttributes, BaseAttributes } from './general_types'
 
 // Declared as an `interface` (not a type alias) so downstream companion
 // packages — e.g. `@antadesign/stickers` — can augment it with their own
@@ -62,6 +62,9 @@ export namespace JSX {
     'a-progress-hint': BaseAttributes
     'a-text': ATextAttributes
     'a-title': ATitleAttributes
+    'a-tag': ATagAttributes
+    'a-tag-label': BaseAttributes
+    'a-tag-value': BaseAttributes
     'a-icon': AIconAttributes
     'a-button': AButtonAttributes
     'a-button-label': BaseAttributes
