@@ -192,7 +192,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
           <li><a href="/components/progress/" aria-current={isCurrent('/components/progress/') ? 'page' : undefined}><Icon shape="hourglass" size={18} /> Progress</a></li>
           <li><a href="/components/sticker/" aria-current={isCurrent('/components/sticker/') ? 'page' : undefined}><Icon shape="sticker" size={18} /> Sticker</a></li>
           <li><a href="/components/table/" aria-current={isCurrent('/components/table/') ? 'page' : undefined}><Icon shape="table-2" size={18} /> Table</a></li>
-          <li><a href="/components/tag/" aria-current={isCurrent('/components/tag/') ? 'page' : undefined}><Icon shape="text-highlight" size={18} /> Tag</a></li>
+          <li><a href="/components/tag/" aria-current={isCurrent('/components/tag/') ? 'page' : undefined}><Icon shape="tag" size={18} /> Tag</a></li>
           <li><a href="/components/text/" aria-current={isCurrent('/components/text/') ? 'page' : undefined}><Icon shape="text-initial" size={18} /> Text</a></li>
           <li><a href="/components/title/" aria-current={isCurrent('/components/title/') ? 'page' : undefined}><Icon shape="case-sensitive" size={18} /> Title</a></li>
           <li><a href="/components/tooltip/" aria-current={isCurrent('/components/tooltip/') ? 'page' : undefined}><Icon shape="chat" size={18} /> Tooltip</a></li>
@@ -530,16 +530,13 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
   .topbar { display: none; }
   .backdrop { display: none; }
 
-  @media (max-width: 900px) {
-    /* The full logo row (logo + "Anta" wordmark + theme toggle) shows at
-       the top of the slide-out sidebar, exactly like desktop — so it keeps
-       its base styles here (no mobile override). */
-
+  /* The TOC rail collapses to a right-side slide-out — opened by a
+     top-level "On this page" trigger — earlier than the full-mobile
+     layout, because the dual-rail shell squeezes the content track first.
+     The nav sidebar keeps its own slide-out at 900px below. */
+  @media (max-width: 1100px) {
+    /* Positioning context for the absolutely-placed TOC trigger. */
     .content {
-      /* Asymmetric on mobile: a touch more breathing room on the left
-         (start) than the right (end). `padding-inline: <start> <end>`. */
-      padding-inline: 20px 12px;
-      /* Positioning context for the absolutely-placed TOC trigger. */
       position: relative;
     }
 
@@ -553,8 +550,8 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
       font-size: 14px;
     }
 
-    /* On mobile the TOC rail becomes a right-side slide-out panel (mirrors
-       the nav sidebar), revealed by the .toc-toggle button. */
+    /* The TOC rail becomes a right-side slide-out panel (mirrors the nav
+       sidebar), revealed by the .toc-toggle button. */
     .toc-rail {
       display: block;
       position: fixed;
@@ -575,21 +572,8 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
       transform: translateX(0);
     }
 
-    body[data-toc-open="true"] .backdrop {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .sidebar {
-      position: fixed;
-      top: 0;
-      right: 0;
-      height: 100dvh;
-      transform: translateX(100%);
-      transition: transform 250ms ease-out, background 200ms ease-out;
-      z-index: 20;
-    }
-
+    /* Shared scrim for the slide-outs (the TOC here; the nav sidebar at
+       ≤900px reuses it). */
     .backdrop {
       display: block;
       position: fixed;
@@ -605,6 +589,33 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     /* Dark mode: a bit darker than the light scrim. */
     :global(.dark) .backdrop {
       background: color-mix(in srgb, black 45%, transparent);
+    }
+
+    body[data-toc-open="true"] .backdrop {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  @media (max-width: 900px) {
+    /* The full logo row (logo + "Anta" wordmark + theme toggle) shows at
+       the top of the slide-out sidebar, exactly like desktop — so it keeps
+       its base styles here (no mobile override). */
+
+    .content {
+      /* Asymmetric on mobile: a touch more breathing room on the left
+         (start) than the right (end). `padding-inline: <start> <end>`. */
+      padding-inline: 20px 12px;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100dvh;
+      transform: translateX(100%);
+      transition: transform 250ms ease-out, background 200ms ease-out;
+      z-index: 20;
     }
 
     body[data-menu-open="true"] .sidebar {

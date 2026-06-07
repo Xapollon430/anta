@@ -122,10 +122,12 @@ export interface ATitleAttributes extends BaseAttributes {
 export interface ATagAttributes extends BaseAttributes {
   /** Semantic tone, or any literal CSS color for a one-off custom tone.
    *  Named tones map to the `--text-2-{tone}` / `--bg-4-{tone}` palette;
-   *  a custom color keeps its hue with lightness/chroma pinned. */
-  tone?: 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
-  /** Size variant. `small` = 16px tall, `medium` (default) = 20px. */
-  size?: 'small' | 'medium'
+   *  a custom color keeps its hue with lightness/chroma pinned.
+   *  `'neutral'` is the default gray (same as omitting it). */
+  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Size variant. `small` = 16px tall, `medium` (default) = 20px,
+   *  `large` = 24px. */
+  size?: 'small' | 'medium' | 'large'
   /** Render in normal case instead of the default uppercase.
    *  Presence-based (`''` on, omit off). */
   nocaps?: boolean | ''

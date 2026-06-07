@@ -60,6 +60,8 @@ export namespace JSX {
     'a-text': ATextAttributes
     'a-title': ATitleAttributes
     'a-tag': ATagAttributes
+    'a-tag-label': BaseAttributes
+    'a-tag-value': BaseAttributes
     'a-icon': AIconAttributes
     'a-button': AButtonAttributes
     'a-button-label': BaseAttributes

@@ -12,10 +12,16 @@
  */
 interface Props {
   cols?: number
+  /** Gap between previewed items. Any CSS length; defaults to 12px. */
+  gap?: string
 }
-const { cols } = Astro.props
+const { cols, gap } = Astro.props
+const style = [
+  cols ? `--preview-cols: ${cols}` : '',
+  gap ? `gap: ${gap}` : '',
+].filter(Boolean).join('; ') || undefined
 ---
-<div class="preview" data-cols={cols} style={cols ? `--preview-cols: ${cols}` : undefined}>
+<div class="preview" data-cols={cols} style={style}>
   <slot />
 </div>
 

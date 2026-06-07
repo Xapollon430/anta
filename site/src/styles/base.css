@@ -684,7 +684,7 @@ code[data-copied]::after {
   /* No vertical gap when stacked — the stacked blocks' own margins
      handle that spacing. The horizontal gap is added in row mode. */
 }
-@container (min-width: 950px) {
+@container (min-width: 900px) {
   .columns {
     flex-direction: row;
     align-items: start;

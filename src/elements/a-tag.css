@@ -19,14 +19,16 @@
   a-tag {
     --tag-text: var(--text-3);
     --tag-bg: var(--bg-4);
-    --tag-border: color-mix(in oklch, var(--tag-text) 7%, transparent);
-    --tag-separator: color-mix(in oklch, var(--tag-text) 17%, transparent);
+    --tag-border: color-mix(in oklch, var(--tag-text) 9%, transparent);
+    --tag-separator: color-mix(in oklch, var(--tag-text) 30%, transparent);
 
-    --tag-padding-block: 1px;
-    --tag-padding-inline: 6px;
+    /* 1.5px top/bottom — the extra 0.5px each side compensates for the
+       0.5px (vs 1px) border, keeping the pill at its original 20px height. */
+    --tag-padding-block: 1.5px;
+    --tag-padding-inline: 6.5px;
     --tag-icon-size: 13px;
     --tag-label-weight: 600;
-    --tag-gap: 0.5ch;
+    --tag-gap: 0.6ch;
 
     display: inline-flex;
     align-items: center;
@@ -155,21 +157,34 @@
   }
 
   a-tag[size="small"] {
-    --tag-padding-block: 0px;
-    --tag-padding-inline: 4px;
+    --tag-padding-block: 0.5px;
+    --tag-padding-inline: 4.5px;
     --tag-icon-size: 11px;
 
     font-size: 10px;
     line-height: 14px;
   }
 
+  /* Large — 24px tall (line-height 18 + 2×2.5 padding + 2×0.5 border),
+     on par with Button's large. */
+  a-tag[size="large"] {
+    --tag-padding-block: 2.5px;
+    --tag-padding-inline: 8.5px;
+    --tag-icon-size: 15px;
+
+    font-size: 12px;
+    line-height: 18px;
+  }
+
   /* Normal-case opt-out: drop the uppercase transform for proportional,
-     mixed-case text. Tabular figures + `ss05` stay on (only the case /
-     stylistic-set extras change). */
+     mixed-case text. Keep a small body-text tracking (Anta's 0.02ch)
+     rather than zero — uppercase just needs more (0.08ch). Tabular
+     figures + `ss05` stay on (only the case / stylistic-set extras
+     change). */
   a-tag[nocaps] {
     font-size: 12px;
     text-transform: none;
-    letter-spacing: normal;
+    letter-spacing: 0.02ch;
     font-feature-settings: 'tnum' 1, 'ss05' 1, 'lnum', 'ss01', 'ss04', 'case', 'calt';
   }
 }
