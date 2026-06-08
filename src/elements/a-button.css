@@ -323,6 +323,10 @@
     background-color: var(--button-bg);
     border-radius: 4px;
     text-decoration: none;
+    /* Secondary is the default priority — a 1px hairline in the current
+       fg tone (at 60% alpha) gives the chip a subtle edge. Primary,
+       tertiary, and quaternary cancel it in their own blocks below. */
+    box-shadow: 0 0 1px color-mix(in oklch, currentColor, transparent 40%);
 
     font-size: 15px;
     font-family: var(--sans-serif);
@@ -411,11 +415,6 @@
     &:focus-visible {
       outline: 1px solid var(--button-focus);
       outline-offset: 1px;
-    }
-
-    /* Selected gets a 0.5px inset ring in the current fg color. */
-    &[selected] {
-      box-shadow: inset 0 0 0 0.5px currentColor;
     }
 
     /* Quaternary: instant in every direction — hover-in, press, and
@@ -656,6 +655,8 @@
     &[priority="primary"] {
       --button-fg: var(--button-fg-primary-rest);
       --button-bg: var(--button-bg-primary-rest);
+      /* Solid fill carries its own edge — drop the secondary hairline. */
+      box-shadow: none;
       @media (hover: hover) and (pointer: fine) {
         &:hover {
           --button-bg: var(--button-bg-primary-hover);
@@ -669,6 +670,8 @@
     &[priority="tertiary"] {
       --button-fg: var(--button-fg-tertiary-rest);
       --button-bg: transparent;
+      /* Background-less — no hairline. */
+      box-shadow: none;
       @media (hover: hover) and (pointer: fine) {
         &:hover {
           --button-fg: var(--button-fg-tertiary-hover);
@@ -687,6 +690,9 @@
          one. Hover / active restore full opacity. */
       --button-fg: color-mix(in oklch, var(--button-fg-quaternary-rest) 82%, transparent);
       --button-bg: transparent;
+      /* Background-less — no hairline. */
+      box-shadow: none;
+      font-weight: 425;
       @media (hover: hover) and (pointer: fine) {
         &:hover {
           --button-fg: var(--button-fg-quaternary-hover);
@@ -705,6 +711,14 @@
       .dark &:active {
         --button-fg: var(--button-fg-quaternary-rest);
       }
+    }
+
+    /* Selected gets a 1px inset ring in the current fg color. Declared
+       after the priority blocks so it overrides their `box-shadow: none`
+       cancels — every selected button keeps its ring regardless of
+       priority. */
+    &[selected] {
+      box-shadow: inset 0 0 0 1px currentColor;
     }
 
     /* Set bg/color directly (not the vars) so inline-style
