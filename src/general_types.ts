@@ -223,6 +223,69 @@ export interface ATooltipAttributes extends BaseAttributes {
 }
 
 /**
+ * Attributes for the `<a-menu>` custom element. Placed immediately after the
+ * trigger it anchors to (root menu), or nested inside an `<a-menu-item>`
+ * (submenu). For the typed JSX wrapper use `Menu` from `@antadesign/anta`.
+ */
+export interface AMenuAttributes extends BaseAttributes {
+  /** Preferred placement relative to the trigger; auto-flips / clamps.
+   *  Defaults to `'bottom-start'`. */
+  placement?: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
+  /** Open on right-click of the trigger region, positioned at the pointer.
+   *  Presence-based (`''` on, omit off). */
+  context?: boolean | ''
+  /** Open at the pointer coordinates instead of aligned to the trigger box.
+   *  Presence-based (`''` on, omit off). */
+  coord?: boolean | ''
+  /** Marks this menu as a submenu of the enclosing `<a-menu-item>`.
+   *  Presence-based (`''` on, omit off). */
+  submenu?: boolean | ''
+  /** For a submenu: also open on hover. Presence-based (`''` on, omit off). */
+  hover?: boolean | ''
+  /** Gap in pixels between the trigger and the menu. Defaults to 4. */
+  offset?: number | string
+  /** ARIA role — the JSX wrapper sets this to `'menu'`. */
+  role?: string
+  'aria-orientation'?: 'vertical' | 'horizontal'
+}
+
+/**
+ * Attributes for the `<a-menu-item>` custom element. For the typed JSX
+ * wrapper use `MenuItem` from `@antadesign/anta`.
+ */
+export interface AMenuItemAttributes extends BaseAttributes {
+  /** Disabled state. Presence-based (`''` on, omit off). */
+  disabled?: boolean | ''
+  /** Semantic tone. Colors the label, icon, and hover tint. `'neutral'`
+   *  (the default) is the same as omitting it. */
+  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
+  /** Keep the menu open after this item is chosen. Presence-based
+   *  (`''` on, omit off). */
+  'keep-open'?: boolean | ''
+  /** Marks this item as a submenu parent (renders a chevron, opens a nested
+   *  `<a-menu submenu>`). Presence-based (`''` on, omit off). */
+  submenu?: boolean | ''
+  /** ARIA role — `'menuitem'` (or `'menuitemcheckbox'` / `'menuitemradio'`). */
+  role?: string
+  'aria-haspopup'?: 'menu' | 'true' | 'false' | boolean
+  'aria-disabled'?: 'true' | 'false' | boolean
+  /** Selected state for future checkbox / radio items. Presence-based. */
+  checked?: boolean | ''
+}
+
+/**
+ * Attributes for the `<a-menu-group>` styled element. For the typed JSX
+ * wrapper use `MenuGroup` from `@antadesign/anta`.
+ */
+export interface AMenuGroupAttributes extends BaseAttributes {
+  /** Keep the menu open after any item in this group is chosen.
+   *  Presence-based (`''` on, omit off). */
+  'keep-open'?: boolean | ''
+  role?: string
+  'aria-label'?: string
+}
+
+/**
  * Attributes for the `<a-button>` custom element. For the typed JSX
  * wrapper use `Button` from `@antadesign/anta`.
  */
