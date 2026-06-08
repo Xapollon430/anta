@@ -135,7 +135,7 @@ const SHADOW_STYLE = `
   }
   button[aria-expanded="true"] + div { grid-template-rows: 1fr; }
   @media (prefers-reduced-motion: no-preference) {
-    button + div { transition: grid-template-rows 240ms ease; }
+    button + div { transition: grid-template-rows 200ms ease; }
   }
 
   button + div > div { min-height: 0; overflow: clip; }
@@ -143,7 +143,7 @@ const SHADOW_STYLE = `
      aren't cut off; the delay defers it until after the expand. */
   button[aria-expanded="true"] + div > div {
     overflow: visible;
-    transition: overflow 0s 240ms;
+    transition: overflow 0s 200ms;
     transition-behavior: allow-discrete;
   }
 `
