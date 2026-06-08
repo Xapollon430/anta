@@ -12,6 +12,7 @@
 
   a-expander {
     --expander-text: var(--text-2);
+    --expander-text-hover: var(--text-1);
 
     /* Per-priority surfaces (background + border). Re-pointed per tone
        below; consumed by the `priority` rules. Tertiary (default) stays
@@ -76,6 +77,7 @@
      into the shadow summary/body; the fills only show on secondary/primary. */
   a-expander[tone="brand"] {
     --expander-text: var(--text-2-brand);
+    --expander-text-hover: var(--text-1-brand);
     --expander-bg-secondary: var(--bg-2-brand);
     --expander-border-secondary: var(--border-5-brand);
     --expander-bg-primary: var(--bg-4-brand);
@@ -83,6 +85,7 @@
   }
   a-expander[tone="info"] {
     --expander-text: var(--text-2-info);
+    --expander-text-hover: var(--text-1-info);
     --expander-bg-secondary: var(--bg-2-info);
     --expander-border-secondary: var(--border-5-info);
     --expander-bg-primary: var(--bg-4-info);
@@ -90,6 +93,7 @@
   }
   a-expander[tone="success"] {
     --expander-text: var(--text-2-success);
+    --expander-text-hover: var(--text-1-success);
     --expander-bg-secondary: var(--bg-2-success);
     --expander-border-secondary: var(--border-5-success);
     --expander-bg-primary: var(--bg-4-success);
@@ -97,6 +101,7 @@
   }
   a-expander[tone="warning"] {
     --expander-text: var(--text-2-warning);
+    --expander-text-hover: var(--text-1-warning);
     --expander-bg-secondary: var(--bg-2-warning);
     --expander-border-secondary: var(--border-5-warning);
     --expander-bg-primary: var(--bg-4-warning);
@@ -104,6 +109,7 @@
   }
   a-expander[tone="critical"] {
     --expander-text: var(--text-2-critical);
+    --expander-text-hover: var(--text-1-critical);
     --expander-bg-secondary: var(--bg-2-critical);
     --expander-border-secondary: var(--border-5-critical);
     --expander-bg-primary: var(--bg-4-critical);

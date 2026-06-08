@@ -96,6 +96,24 @@ const SHADOW_STYLE = `
   button:hover::before { opacity: 1; }
   button[aria-expanded="true"]::before { transform: rotate(90deg); opacity: 1; }
 
+  /* Hover affordance — applied to OUR default summary (<a-expander-summary>)
+     only, so a consumer who slots their own title markup keeps full control
+     and opts out. The text strengthens to --text-1 (per tone) with no
+     transition (instant, like quaternary buttons). On the transparent
+     tertiary surface the title also gets a dotted underline on hover — the
+     same affordance as the docs-site section headers. */
+  button:hover ::slotted(a-expander-summary) {
+    color: var(--expander-text-hover);
+  }
+  :host(:not([priority])) button:hover ::slotted(a-expander-summary),
+  :host([priority="tertiary"]) button:hover ::slotted(a-expander-summary) {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
   /* Per-level summary typography — values mirror a-title.css h1–h6. */
   :host([level="1"]) button { font-size: 28px; line-height: 32px; }
   :host([level="2"]) button { font-size: 24px; line-height: 28px; }

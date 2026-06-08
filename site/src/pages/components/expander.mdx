@@ -53,51 +53,64 @@ fill, for when the section needs to read as a contained card.
 ## Tones
 
 Pick a semantic `tone` to tint the header text and — on the filled
-priorities (`secondary` / `primary`) — the surface too. Color comes from
-the theme tokens, so every tone tracks light and dark mode automatically.
-Each tone reads consistently across all three priorities:
+priorities (`secondary` / `primary`) — the surface too. The set matches
+`Button` / `Tag`: `neutral` (the default) plus `brand`, `info`,
+`success`, `warning`, and `critical`. Color comes from the theme tokens,
+so every tone tracks light and dark mode automatically. Every tone is
+shown below across all three priorities, so you can compare (rows are
+tones, columns are priorities):
 
 <Columns>
 <Col>
 
+**Tertiary**
+
 <Preview direction="column" gap="8px">
-  <Expander title="Critical · tertiary" tone="critical">
-    <Text>The deployment failed three health checks in a row.</Text>
-  </Expander>
-  <Expander title="Critical · secondary" tone="critical" priority="secondary">
-    <Text>The deployment failed three health checks in a row.</Text>
-  </Expander>
-  <Expander title="Critical · primary" tone="critical" priority="primary">
-    <Text>The deployment failed three health checks in a row.</Text>
-  </Expander>
+  <Expander title="Neutral"><Text>Neutral</Text></Expander>
+  <Expander title="Brand" tone="brand"><Text>Brand</Text></Expander>
+  <Expander title="Info" tone="info"><Text>Info</Text></Expander>
+  <Expander title="Success" tone="success"><Text>Success</Text></Expander>
+  <Expander title="Warning" tone="warning"><Text>Warning</Text></Expander>
+  <Expander title="Critical" tone="critical"><Text>Critical</Text></Expander>
 </Preview>
 
 </Col>
 <Col>
 
+**Secondary**
+
 <Preview direction="column" gap="8px">
-  <Expander title="Success · tertiary" tone="success">
-    <Text>All 1,284 properties held across the run.</Text>
-  </Expander>
-  <Expander title="Success · secondary" tone="success" priority="secondary">
-    <Text>All 1,284 properties held across the run.</Text>
-  </Expander>
-  <Expander title="Success · primary" tone="success" priority="primary">
-    <Text>All 1,284 properties held across the run.</Text>
-  </Expander>
+  <Expander title="Neutral" priority="secondary"><Text>Neutral</Text></Expander>
+  <Expander title="Brand" tone="brand" priority="secondary"><Text>Brand</Text></Expander>
+  <Expander title="Info" tone="info" priority="secondary"><Text>Info</Text></Expander>
+  <Expander title="Success" tone="success" priority="secondary"><Text>Success</Text></Expander>
+  <Expander title="Warning" tone="warning" priority="secondary"><Text>Warning</Text></Expander>
+  <Expander title="Critical" tone="critical" priority="secondary"><Text>Critical</Text></Expander>
+</Preview>
+
+</Col>
+<Col>
+
+**Primary**
+
+<Preview direction="column" gap="8px">
+  <Expander title="Neutral" priority="primary"><Text>Neutral</Text></Expander>
+  <Expander title="Brand" tone="brand" priority="primary"><Text>Brand</Text></Expander>
+  <Expander title="Info" tone="info" priority="primary"><Text>Info</Text></Expander>
+  <Expander title="Success" tone="success" priority="primary"><Text>Success</Text></Expander>
+  <Expander title="Warning" tone="warning" priority="primary"><Text>Warning</Text></Expander>
+  <Expander title="Critical" tone="critical" priority="primary"><Text>Critical</Text></Expander>
 </Preview>
 
 </Col>
 </Columns>
 
 ```tsx folded
-<Expander tone="critical" title="Critical" />
-<Expander tone="critical" priority="secondary" title="Critical" />
-<Expander tone="critical" priority="primary" title="Critical" />
-
-<Expander tone="success" title="Success" />
-<Expander tone="success" priority="secondary" title="Success" />
-<Expander tone="success" priority="primary" title="Success" />
+// every tone × every priority — e.g. brand:
+<Expander tone="brand" title="Brand" />                      {/* tertiary (default) */}
+<Expander tone="brand" priority="secondary" title="Brand" />
+<Expander tone="brand" priority="primary" title="Brand" />
+// …repeat for neutral / info / success / warning / critical
 ```
 
 ## Title & level

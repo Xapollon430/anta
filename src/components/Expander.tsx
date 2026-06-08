@@ -1,3 +1,4 @@
+import { cloneElement, isValidElement } from "react";
 import type { BaseProps } from "../general_types";
 
 /** Public props for the `<Expander>` disclosure. `title` is the always-
@@ -62,6 +63,18 @@ export const Expander = ({
 }: ExpanderProps) => {
   const isOpen = open ?? defaultOpen ?? false;
 
+  // A string title is rendered as our <a-expander-summary> (which carries
+  // the hover affordance). A node title is the consumer's own markup —
+  // slot it as-is (no <a-expander-summary>), so it keeps full control and
+  // opts out of the summary hover styling.
+  const titleNode = isValidElement(title) ? (
+    cloneElement(title as React.ReactElement<{ slot?: string }>, {
+      slot: "title",
+    })
+  ) : (
+    <a-expander-summary slot="title">{title}</a-expander-summary>
+  );
+
   return (
     <a-expander
       open={isOpen ? "" : undefined}
@@ -73,7 +86,7 @@ export const Expander = ({
       style={style}
       {...rest}
     >
-      <a-expander-summary slot="title">{title}</a-expander-summary>
+      {titleNode}
       <a-expander-details>{children}</a-expander-details>
     </a-expander>
   );
