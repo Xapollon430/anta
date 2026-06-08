@@ -678,11 +678,18 @@ code[data-copied]::after {
 .columns {
   display: flex;
   flex-direction: column;
-  /* Default column gap (used in row mode below); override per-instance. */
+  /* One gap for both axes: column-gap in row mode, row-gap when stacked.
+     Override per-instance via the `gap` prop. The trailing margin a column's
+     last block would add is zeroed below, so this gap is the single
+     inter-row spacer (no doubling with a paragraph / code-block margin). */
   --columns-gap: 20px;
-  column-gap: var(--columns-gap);
-  /* No vertical gap when stacked — the stacked blocks' own margins
-     handle that spacing. The horizontal gap is added in row mode. */
+  gap: var(--columns-gap);
+}
+/* Stacked columns are spaced by the row-gap above, so drop the bottom margin
+   a column's last block (paragraph, fused code block, …) would otherwise stack
+   on top of it. Section separation is owned by `.columns`' own margin. */
+.columns > .col > :last-child {
+  margin-bottom: 0;
 }
 @container (min-width: 900px) {
   .columns {

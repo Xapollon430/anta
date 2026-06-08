@@ -19,6 +19,8 @@
     --menu-item-icon-color: var(--text-3);
     --menu-item-hover: 6%;
     --menu-item-active: 10%;
+    --menu-item-padding-x: 8px;
+    --menu-item-padding-y: 5px;
 
     display: flex;
     flex-shrink: 0;
@@ -27,7 +29,8 @@
     box-sizing: border-box;
     width: 100%;
     min-height: 26px;
-    padding: 5px 6px;
+    padding-block: var(--menu-item-padding-y);
+    padding-inline: var(--menu-item-padding-x);
     border-radius: var(--radius-sm, 4px);
     color: var(--menu-item-color);
     background: transparent;
@@ -64,6 +67,18 @@
     color: var(--menu-item-icon-color);
   }
 
+  /* Optical side padding (same idea as a-button): an icon at an edge needs
+     less breathing room than text, so trim ~2px off whichever side a (non-only)
+     icon occupies — leading icon trims the start, trailing icon trims the end.
+     Submenu items are NOT trimmed here: they keep the symmetric padding and the
+     chevron is shifted instead (see the [submenu] chevron rule above). */
+  a-menu-item:has(> a-icon:first-child:not(:only-child)) {
+    padding-inline-start: max(0px, var(--menu-item-padding-x) - 2px);
+  }
+  a-menu-item:has(> a-icon:last-child:not(:only-child)) {
+    padding-inline-end: max(0px, var(--menu-item-padding-x) - 2px);
+  }
+
   /* Trailing keyboard hint — a plain light-DOM <kbd>. */
   a-menu-item > kbd {
     flex: none;
@@ -76,11 +91,21 @@
     white-space: nowrap;
   }
 
-  /* The submenu chevron (and any explicitly trailing icon) hugs the right
-     edge. The nested submenu <a-menu> never renders in flow (it's a popover),
-     so it doesn't participate in the item's layout. */
+  /* The submenu chevron hugs the right edge. The nested submenu <a-menu> never
+     renders in flow (it's a popover), so it doesn't participate in layout. */
   a-menu-item[submenu] > a-icon:last-of-type {
     margin-left: auto;
+  }
+
+  /* A trailing icon and a submenu chevron are both nudged toward the edge with
+     relative positioning (visual only, no reflow). A real trailing icon ALSO
+     gets the end-padding trim below (→ 6px), so it sits a touch closer to the
+     edge; the submenu keeps its symmetric padding (the nested <a-menu> is the
+     actual last child, so the trim rule doesn't fire for it). */
+  a-menu-item[submenu] > a-icon:last-of-type,
+  a-menu-item > a-icon:last-child:not(:only-child) {
+    position: relative;
+    inset-inline-end: -2px;
   }
 
   /* Semantic tones: text + icon take the tone's `--text-2-{tone}`. The
@@ -119,7 +144,7 @@
 
   /* Hover/active read a touch stronger in dark. */
   .dark a-menu-item {
-    --menu-item-hover: 9%;
-    --menu-item-active: 14%;
+    --menu-item-hover: 13%;
+    --menu-item-active: 19%;
   }
 }
