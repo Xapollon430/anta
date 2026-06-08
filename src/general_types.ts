@@ -31,6 +31,8 @@ export interface BaseAttributes {
   /** Inline styles applied to the element. */
   style?: React.CSSProperties
   children?: React.ReactNode
+  /** Assigns the element to a named `<slot>` (e.g. `slot="title"`). */
+  slot?: string
   /** Tab order. Set to `0` to make the element keyboard-focusable. */
   tabIndex?: number
   /** ARIA role override. */
@@ -131,6 +133,33 @@ export interface ATagAttributes extends BaseAttributes {
   /** Render in normal case instead of the default uppercase.
    *  Presence-based (`''` on, omit off). */
   nocaps?: boolean | ''
+}
+
+/**
+ * Attributes for the `<a-expander>` collapsible disclosure.
+ *
+ * The element wraps a native `<details>`/`<summary>` in its shadow DOM.
+ * The title is projected via a `slot="title"`; the body is the default
+ * slot. Low-level attributes; for the JSX wrapper use `Expander` from
+ * `@antadesign/anta`.
+ */
+export interface AExpanderAttributes extends BaseAttributes {
+  /** Open state. Presence-based (`''` open, omit closed). The element
+   *  reflects this onto the shadow `<details>`. */
+  open?: boolean | ''
+  /** Surface emphasis. `tertiary` (default) is transparent; `secondary`
+   *  is a filled box; `primary` is a stronger raised fill. */
+  priority?: 'primary' | 'secondary' | 'tertiary'
+  /** Color tint, re-pointing the text + filled surface palette.
+   *  `'neutral'` is the default (same as omitting it). */
+  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
+  /** Heading type scale for the summary, `'1'`–`'6'` (mirrors `<a-title>`
+   *  levels). Default (omitted) ≈ level 5. */
+  level?: '1' | '2' | '3' | '4' | '5' | '6'
+  /** Fires on open/close. The element dispatches a `toggle` `CustomEvent`
+   *  whose `detail.open` carries the new state — bound like any DOM event
+   *  by the renderer (no ref needed). */
+  onToggle?: (e: any) => void
 }
 
 /**

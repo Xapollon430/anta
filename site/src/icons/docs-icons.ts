@@ -4,6 +4,7 @@ import type { IconShapes } from '@antadesign/anta'
 
 export const ICON_SHAPES = [
   'book-a',
+  'chevrons-up-down-square',
   'circle-pause',
   'circle-play',
   'octagon-pause',
@@ -16,6 +17,7 @@ export const ICON_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
 declare module '@antadesign/anta' {
   interface IconShapes {
     'book-a': true
+    'chevrons-up-down-square': true
     'circle-pause': true
     'circle-play': true
     'octagon-pause': true

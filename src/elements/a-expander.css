@@ -1,0 +1,112 @@
+@layer anta {
+  /* `<a-expander>` — a collapsible disclosure. The element is JS-backed
+     (see a-expander.ts): its shadow DOM holds a <button> summary + a
+     collapsible content region. This file styles the HOST box (the framed
+     container around the disclosure) and declares the theme tokens that
+     cascade — via `color` + CSS custom properties — into the shadow tree.
+     Summary typography, the chevron, and the animation live in the shadow
+     <style> (they target shadow-internal nodes external CSS can't reach).
+
+     Tones use Anta's theme-aware semantic tokens, so they need no `.dark`
+     rules — the tokens re-theme themselves (same as <a-tag>). */
+
+  a-expander {
+    --expander-text: var(--text-2);
+
+    /* Per-priority surfaces (background + border). Re-pointed per tone
+       below; consumed by the `priority` rules. Tertiary (default) stays
+       transparent. The ramp escalates: secondary is a subtle near-page
+       fill with a faint edge; primary is a more pronounced card. */
+    --expander-bg-secondary: var(--bg-2);
+    --expander-border-secondary: var(--border-5);
+    --expander-bg-primary: var(--bg-4);
+    --expander-border-primary: var(--border-4);
+
+    --expander-bg: transparent;
+    --expander-border: transparent;
+
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    /* Border + padding are present on every priority (transparent on
+       tertiary) so switching priority never shifts the layout. */
+    padding: 4px;
+    border: 1px solid var(--expander-border);
+    border-radius: 4px;
+
+    color: var(--expander-text);
+    background: var(--expander-bg);
+  }
+
+  /* Light-DOM composition children (slotted into the element). Like
+     <a-tag-label>, they're CSS-only styled tags — no JS, no shadow. The
+     title is projected into the shadow <button>, so it inherits that
+     button's level typography; here it just lays out + ellipsizes. The
+     body owns its padding + Anta body typography; its open/close
+     animation and overflow are handled shadow-side (see a-expander.ts). */
+  a-expander-summary {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  a-expander-details {
+    display: block;
+    padding: 4px 4px 4px 20px;
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 450;
+    letter-spacing: 0.02ch;
+  }
+
+  /* Priority — the surface/emphasis axis (reuses Button/Text vocabulary).
+     tertiary (default) = transparent; secondary = subtle fill; primary =
+     a more pronounced card. */
+  a-expander[priority="secondary"] {
+    --expander-bg: var(--expander-bg-secondary);
+    --expander-border: var(--expander-border-secondary);
+  }
+  a-expander[priority="primary"] {
+    --expander-bg: var(--expander-bg-primary);
+    --expander-border: var(--expander-border-primary);
+  }
+
+  /* Named tones — re-point text + both filled surfaces. `color` cascades
+     into the shadow summary/body; the fills only show on secondary/primary. */
+  a-expander[tone="brand"] {
+    --expander-text: var(--text-2-brand);
+    --expander-bg-secondary: var(--bg-2-brand);
+    --expander-border-secondary: var(--border-5-brand);
+    --expander-bg-primary: var(--bg-4-brand);
+    --expander-border-primary: var(--border-4-brand);
+  }
+  a-expander[tone="info"] {
+    --expander-text: var(--text-2-info);
+    --expander-bg-secondary: var(--bg-2-info);
+    --expander-border-secondary: var(--border-5-info);
+    --expander-bg-primary: var(--bg-4-info);
+    --expander-border-primary: var(--border-4-info);
+  }
+  a-expander[tone="success"] {
+    --expander-text: var(--text-2-success);
+    --expander-bg-secondary: var(--bg-2-success);
+    --expander-border-secondary: var(--border-5-success);
+    --expander-bg-primary: var(--bg-4-success);
+    --expander-border-primary: var(--border-4-success);
+  }
+  a-expander[tone="warning"] {
+    --expander-text: var(--text-2-warning);
+    --expander-bg-secondary: var(--bg-2-warning);
+    --expander-border-secondary: var(--border-5-warning);
+    --expander-bg-primary: var(--bg-4-warning);
+    --expander-border-primary: var(--border-4-warning);
+  }
+  a-expander[tone="critical"] {
+    --expander-text: var(--text-2-critical);
+    --expander-bg-secondary: var(--bg-2-critical);
+    --expander-border-secondary: var(--border-5-critical);
+    --expander-bg-primary: var(--bg-4-critical);
+    --expander-border-primary: var(--border-4-critical);
+  }
+}

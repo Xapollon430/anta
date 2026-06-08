@@ -1,0 +1,183 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Expander
+---
+import Playground from '../../components/Playground'
+import Preview from '../../components/Preview.astro'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
+import Columns from '../../components/Columns.astro'
+import Col from '../../components/Col.astro'
+import expanderDemoCode from './expander.demo.ts'
+import { Expander, Text } from '@antadesign/anta'
+
+# Expander
+
+A collapsible disclosure: a header that toggles a region of content open
+and closed. The `Expander` JSX wrapper renders an `<a-expander>`, whose
+shadow DOM wraps a native `<details>`/`<summary>` — so toggling, keyboard
+activation (<kbd>Enter</kbd> / <kbd>Space</kbd>), and disclosure
+semantics for assistive tech all come from the platform. The expand /
+collapse animation matches the disclosure sections used across these docs.
+
+The `title` is the always-visible header; the `children` are the
+collapsible body.
+
+Play with it in [playground](#playground).
+
+## Priority
+
+`priority` sets the surface, reusing `Button`/`Text`'s vocabulary.
+`tertiary` (the default) is transparent — just the header row and its
+chevron. `secondary` is a filled box, and `primary` a stronger raised
+fill, for when the section needs to read as a contained card.
+
+<Preview direction="column" gap="8px">
+  <Expander title="Tertiary (default)">
+    <Text>Transparent — no background or border.</Text>
+  </Expander>
+  <Expander title="Secondary" priority="secondary">
+    <Text>A subtle fill (<code>--bg-2</code>) with a faint border (<code>--border-5</code>).</Text>
+  </Expander>
+  <Expander title="Primary" priority="primary">
+    <Text>A more pronounced card (<code>--bg-4</code> + <code>--border-4</code>).</Text>
+  </Expander>
+</Preview>
+
+```tsx folded
+<Expander title="Tertiary (default)">…</Expander>
+<Expander title="Secondary" priority="secondary">…</Expander>
+<Expander title="Primary" priority="primary">…</Expander>
+```
+
+## Tones
+
+Pick a semantic `tone` to tint the header text and — on the filled
+priorities (`secondary` / `primary`) — the surface too. Color comes from
+the theme tokens, so every tone tracks light and dark mode automatically.
+Each tone reads consistently across all three priorities:
+
+<Columns>
+<Col>
+
+<Preview direction="column" gap="8px">
+  <Expander title="Critical · tertiary" tone="critical">
+    <Text>The deployment failed three health checks in a row.</Text>
+  </Expander>
+  <Expander title="Critical · secondary" tone="critical" priority="secondary">
+    <Text>The deployment failed three health checks in a row.</Text>
+  </Expander>
+  <Expander title="Critical · primary" tone="critical" priority="primary">
+    <Text>The deployment failed three health checks in a row.</Text>
+  </Expander>
+</Preview>
+
+</Col>
+<Col>
+
+<Preview direction="column" gap="8px">
+  <Expander title="Success · tertiary" tone="success">
+    <Text>All 1,284 properties held across the run.</Text>
+  </Expander>
+  <Expander title="Success · secondary" tone="success" priority="secondary">
+    <Text>All 1,284 properties held across the run.</Text>
+  </Expander>
+  <Expander title="Success · primary" tone="success" priority="primary">
+    <Text>All 1,284 properties held across the run.</Text>
+  </Expander>
+</Preview>
+
+</Col>
+</Columns>
+
+```tsx folded
+<Expander tone="critical" title="Critical" />
+<Expander tone="critical" priority="secondary" title="Critical" />
+<Expander tone="critical" priority="primary" title="Critical" />
+
+<Expander tone="success" title="Success" />
+<Expander tone="success" priority="secondary" title="Success" />
+<Expander tone="success" priority="primary" title="Success" />
+```
+
+## Title & level
+
+`title` takes a string or any node. For a string, `level` (1–6) applies
+the matching heading **type scale** — the same scale as `<Title>` —
+without changing the document outline.
+
+<Preview direction="column" gap="8px">
+  <Expander title="A level-2 header" level={2}>
+    <Text>The summary uses the level-2 heading type scale.</Text>
+  </Expander>
+  <Expander title="A level-4 header" level={4}>
+    <Text>And this one the level-4 scale.</Text>
+  </Expander>
+</Preview>
+
+```tsx folded
+<Expander title="A level-2 header" level={2}>…</Expander>
+<Expander title="A level-4 header" level={4}>…</Expander>
+```
+
+When you need real heading **semantics** — so the title lands in a
+page's table of contents — pass a `<Title>` (or your own markup) as the
+`title` instead of a string:
+
+```tsx
+<Expander title={<Title level={5}>A real heading node</Title>}>…</Expander>
+```
+
+## Open state
+
+Leave it uncontrolled and pass `defaultOpen` for the initial state — the
+native `<details>` owns open/close from there. To drive it yourself, pass
+`open` and handle `onToggle(open)` (controlled). Either way `onToggle`
+fires with the new state on every toggle.
+
+```tsx
+// uncontrolled
+<Expander title="Details" defaultOpen>…</Expander>
+
+// controlled
+const [open, setOpen] = useState(false)
+<Expander title="Details" open={open} onToggle={setOpen}>…</Expander>
+```
+
+<Disclosure title="Playground">
+
+<Playground
+  client:visible
+  component="Expander"
+  layout="side"
+  panelHeight={400}
+  initialCode={expanderDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: flex-start; justify-content: stretch; padding: 16px; }
+.preview > * { width: 100%; }`}
+/>
+
+</Disclosure>
+
+<Disclosure title="Component props">
+
+<PropsTable component="Expander" />
+
+</Disclosure>
+
+<Disclosure title="Component tokens">
+
+Override any of these on a single instance
+(`style={{ '--expander-text': 'var(--text-1)' }}`) or on a selector
+wrapping the expander. The named tones re-point `--expander-text` and the
+filled surfaces from the theme palette, so light / dark track for free.
+
+| Token | Description |
+|---|---|
+| `--expander-text` | Header + body text color (and the chevron, via `currentColor`). Tones re-point this. |
+| `--expander-bg` | Host background. Transparent on `tertiary`; set from the per-priority tokens below on `secondary` / `primary`. |
+| `--expander-border` | Host border color. Transparent on `tertiary`. |
+| `--expander-bg-secondary`<br />`--expander-border-secondary` | Secondary surface — a subtle fill (`--bg-2`) + faint edge (`--border-5`), re-pointed per tone. |
+| `--expander-bg-primary`<br />`--expander-border-primary` | Primary surface — a more pronounced card (`--bg-4` + `--border-4`), re-pointed per tone. |
+
+</Disclosure>
