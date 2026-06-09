@@ -54,14 +54,13 @@
     background: color-mix(in oklch, currentColor var(--menu-item-active), transparent);
   }
 
-  /* Keyboard focus ring (like a-button). Inset offset because items are
-     full-width inside the scrollable surface — a positive offset could clip at
-     the scroll edges or overlap neighbours. Pairs with the focus background
-     above, so a keyboard-focused row reads as bg tint + ring (distinct from a
-     plain hover, which is bg only). */
+  /* Keyboard focus ring (like a-button): the ring sits just OUTSIDE the row at
+     the same +1px offset buttons use. The surface's 4px padding gives it room
+     on the sides. Pairs with the focus background above, so a keyboard-focused
+     row reads as bg tint + ring (distinct from a plain hover, which is bg only). */
   a-menu-item:focus-visible {
     outline: 1px solid var(--menu-item-focus);
-    outline-offset: -1px;
+    outline-offset: 1px;
   }
 
   /* Label takes the remaining width and truncates; the trailing kbd / chevron
