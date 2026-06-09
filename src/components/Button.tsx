@@ -170,9 +170,13 @@ export const Button = ({
   children,
   ...rest
 }: ButtonProps) => {
-  const isCustomTone = tone != null && !NAMED_TONES.has(tone)
+  // Empty string is "no tone" — same as omitting the prop: neutral base.
+  // Don't emit a bare `tone=""` (it matched the custom-tone branch and
+  // resolved to a `transparent` source, rendering an invisible button).
+  const toneAttr = tone || undefined
+  const isCustomTone = toneAttr != null && !NAMED_TONES.has(toneAttr)
   const computedStyle = isCustomTone
-    ? { ...style, ['--button-tone-source']: tone }
+    ? { ...style, ['--button-tone-source']: toneAttr }
     : style
 
   const isIconOnly =
@@ -180,7 +184,7 @@ export const Button = ({
 
   const sharedAttrs = {
     priority,
-    tone,
+    tone: toneAttr,
     underline,
     // 'medium' (and unset) is the implicit default — emit no DOM attr.
     size: size && size !== 'medium' ? size : undefined,
