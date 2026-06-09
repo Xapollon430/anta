@@ -18,10 +18,13 @@ The tiers are decoupled — JSX wrappers emit `<a-*>` tags but never import elem
 
 ### Key files
 
-- `src/jsx-runtime.ts` — Custom JSX runtime. Defaults to `React.createElement`. Call `configure(h)` to swap.
-- `src/types.d.ts` — CSS module type declarations and `JSX.IntrinsicElements` for `a-*` custom elements.
+- `src/jsx-runtime.ts` — Custom JSX runtime. Defaults to `React.createElement`. Call `configure(h)` to swap. **Owns the `JSX.IntrinsicElements` declarations for `a-*` tags** — they must live here (not elsewhere) because tsc's `jsxImportSource` mechanism resolves JSX element types from the `JSX` namespace exported by `<source>/jsx-runtime`, and because companion packages augment this exact module (`@antadesign/stickers` does `declare module '@antadesign/anta/jsx-runtime'` to add its tags).
+- `src/general_types.ts` — Shared `BaseProps` / `BaseAttributes` plus the per-element `A{Name}Attributes` interfaces. A regular `.ts` module (never a `.d.ts` — tsc doesn't copy declaration inputs to `dist`) published as the `@antadesign/anta/general_types` subpath; `@antadesign/stickers` and all JSX wrappers import from it.
+- `src/types.d.ts` — Internal-only ambient declarations: the wildcard `declare module '*.module.css'`. Can't merge into the files above — wildcard ambient module declarations are only legal in a global (non-module) declaration file. Not shipped to `dist`.
 - `src/elements/index.ts` — Barrel export that auto-registers all web components in browser contexts. **Must only be imported client-side** — `HTMLElement` does not exist in Node/SSR.
 - `src/index.ts` — Barrel export for JSX components and `configure()`.
+
+These three type locations are each pinned by a different TypeScript mechanism (see above) — don't try to consolidate them.
 
 ## Build & dev
 
@@ -164,7 +167,7 @@ The same rule applies anywhere we lighten/darken/desaturate a color: prefer `col
 - **CSS modules only on JSX wrappers**, plain CSS for web components. Use `.container` as the top-level class in CSS modules.
 - **Types** — Use React global types (e.g. `React.CSSProperties`) without importing React. Components must be compatible with both React and Preact.
 - **Auto-registration (granular + barrel)** — each `a-{name}` module self-registers and imports its own CSS when loaded, so a granular `import '@antadesign/anta/elements/a-{name}'` registers just that element (and won't drag in other elements' code or deps). The `elements/index.ts` barrel re-exports every module, so `import '@antadesign/anta/elements'` registers them all. Registration is guarded against missing `customElements` (SSR-safe), but elements should still only be imported client-side. (The same pattern powers `@antadesign/stickers/elements` — its granular `a-sticker` path keeps `lottie-web` out, since only `a-sticker-animated` pulls it.)
-- **Component-token-first** — Each component defines its own CSS custom properties. Global tokens will be added later.
+- **Component-token-first; the only global tokens are color roles.** The global token vocabulary is deliberately tiny and lives in `src/tokens.css`: theme-aware *role* scales for **text** (`--text-*`), **container background** (`--bg-*`), and **container border** (`--border-*`), per tone, plus fonts and link colors. A component points at these roles only when a value clearly *is* one of those three things (see `a-tag.css` — that's also what makes its dark mode free). Everything else — sizes, spacing, radii, interaction-state colors, timings — is defined per component as `--{component}-*` with literal values, **on purpose**: values are still being tuned back and forth, and component-level definitions keep every part independently changeable. Component-local literal values are policy, not debt — do **not** "clean them up" by routing them through global tokens, and do **not** introduce primitive palette tokens or global spacing/size scales. New global role families (e.g. interactive fills) only by explicit decision, once the values have actually stabilized across components.
 - **Document defaults with `@defaultValue`** — Every optional prop whose default isn't obvious (enums, numbers like `size`/`level`/`max`, a default tone/priority) **must** carry a `@defaultValue <value>` TSDoc tag on its declaration in `src/components/<Name>.tsx`. This is the single source of truth: TypeDoc captures it into `site/src/api.json`, `PropsTable.astro` renders it as the **Default** column, and the playground's `props-form.ts` reads it for control defaults. State the default *only* in the tag — don't also write "Defaults to …" in the prose description (the Default column would duplicate it). Skip the tag for booleans that default to `false` (obvious) and for required props (no default).
 - **Docs-in-sync** — When you rename a component prop, rename a `--{component}-*` token, add a token, or remove one, **update `site/src/pages/components/{name}.mdx` in the same change** so the docs page tracks the source of truth. The same applies to default values, prop type unions, and to any consumer-facing API note in `README.md`. Drift between the source and the docs site is the single most common bug report — easier to keep them in lockstep than to chase the divergence later.
 
@@ -176,7 +179,7 @@ The same rule applies anywhere we lighten/darken/desaturate a color: prefer `col
 4. Create `src/components/{Name}.tsx` — JSX wrapper, import CSS module
 5. Create `src/components/{Name}.module.css` — scoped styles for wrapper layout
 6. Add to `src/index.ts` — re-export the component
-7. Add `a-{name}` to `JSX.IntrinsicElements` in `src/types.d.ts`
+7. Define `A{Name}Attributes` in `src/general_types.ts` (extending `BaseAttributes`), then add `a-{name}` to `JSX.IntrinsicElements` in `src/jsx-runtime.ts`
 8. Add entry points to `build:js` script in `package.json`
 9. Add CSS files to `build:css` script in `package.json`
 10. Run `pnpm run build` to verify

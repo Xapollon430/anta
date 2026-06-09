@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import astroExpressiveCode, { createInlineSvgUrl } from 'astro-expressive-code';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -83,6 +84,7 @@ export default defineConfig({
       },
     }),
     mdx(),
+    sitemap(),
   ],
   vite: {
     // With the preset's compat off, replicate the dedupe/SSR-bundling it would

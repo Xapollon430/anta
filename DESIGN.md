@@ -48,7 +48,7 @@ components:
 
 Anta is a portable UI component library built on a two-tier architecture: web components (`elements/`) provide the rendering layer via shadow DOM, and JSX wrappers (`components/`) provide a typed component API. The tiers are decoupled — wrappers emit custom element tags but never import element definitions.
 
-Anta follows a **component-token-first** philosophy. Each component defines its own CSS custom properties (e.g., `--progress-indicator-bg`) rather than depending on a global token system. Global tokens will be introduced later for cross-component consistency, but component tokens remain the primary styling mechanism.
+Anta follows a **component-token-first** philosophy. Each component defines its own CSS custom properties (e.g., `--progress-indicator-bg`) as the primary styling mechanism. The only global tokens are the theme-aware color *roles* in `src/tokens.css` — text (`--text-*`), container background (`--bg-*`), and container border (`--border-*`) scales, plus fonts and link colors — which components consume when a value is clearly one of those roles. There is deliberately no primitive color palette and no global spacing/size scales: while the system is young and values are still being tuned, component-local definitions keep every part independently changeable.
 
 # Components
 

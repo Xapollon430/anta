@@ -36,11 +36,47 @@ try {
 } catch {}
 
 // Resolve URLs against the site config (https://anta.design) so
-// Open Graph / Twitter crawlers receive absolute URLs.
+// Open Graph / Twitter crawlers receive absolute URLs, and the canonical
+// link always points at the production domain — Cloudflare Pages preview
+// deployments (*.pages.dev) serve identical content and would otherwise
+// compete in search indexes.
 const ogImage = new URL('/og-image.png', Astro.site).href
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href
 const pageTitle = title ? `${title} — Anta` : 'Anta'
 const description = "Antithesis design system: global CSS tokens, framework-agnostic web components, and JSX wrappers for React and Preact."
+
+// JSON-LD structured data. Every page declares the WebSite; component
+// pages add a breadcrumb trail so search results show the site hierarchy.
+const isComponentPage = /^\/components\/[^/]+\/?$/.test(Astro.url.pathname)
+const jsonLd: object[] = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Anta',
+    url: new URL('/', Astro.site).href,
+    description,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareSourceCode',
+    name: '@antadesign/anta',
+    description,
+    url: new URL('/', Astro.site).href,
+    codeRepository: 'https://github.com/antithesishq/anta',
+    programmingLanguage: 'TypeScript',
+    runtimePlatform: ['React', 'Preact'],
+  },
+]
+if (isComponentPage && title) {
+  jsonLd.push({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Anta', item: new URL('/', Astro.site).href },
+      { '@type': 'ListItem', position: 2, name: title, item: pageUrl },
+    ],
+  })
+}
 ---
 
 <html lang="en">
@@ -49,6 +85,9 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={pageUrl} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
     <link rel="icon" type="image/svg+xml" href="/anta-favicon.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
