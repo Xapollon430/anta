@@ -2,7 +2,7 @@
 
 All notable changes to the `@antadesign/anta` package are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project tries to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-This file only tracks what ships to npm consumers — anything under `src/`, `dist/`, the build / generator scripts, and root files in the published tarball. Updates to the documentation site at `antadesign.dev` are not consumer-facing and are intentionally not in this changelog; see the commit history for the site narrative.
+This file only tracks what ships to npm consumers — anything under `src/`, `dist/`, the build / generator scripts, and root files in the published tarball. Updates to the documentation site at `anta.design` are not consumer-facing and are intentionally not in this changelog; see the commit history for the site narrative.
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
