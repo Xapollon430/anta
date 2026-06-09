@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'preact/hooks'
 import { Button } from '@antadesign/anta'
-import * as Stickers from '@antadesign/anta/stickers'
+import * as Stickers from '@antadesign/stickers'
 
 // Pull the bare names from the barrel by stripping the `Sticker` prefix
 // from each `Sticker{Name}` export. Filter out the `Sticker{Name}Animated`
-// variants — they're separate exports referencing the same name.
+// variants — they're separate exports referencing the same name — and the
+// bare `Sticker` / `StickerAnimated` base wrappers the package also exports.
 const NAMES = Object.keys(Stickers)
-  .filter((k) => k.startsWith('Sticker') && !k.endsWith('Animated'))
+  .filter(
+    (k) => k.startsWith('Sticker') && k.length > 'Sticker'.length && !k.endsWith('Animated'),
+  )
   .map((k) => k.slice('Sticker'.length))
   .sort()
 
