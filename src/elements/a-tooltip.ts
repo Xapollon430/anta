@@ -28,6 +28,22 @@ const GRACE_MS = 300
  * into an interactive bubble before it dismisses.
  */
 const CLOSE_DELAY = 120
+/**
+ * Touch press-and-hold duration (ms) before a long-press opens the tooltip.
+ * Touch has no hover, so a deliberate hold is the open gesture; a quick tap
+ * does nothing (the synthesized mouse events and tap-focus are both ignored).
+ */
+const ENTER_TOUCH_DELAY = 500
+/**
+ * How long (ms) a touch-opened tooltip lingers after the finger lifts, so it
+ * stays readable once the anchor is no longer occluded by the fingertip.
+ */
+const LEAVE_TOUCH_DELAY = 1500
+/**
+ * Finger travel (px) during a press beyond which it's treated as a drag/scroll
+ * rather than a hold — cancels the pending long-press.
+ */
+const TOUCH_SLOP = 10
 
 /* ------------------------------------------------------------------ *
  * Module-level coordinator — PURE IN-MEMORY JS, never touches the DOM.
@@ -107,6 +123,10 @@ export class ATooltipElement extends HTMLElementBase {
 
   listening = false
   private shown = false
+  /** True while the current open was triggered by a touch long-press. Such a
+   *  bubble is pinned (never cursor-follows) and biases above the anchor so the
+   *  fingertip doesn't cover it. */
+  private touchOpen = false
   private lastMouse?: MouseEvent
 
   private debouncedShow?: ((e?: MouseEvent) => void) & { cancel: () => void }
@@ -279,6 +299,12 @@ export class ATooltipElement extends HTMLElementBase {
     return this.hasAttribute('static') || this.isInteractive
   }
 
+  /** Pinned to the anchor for any reason: the `static`/`interactive` attrs, or
+   *  a touch long-press (a finger can't track a following bubble). */
+  private get isPinned(): boolean {
+    return this.isStatic || this.touchOpen
+  }
+
   private get prefersTop(): boolean {
     return this.getAttribute('placement') === 'top'
   }
@@ -305,8 +331,10 @@ export class ATooltipElement extends HTMLElementBase {
       if (left + box.width > vw) left = vw - box.width - MARGIN
       left = Math.max(MARGIN, left)
 
+      // Touch long-press biases above the anchor so the fingertip resting on
+      // it doesn't cover the bubble (auto-flips below when there's no room).
       let top: number
-      if (this.prefersTop) {
+      if (this.prefersTop || this.touchOpen) {
         top = a.top - box.height - MARGIN
         if (top < MARGIN) top = a.bottom + MARGIN
       } else {
@@ -348,7 +376,7 @@ export class ATooltipElement extends HTMLElementBase {
   }
 
   private position(e?: MouseEvent) {
-    if (!this.isStatic && e) this.positionToMouse(e)
+    if (!this.isPinned && e) this.positionToMouse(e)
     else this.positionToTarget()
   }
 
@@ -392,6 +420,7 @@ export class ATooltipElement extends HTMLElementBase {
     this.cancelHide()
     if (!this.shown) return
     this.shown = false
+    this.touchOpen = false
     this.container.hidePopover()
     this.view.removeEventListener('scroll', this.hide, { capture: true } as any)
     this.doc.removeEventListener('keydown', this.onKeyDown, true)
@@ -414,7 +443,7 @@ export class ATooltipElement extends HTMLElementBase {
    *  the close delay). Cursor-following only — static/interactive bubbles
    *  stay pinned. */
   private onDocMove = (e: MouseEvent) => {
-    if ((this.shown || this.fading) && !this.isStatic) {
+    if ((this.shown || this.fading) && !this.isPinned) {
       this.lastMouse = e
       this.positionToMouse(e)
     }
@@ -423,9 +452,9 @@ export class ATooltipElement extends HTMLElementBase {
   /** Hide after CLOSE_DELAY unless something cancels it first (re-enter, or
    *  another tooltip claiming the slot). Lets the bubble bridge the gap to a
    *  neighbouring anchor — and survive the trip into an interactive bubble. */
-  private scheduleHide = () => {
+  private scheduleHide = (delay = CLOSE_DELAY) => {
     this.cancelHide()
-    this.closeTimer = setTimeout(() => { this.closeTimer = undefined; this.hide() }, CLOSE_DELAY)
+    this.closeTimer = setTimeout(() => { this.closeTimer = undefined; this.hide() }, delay)
   }
 
   private cancelHide() {
@@ -462,15 +491,20 @@ export class ATooltipElement extends HTMLElementBase {
     const doc = this.doc
     this.makeDebouncedShow()
 
-    // mousemove is bound to the ANCHOR (not document): the cursor is over
-    // the anchor while hovering, moves over descendants bubble up to it, and
-    // it keeps the listener scoped to one element that lives in the same
-    // document/registry as this element (a document-level listener proved
-    // unreliable across the playground's preview iframe).
-    const onMouseMove = (e: MouseEvent) => {
+    // --- hover (mouse pointers only) -------------------------------------
+    // Pointer (not mouse) events so we can read `pointerType` and ignore the
+    // synthesized mouse* sequence a touch tap fires — otherwise a tap would
+    // open the tooltip via the emulated `mouseenter`. Listeners are bound to
+    // the ANCHOR (not document): the cursor is over the anchor while hovering,
+    // descendant moves bubble up to it, and it stays in the same document /
+    // registry as this element (a document-level listener proved unreliable
+    // across the playground's preview iframe). PointerEvent extends MouseEvent,
+    // so positioning (clientX/clientY) is unchanged.
+    const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return
       this.lastMouse = e
       if (this.shown) {
-        if (!this.isStatic) this.positionToMouse(e)
+        if (!this.isPinned) this.positionToMouse(e)
       } else {
         // (Re)arm the delayed show. This also re-arms after the tooltip was
         // dismissed without leaving the anchor — e.g. moving back onto the
@@ -481,40 +515,102 @@ export class ATooltipElement extends HTMLElementBase {
 
     const onLeave = () => {
       this.debouncedShow?.cancel()
-      anchor.removeEventListener('mousemove', onMouseMove)
-      anchor.removeEventListener('mouseleave', onLeave)
+      anchor.removeEventListener('pointermove', onPointerMove)
+      anchor.removeEventListener('pointerleave', onLeave)
       anchor.removeEventListener('blur', onLeave)
       view.removeEventListener('pagehide', onLeave)
       doc.removeEventListener('visibilitychange', onLeave)
       this.scheduleHide() // linger briefly instead of vanishing on exit
     }
 
-    const onEnter = (e: MouseEvent) => {
+    const onEnter = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return
       this.lastMouse = e
-      anchor.addEventListener('mousemove', onMouseMove)
-      anchor.addEventListener('mouseleave', onLeave)
+      anchor.addEventListener('pointermove', onPointerMove)
+      anchor.addEventListener('pointerleave', onLeave)
       view.addEventListener('pagehide', onLeave)
       doc.addEventListener('visibilitychange', onLeave)
       this.trigger(e)
     }
 
+    // --- keyboard focus ---------------------------------------------------
+    // Gate on `:focus-visible` so only keyboard-style focus opens the tooltip.
+    // A tap/click focuses the anchor too, but doesn't match `:focus-visible`,
+    // so touch/mouse focus no longer pops the bubble (it was the main reason a
+    // tap showed it). Mouse users still get it via hover above.
     const onFocus = () => {
+      if (!anchor.matches(':focus-visible')) return
       anchor.addEventListener('blur', onLeave)
       view.addEventListener('pagehide', onLeave)
       doc.addEventListener('visibilitychange', onLeave)
-      this.trigger() // no mouse event → positions to the anchor
+      this.trigger() // no pointer event → positions to the anchor
     }
 
-    anchor.addEventListener('mouseenter', onEnter)
+    // --- touch press-and-hold --------------------------------------------
+    // Touch has no hover, so a deliberate long-press is the open gesture.
+    // `pointerdown` (touch/pen) arms a timer; if the finger stays put past
+    // ENTER_TOUCH_DELAY the bubble opens pinned above the anchor. A move past
+    // TOUCH_SLOP, an early lift, a `pointercancel` (the UA claimed the gesture
+    // as a scroll), or a scroll all abort it. After a touch-open, the bubble
+    // lingers LEAVE_TOUCH_DELAY past the lift so it's readable.
+    let pressTimer: ReturnType<typeof setTimeout> | undefined
+    let pressStart: { x: number; y: number } | undefined
+    const preventContext = (e: Event) => e.preventDefault()
+    const clearPressTimer = () => {
+      if (pressTimer !== undefined) { clearTimeout(pressTimer); pressTimer = undefined }
+      pressStart = undefined
+    }
+    const onPressMove = (e: PointerEvent) => {
+      if (pressStart && Math.hypot(e.clientX - pressStart.x, e.clientY - pressStart.y) > TOUCH_SLOP) {
+        clearPressTimer() // became a drag/scroll — not a hold
+      }
+    }
+    // onPressEnd ⇄ detachPress reference each other; arrow closures resolve the
+    // name at call time, so the forward reference is fine (neither runs during
+    // declaration).
+    const onPressEnd = () => {
+      clearPressTimer()
+      detachPress()
+      // If the long-press opened the bubble, hold it for a readable beat after
+      // the finger lifts before dismissing.
+      if (this.shown && this.touchOpen) this.scheduleHide(LEAVE_TOUCH_DELAY)
+    }
+    const detachPress = () => {
+      anchor.removeEventListener('pointermove', onPressMove)
+      anchor.removeEventListener('pointerup', onPressEnd)
+      anchor.removeEventListener('pointercancel', onPressEnd)
+      anchor.removeEventListener('contextmenu', preventContext)
+    }
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse') return // mouse uses the hover path above
+      clearPressTimer()
+      pressStart = { x: e.clientX, y: e.clientY }
+      anchor.addEventListener('pointermove', onPressMove)
+      anchor.addEventListener('pointerup', onPressEnd)
+      anchor.addEventListener('pointercancel', onPressEnd)
+      // Suppress the Android long-press context menu during the hold.
+      anchor.addEventListener('contextmenu', preventContext)
+      pressTimer = setTimeout(() => {
+        pressTimer = undefined
+        this.touchOpen = true
+        this.show() // no event → pinned to the anchor, biased above (touchOpen)
+      }, ENTER_TOUCH_DELAY)
+    }
+
+    anchor.addEventListener('pointerenter', onEnter)
     anchor.addEventListener('focus', onFocus)
+    anchor.addEventListener('pointerdown', onPointerDown)
 
     this.teardown = () => {
       this.debouncedShow?.cancel()
-      anchor.removeEventListener('mousemove', onMouseMove)
-      anchor.removeEventListener('mouseenter', onEnter)
-      anchor.removeEventListener('mouseleave', onLeave)
+      clearPressTimer()
+      detachPress()
+      anchor.removeEventListener('pointermove', onPointerMove)
+      anchor.removeEventListener('pointerenter', onEnter)
+      anchor.removeEventListener('pointerleave', onLeave)
       anchor.removeEventListener('focus', onFocus)
       anchor.removeEventListener('blur', onLeave)
+      anchor.removeEventListener('pointerdown', onPointerDown)
       view.removeEventListener('pagehide', onLeave)
       doc.removeEventListener('visibilitychange', onLeave)
       this.listening = false

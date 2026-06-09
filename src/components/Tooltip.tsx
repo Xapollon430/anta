@@ -27,8 +27,10 @@ export interface TooltipProps extends BaseProps {
  * doesn't affect that element's layout.
  *
  * Shows on hover (after `delay`) and on keyboard focus; dismisses on mouse
- * leave, blur, Escape, or when the anchor scrolls away. Follows the cursor
- * by default — pass `static` to pin it under the anchor instead.
+ * leave, blur, Escape, or when the anchor scrolls away. On touch devices it
+ * opens on press-and-hold (a tap never surfaces it) and lingers briefly after
+ * release. Follows the cursor by default — pass `static` to pin it under the
+ * anchor instead.
  *
  * Requires `@antadesign/anta/elements` to be imported (client-side only)
  * to register the underlying custom element.
