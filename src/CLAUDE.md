@@ -114,7 +114,7 @@ When naming components, props, CSS variables, internal class names, or suggestin
 - **CSS modules only on JSX wrappers**, plain CSS for web components. Use `.container` as the top-level class in CSS modules.
 - **Types** — Use React global types (e.g. `React.CSSProperties`) without importing React. Components must be compatible with both React and Preact.
 - **Auto-registration** — `elements/index.ts` auto-registers all custom elements in browser contexts.
-- **Component-token-first** — Each component defines its own CSS custom properties. Global tokens will be added later.
+- **Component-token-first; the only global tokens are color roles.** The global vocabulary is deliberately tiny (`src/tokens.css`): theme-aware role scales for text (`--text-*`), container background (`--bg-*`), and container border (`--border-*`), plus fonts and link colors. Components point at these only when a value clearly is one of those roles; everything else (sizes, spacing, radii, state colors, timings) stays component-local as `--{component}-*` literals — on purpose, so each part can be tuned independently. No primitive palette tokens, no global spacing/size scales. See the root `CLAUDE.md` for the full statement of this policy.
 
 ## Adding a new component
 

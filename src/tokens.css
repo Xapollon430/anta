@@ -9,6 +9,16 @@
    override this one — first mention of each layer name wins. */
 @layer base, anta, components, utilities;
 
+/* Scope of this file — Anta's entire global token vocabulary, kept
+   deliberately tiny: theme-aware color *roles* for text (--text-*),
+   container background (--bg-*), and container border (--border-*),
+   per tone, plus font stacks and prose link colors. Nothing else is
+   global by design: no primitive palette tokens, no spacing/size/radius
+   scales. Those live component-side as --{component}-* with literal
+   values so each component stays independently tunable while values
+   are still settling. Don't add new role families here without an
+   explicit decision that the values have stabilized across components. */
+
 :root, .light {
   --sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   --monospace: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
