@@ -36,6 +36,11 @@
     --button-bg-secondary-active: #44374b26;
     --button-fg-secondary-rest: #534c57;
     --button-fg-secondary-hover: #49424c;
+    /* Darken the rest-state secondary label by this much oklch lightness so
+       it reads a touch stronger. Applied dynamically at the --button-fg
+       wiring (below), so it covers every tone — named and custom alike.
+       Light mode only; the .dark block zeroes it. */
+    --button-fg-secondary-l-shift: 0.05;
 
     --button-fg-tertiary-rest: #635b65;
     --button-fg-tertiary-hover: #534c57;
@@ -192,6 +197,8 @@
     --button-bg-secondary-active: #e4d1ef2e;
     --button-fg-secondary-rest: #c1b9c1;
     --button-fg-secondary-hover: #d4ced4;
+    /* Dark-mode secondary labels are already tuned — no rest darkening. */
+    --button-fg-secondary-l-shift: 0;
 
     --button-fg-tertiary-rest: #afa9b1;
     --button-fg-tertiary-hover: #afa9b1;
@@ -324,9 +331,9 @@
     border-radius: 4px;
     text-decoration: none;
     /* Secondary is the default priority — a 1px hairline in the current
-       fg tone (at 60% alpha) gives the chip a subtle edge. Primary,
+       fg tone (at 50% alpha) gives the chip a subtle edge. Primary,
        tertiary, and quaternary cancel it in their own blocks below. */
-    box-shadow: 0 0 1px color-mix(in oklch, currentColor, transparent 40%);
+    box-shadow: 0 0 1px color-mix(in oklch, currentColor, transparent 50%);
 
     font-size: 15px;
     font-family: var(--sans-serif);
@@ -558,6 +565,7 @@
        on Chrome 133+ / Safari 18.2+. (oklch relative color: Chrome 119+,
        Safari 16.4+, Firefox 128+.) */
     &[tone]:not(
+        [tone=""],
         [tone="brand"],
         [tone="neutral"],
         [tone="critical"],
@@ -608,6 +616,7 @@
     /* Custom tone, dark mode — same formulas, re-tuned knobs: lighter fg
        and heavier tint alphas to read against a dark page. */
     .dark &[tone]:not(
+        [tone=""],
         [tone="brand"],
         [tone="neutral"],
         [tone="critical"],
@@ -635,7 +644,7 @@
        tertiary, and quaternary match an explicit `[priority="…"]` attr
        and win on specificity (primary's constant fg beats the unscoped
        :hover on source order). */
-    --button-fg: var(--button-fg-secondary-rest);
+    --button-fg: oklch(from var(--button-fg-secondary-rest) calc(l - var(--button-fg-secondary-l-shift)) c h);
     --button-bg: var(--button-bg-secondary-rest);
     /* Hover styling is gated to real-pointer devices so it doesn't stick
        after a tap on touch screens (where :hover lingers until the next
@@ -685,14 +694,14 @@
       }
     }
     &[priority="quaternary"] {
-      /* Rest fg is the quaternary tone at 82% alpha — slightly faded, so a
+      /* Rest fg is the quaternary tone at 90% alpha — slightly faded, so a
          quaternary button reads as quieter than a (full-opacity) tertiary
          one. Hover / active restore full opacity. */
-      --button-fg: color-mix(in oklch, var(--button-fg-quaternary-rest) 82%, transparent);
+      --button-fg: color-mix(in oklch, var(--button-fg-quaternary-rest) 90%, transparent);
       --button-bg: transparent;
       /* Background-less — no hairline. */
       box-shadow: none;
-      font-weight: 425;
+      font-weight: 415;
       @media (hover: hover) and (pointer: fine) {
         &:hover {
           --button-fg: var(--button-fg-quaternary-hover);
