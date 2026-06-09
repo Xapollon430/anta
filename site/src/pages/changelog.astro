@@ -1,25 +1,24 @@
 ---
 /**
- * /changelog/ — single-URL changelog. Imports the repo-root CHANGELOG.md
- * directly via Astro's markdown pipeline (Vite resolves the path; no
- * intermediate generated .mdx file in version control).
+ * /changelog/ — Main releases. A hand-authored, summarised view of the
+ * stable releases (src/changelog-summary.md). The companion /changelog/dev/
+ * page renders the full per-version detail straight from CHANGELOG.md.
  *
- * Two build-time transforms make this work:
- *   1. rehype-changelog-sections wraps each <h2> version block plus its
- *      siblings into <section data-stream="dev|main">.
- *   2. base.css's html[data-stream] rules hide the inverse-stream
- *      sections.
- *
- * Filter UX is provided by <ChangelogStreamTabs /> (URL ?stream=…).
+ * Summaries are editorial — they don't map 1:1 to the detailed changelog
+ * entries — so they're authored, not generated. The shared head (the
+ * "# Changelog" h1 + preamble) is generated from CHANGELOG.md by
+ * scripts/gen-pages.mjs (docs:pages).
  */
 import DocsLayout from '../layouts/DocsLayout.astro'
-import ChangelogStreamTabs from '../components/ChangelogStreamTabs.astro'
-import { Content } from '../../../CHANGELOG.md'
+import ChangelogNav from '../components/ChangelogNav.astro'
+import { Content as ChangelogHead } from '../generated/changelog-head.md'
+import { Content } from '../changelog-summary.md'
 ---
 
 <DocsLayout title="Changelog">
-  <ChangelogStreamTabs />
   <div class="changelog">
+    <ChangelogHead />
+    <ChangelogNav active="main" />
     <Content />
   </div>
 </DocsLayout>
