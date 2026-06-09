@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 const reactCompatShim = fileURLToPath(new URL('./lib/react-compat-shim.mjs', import.meta.url));
 
 export default defineConfig({
-  site: 'https://antadesign.dev',
+  site: 'https://anta.design',
   devToolbar: { enabled: false },
   integrations: [
     // compat:false — we install the react→preact/compat aliases ourselves in

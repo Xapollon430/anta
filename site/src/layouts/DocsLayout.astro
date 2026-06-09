@@ -35,7 +35,7 @@ try {
   }
 } catch {}
 
-// Resolve URLs against the site config (https://antadesign.dev) so
+// Resolve URLs against the site config (https://anta.design) so
 // Open Graph / Twitter crawlers receive absolute URLs.
 const ogImage = new URL('/og-image.png', Astro.site).href
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href
