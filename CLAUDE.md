@@ -18,10 +18,13 @@ The tiers are decoupled — JSX wrappers emit `<a-*>` tags but never import elem
 
 ### Key files
 
-- `src/jsx-runtime.ts` — Custom JSX runtime. Defaults to `React.createElement`. Call `configure(h)` to swap.
-- `src/types.d.ts` — CSS module type declarations and `JSX.IntrinsicElements` for `a-*` custom elements.
+- `src/jsx-runtime.ts` — Custom JSX runtime. Defaults to `React.createElement`. Call `configure(h)` to swap. **Owns the `JSX.IntrinsicElements` declarations for `a-*` tags** — they must live here (not elsewhere) because tsc's `jsxImportSource` mechanism resolves JSX element types from the `JSX` namespace exported by `<source>/jsx-runtime`, and because companion packages augment this exact module (`@antadesign/stickers` does `declare module '@antadesign/anta/jsx-runtime'` to add its tags).
+- `src/general_types.ts` — Shared `BaseProps` / `BaseAttributes` plus the per-element `A{Name}Attributes` interfaces. A regular `.ts` module (never a `.d.ts` — tsc doesn't copy declaration inputs to `dist`) published as the `@antadesign/anta/general_types` subpath; `@antadesign/stickers` and all JSX wrappers import from it.
+- `src/types.d.ts` — Internal-only ambient declarations: the wildcard `declare module '*.module.css'`. Can't merge into the files above — wildcard ambient module declarations are only legal in a global (non-module) declaration file. Not shipped to `dist`.
 - `src/elements/index.ts` — Barrel export that auto-registers all web components in browser contexts. **Must only be imported client-side** — `HTMLElement` does not exist in Node/SSR.
 - `src/index.ts` — Barrel export for JSX components and `configure()`.
+
+These three type locations are each pinned by a different TypeScript mechanism (see above) — don't try to consolidate them.
 
 ## Build & dev
 
@@ -176,7 +179,7 @@ The same rule applies anywhere we lighten/darken/desaturate a color: prefer `col
 4. Create `src/components/{Name}.tsx` — JSX wrapper, import CSS module
 5. Create `src/components/{Name}.module.css` — scoped styles for wrapper layout
 6. Add to `src/index.ts` — re-export the component
-7. Add `a-{name}` to `JSX.IntrinsicElements` in `src/types.d.ts`
+7. Define `A{Name}Attributes` in `src/general_types.ts` (extending `BaseAttributes`), then add `a-{name}` to `JSX.IntrinsicElements` in `src/jsx-runtime.ts`
 8. Add entry points to `build:js` script in `package.json`
 9. Add CSS files to `build:css` script in `package.json`
 10. Run `pnpm run build` to verify
