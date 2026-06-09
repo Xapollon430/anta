@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import astroExpressiveCode, { createInlineSvgUrl } from 'astro-expressive-code';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -24,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 const reactCompatShim = fileURLToPath(new URL('./lib/react-compat-shim.mjs', import.meta.url));
 
 export default defineConfig({
-  site: 'https://antadesign.dev',
+  site: 'https://anta.design',
   devToolbar: { enabled: false },
   integrations: [
     // compat:false — we install the react→preact/compat aliases ourselves in
@@ -84,6 +85,7 @@ export default defineConfig({
       },
     }),
     mdx(),
+    sitemap(),
   ],
   vite: {
     // With the preset's compat off, replicate the dedupe/SSR-bundling it would

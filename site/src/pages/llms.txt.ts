@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
 
-const SITE = 'https://antadesign.dev'
+const SITE = 'https://anta.design'
 
 const componentModules = import.meta.glob('./components/*.mdx', { eager: true }) as Record<
   string,

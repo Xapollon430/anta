@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro'
 import { renderPropsTable } from '../../lib/llms/props-from-api.ts'
 import { parseMdx } from '../../lib/llms/parse-mdx.ts'
 
-const SITE = 'https://antadesign.dev'
+const SITE = 'https://anta.design'
 
 const componentModules = import.meta.glob('./components/*.mdx', {
   eager: true,
