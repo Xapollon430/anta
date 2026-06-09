@@ -14,7 +14,15 @@ const TYPEAHEAD_RESET = 500
 
 type Placement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
 
-type OpenDetail = { coord?: [number, number]; originEvent?: Event }
+/** `openchange` event detail. `open` is the NEW state (boolean); `previousState`
+ *  is the OLD state in the same `opened`/`closed` vocabulary as the `state`
+ *  attribute, so a handler reads: `setState(e.detail.open ? 'opened' : 'closed')`. */
+type OpenChangeDetail = {
+  open: boolean
+  previousState: 'opened' | 'closed'
+  coord?: [number, number]
+  originEvent?: Event
+}
 
 /* ------------------------------------------------------------------ *
  * Module-level coordinator — PURE IN-MEMORY JS, never touches the DOM
@@ -69,14 +77,14 @@ function pathHitsMenus(e: Event): boolean {
 
 function onDocPointerDown(e: Event) {
   if (!openStack.length) return
-  if (!pathHitsMenus(e)) closeAll()
+  if (!pathHitsMenus(e)) dismiss(e)
 }
 
 function onDocContextMenu(e: Event) {
   if (!openStack.length) return
   // Right-click inside the menu system (or on an open anchor) is left alone —
   // a context anchor's own handler repositions rather than toggling.
-  if (!pathHitsMenus(e)) closeAll()
+  if (!pathHitsMenus(e)) dismiss(e)
 }
 
 function onScroll(e: Event) {
@@ -84,12 +92,12 @@ function onScroll(e: Event) {
   // Ignore the surface's own internal (max-height) scroll.
   const t = e.target as Node
   for (const m of openStack) if (m.surface.contains(t)) return
-  closeAll()
+  dismiss(e)
 }
 
 function onResize() {
   if (!openStack.length) return
-  closeAll()
+  dismiss()
 }
 
 function onDocKeyDown(e: KeyboardEvent) {
@@ -98,9 +106,21 @@ function onDocKeyDown(e: KeyboardEvent) {
   menu.handleKey(e)
 }
 
-/** Close the whole stack, top-down. */
+/** Dismiss the open system (outside-click / scroll / resize). Routed through
+ *  the root's `requestClose`, so it emits `openchange` and respects a
+ *  controlled root (which stays open until the consumer flips `state`). */
+function dismiss(originEvent?: Event) {
+  openStack[0]?.requestClose(originEvent)
+}
+
+/** Force-close the whole stack, top-down, emitting `openchange` for each menu
+ *  that was open. Used when a fresh root menu takes over (a hard replace). */
 function closeAll() {
-  for (let i = openStack.length - 1; i >= 0; i--) openStack[i]._doHide()
+  for (let i = openStack.length - 1; i >= 0; i--) {
+    const m = openStack[i]
+    if (m.isOpen) m.emitChange(false)
+    m._doHide()
+  }
   openStack.length = 0
   unbindDocListeners()
 }
@@ -134,7 +154,7 @@ const lazyObserver: IntersectionObserver | null =
     : null
 
 export class AMenuElement extends HTMLElementBase {
-  static observedAttributes = ['placement', 'context', 'coord', 'offset', 'hover']
+  static observedAttributes = ['placement', 'context', 'coord', 'offset', 'hover', 'state']
 
   /** Shadow-internal popover surface — the only thing we ever mutate. */
   surface!: HTMLDivElement
@@ -223,13 +243,19 @@ export class AMenuElement extends HTMLElementBase {
 
   connectedCallback() {
     const anchor = this.triggerAnchor
-    if (!anchor) return
-    anchorToMenu.set(anchor, this)
-    lazyObserver?.observe(anchor)
+    if (anchor) {
+      anchorToMenu.set(anchor, this)
+      lazyObserver?.observe(anchor)
+    }
+    // Apply an initial controlled state (e.g. <a-menu state="opened">) once
+    // connected — attributeChangedCallback may have fired before this during
+    // upgrade, when the anchor / layout weren't ready yet.
+    if (this.hasAttribute('state')) requestAnimationFrame(() => this.syncState())
   }
 
   disconnectedCallback() {
-    this.close()
+    // Silent teardown — don't emit `openchange` for an element being removed.
+    this.hide()
     this.teardownListeners()
     this.cancelOpenTimer()
     this.cancelCloseTimer()
@@ -240,12 +266,33 @@ export class AMenuElement extends HTMLElementBase {
     }
   }
 
-  attributeChangedCallback() {
+  attributeChangedCallback(name: string) {
+    // `state` is the controlled lever: reflect it into visibility, SILENTLY
+    // (no `openchange` — the consumer set it, so re-emitting would just echo
+    // back into their own handler; that silence is what prevents a loop).
+    if (name === 'state') {
+      this.syncState()
+      return
+    }
     // Trigger-shaping attributes changed — rewire the anchor listeners.
     if (this.listening) {
       this.teardownListeners()
       this.setupListeners()
     }
+  }
+
+  /** Apply the controlled `state` attribute to actual visibility, silently.
+   *  Absent → uncontrolled (no-op here; triggers manage it). */
+  private syncState() {
+    if (!this.isConnected) return // initial state is applied from connectedCallback
+    const v = this.getAttribute('state')
+    if (v === 'opened' && !this._shown) this.show()
+    else if (v === 'closed' && this._shown) this.hide()
+  }
+
+  /** Controlled iff the consumer is managing the `state` attribute. */
+  get isControlled(): boolean {
+    return this.hasAttribute('state')
   }
 
   /* --- realm-correct window / document (iframe playground safety) --- */
@@ -338,19 +385,55 @@ export class AMenuElement extends HTMLElementBase {
 
   /* ============================ open / close ============================ */
 
-  /** Public imperative API. */
+  /** Public imperative API. Routes through the same intent path as the
+   *  triggers, so it emits `openchange` and respects controlled mode. */
   open(opts?: { coord?: [number, number]; viaKeyboard?: boolean; originEvent?: Event }) {
-    this.show(opts?.coord, opts?.viaKeyboard, opts?.originEvent)
+    this.requestOpen(opts)
   }
-  close() {
-    this.hide()
+  close(originEvent?: Event) {
+    this.requestClose(originEvent)
   }
   toggle(opts?: { coord?: [number, number]; viaKeyboard?: boolean; originEvent?: Event }) {
-    if (this._shown) this.hide()
-    else this.open(opts)
+    if (this._shown) this.requestClose(opts?.originEvent)
+    else this.requestOpen(opts)
   }
 
-  private show(coord?: [number, number], viaKeyboard = false, originEvent?: Event) {
+  /** Dispatch the single `openchange` event (new state + old state). */
+  emitChange(next: boolean, opts?: { coord?: [number, number]; originEvent?: Event }) {
+    this.dispatchEvent(
+      new CustomEvent<OpenChangeDetail>('openchange', {
+        detail: {
+          open: next,
+          previousState: this._shown ? 'opened' : 'closed',
+          coord: opts?.coord,
+          originEvent: opts?.originEvent,
+        },
+      }),
+    )
+  }
+
+  /** Intent to open (trigger / method / keyboard). Emits `openchange`; applies
+   *  the visibility itself ONLY when uncontrolled — a controlled menu waits for
+   *  the consumer to flip `state` (strict). */
+  requestOpen(opts?: { coord?: [number, number]; viaKeyboard?: boolean; originEvent?: Event }) {
+    if (this._shown) {
+      this.show(opts?.coord, opts?.viaKeyboard, opts?.originEvent) // reposition
+      return
+    }
+    this.emitChange(true, opts)
+    if (!this.isControlled) this.show(opts?.coord, opts?.viaKeyboard, opts?.originEvent)
+  }
+
+  /** Intent to close. Emits `openchange`; hides itself only when uncontrolled. */
+  requestClose(originEvent?: Event) {
+    if (!this._shown) return
+    this.emitChange(false, { originEvent })
+    if (!this.isControlled) this.hide()
+  }
+
+  /** Apply OPEN to the DOM (no event) — used by uncontrolled intent and by the
+   *  controlled `state` sync. */
+  private show(coord?: [number, number], viaKeyboard = false, _originEvent?: Event) {
     if (this.isSubmenu) {
       // Collapse any deeper menus opened from sibling items.
       const parent = this.ownerMenu
@@ -381,20 +464,19 @@ export class AMenuElement extends HTMLElementBase {
     if (wasEmpty) bindDocListeners(this.doc, this.view)
 
     if (viaKeyboard) this.focusFirstItem()
-    this.dispatchEvent(new CustomEvent<OpenDetail>('open', { detail: { coord, originEvent } }))
   }
 
-  private hide(originEvent?: Event) {
+  /** Apply CLOSE to the DOM (no event). Closes this menu and everything stacked
+   *  above it (its submenus). */
+  private hide() {
     const idx = openStack.indexOf(this)
     if (idx === -1) {
       if (this._shown) this._doHide()
       return
     }
-    // Close this menu and everything stacked above it (its submenus), top-down.
     for (let i = openStack.length - 1; i >= idx; i--) openStack[i]._doHide()
     openStack.length = idx
     if (openStack.length === 0) unbindDocListeners()
-    this.dispatchEvent(new CustomEvent<OpenDetail>('close', { detail: { originEvent } }))
   }
 
   /** Shadow-only show: open the popover and position it. `instant` skips the
@@ -535,7 +617,7 @@ export class AMenuElement extends HTMLElementBase {
   /** Close the whole open menu system from the root down. */
   private closeSystem(e?: Event) {
     const root = openStack[0] ?? this
-    root.hide(e)
+    root.requestClose(e)
   }
 
   /* ============================ keyboard ============================ */
@@ -551,7 +633,7 @@ export class AMenuElement extends HTMLElementBase {
       e.preventDefault()
       e.stopPropagation()
       const anchor = this.triggerAnchor
-      this.hide(e)
+      this.requestClose(e)
       anchor?.focus()
       return
     }
@@ -607,7 +689,7 @@ export class AMenuElement extends HTMLElementBase {
         const sub = this.submenuOf(active)
         if (sub) {
           e.preventDefault()
-          sub.show(undefined, true)
+          sub.requestOpen({ viaKeyboard: true })
         }
         break
       }
@@ -615,7 +697,7 @@ export class AMenuElement extends HTMLElementBase {
         if (this.isSubmenu) {
           e.preventDefault()
           const anchorItem = this.triggerAnchor
-          this.hide(e)
+          this.requestClose(e)
           anchorItem?.focus()
         }
         break
@@ -652,7 +734,7 @@ export class AMenuElement extends HTMLElementBase {
     if (this.isSubmenu) {
       // The enclosing item drives the submenu: click toggles; optional hover
       // opens/closes with intent timing.
-      const onClick = () => this.toggle()
+      const onClick = (e: MouseEvent) => this.toggle({ originEvent: e })
       anchor.addEventListener('click', onClick)
       let onEnter: ((e: Event) => void) | undefined
       let onLeave: (() => void) | undefined
@@ -671,7 +753,7 @@ export class AMenuElement extends HTMLElementBase {
     } else if (this.isContext) {
       const onContext = (e: MouseEvent) => {
         e.preventDefault()
-        this.show([e.clientX, e.clientY], false, e)
+        this.requestOpen({ coord: [e.clientX, e.clientY], originEvent: e })
       }
       anchor.addEventListener('contextmenu', onContext)
       this.teardown = () => {
@@ -684,8 +766,8 @@ export class AMenuElement extends HTMLElementBase {
         // trigger) ⇒ open and move focus to the first item.
         const viaKeyboard = e.detail === 0
         const coord = this.isCoord ? ([e.clientX, e.clientY] as [number, number]) : undefined
-        if (this._shown) this.hide(e)
-        else this.show(coord, viaKeyboard, e)
+        if (this._shown) this.requestClose(e)
+        else this.requestOpen({ coord, viaKeyboard, originEvent: e })
       }
       anchor.addEventListener('click', onClick)
       this.teardown = () => {
@@ -709,7 +791,7 @@ export class AMenuElement extends HTMLElementBase {
     this.cancelOpenTimer()
     this.openTimer = setTimeout(() => {
       this.openTimer = undefined
-      this.show()
+      this.requestOpen()
     }, SUBMENU_OPEN_DELAY)
   }
   private scheduleClose() {
@@ -718,7 +800,7 @@ export class AMenuElement extends HTMLElementBase {
     this.cancelCloseTimer()
     this.closeTimer = setTimeout(() => {
       this.closeTimer = undefined
-      this.hide()
+      this.requestClose()
     }, SUBMENU_CLOSE_DELAY)
   }
   private cancelOpenTimer() {

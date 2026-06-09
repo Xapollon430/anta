@@ -244,6 +244,11 @@ export interface AMenuAttributes extends BaseAttributes {
   hover?: boolean | ''
   /** Gap in pixels between the trigger and the menu. Defaults to 4. */
   offset?: number | string
+  /** Controlled open state. Omit for uncontrolled; `'opened'` / `'closed'`
+   *  makes visibility follow this value (string, to avoid a `"false"` footgun).
+   *  The element never writes it — the consumer owns it. Listen to the
+   *  `openchange` event to keep it in sync. */
+  state?: 'opened' | 'closed'
   /** ARIA role — the JSX wrapper sets this to `'menu'`. */
   role?: string
   'aria-orientation'?: 'vertical' | 'horizontal'

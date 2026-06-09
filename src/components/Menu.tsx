@@ -22,6 +22,13 @@ export interface MenuProps extends BaseProps {
   /** Gap in pixels between the trigger and the menu.
    *  @defaultValue 4 */
   offset?: number
+  /** Controlled open state. Omit for the default **uncontrolled** menu (it
+   *  opens/closes itself). Pass `'opened'` / `'closed'` to **control** it: the
+   *  menu's visibility follows this value, and user dismiss (Esc, outside-click,
+   *  select) fires `openchange` *without* self-closing — you update `state` in
+   *  response. A string (not a boolean) so there's no `"false"`-as-truthy
+   *  footgun. Submenus are always uncontrolled regardless of this. */
+  state?: 'opened' | 'closed'
   /** The menu's contents: `MenuItem`, `MenuSeparator`, `MenuGroup`, or any
    *  custom element. */
   children?: React.ReactNode
@@ -33,9 +40,10 @@ export interface MenuProps extends BaseProps {
  * say); it opens on click by default. For a whole-area right-click menu, put
  * it after the region and pass `context`.
  *
- * Open state is uncontrolled. Listen for the `open` / `close` events, or grab
- * a `ref` to the `<a-menu>` element and call `.open()` / `.close()` /
- * `.toggle()` for imperative control. Selecting a `MenuItem` closes the menu;
+ * Open state is uncontrolled by default — listen for the `openchange` event
+ * (`detail: { open, previousState }`) to observe it, or pass `state` to control
+ * it. You can also grab a `ref` and call `.open()` / `.close()` / `.toggle()`.
+ * Selecting a `MenuItem` closes the menu;
  * arbitrary injected content does not. Add `data-menu-open` to any item /
  * container to keep it open, or `data-menu-close` to a custom element to let it
  * close.
@@ -59,6 +67,7 @@ export const Menu = ({
   submenu,
   hover,
   offset,
+  state,
   className,
   children,
   ...rest
@@ -72,6 +81,8 @@ export const Menu = ({
       submenu={submenu ? '' : undefined}
       hover={hover ? '' : undefined}
       offset={offset != null ? String(offset) : undefined}
+      // Controlled lever — string ('opened'/'closed'); omit ⇒ uncontrolled.
+      state={state}
       role="menu"
       aria-orientation="vertical"
       class={className}

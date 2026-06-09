@@ -20,8 +20,11 @@ on outside-click, `Escape`, or scroll. Rows are dedicated **`MenuItem`s** (not
 buttons), with optional leading icons, trailing keyboard hints, separators,
 grouped sections, and nested submenus.
 
-Open state is uncontrolled: listen for the `open` / `close` events or grab a
-`ref` to the `<a-menu>` element and call `.open()` / `.close()` / `.toggle()`.
+Open state is uncontrolled by default — listen for the **`openchange`** event
+(`detail: { open, previousState }`, the new state as a boolean and the old as a
+string) to observe it, or pass **`state="opened" | "closed"`** to control it
+(submenus stay uncontrolled). You can also grab a `ref` and call `.open()` /
+`.close()` / `.toggle()`.
 
 The previews below are live — **click a trigger to open its menu**. Play with
 the full API in the [playground](#playground).
