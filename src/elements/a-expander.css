@@ -15,16 +15,16 @@
     --expander-text-hover: var(--text-1);
 
     /* Per-priority surfaces (background + border). Re-pointed per tone
-       below; consumed by the `priority` rules. Tertiary (default) stays
-       transparent. The ramp escalates: secondary is a subtle near-page
-       fill with a faint edge; primary is a more pronounced card. */
+       below; consumed by the `priority` rules. Secondary is the DEFAULT —
+       a subtle near-page fill with a faint edge; primary is a more
+       pronounced card; tertiary opts out to transparent. */
     --expander-bg-secondary: var(--bg-2);
     --expander-border-secondary: var(--border-5);
     --expander-bg-primary: var(--bg-4);
     --expander-border-primary: var(--border-4);
 
-    --expander-bg: transparent;
-    --expander-border: transparent;
+    --expander-bg: var(--expander-bg-secondary);
+    --expander-border: var(--expander-border-secondary);
 
     display: block;
     width: 100%;
@@ -43,34 +43,51 @@
      <a-tag-label>, they're CSS-only styled tags — no JS, no shadow. The
      title is projected into the shadow <button>, so it inherits that
      button's level typography; here it just lays out + ellipsizes. The
-     body owns its padding + Anta body typography; its open/close
-     animation and overflow are handled shadow-side (see a-expander.ts). */
+     body owns only layout (its indent) — no typography, so content keeps
+     its own; its open/close animation and overflow are handled shadow-side
+     (see a-expander.ts). */
   a-expander-summary {
     display: block;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    /* Ease the hover/press color change (set shadow-side on the button's
+       :hover / :active) rather than snapping. */
+    transition: color 150ms ease;
   }
   a-expander-details {
+    /* The body is just a container for the consumer's content — it owns
+       only layout (the indent that lines content up under the title, past
+       the chevron). Typography is intentionally NOT set: a <Text> brings
+       its own, and raw content inherits the surrounding page. */
     display: block;
     padding: 4px 4px 4px 20px;
-    font-size: 15px;
-    line-height: 20px;
-    font-weight: 450;
-    letter-spacing: 0.02ch;
   }
 
   /* Priority — the surface/emphasis axis (reuses Button/Text vocabulary).
-     tertiary (default) = transparent; secondary = subtle fill; primary =
-     a more pronounced card. */
-  a-expander[priority="secondary"] {
-    --expander-bg: var(--expander-bg-secondary);
-    --expander-border: var(--expander-border-secondary);
-  }
+     secondary (default, on the base rule above) = subtle fill; primary =
+     a more pronounced card; tertiary = transparent (the bare disclosure). */
   a-expander[priority="primary"] {
     --expander-bg: var(--expander-bg-primary);
     --expander-border: var(--expander-border-primary);
+  }
+  a-expander[priority="tertiary"] {
+    --expander-bg: transparent;
+    --expander-border: transparent;
+  }
+
+  /* marker="outside" (tertiary only) — the docs-header layout: the chevron
+     hangs in the left gutter (negative space, see a-expander.ts) and the
+     title + body sit flush with surrounding content. Zero the left border
+     and padding so the title starts at the element's edge; the body drops
+     its indent to align under the (now flush) title. */
+  a-expander[priority="tertiary"][marker="outside"] {
+    border-width: 0;
+    padding-left: 0;
+  }
+  a-expander[priority="tertiary"][marker="outside"] a-expander-details {
+    padding-left: 0;
   }
 
   /* Named tones — re-point text + both filled surfaces. `color` cascades
@@ -114,5 +131,47 @@
     --expander-border-secondary: var(--border-5-critical);
     --expander-bg-primary: var(--bg-4-critical);
     --expander-border-primary: var(--border-4-critical);
+  }
+
+  /* Custom tone — any non-named `tone` (a literal CSS color). Keep the
+     source hue; pin lightness/chroma per token so any input reads like a
+     sibling of the named tones (same mechanism as <a-tag> / <a-button>).
+     The JSX wrapper writes --expander-tone-source inline; the typed
+     attr() fallback picks up raw <a-expander tone="…"> on engines that
+     support it (oklch relative color: Chrome 119+, Safari 16.4+,
+     Firefox 128+). */
+  a-expander[tone]:not(
+      [tone="neutral"],
+      [tone="brand"],
+      [tone="info"],
+      [tone="success"],
+      [tone="warning"],
+      [tone="critical"]
+    ) {
+    --expander-tone-source: attr(tone type(<color>), currentColor);
+
+    --expander-text:             oklch(from var(--expander-tone-source) 0.46 0.15 h);
+    --expander-text-hover:       oklch(from var(--expander-tone-source) 0.40 0.17 h);
+    --expander-bg-secondary:     oklch(from var(--expander-tone-source) 0.97 0.02 h);
+    --expander-border-secondary: oklch(from var(--expander-tone-source) 0.91 0.04 h);
+    --expander-bg-primary:       oklch(from var(--expander-tone-source) 0.95 0.04 h);
+    --expander-border-primary:   oklch(from var(--expander-tone-source) 0.87 0.05 h);
+  }
+
+  /* Custom tone, dark mode — lighter text, darker surfaces. */
+  .dark a-expander[tone]:not(
+      [tone="neutral"],
+      [tone="brand"],
+      [tone="info"],
+      [tone="success"],
+      [tone="warning"],
+      [tone="critical"]
+    ) {
+    --expander-text:             oklch(from var(--expander-tone-source) 0.80 0.11 h);
+    --expander-text-hover:       oklch(from var(--expander-tone-source) 0.86 0.12 h);
+    --expander-bg-secondary:     oklch(from var(--expander-tone-source) 0.17 0.03 h);
+    --expander-border-secondary: oklch(from var(--expander-tone-source) 0.26 0.04 h);
+    --expander-bg-primary:       oklch(from var(--expander-tone-source) 0.21 0.05 h);
+    --expander-border-primary:   oklch(from var(--expander-tone-source) 0.30 0.06 h);
   }
 }

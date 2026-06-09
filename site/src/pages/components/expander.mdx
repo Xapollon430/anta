@@ -15,10 +15,11 @@ import { Expander, Text } from '@antadesign/anta'
 
 A collapsible disclosure: a header that toggles a region of content open
 and closed. The `Expander` JSX wrapper renders an `<a-expander>`, whose
-shadow DOM wraps a native `<details>`/`<summary>` — so toggling, keyboard
-activation (<kbd>Enter</kbd> / <kbd>Space</kbd>), and disclosure
-semantics for assistive tech all come from the platform. The expand /
-collapse animation matches the disclosure sections used across these docs.
+shadow DOM is a `<button>` summary plus a collapsible region — so focus,
+keyboard activation (<kbd>Enter</kbd> / <kbd>Space</kbd>), and the
+WAI-ARIA disclosure semantics (`aria-expanded`) come from the platform
+button. The expand / collapse animation matches the disclosure sections
+used across these docs.
 
 The `title` is the always-visible header; the `children` are the
 collapsible body.
@@ -28,26 +29,26 @@ Play with it in [playground](#playground).
 ## Priority
 
 `priority` sets the surface, reusing `Button`/`Text`'s vocabulary.
-`tertiary` (the default) is transparent — just the header row and its
-chevron. `secondary` is a filled box, and `primary` a stronger raised
-fill, for when the section needs to read as a contained card.
+`primary` is the most pronounced card; `secondary` (the default) is a
+subtle filled box; `tertiary` is transparent — just the header row and
+its chevron, for an inline disclosure.
 
 <Preview direction="column" gap="8px">
-  <Expander title="Tertiary (default)">
-    <Text>Transparent — no background or border.</Text>
-  </Expander>
-  <Expander title="Secondary" priority="secondary">
-    <Text>A subtle fill (<code>--bg-2</code>) with a faint border (<code>--border-5</code>).</Text>
-  </Expander>
   <Expander title="Primary" priority="primary">
     <Text>A more pronounced card (<code>--bg-4</code> + <code>--border-4</code>).</Text>
+  </Expander>
+  <Expander title="Secondary (default)">
+    <Text>A subtle fill (<code>--bg-2</code>) with a faint border (<code>--border-5</code>).</Text>
+  </Expander>
+  <Expander title="Tertiary" priority="tertiary">
+    <Text>Transparent — no background or border.</Text>
   </Expander>
 </Preview>
 
 ```tsx folded
-<Expander title="Tertiary (default)">…</Expander>
-<Expander title="Secondary" priority="secondary">…</Expander>
 <Expander title="Primary" priority="primary">…</Expander>
+<Expander title="Secondary (default)">…</Expander>      {/* secondary is the default */}
+<Expander title="Tertiary" priority="tertiary">…</Expander>
 ```
 
 ## Tones
@@ -60,36 +61,8 @@ so every tone tracks light and dark mode automatically. Every tone is
 shown below across all three priorities, so you can compare (rows are
 tones, columns are priorities):
 
-<Columns>
-<Col>
-
-**Tertiary**
-
-<Preview direction="column" gap="8px">
-  <Expander title="Neutral"><Text>Neutral</Text></Expander>
-  <Expander title="Brand" tone="brand"><Text>Brand</Text></Expander>
-  <Expander title="Info" tone="info"><Text>Info</Text></Expander>
-  <Expander title="Success" tone="success"><Text>Success</Text></Expander>
-  <Expander title="Warning" tone="warning"><Text>Warning</Text></Expander>
-  <Expander title="Critical" tone="critical"><Text>Critical</Text></Expander>
-</Preview>
-
-</Col>
-<Col>
-
-**Secondary**
-
-<Preview direction="column" gap="8px">
-  <Expander title="Neutral" priority="secondary"><Text>Neutral</Text></Expander>
-  <Expander title="Brand" tone="brand" priority="secondary"><Text>Brand</Text></Expander>
-  <Expander title="Info" tone="info" priority="secondary"><Text>Info</Text></Expander>
-  <Expander title="Success" tone="success" priority="secondary"><Text>Success</Text></Expander>
-  <Expander title="Warning" tone="warning" priority="secondary"><Text>Warning</Text></Expander>
-  <Expander title="Critical" tone="critical" priority="secondary"><Text>Critical</Text></Expander>
-</Preview>
-
-</Col>
-<Col>
+<Columns gap="4px">
+<Col min={0}>
 
 **Primary**
 
@@ -103,15 +76,82 @@ tones, columns are priorities):
 </Preview>
 
 </Col>
+<Col min={0}>
+
+**Secondary** (default)
+
+<Preview direction="column" gap="8px">
+  <Expander title="Neutral"><Text>Neutral</Text></Expander>
+  <Expander title="Brand" tone="brand"><Text>Brand</Text></Expander>
+  <Expander title="Info" tone="info"><Text>Info</Text></Expander>
+  <Expander title="Success" tone="success"><Text>Success</Text></Expander>
+  <Expander title="Warning" tone="warning"><Text>Warning</Text></Expander>
+  <Expander title="Critical" tone="critical"><Text>Critical</Text></Expander>
+</Preview>
+
+</Col>
+<Col min={0}>
+
+**Tertiary**
+
+<Preview direction="column" gap="8px">
+  <Expander title="Neutral" priority="tertiary"><Text>Neutral</Text></Expander>
+  <Expander title="Brand" tone="brand" priority="tertiary"><Text>Brand</Text></Expander>
+  <Expander title="Info" tone="info" priority="tertiary"><Text>Info</Text></Expander>
+  <Expander title="Success" tone="success" priority="tertiary"><Text>Success</Text></Expander>
+  <Expander title="Warning" tone="warning" priority="tertiary"><Text>Warning</Text></Expander>
+  <Expander title="Critical" tone="critical" priority="tertiary"><Text>Critical</Text></Expander>
+</Preview>
+
+</Col>
 </Columns>
 
 ```tsx folded
 // every tone × every priority — e.g. brand:
-<Expander tone="brand" title="Brand" />                      {/* tertiary (default) */}
-<Expander tone="brand" priority="secondary" title="Brand" />
 <Expander tone="brand" priority="primary" title="Brand" />
+<Expander tone="brand" title="Brand" />                       {/* secondary — the default */}
+<Expander tone="brand" priority="tertiary" title="Brand" />
 // …repeat for neutral / info / success / warning / critical
 ```
+
+`tone` also accepts **any literal CSS color** for a one-off tint — the
+hue is kept while lightness and chroma are pinned to the named-tone curve
+(and re-tuned for dark mode), the same mechanism as `Button` / `Tag`:
+
+<Preview direction="column" gap="8px">
+  <Expander title="Magenta" tone="#ff1493"><Text>Custom hue, derived surface + text.</Text></Expander>
+  <Expander title="Purple" tone="rebeccapurple"><Text>Custom hue, derived surface + text.</Text></Expander>
+  <Expander title="Teal" tone="#0d9488"><Text>Custom hue, derived surface + text.</Text></Expander>
+</Preview>
+
+```tsx folded
+<Expander tone="#ff1493" title="Magenta" />
+<Expander tone="rebeccapurple" title="Purple" />
+<Expander tone="#0d9488" title="Teal" />
+```
+
+## Marker
+
+By default the chevron sits **inside** the header row. With
+`priority="tertiary"`, set `marker="outside"` to hang it in the left
+gutter (negative space) so the **title and body sit flush** with the
+surrounding content — the same layout as the section headers in these
+docs. The element zeroes its left border + padding for this variant so
+the title starts at the element's edge.
+
+<Preview direction="column" gap="8px">
+  <Expander priority="tertiary" marker="outside" title="Flush header, chevron in the gutter" defaultOpen>
+    <Text>The chevron hangs to the left of the title; the title and this body align with the surrounding content.</Text>
+  </Expander>
+</Preview>
+
+```tsx folded
+<Expander priority="tertiary" marker="outside" title="…">…</Expander>
+```
+
+Use it where the expander sits in a content column with room to its left
+(a prose measure); in a full-width / edge-to-edge container the chevron
+would overhang the edge.
 
 ## Title & level
 
@@ -144,7 +184,7 @@ page's table of contents — pass a `<Title>` (or your own markup) as the
 ## Open state
 
 Leave it uncontrolled and pass `defaultOpen` for the initial state — the
-native `<details>` owns open/close from there. To drive it yourself, pass
+element owns open/close from there. To drive it yourself, pass
 `open` and handle `onToggle(open)` (controlled). Either way `onToggle`
 fires with the new state on every toggle.
 
@@ -188,9 +228,29 @@ filled surfaces from the theme palette, so light / dark track for free.
 | Token | Description |
 |---|---|
 | `--expander-text` | Header + body text color (and the chevron, via `currentColor`). Tones re-point this. |
-| `--expander-bg` | Host background. Transparent on `tertiary`; set from the per-priority tokens below on `secondary` / `primary`. |
-| `--expander-border` | Host border color. Transparent on `tertiary`. |
-| `--expander-bg-secondary`<br />`--expander-border-secondary` | Secondary surface — a subtle fill (`--bg-2`) + faint edge (`--border-5`), re-pointed per tone. |
+| `--expander-bg` | Host background. The secondary fill by default; the primary fill on `primary`; transparent on `tertiary`. |
+| `--expander-border` | Host border color. Follows the same per-priority surface; transparent on `tertiary`. |
+| `--expander-bg-secondary`<br />`--expander-border-secondary` | Secondary (default) surface — a subtle fill (`--bg-2`) + faint edge (`--border-5`), re-pointed per tone. |
 | `--expander-bg-primary`<br />`--expander-border-primary` | Primary surface — a more pronounced card (`--bg-4` + `--border-4`), re-pointed per tone. |
+
+</Disclosure>
+
+<Disclosure title="Parts">
+
+Most styling is covered by the tokens above and by the light-DOM
+`<a-expander-summary>` / `<a-expander-details>` children, which you can
+target with plain CSS. For what a variable can't express — interaction
+states on the header, or the chevron — the shadow internals are exposed
+as [`::part`](https://developer.mozilla.org/en-US/docs/Web/CSS/::part):
+
+| Part | What it is |
+|---|---|
+| `summary` | The header `<button>`. Reach states CSS variables can't — `::part(summary):hover`, `:focus-visible`, or the chevron via `::part(summary)::before`. |
+| `content` | The collapsible body region. |
+
+```css
+a-expander::part(summary):hover { background: var(--bg-3); }
+a-expander::part(summary)::before { transform: scale(1.2); } /* the chevron */
+```
 
 </Disclosure>

@@ -147,12 +147,19 @@ export interface AExpanderAttributes extends BaseAttributes {
   /** Open state. Presence-based (`''` open, omit closed). The element
    *  reflects this onto the shadow `<details>`. */
   open?: boolean | ''
-  /** Surface emphasis. `tertiary` (default) is transparent; `secondary`
-   *  is a filled box; `primary` is a stronger raised fill. */
+  /** Surface emphasis. `secondary` (default) is a subtle fill; `primary`
+   *  is a stronger raised fill; `tertiary` is transparent. */
   priority?: 'primary' | 'secondary' | 'tertiary'
-  /** Color tint, re-pointing the text + filled surface palette.
-   *  `'neutral'` is the default (same as omitting it). */
-  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
+  /** Chevron position. `inside` (default) keeps it in the header row;
+   *  `outside` hangs it in the left gutter so the title sits flush with
+   *  surrounding content (docs-header style). Only takes effect with
+   *  `priority="tertiary"`. */
+  marker?: 'inside' | 'outside'
+  /** Semantic tone, or any literal CSS color for a one-off custom tone.
+   *  Named tones re-point the text + filled surface palette; a custom
+   *  color keeps its hue with lightness/chroma pinned. `'neutral'` is the
+   *  default (same as omitting it). */
+  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Heading type scale for the summary, `'1'`–`'6'` (mirrors `<a-title>`
    *  levels). Default (omitted) ≈ level 5. */
   level?: '1' | '2' | '3' | '4' | '5' | '6'

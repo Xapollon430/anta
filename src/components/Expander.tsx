@@ -1,6 +1,15 @@
 import { cloneElement, isValidElement } from "react";
 import type { BaseProps } from "../general_types";
 
+const NAMED_TONES = new Set([
+  "neutral",
+  "brand",
+  "info",
+  "success",
+  "warning",
+  "critical",
+]);
+
 /** Public props for the `<Expander>` disclosure. `title` is the always-
  *  visible summary; `children` is the collapsible body. */
 export interface ExpanderProps extends Omit<BaseProps, "title"> {
@@ -13,14 +22,31 @@ export interface ExpanderProps extends Omit<BaseProps, "title"> {
    *  the title.
    *  @defaultValue 5 */
   level?: 1 | 2 | 3 | 4 | 5 | 6;
-  /** Color tint. Re-points the text and (on filled priorities) the
-   *  surface to the matching palette.
+  /** Semantic tone, or any literal CSS color (`'#ff1493'`, `'rebeccapurple'`)
+   *  for a one-off custom tone. Named tones re-point the text and (on filled
+   *  priorities) the surface to the matching palette; a custom color keeps
+   *  its hue while lightness/chroma are pinned. `'neutral'` (the default) is
+   *  the same as omitting it.
    *  @defaultValue 'neutral' */
-  tone?: "neutral" | "brand" | "info" | "success" | "warning" | "critical";
-  /** Surface emphasis. `tertiary` is transparent; `secondary` is a subtle
-   *  fill; `primary` is a more pronounced card.
-   *  @defaultValue 'tertiary' */
+  tone?:
+    | "neutral"
+    | "brand"
+    | "info"
+    | "success"
+    | "warning"
+    | "critical"
+    | (string & {});
+  /** Surface emphasis. `secondary` (the default) is a subtle fill;
+   *  `primary` is a more pronounced card; `tertiary` is transparent (the
+   *  bare disclosure).
+   *  @defaultValue 'secondary' */
   priority?: "primary" | "secondary" | "tertiary";
+  /** Chevron position. `inside` (default) keeps it in the header row;
+   *  `outside` hangs it in the left gutter so the title sits flush with
+   *  surrounding content (the docs-header layout). Only takes effect with
+   *  `priority="tertiary"`.
+   *  @defaultValue 'inside' */
+  marker?: "inside" | "outside";
   /** Controlled open state. When provided, the consumer owns open/close
    *  (pair with `onToggle`). */
   open?: boolean;
@@ -53,6 +79,7 @@ export const Expander = ({
   level,
   tone,
   priority,
+  marker,
   open,
   defaultOpen,
   onToggle,
@@ -62,6 +89,14 @@ export const Expander = ({
   ...rest
 }: ExpanderProps) => {
   const isOpen = open ?? defaultOpen ?? false;
+
+  // A non-named tone is a literal CSS color: feed it to the element's
+  // oklch derivation via an inline custom property (the CSS attr() form
+  // is only a fallback for raw-HTML authors).
+  const isCustomTone = tone != null && !NAMED_TONES.has(tone);
+  const computedStyle = isCustomTone
+    ? { ...style, ["--expander-tone-source"]: tone }
+    : style;
 
   // A string title is rendered as our <a-expander-summary> (which carries
   // the hover affordance). A node title is the consumer's own markup —
@@ -80,10 +115,11 @@ export const Expander = ({
       open={isOpen ? "" : undefined}
       level={level != null ? (String(level) as `${typeof level}`) : undefined}
       tone={tone && tone !== "neutral" ? tone : undefined}
-      priority={priority && priority !== "tertiary" ? priority : undefined}
+      priority={priority && priority !== "secondary" ? priority : undefined}
+      marker={marker && marker !== "inside" ? marker : undefined}
       onToggle={onToggle ? (e: any) => onToggle(toggledOpen(e)) : undefined}
       class={className}
-      style={style}
+      style={computedStyle}
       {...rest}
     >
       {titleNode}

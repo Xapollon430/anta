@@ -60,7 +60,7 @@ const SHADOW_STYLE = `
 
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 0;
     cursor: pointer;
     user-select: none;
     border-radius: 2px;
@@ -81,6 +81,9 @@ const SHADOW_STYLE = `
     width: 16px;
     height: 16px;
     flex-shrink: 0;
+    /* Space the chevron from the title explicitly (the flex gap is 0) so
+       the spacing is controllable per variant — see marker=outside. */
+    margin-inline-end: 4px;
     background-color: currentColor;
     -webkit-mask-image: ${CHEVRON};
             mask-image: ${CHEVRON};
@@ -91,27 +94,51 @@ const SHADOW_STYLE = `
     -webkit-mask-position: center;
             mask-position: center;
     opacity: 0.6;
+    /* The rotation, and the hover/press opacity, all ease smoothly. */
     transition: transform 150ms ease, opacity 150ms ease;
   }
   button:hover::before { opacity: 1; }
   button[aria-expanded="true"]::before { transform: rotate(90deg); opacity: 1; }
 
+  /* marker="outside" (tertiary only) — hang the chevron in the left gutter
+     (negative space) so the title sits flush with surrounding content,
+     like the docs section headers. The host zeroes its left border/padding
+     (see a-expander.css) so the title starts at the element's edge; here we
+     pull the chevron left by its own width + a tight gap, and sit it close
+     to the title (2px). margin-inline-* keeps it logical-direction aware. */
+  :host([priority="tertiary"][marker="outside"]) button::before {
+    margin-inline-start: -18px;
+    margin-inline-end: 2px;
+  }
+
   /* Hover affordance — applied to OUR default summary (<a-expander-summary>)
      only, so a consumer who slots their own title markup keeps full control
-     and opts out. The text strengthens to --text-1 (per tone) with no
-     transition (instant, like quaternary buttons). On the transparent
+     and opts out. The text eases to --text-1 (per tone). On the transparent
      tertiary surface the title also gets a dotted underline on hover — the
-     same affordance as the docs-site section headers. */
+     same affordance as the docs-site section headers (and the one title
+     restyle we DON'T apply to the default/filled variants). */
   button:hover ::slotted(a-expander-summary) {
     color: var(--expander-text-hover);
   }
-  :host(:not([priority])) button:hover ::slotted(a-expander-summary),
   :host([priority="tertiary"]) button:hover ::slotted(a-expander-summary) {
     text-decoration: underline;
     text-decoration-style: dotted;
     text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
+  }
+
+  /* On press, ease the title color + chevron back to their at-rest look as
+     soft press feedback (same transition as hover — no instant snap). The
+     dotted underline intentionally STAYS (it shouldn't flicker). The color
+     rule mirrors its :hover counterpart's specificity and follows it in
+     source order, so it wins while active; the chevron only reverts when
+     closed — open, its rest opacity is already 1. */
+  button:active ::slotted(a-expander-summary) {
+    color: var(--expander-text);
+  }
+  button:not([aria-expanded="true"]):active::before {
+    opacity: 0.6;
   }
 
   /* Per-level summary typography — values mirror a-title.css h1–h6. */
@@ -164,6 +191,10 @@ export class AExpanderElement extends HTMLElementBase {
     this.summary = document.createElement('button')
     this.summary.type = 'button'
     this.summary.setAttribute('aria-expanded', 'false')
+    // Expose the header button as a shadow part so consumers can style it —
+    // including states CSS variables can't reach (e.g. ::part(summary):hover,
+    // :focus-visible, ::part(summary)::before for the chevron).
+    this.summary.setAttribute('part', 'summary')
     const titleSlot = document.createElement('slot')
     titleSlot.name = 'title'
     this.summary.append(titleSlot)
@@ -171,6 +202,8 @@ export class AExpanderElement extends HTMLElementBase {
 
     this.content = document.createElement('div')
     const body = document.createElement('div')
+    // The collapsible body region, exposed as a part for the same reason.
+    body.setAttribute('part', 'content')
     body.append(document.createElement('slot'))
     this.content.append(body)
 
