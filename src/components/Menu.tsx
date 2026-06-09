@@ -36,8 +36,9 @@ export interface MenuProps extends BaseProps {
  * Open state is uncontrolled. Listen for the `open` / `close` events, or grab
  * a `ref` to the `<a-menu>` element and call `.open()` / `.close()` /
  * `.toggle()` for imperative control. Selecting a `MenuItem` closes the menu;
- * arbitrary injected content does not. Opt out per item (or per group) with
- * `keepOpen`.
+ * arbitrary injected content does not. Add `data-menu-open` to any item /
+ * container to keep it open, or `data-menu-close` to a custom element to let it
+ * close.
  *
  * Requires `@antadesign/anta/elements` to be imported (client-side only).
  *

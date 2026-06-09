@@ -245,7 +245,7 @@ single up/down sequence across group boundaries.
     </MenuGroup>
     <MenuSeparator />
     <MenuGroup label="Show">
-      <MenuItem label="Hidden files" keepOpen />
+      <MenuItem label="Hidden files" data-menu-open />
     </MenuGroup>
   </Menu>
 </Preview>
@@ -258,7 +258,7 @@ single up/down sequence across group boundaries.
   </MenuGroup>
   <MenuSeparator />
   <MenuGroup label="Show">
-    <MenuItem label="Hidden files" keepOpen />
+    <MenuItem label="Hidden files" data-menu-open />
   </MenuGroup>
 </Menu>
 ```
@@ -271,12 +271,21 @@ single up/down sequence across group boundaries.
 <Columns>
 <Col>
 
-Selecting a `MenuItem` closes the menu. **Arbitrary content you inject is never
-treated as an item, so it never closes the menu** — drop a slider, an input, or
-any control straight into a `<Menu>` and interacting with it leaves the menu
-open. To keep the menu open after an actual item is chosen (a toggle, say), set
-`keepOpen` on the item or on a wrapping `MenuGroup`. For imperative control from
-a custom handler, call `.close()` on the `<a-menu>` element via a `ref`.
+The close decision is read straight from the DOM on click — never from whether a
+handler called `preventDefault` — so it's safe in runtimes where event handlers
+run off the UI thread. Walking out from the click, the nearest marker wins:
+
+- A **`MenuItem`** is a choice → selecting it **closes** the menu.
+- **Arbitrary content you inject never closes it** — drop a slider, an input, or
+  any control straight into a `<Menu>` and interacting leaves the menu open.
+- **`data-menu-open`** keeps the menu open past a click —
+  put it on an item, a `MenuGroup`, or any wrapping element (toggles, multi-select).
+- **`data-menu-close`** opts arbitrary content *into* closing — so a custom
+  element (or a "Done" button inside a `data-menu-open` region) can dismiss the
+  menu without being a `MenuItem`.
+
+For programmatic open/close from app state, drive the `open` attribute (or call
+`.close()` on the element via a `ref`).
 
 </Col>
 <Col>
@@ -285,11 +294,12 @@ a custom handler, call `.close()` on the `<a-menu>` element via a `ref`.
   <Button>Settings</Button>
   <Menu>
     <MenuItem label="Profile" />
-    <MenuItem label="Notifications" keepOpen />
+    <MenuItem label="Notifications" data-menu-open />
     <MenuSeparator />
-    <div style="padding:8px;display:flex;flex-direction:column;gap:4px;min-width:180px">
+    <div data-menu-open style="padding:8px;display:flex;flex-direction:column;gap:6px;min-width:200px">
       <label style="font-size:12px;color:var(--text-4)">Zoom</label>
       <input type="range" />
+      <button data-menu-close style="align-self:flex-end;padding:2px 8px">Done</button>
     </div>
   </Menu>
 </Preview>
@@ -297,11 +307,17 @@ a custom handler, call `.close()` on the `<a-menu>` element via a `ref`.
 ```tsx folded
 <Menu>
   <MenuItem label="Profile" onSelect={openProfile} />
-  {/* keepOpen: a toggle that doesn't dismiss */}
-  <MenuItem label="Notifications" keepOpen onSelect={toggleNotifs} />
+  {/* data-menu-open: a toggle that doesn't dismiss */}
+  <MenuItem label="Notifications" data-menu-open onSelect={toggleNotifs} />
   <MenuSeparator />
-  {/* custom content — interacting with it never closes the menu */}
-  <div class="zoom"><label>Zoom</label><input type="range" /></div>
+  {/* data-menu-open region: interacting with the slider keeps the menu open;
+      the Done button opts back into closing with data-menu-close */}
+  <div data-menu-open class="zoom">
+    <label>Zoom</label>
+    <input type="range" />
+    {/* a plain button, not a MenuItem — data-menu-close lets it dismiss */}
+    <button data-menu-close>Done</button>
+  </div>
 </Menu>
 ```
 
@@ -310,7 +326,7 @@ a custom handler, call `.close()` on the `<a-menu>` element via a `ref`.
 
 ## Keyboard
 
-The menu manages focus without trapping it. Open the trigger with `Enter` /
+While open, the menu keeps Tab focus contained. Open the trigger with `Enter` /
 `Space` to focus the first item.
 
 - **↑ / ↓** — move between items (wraps; skips separators, headings, and disabled items)
@@ -318,8 +334,8 @@ The menu manages focus without trapping it. Open the trigger with `Enter` /
 - **Type-ahead** — type to jump to the next item whose label matches
 - **→ / Enter** — open a submenu (and focus its first item); **←** — close it, back to the parent
 - **Enter / Space** — activate the focused item
+- **Tab / Shift+Tab** — cycle through the focusables *inside* the menu — items **and** any nested controls (a slider, an input, a button) — wrapping at the ends so focus stays in the open menu. Arrow keys hand off to a nested control once it's focused
 - **Esc** — close the topmost menu and return focus to its parent item or trigger
-- **Tab** — close the menu and continue tabbing through the page
 
 <Disclosure title="Playground">
 

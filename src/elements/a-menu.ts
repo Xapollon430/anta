@@ -297,10 +297,39 @@ export class AMenuElement extends HTMLElementBase {
   }
 
   /* --- focusable items belonging to THIS menu (not nested submenus) --- */
+  /** Skip elements that can't actually take focus — `display:none` (incl. a
+   *  closed submenu's contents), `visibility:hidden`, `content-visibility`
+   *  skipped — so navigation never lands on a hidden node (programmatic
+   *  `.focus()` on one silently fails). `getClientRects` is the fallback where
+   *  `checkVisibility` isn't available. */
+  private isVisible(el: HTMLElement): boolean {
+    const check = (el as any).checkVisibility as
+      | ((opts?: { visibilityProperty?: boolean; contentVisibilityAuto?: boolean }) => boolean)
+      | undefined
+    if (typeof check === 'function') {
+      return check.call(el, { visibilityProperty: true, contentVisibilityAuto: true })
+    }
+    return el.getClientRects().length > 0
+  }
+
   private focusableItems(): AMenuItemElement[] {
-    return Array.from(this.querySelectorAll('a-menu-item')).filter(
-      (it) => it.closest('a-menu') === this && !it.hasAttribute('disabled'),
-    ) as AMenuItemElement[]
+    return (Array.from(this.querySelectorAll('a-menu-item')) as AMenuItemElement[]).filter(
+      (it) => it.closest('a-menu') === this && !it.hasAttribute('disabled') && this.isVisible(it),
+    )
+  }
+
+  /** Every tabbable element belonging to THIS menu (items + nested controls
+   *  like inputs / sliders / buttons), in DOM order, visible and enabled —
+   *  used to trap Tab within the open menu. Submenu contents are excluded
+   *  (their nearest `a-menu` is the submenu). */
+  private focusables(): HTMLElement[] {
+    const sel =
+      'a-menu-item, a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]),' +
+      ' select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    return (Array.from(this.querySelectorAll(sel)) as HTMLElement[]).filter(
+      (el) =>
+        el.closest('a-menu') === this && !el.hasAttribute('disabled') && this.isVisible(el),
+    )
   }
 
   private focusFirstItem() {
@@ -344,7 +373,10 @@ export class AMenuElement extends HTMLElementBase {
     }
 
     const wasEmpty = openStack.length === 0
-    this._doShow(coord)
+    // Opening atop an already-open menu (a submenu over its parent, or a
+    // sibling submenu) appears INSTANTLY — the enter-fade reads as a blink next
+    // to the static menu already on screen. A fresh root menu still fades in.
+    this._doShow(coord, !wasEmpty)
     openStack.push(this)
     if (wasEmpty) bindDocListeners(this.doc, this.view)
 
@@ -365,11 +397,16 @@ export class AMenuElement extends HTMLElementBase {
     this.dispatchEvent(new CustomEvent<OpenDetail>('close', { detail: { originEvent } }))
   }
 
-  /** Shadow-only show: open the popover and position it. */
-  _doShow(coord?: [number, number]) {
+  /** Shadow-only show: open the popover and position it. `instant` skips the
+   *  enter-fade and positions synchronously, so a menu opening over an
+   *  already-visible one snaps in without a blink. */
+  _doShow(coord?: [number, number], instant = false) {
     if (this.surface.isConnected && !this._shown) this.surface.showPopover()
     this._shown = true
-    this.position(coord)
+    // animation: none → no fade (opacity rests at 1); '' → restore the CSS
+    // enter-fade. Shadow-internal style only, so it's worker-safe.
+    this.surface.style.animation = instant ? 'none' : ''
+    this.position(coord, instant)
   }
 
   /** Shadow-only hide. */
@@ -382,8 +419,8 @@ export class AMenuElement extends HTMLElementBase {
 
   /* ============================ positioning ============================ */
 
-  private position(coord?: [number, number]) {
-    requestAnimationFrame(() => {
+  private position(coord?: [number, number], sync = false) {
+    const run = () => {
       if (!this._shown) return
       const view = this.view
       const vw = view.innerWidth
@@ -445,46 +482,60 @@ export class AMenuElement extends HTMLElementBase {
       }
 
       surface.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`
-    })
+    }
+    // Sync (instant open atop an already-open menu) avoids both the rAF delay
+    // and the unpositioned first frame; otherwise position next frame.
+    if (sync) run()
+    else requestAnimationFrame(run)
   }
 
   /* ====================== click / close contract ====================== */
 
+  /**
+   * Fully declarative close contract — decided synchronously from the DOM, so
+   * it never depends on the consumer's click handler (which in a worker-thread
+   * runtime can't `preventDefault` on the UI thread). The menu never
+   * stops/prevents the click, so the consumer's selection handler always runs.
+   *
+   * Walk the click's composedPath outward to the surface; the NEAREST marker
+   * wins:
+   *   - `data-menu-open`  → keep the menu open (a Done button can still close
+   *                          from inside such a region — it's hit first).
+   *   - `a-menu-item` (a choice) or `data-menu-close` → close the menu.
+   *   - nothing → keep open (plain custom content doesn't dismiss).
+   */
   private onSurfaceClick = (e: MouseEvent) => {
-    const path = e.composedPath()
-    const item = path.find((n) => n instanceof AMenuItemElement) as AMenuItemElement | undefined
+    for (const node of e.composedPath()) {
+      if (node === this.surface) break // reached the menu boundary
+      if (!(node instanceof Element)) continue
 
-    // (2) Click landed on custom injected content, not an item → never close.
-    if (!item) return
+      // Nearest `data-menu-open` keeps it open (replaces the legacy
+      // `data-popover-stay`; put it on an item, a group, or any container).
+      if (node.hasAttribute('data-menu-open')) return
 
-    // (3) Disabled item → swallow.
-    if (item.hasAttribute('disabled')) {
-      e.preventDefault()
-      return
+      if (node instanceof AMenuItemElement) {
+        if (node.hasAttribute('disabled')) {
+          e.preventDefault()
+          return
+        }
+        // Submenu parent → its own handler opens the submenu; don't close.
+        if (node.hasAttribute('submenu')) return
+        // Checkbox / radio items toggle in place — implicit keep-open.
+        const role = node.getAttribute('role')
+        if (role === 'menuitemcheckbox' || role === 'menuitemradio') return
+        return this.closeSystem(e)
+      }
+
+      // Custom content opts into closing with `data-menu-close`.
+      if (node.hasAttribute('data-menu-close')) return this.closeSystem(e)
     }
+    // No marker in the path → plain content, stay open.
+  }
 
-    // (4) Submenu parent → its own anchor handler opens/toggles the submenu;
-    //     never close the stack here.
-    if (item.hasAttribute('submenu')) return
-
-    // (5) Checkbox / radio (future) → implicit keep-open: toggling shouldn't
-    //     close. The host owns `checked`; we never mutate it.
-    const role = item.getAttribute('role')
-    if (role === 'menuitemcheckbox' || role === 'menuitemradio') return
-
-    // (6) Normal item: activate, then close unless keep-open is set on the
-    //     item or an ancestor (group / wrapper) within the menu.
-    const keepOpen = path.some(
-      (n) =>
-        n instanceof Element &&
-        n !== this.surface &&
-        (n as Element).hasAttribute?.('keep-open'),
-    )
-    if (!keepOpen) {
-      // Close the whole system from the root down.
-      const root = openStack[0] ?? this
-      root.hide(e)
-    }
+  /** Close the whole open menu system from the root down. */
+  private closeSystem(e?: Event) {
+    const root = openStack[0] ?? this
+    root.hide(e)
   }
 
   /* ============================ keyboard ============================ */
@@ -493,8 +544,46 @@ export class AMenuElement extends HTMLElementBase {
    *  Enter / Space activation is handled by a-menu-item's own global keydown
    *  (which synthesizes a click → routed through onSurfaceClick). */
   handleKey(e: KeyboardEvent) {
-    const items = this.focusableItems()
     const active = this.doc.activeElement as HTMLElement | null
+
+    // Escape always closes the topmost menu, wherever focus is inside it.
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      e.stopPropagation()
+      const anchor = this.triggerAnchor
+      this.hide(e)
+      anchor?.focus()
+      return
+    }
+
+    // Trap Tab within the open menu: a non-modal popover doesn't contain focus,
+    // so native Tab would walk out the back while the menu is still open. Move
+    // focus among ALL of this menu's focusables (items + nested controls),
+    // wrapping at the ends so it never escapes.
+    if (e.key === 'Tab') {
+      const f = this.focusables()
+      if (!f.length) return
+      e.preventDefault()
+      const i = active ? f.indexOf(active) : -1
+      const next = e.shiftKey
+        ? i <= 0
+          ? f.length - 1
+          : i - 1
+        : i === -1 || i === f.length - 1
+          ? 0
+          : i + 1
+      f[next]?.focus()
+      return
+    }
+
+    // Arrow / Home / End / type-ahead drive the item cursor — but only while
+    // focus is on a menu item (or still outside, entering via ArrowDown). If
+    // the user has Tabbed onto a NESTED control in this menu (input, slider,
+    // button), hand the keys back to it.
+    const within = active?.closest('a-menu') === this
+    if (within && !(active instanceof AMenuItemElement)) return
+
+    const items = this.focusableItems()
     const idx = active ? items.indexOf(active as AMenuItemElement) : -1
 
     switch (e.key) {
@@ -529,18 +618,6 @@ export class AMenuElement extends HTMLElementBase {
           this.hide(e)
           anchorItem?.focus()
         }
-        break
-      case 'Escape': {
-        e.preventDefault()
-        e.stopPropagation()
-        const anchor = this.triggerAnchor
-        this.hide(e)
-        anchor?.focus()
-        break
-      }
-      case 'Tab':
-        // Menus don't trap focus — Tab closes and lets focus proceed.
-        closeAll()
         break
       default:
         if (e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {

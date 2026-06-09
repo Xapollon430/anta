@@ -259,9 +259,10 @@ export interface AMenuItemAttributes extends BaseAttributes {
   /** Semantic tone. Colors the label, icon, and hover tint. `'neutral'`
    *  (the default) is the same as omitting it. */
   tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
-  /** Keep the menu open after this item is chosen. Presence-based
-   *  (`''` on, omit off). */
-  'keep-open'?: boolean | ''
+  /** Keep the menu open after this item is chosen (toggles / multi-select),
+   *  instead of the default close-on-select. Presence-based (`''` on, omit
+   *  off). The universal form is `data-menu-open` (works on any element). */
+  'data-menu-open'?: boolean | ''
   /** Marks this item as a submenu parent (renders a chevron, opens a nested
    *  `<a-menu submenu>`). Presence-based (`''` on, omit off). */
   submenu?: boolean | ''
@@ -278,9 +279,9 @@ export interface AMenuItemAttributes extends BaseAttributes {
  * wrapper use `MenuGroup` from `@antadesign/anta`.
  */
 export interface AMenuGroupAttributes extends BaseAttributes {
-  /** Keep the menu open after any item in this group is chosen.
-   *  Presence-based (`''` on, omit off). */
-  'keep-open'?: boolean | ''
+  /** Keep the menu open after any item in this group is chosen. Presence-based
+   *  (`''` on, omit off). The universal form is `data-menu-open`. */
+  'data-menu-open'?: boolean | ''
   role?: string
   'aria-label'?: string
 }

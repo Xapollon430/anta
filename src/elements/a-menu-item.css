@@ -20,7 +20,9 @@
     --menu-item-hover: 6%;
     --menu-item-active: 10%;
     --menu-item-padding-x: 8px;
-    --menu-item-padding-y: 5px;
+    --menu-item-padding-y: 6px;
+    /* Keyboard focus ring colour — matches a-button's --button-focus (brand). */
+    --menu-item-focus: #503cb4;
 
     display: flex;
     flex-shrink: 0;
@@ -28,7 +30,7 @@
     gap: 0.6ch;
     box-sizing: border-box;
     width: 100%;
-    min-height: 26px;
+    min-height: 28px;
     padding-block: var(--menu-item-padding-y);
     padding-inline: var(--menu-item-padding-x);
     border-radius: var(--radius-sm, 4px);
@@ -50,6 +52,16 @@
   }
   a-menu-item:active {
     background: color-mix(in oklch, currentColor var(--menu-item-active), transparent);
+  }
+
+  /* Keyboard focus ring (like a-button). Inset offset because items are
+     full-width inside the scrollable surface — a positive offset could clip at
+     the scroll edges or overlap neighbours. Pairs with the focus background
+     above, so a keyboard-focused row reads as bg tint + ring (distinct from a
+     plain hover, which is bg only). */
+  a-menu-item:focus-visible {
+    outline: 1px solid var(--menu-item-focus);
+    outline-offset: -1px;
   }
 
   /* Label takes the remaining width and truncates; the trailing kbd / chevron
@@ -146,5 +158,6 @@
   .dark a-menu-item {
     --menu-item-hover: 13%;
     --menu-item-active: 19%;
+    --menu-item-focus: #a897fc;
   }
 }

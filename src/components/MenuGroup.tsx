@@ -4,8 +4,6 @@ export interface MenuGroupProps extends BaseProps {
   /** The section heading shown above the grouped items (also the group's
    *  accessible name). */
   label?: string
-  /** Keep the menu open after any item in this group is chosen. */
-  keepOpen?: boolean
   /** The grouped `MenuItem`s. */
   children?: React.ReactNode
 }
@@ -13,6 +11,9 @@ export interface MenuGroupProps extends BaseProps {
 /**
  * MenuGroup — a titled section that organises related `MenuItem`s. Keyboard
  * navigation flattens items across groups, skipping the heading.
+ *
+ * Add `data-menu-open` to keep the menu open after any item in the group is
+ * chosen (it forwards to the element).
  *
  * @example
  * ```tsx
@@ -22,12 +23,11 @@ export interface MenuGroupProps extends BaseProps {
  * </MenuGroup>
  * ```
  */
-export const MenuGroup = ({ label, keepOpen, className, children, ...rest }: MenuGroupProps) => {
+export const MenuGroup = ({ label, className, children, ...rest }: MenuGroupProps) => {
   return (
     <a-menu-group
       role="group"
       aria-label={label}
-      keep-open={keepOpen ? '' : undefined}
       class={className}
       {...rest}
     >

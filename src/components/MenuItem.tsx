@@ -17,9 +17,6 @@ export interface MenuItemProps extends BaseProps {
    *  destructive action; `neutral` (the default) is the standard gray.
    *  @defaultValue neutral */
   tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
-  /** Keep the menu open after this item is chosen (instead of the default
-   *  close-on-select). Useful for toggles. */
-  keepOpen?: boolean
   /** Marks this item as a submenu parent: adds the trailing chevron and
    *  `aria-haspopup`. Nest the flyout as a `<Menu submenu>` child. */
   submenu?: boolean
@@ -37,9 +34,13 @@ export interface MenuItemProps extends BaseProps {
  * optional trailing icon. For a submenu, set `submenu` and nest a
  * `<Menu submenu>` as a child — a chevron is added automatically.
  *
+ * Selecting an item closes the menu; add `data-menu-open` to keep it open
+ * (toggles / multi-select) — it forwards to the element.
+ *
  * @example
  * ```tsx
  * <MenuItem icon="copy" label="Duplicate" kbd="⌘D" onSelect={dup} />
+ * <MenuItem label="Word wrap" data-menu-open onSelect={toggleWrap} />
  * <MenuItem label="Share" submenu>
  *   <Menu submenu hover>
  *     <MenuItem label="Copy link" onSelect={copyLink} />
@@ -54,7 +55,6 @@ export const MenuItem = ({
   iconTrailing,
   disabled,
   tone,
-  keepOpen,
   submenu,
   onSelect,
   className,
@@ -64,11 +64,10 @@ export const MenuItem = ({
   return (
     <a-menu-item
       role="menuitem"
-      tabIndex={-1}
+      tabIndex={0}
       disabled={disabled ? '' : undefined}
       // 'neutral' is the implicit default — emit no DOM attribute.
       tone={tone && tone !== 'neutral' ? tone : undefined}
-      keep-open={keepOpen ? '' : undefined}
       submenu={submenu ? '' : undefined}
       aria-haspopup={submenu ? 'menu' : undefined}
       aria-disabled={disabled ? 'true' : undefined}
