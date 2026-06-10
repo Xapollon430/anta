@@ -24,6 +24,26 @@ declare global {
  * from any reactive engine without churning host attributes. The one dynamic
  * bit, live `aria-expanded` on a submenu parent, is reflected by the nested
  * `a-menu` element, which owns that state (see `reflectExpanded` there).
+ *
+ * Styling notes (`a-menu-item.css` ships comment-free):
+ * - `a-menu-item:not(:defined)` is hidden against the pre-upgrade flash
+ *   (items would render inline in the page before registration).
+ * - The `--menu-item-*` custom properties are INTERNAL plumbing for the
+ *   tone × dark matrix, not a public theming API: `--menu-item-color` is the
+ *   text color and the hover/active tint mixes from `currentColor` at the
+ *   `--menu-item-hover` / `--menu-item-active` percentages, so it tracks the
+ *   tone for free (and toned rows don't read heavier than gray ones). Dark
+ *   mode just raises the percentages.
+ * - Focus ring mirrors a-button: 1px outline at +1px offset, sitting in the
+ *   surface's 4px padding; pairs with the hover background so keyboard focus
+ *   reads as tint + ring.
+ * - Optical side padding (same idea as a-button): a non-only icon at an edge
+ *   is trimmed ~2px on that side. Submenu items keep symmetric padding —
+ *   the nested `<a-menu>` is the actual last child, so the trim rule doesn't
+ *   fire — and the chevron / a trailing icon is instead nudged toward the
+ *   edge with relative positioning (visual only, no reflow).
+ * - Future checkbox / radio items: a leading `a-icon[data-check]` slot keyed
+ *   off `role` + `checked` presence; no item logic changes needed.
  */
 export class AMenuItemElement extends HTMLElementBase {
   connectedCallback() {

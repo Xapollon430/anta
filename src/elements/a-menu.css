@@ -1,17 +1,8 @@
 @layer anta {
-  /* Before the element upgrades, <a-menu> is an unknown inline element and
-     its items would flash inline in the page. Hide it until defined; once
-     defined the shadow `:host { display: contents }` governs and content
-     renders only inside the popover surface via the slot. */
   a-menu:not(:defined) {
     display: none;
   }
 
-  /* Only the surface "chrome" is exposed as tokens — it lives inside the
-     shadow popover and is unreachable from plain consumer CSS. Item styling
-     lives in a-menu-item.css (slotted light DOM, already styleable). These
-     custom properties inherit across the shadow boundary into the surface
-     (see a-menu.ts). The host draws nothing and stays out of layout. */
   a-menu {
     --menu-bg: color-mix(in oklch, var(--bg-1) 90%, transparent);
     --menu-radius: var(--radius-md, 8px);

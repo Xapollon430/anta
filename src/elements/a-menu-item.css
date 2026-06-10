@@ -1,19 +1,8 @@
 @layer anta {
-  /* Before the custom element upgrades, items inside an <a-menu> would flash
-     inline in the page (the menu host hides them once defined — see
-     a-menu.css). Items used standalone stay hidden until defined too, which
-     is harmless. */
   a-menu-item:not(:defined) {
     display: none;
   }
 
-  /* a-menu-item is light DOM — style it (and its a-icon / kbd /
-     a-menu-item-label children) directly with your own CSS. The custom
-     properties below are INTERNAL plumbing for the tone + dark variant
-     matrix, not a public theming API: `--menu-item-color` is the text colour
-     (the hover/active tint mixes from `currentColor`, so it tracks the tone
-     for free), and `--menu-item-hover` / `--menu-item-active` are the mix
-     percentages. */
   a-menu-item {
     --menu-item-color: var(--text-2);
     --menu-item-icon-color: var(--text-3);
@@ -21,7 +10,6 @@
     --menu-item-active: 10%;
     --menu-item-padding-x: 8px;
     --menu-item-padding-y: 6px;
-    /* Keyboard focus ring colour — matches a-button's --button-focus (brand). */
     --menu-item-focus: #503cb4;
 
     display: flex;
@@ -54,17 +42,11 @@
     background: color-mix(in oklch, currentColor var(--menu-item-active), transparent);
   }
 
-  /* Keyboard focus ring (like a-button): the ring sits just OUTSIDE the row at
-     the same +1px offset buttons use. The surface's 4px padding gives it room
-     on the sides. Pairs with the focus background above, so a keyboard-focused
-     row reads as bg tint + ring (distinct from a plain hover, which is bg only). */
   a-menu-item:focus-visible {
     outline: 1px solid var(--menu-item-focus);
     outline-offset: 1px;
   }
 
-  /* Label takes the remaining width and truncates; the trailing kbd / chevron
-     stays pinned to the right. */
   a-menu-item > a-menu-item-label {
     flex: 1 1 auto;
     min-width: 0;
@@ -78,11 +60,6 @@
     color: var(--menu-item-icon-color);
   }
 
-  /* Optical side padding (same idea as a-button): an icon at an edge needs
-     less breathing room than text, so trim ~2px off whichever side a (non-only)
-     icon occupies — leading icon trims the start, trailing icon trims the end.
-     Submenu items are NOT trimmed here: they keep the symmetric padding and the
-     chevron is shifted instead (see the [submenu] chevron rule above). */
   a-menu-item:has(> a-icon:first-child:not(:only-child)) {
     padding-inline-start: max(0px, var(--menu-item-padding-x) - 2px);
   }
@@ -90,7 +67,6 @@
     padding-inline-end: max(0px, var(--menu-item-padding-x) - 2px);
   }
 
-  /* Trailing keyboard hint — a plain light-DOM <kbd>. */
   a-menu-item > kbd {
     flex: none;
     margin-left: auto;
@@ -102,26 +78,16 @@
     white-space: nowrap;
   }
 
-  /* The submenu chevron hugs the right edge. The nested submenu <a-menu> never
-     renders in flow (it's a popover), so it doesn't participate in layout. */
   a-menu-item[submenu] > a-icon:last-of-type {
     margin-left: auto;
   }
 
-  /* A trailing icon and a submenu chevron are both nudged toward the edge with
-     relative positioning (visual only, no reflow). A real trailing icon ALSO
-     gets the end-padding trim below (→ 6px), so it sits a touch closer to the
-     edge; the submenu keeps its symmetric padding (the nested <a-menu> is the
-     actual last child, so the trim rule doesn't fire for it). */
   a-menu-item[submenu] > a-icon:last-of-type,
   a-menu-item > a-icon:last-child:not(:only-child) {
     position: relative;
     inset-inline-end: -2px;
   }
 
-  /* Semantic tones: text + icon take the tone's `--text-2-{tone}`. The
-     hover/active tint mixes from currentColor at the SAME percentages as the
-     neutral item, so a toned row doesn't read heavier than a gray one. */
   a-menu-item[tone="brand"],
   a-menu-item[tone="info"],
   a-menu-item[tone="success"],
@@ -142,8 +108,6 @@
     pointer-events: none;
   }
 
-  /* Future checkbox / radio items: a leading check slot keyed off the role +
-     checked presence. Architecture-ready — no item logic changes needed. */
   a-menu-item[role="menuitemcheckbox"] > a-icon[data-check],
   a-menu-item[role="menuitemradio"] > a-icon[data-check] {
     visibility: hidden;
@@ -153,7 +117,6 @@
     visibility: visible;
   }
 
-  /* Hover/active read a touch stronger in dark. */
   .dark a-menu-item {
     --menu-item-hover: 13%;
     --menu-item-active: 19%;

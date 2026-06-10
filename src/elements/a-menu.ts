@@ -159,6 +159,20 @@ const lazyObserver: IntersectionObserver | null =
     ? new IntersectionObserver(handleIntersection, { root: null, rootMargin: '0px', threshold: 0 })
     : null
 
+/**
+ * `<a-menu>` — dropdown / context menu surface (shadow popover, JS
+ * positioning, keyboard nav, click delegation, open-stack coordination).
+ *
+ * Styling notes (`a-menu.css` ships comment-free):
+ * - `a-menu:not(:defined)` is hidden — before upgrade the host is an unknown
+ *   inline element and its light-DOM items would flash in the page. Once
+ *   defined, the shadow `:host { display: contents }` governs and content
+ *   renders only inside the popover surface via the slot.
+ * - Only the surface "chrome" is tokenized (`--menu-*`): it lives inside the
+ *   shadow popover, unreachable from plain consumer CSS; the custom
+ *   properties inherit across the shadow boundary into the surface. Items are
+ *   slotted light DOM (see `a-menu-item.css`), directly styleable.
+ */
 export class AMenuElement extends HTMLElementBase {
   static observedAttributes = ['placement', 'context', 'coord', 'offset', 'hover', 'state']
 
@@ -186,24 +200,29 @@ export class AMenuElement extends HTMLElementBase {
     super()
     const shadow = this.attachShadow({ mode: 'open' })
     const style = document.createElement('style')
+    // Shadow surface CSS (kept comment-free — this string ships into every
+    // consumer document). The shadow root holds exactly one element, the
+    // surface div with a <slot> inside, so the bare `div` selector is
+    // unambiguous; slotted light DOM isn't matched by shadow selectors.
+    // Two non-obvious rules, learned the hard way:
+    // - `display` is set ONLY on `:popover-open`. Any author display on the
+    //   closed state beats the UA `[popover]:not(:popover-open){display:none}`
+    //   rule regardless of specificity, which would keep a CLOSED popover laid
+    //   out in the top layer — invisible yet still hoverable/clickable. Closed
+    //   stays UA-governed, so a closed menu is truly gone.
+    // - The enter-fade is a keyframe, not a transition + `allow-discrete`
+    //   (which proved fragile: it could leave the surface stuck at
+    //   display:flex / opacity 0 after close). Starting at opacity 0 also
+    //   hides the first paint, before position() sets the transform.
     style.textContent = `
       :host { display: contents; }
 
-      /* The shadow root holds exactly one element — this surface div (with a
-         <slot> inside) — so a bare tag selector is unambiguous; no class
-         needed. Slotted light-DOM content isn't matched by shadow selectors. */
       div {
         position: fixed;
         left: 0;
         top: 0;
         margin: 0;
         box-sizing: border-box;
-        /* Do NOT set display here. Author styles beat the UA popover rule
-           (\`[popover]:not(:popover-open){display:none}\`) regardless of
-           specificity, so an unconditional \`display:flex\` would keep a CLOSED
-           popover laid out in the top layer — invisible (opacity 0) but still
-           hoverable/clickable. Set display only on the open state and let the
-           UA hide it when closed. */
         flex-direction: column;
         gap: 1px;
         min-width: var(--menu-min-width, 88px);
@@ -222,12 +241,6 @@ export class AMenuElement extends HTMLElementBase {
         backdrop-filter: var(--menu-backdrop-filter, blur(20px));
         outline: none;
       }
-      /* Open state. Closed → the UA's \`[popover]:not(:popover-open){display:none}\`
-         governs (so a closed menu is truly gone — not interactive). A keyframe
-         enter-fade is used instead of a transition + \`allow-discrete\`: the
-         latter proved fragile here (it could leave the surface stuck at
-         display:flex / opacity 0 after close). The fade starts at opacity 0, so
-         the first paint (before position() sets the transform) is invisible. */
       div:popover-open {
         display: flex;
         animation: a-menu-enter 80ms ease-out;

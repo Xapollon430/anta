@@ -8,8 +8,6 @@
     flex-shrink: 0;
     height: 1px;
     margin: 2px 4px;
-    /* --border-5 is the most subtle border token, and it's mode-adaptive
-       (light in light mode, dark in dark mode), so no .dark override needed. */
     background: var(--border-5);
   }
 }

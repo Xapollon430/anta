@@ -6,7 +6,8 @@ import './a-menu-separator.css'
  * No JS / no shadow DOM; styled entirely by `a-menu-separator.css`. The
  * trivial class exists only so importing this module registers the tag and
  * pulls its CSS along the granular entry point. `role="separator"` is added
- * by the `MenuSeparator` JSX wrapper.
+ * by the `MenuSeparator` JSX wrapper. The hairline uses `--border-5` — the
+ * most subtle border token, already mode-adaptive, so no `.dark` override.
  */
 export class AMenuSeparatorElement extends HTMLElementBase {}
 
