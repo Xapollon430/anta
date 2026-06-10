@@ -50,6 +50,9 @@ export { _Fragment as Fragment }
 
 import type { AProgressAttributes, ATextAttributes, ATitleAttributes, ATagAttributes, AIconAttributes, AButtonAttributes, ATooltipAttributes, BaseAttributes } from './general_types'
 
+// Declared as an `interface` (not a type alias) so downstream companion
+// packages — e.g. `@antadesign/stickers` — can augment it with their own
+// custom-element tags via `declare module '@antadesign/anta/jsx-runtime'`.
 export namespace JSX {
   export interface IntrinsicElements extends React.JSX.IntrinsicElements, AntaIntrinsicElements {}
 }
