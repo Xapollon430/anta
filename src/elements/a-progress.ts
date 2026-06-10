@@ -1,6 +1,18 @@
 import { HTMLElementBase } from '../anta_helpers'
 import './a-progress.css'
 
+/**
+ * `<a-progress>` — progress bar element.
+ *
+ * Styling notes (`a-progress.css` ships comment-free):
+ * - `--progress-indicator-edge` is a right-edge fade from the indicator's
+ *   own bg to the border color, both opaque; tone variants re-tint it
+ *   automatically because both endpoint tokens are re-aliased per tone.
+ * - `border: 0px solid var(--progress-border-color)` is a per-component
+ *   reset (same spirit as Tailwind preflight): style and color are declared
+ *   at a known state so a consumer opts into a themed border by changing
+ *   only `border-width`.
+ */
 export class AProgressElement extends HTMLElementBase {
   static observedAttributes = ['value', 'max', 'tone']
   indicator: HTMLDivElement

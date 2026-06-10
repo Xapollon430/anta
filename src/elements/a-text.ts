@@ -1,6 +1,18 @@
 import { HTMLElementBase } from '../anta_helpers'
 import './a-text.css'
 
+// Shadow CSS (kept comment-free — this string ships into every consumer
+// document). How it hangs together:
+// - The slot defaults to `display: contents` so slotted nodes flow as direct
+//   children of the host; the `[truncate]` rule gives it a real -webkit-box
+//   display so it becomes the wrapper that holds the line clamp, and
+//   `.expanded` drops the clamp entirely.
+// - The expandable fade mask is vertical for multi-line, a right-edge
+//   horizontal fade for single-line (`truncate="1"`).
+// - The expand button is the whole fade strip (full-width bottom strip for
+//   multi-line, narrow right region for single-line) — the chevron is just
+//   a masked ::before pinned in its bottom-right corner. It appears on
+//   hover / focus-within.
 const SHADOW_STYLE = `
   :host {
     display: block;
@@ -10,9 +22,6 @@ const SHADOW_STYLE = `
     display: inline-block;
   }
 
-  /* Default: slot disappears from layout so slotted nodes flow as
-     direct children of the host. Truncation rules below give the slot
-     a real display so it becomes the wrapper that holds the clamp. */
   slot {
     display: contents;
   }
@@ -24,27 +33,22 @@ const SHADOW_STYLE = `
     overflow: hidden;
   }
 
-  /* Expandable — vertical fade for multi-line. */
   :host([truncate][expandable]) slot:not(.expanded) {
     -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 2em), transparent 97%);
             mask-image: linear-gradient(to bottom, black calc(100% - 2em), transparent 97%);
   }
 
-  /* Expandable — horizontal right-edge fade for single-line. */
   :host([truncate="1"][expandable]) slot:not(.expanded) {
     -webkit-mask-image: linear-gradient(to right, black calc(100% - 7ch), transparent 97%);
             mask-image: linear-gradient(to right, black calc(100% - 7ch), transparent 97%);
   }
 
-  /* Expanded — drop truncation entirely. */
   :host([truncate]) slot.expanded {
     display: block;
     -webkit-line-clamp: unset;
     overflow: visible;
   }
 
-  /* Expand button. The whole button is the click target; the chevron
-     icon is positioned absolutely in the button's bottom-right corner. */
   .expand-btn {
     appearance: none;
     background: transparent;
@@ -81,7 +85,6 @@ const SHADOW_STYLE = `
             mask-size: contain;
   }
 
-  /* Multi-line — full-width strip pinned to the bottom of the host. */
   :host([truncate][expandable]) .expand-btn:not(.hidden) {
     display: block;
     left: 0;
@@ -90,7 +93,6 @@ const SHADOW_STYLE = `
     height: 1.5em;
   }
 
-  /* Single-line — narrow region pinned to the right side. */
   :host([truncate="1"][expandable]) .expand-btn:not(.hidden) {
     left: auto;
     top: 0;
@@ -104,6 +106,24 @@ const SHADOW_STYLE = `
   }
 `
 
+/**
+ * `<a-text>` — body text element with truncation / expansion.
+ *
+ * Styling notes (`a-text.css` ships comment-free):
+ * - `a-text[truncate] { min-width: 0 }` is the one external requirement of
+ *   the shadow clamp: the host must be allowed to shrink inside flex/grid
+ *   parents so the inner clamp can actually clip content.
+ * - Priority/tone link colors: levels 1–2 keep the brand link color; levels
+ *   3–5 mute the link to `currentColor` and step the hover up one level
+ *   (3→2, 4→3, 5→4). Tinted variants do the same within their
+ *   `--text-{N}-{tone}` ramp (level 1 has nothing above it — hover keeps the
+ *   color and only the underline alpha changes).
+ * - The `a-text a` rules layer on anta's global `a` defaults from
+ *   `reset.css`, overriding only color and the one-step-up hover color
+ *   (underline thickness/offset/alpha are inherited); the hover repeats the
+ *   underline color so it tracks the priority color. Hover is gated to
+ *   `(hover: hover) and (pointer: fine)` to avoid sticky hover after a tap.
+ */
 export class ATextElement extends HTMLElementBase {
   static observedAttributes = ['expandable', 'truncate']
 

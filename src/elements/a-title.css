@@ -1,11 +1,4 @@
 @layer anta {
-  /* `<a-title>` is intentionally CSS-only — no JS, no shadow DOM, no
-     `customElements.define`. The browser treats it as a generic unknown
-     element; the rules below give it block layout, the demi-bold
-     variable-font weight, and a per-level type scale + vertical rhythm.
-     The matching `h1`-`h6` rules in `src/reset.css` are kept in lockstep
-     so raw markup looks the same as `<Title level={n}>`. */
-
   a-title {
     display: block;
     color: var(--text-1);
@@ -25,13 +18,11 @@
   a-title[level="5"] { font-size: 15px; line-height: 20px; margin-block-start: 16px; margin-block-end: 8px;  }
   a-title[level="6"] { font-size: 13px; line-height: 16px; margin-block-start: 16px; margin-block-end: 4px;  }
 
-  /* Neutral priority overrides. */
   a-title[priority="secondary"]  { color: var(--text-2); }
   a-title[priority="tertiary"]   { color: var(--text-3); }
   a-title[priority="quaternary"] { color: var(--text-4); }
   a-title[priority="quinary"]    { color: var(--text-5); }
 
-  /* Tinted — same shape as a-text's tone × priority matrix. */
   a-title[tone="brand"]                          { color: var(--text-1-brand);    }
   a-title[tone="brand"][priority="secondary"]    { color: var(--text-2-brand);    }
   a-title[tone="brand"][priority="tertiary"]     { color: var(--text-3-brand);    }
