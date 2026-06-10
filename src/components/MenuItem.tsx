@@ -17,8 +17,9 @@ export interface MenuItemProps extends BaseProps {
    *  destructive action; `neutral` (the default) is the standard gray.
    *  @defaultValue neutral */
   tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
-  /** Marks this item as a submenu parent: adds the trailing chevron and
-   *  `aria-haspopup`. Nest the flyout as a `<Menu submenu>` child. */
+  /** Marks this item as a submenu parent: adds the trailing chevron,
+   *  `aria-haspopup="menu"`, and an `aria-expanded` baseline (kept in sync by
+   *  the nested menu). Nest the flyout as a `<Menu submenu>` child. */
   submenu?: boolean
   /** Convenience activation handler — fires on click / Enter / Space unless
    *  the item is disabled. (Mapped to the underlying click.) */
@@ -70,6 +71,9 @@ export const MenuItem = ({
       tone={tone && tone !== 'neutral' ? tone : undefined}
       submenu={submenu ? '' : undefined}
       aria-haspopup={submenu ? 'menu' : undefined}
+      // Resting baseline; the nested submenu's a-menu element reflects the
+      // live open state onto this attribute (it owns that state).
+      aria-expanded={submenu ? 'false' : undefined}
       aria-disabled={disabled ? 'true' : undefined}
       onClick={disabled ? undefined : onSelect}
       class={className}

@@ -18,10 +18,12 @@ declare global {
  * Enter / Space on a focused item synthesizes a click (the single
  * activation path that flows through the menu's click delegation).
  *
- * ARIA (`role="menuitem"`, `tabindex="-1"`, `aria-haspopup`/`aria-expanded`
- * for submenu parents) is added by the `MenuItem` JSX wrapper, never here —
- * the element must stay re-renderable from any reactive engine without
- * churning host attributes.
+ * Static ARIA (`role="menuitem"`, `tabindex`, `aria-haspopup` and the
+ * `aria-expanded="false"` baseline on submenu parents) is added by the
+ * `MenuItem` JSX wrapper, never here — the element must stay re-renderable
+ * from any reactive engine without churning host attributes. The one dynamic
+ * bit, live `aria-expanded` on a submenu parent, is reflected by the nested
+ * `a-menu` element, which owns that state (see `reflectExpanded` there).
  */
 export class AMenuItemElement extends HTMLElementBase {
   connectedCallback() {

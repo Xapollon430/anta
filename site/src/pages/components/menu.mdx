@@ -183,7 +183,10 @@ the trigger box.
 <Col>
 
 Mark a `MenuItem` with `submenu` and nest a `<Menu submenu>` inside it to create
-a flyout. The parent item gets a chevron and `aria-haspopup`; the submenu opens
+a flyout. The parent item gets a chevron, `aria-haspopup="menu"`, and an
+`aria-expanded` that tracks the flyout's open state (the menu also reflects
+`aria-expanded` onto a click trigger's element — add `aria-haspopup="menu"` to
+your trigger yourself); the submenu opens
 to the side and flips when it nears the edge. Submenus open on click by default —
 add `hover` to also open them on hover (with intent timing, so a quick
 pass-through doesn't trigger them).

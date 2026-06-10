@@ -114,11 +114,17 @@ function dismiss(originEvent?: Event) {
 }
 
 /** Force-close the whole stack, top-down, emitting `openchange` for each menu
- *  that was open. Used when a fresh root menu takes over (a hard replace). */
+ *  that was open. Used when a fresh root menu takes over (a hard replace) —
+ *  the backstop for the "at most one menu system on screen" invariant. A
+ *  controlled menu is force-hidden too: its polite, controlled-respecting
+ *  dismissal already happened via the outside-pointerdown path (see
+ *  `_dismissNotified`, which keeps it from receiving `openchange` twice). A
+ *  consumer who ignores `openchange` ends with `state="opened"` but a hidden
+ *  menu — the same misuse class as ignoring `onChange` on a controlled input. */
 function closeAll() {
   for (let i = openStack.length - 1; i >= 0; i--) {
     const m = openStack[i]
-    if (m.isOpen) m.emitChange(false)
+    if (m.isOpen && !m._dismissNotified) m.emitChange(false)
     m._doHide()
   }
   openStack.length = 0
@@ -162,6 +168,11 @@ export class AMenuElement extends HTMLElementBase {
   listening = false
   private _shown = false
   private teardown?: () => void
+
+  /** A controlled menu was told to dismiss (it emitted `openchange(false)`)
+   *  but stays visible until the consumer flips `state`. The flag lets the
+   *  `closeAll` backstop skip a duplicate emit. Cleared on every show. */
+  _dismissNotified = false
 
   // Submenu hover-intent timers.
   private openTimer?: ReturnType<typeof setTimeout>
@@ -429,6 +440,7 @@ export class AMenuElement extends HTMLElementBase {
     if (!this._shown) return
     this.emitChange(false, { originEvent })
     if (!this.isControlled) this.hide()
+    else this._dismissNotified = true
   }
 
   /** Apply OPEN to the DOM (no event) — used by uncontrolled intent and by the
@@ -481,10 +493,13 @@ export class AMenuElement extends HTMLElementBase {
 
   /** Shadow-only show: open the popover and position it. `instant` skips the
    *  enter-fade and positions synchronously, so a menu opening over an
-   *  already-visible one snaps in without a blink. */
+   *  already-visible one snaps in without a blink. Relies on the Popover API
+   *  without feature detection — see "Browser support" in README.md. */
   _doShow(coord?: [number, number], instant = false) {
     if (this.surface.isConnected && !this._shown) this.surface.showPopover()
     this._shown = true
+    this._dismissNotified = false
+    this.reflectExpanded(true)
     // animation: none → no fade (opacity rests at 1); '' → restore the CSS
     // enter-fade. Shadow-internal style only, so it's worker-safe.
     this.surface.style.animation = instant ? 'none' : ''
@@ -495,8 +510,22 @@ export class AMenuElement extends HTMLElementBase {
   _doHide() {
     if (this.surface.isConnected && this._shown) this.surface.hidePopover()
     this._shown = false
+    this.reflectExpanded(false)
     this.cancelOpenTimer()
     this.cancelCloseTimer()
+  }
+
+  /** Mirror the open state onto the anchor's `aria-expanded`. The one
+   *  sanctioned light-DOM ARIA mutation (like `el.focus()` above): live
+   *  expanded state is interaction state owned by this element — a stateless
+   *  wrapper can't know it. The `MenuItem` wrapper renders the resting
+   *  `aria-expanded="false"` baseline on submenu parents, so a reactive
+   *  engine that re-renders the anchor resets it to a valid value and the
+   *  next open/close re-syncs. Skipped for `context` menus — a right-click
+   *  region isn't an interactive trigger, so `aria-expanded` doesn't apply. */
+  private reflectExpanded(open: boolean) {
+    if (this.isContext) return
+    this.triggerAnchor?.setAttribute('aria-expanded', open ? 'true' : 'false')
   }
 
   /* ============================ positioning ============================ */

@@ -274,6 +274,9 @@ export interface AMenuItemAttributes extends BaseAttributes {
   /** ARIA role — `'menuitem'` (or `'menuitemcheckbox'` / `'menuitemradio'`). */
   role?: string
   'aria-haspopup'?: 'menu' | 'true' | 'false' | boolean
+  /** Submenu-parent expanded state. Render `'false'` as the resting baseline;
+   *  the nested `<a-menu submenu>` element reflects the live open state. */
+  'aria-expanded'?: 'true' | 'false' | boolean
   'aria-disabled'?: 'true' | 'false' | boolean
   /** Selected state for future checkbox / radio items. Presence-based. */
   checked?: boolean | ''
