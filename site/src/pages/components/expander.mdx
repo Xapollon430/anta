@@ -216,7 +216,56 @@ nesting controls in a button is an accessibility anti-pattern.)
 </Expander>
 ```
 
-In raw HTML, mark your action elements with `slot="actions"`.
+The header never wraps: actions keep their intrinsic size and the
+title ellipsizes first, so keep actions compact (a small button or
+two, a tag). Pass several controls as a fragment — they form a row
+with an 8px gap:
+
+<Preview direction="column" gap="8px">
+  <Expander
+    title="A long section title that gives way to the actions and ellipsizes when space runs out"
+    actions={<><Button size="small" label="Share" /><Button size="small" label="Download" /></>}
+  >
+    <Text>Actions hold their size; the title truncates.</Text>
+  </Expander>
+</Preview>
+
+```tsx folded
+<Expander
+  title="A long section title that gives way to the actions…"
+  actions={<><Button size="small" label="Share" /><Button size="small" label="Download" /></>}
+>
+  …
+</Expander>
+```
+
+Actions stay visible in the folded state — the header represents the
+section whether it's open or not (the same convention as GitHub's file
+headers). If an action only makes sense while open, drive the expander
+in controlled mode and swap the `actions` node on toggle.
+
+### Composing the element directly
+
+Without the JSX wrapper, the `slot` attribute is the wire format: put
+`slot="title"` / `slot="actions"` directly on your own elements
+(several elements can share `slot="actions"`); anything unslotted
+becomes the collapsible body.
+
+<Preview direction="column" gap="8px">
+  <a-expander>
+    <a-expander-summary slot="title">Hand-authored markup</a-expander-summary>
+    <button slot="actions">Download</button>
+    <a-expander-details>The body — everything without a <code>slot</code> attribute.</a-expander-details>
+  </a-expander>
+</Preview>
+
+```html
+<a-expander>
+  <a-expander-summary slot="title">Hand-authored markup</a-expander-summary>
+  <button slot="actions">Download</button>
+  <a-expander-details>The body — everything without a slot attribute.</a-expander-details>
+</a-expander>
+```
 
 ## Disabled
 
@@ -308,6 +357,7 @@ as [`::part`](https://developer.mozilla.org/en-US/docs/Web/CSS/::part):
 | Part | What it is |
 |---|---|
 | `summary` | The header `<button>`. Reach what CSS variables can't — states (`::part(summary):hover`, `:focus-visible`), the chevron via `::part(summary)::before`, or bespoke header typography beyond what `level` offers. |
+| `actions` | The header actions row (only rendered when actions are slotted) — e.g. to change its `gap` or alignment. |
 | `content` | The collapsible body region. |
 
 ```css

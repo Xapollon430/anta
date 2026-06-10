@@ -23,7 +23,17 @@ import './a-expander.css'
  *     <slot name="actions">    header actions — SIBLINGS of the button,
  *                              never inside it: clicks on them don't
  *                              toggle (no propagation path through the
- *                              button) and AT sees separate controls
+ *                              button) and AT sees separate controls.
+ *                              A flex row that never shrinks or wraps —
+ *                              under width pressure the title ellipsizes
+ *                              first, actions keep their intrinsic size.
+ *                              display:none while empty (toggled by a
+ *                              slotchange listener — CSS can't express
+ *                              "slot has assigned nodes"), so an
+ *                              actionless header reserves no space.
+ *                              Visible in both folded and open states —
+ *                              the header represents the section either
+ *                              way (the MUI / GitHub convention).
  *   <div class="region">       the grid that animates height
  *     <div part="content">     the grid item that clips while animating
  *       <slot>                 the body
@@ -169,7 +179,15 @@ const SHADOW_STYLE = `
   .header {
     display: flex;
     align-items: center;
+  }
+
+  slot[name="actions"] { display: none; }
+  .header.has-actions slot[name="actions"] {
+    display: flex;
+    align-items: center;
     gap: 8px;
+    flex-shrink: 0;
+    margin-inline-start: 8px;
   }
 
   button {
@@ -281,6 +299,14 @@ export class AExpanderElement extends HTMLElementBase {
     header.className = 'header'
     const actionsSlot = document.createElement('slot')
     actionsSlot.name = 'actions'
+    // The actions row, exposed as a part for the same reason.
+    actionsSlot.setAttribute('part', 'actions')
+    // CSS can't express "slot has assigned nodes", so an empty actions
+    // slot is display:none'd via this shadow-internal class — otherwise
+    // its box would reserve a phantom margin next to the title.
+    actionsSlot.addEventListener('slotchange', () => {
+      header.classList.toggle('has-actions', actionsSlot.assignedElements().length > 0)
+    })
     header.append(this.summary, actionsSlot)
 
     this.region = document.createElement('div')
