@@ -13,11 +13,13 @@ import './a-expander.css'
  *     <a-expander-details>…body…</a-expander-details>
  *   </a-expander>
  *
- * Shadow structure (no classes / ids — styled by element + structure):
+ * Shadow structure — every node carries a stable label (a part name or
+ * a class, both shadow-scoped: invisible to consumer selectors, pure
+ * documentation + styling hooks):
  *
  *   <button part="summary">  the summary; chevron is its ::before; the
  *     <slot name="title">    title is projected here
- *   <div>                    the grid that animates height
+ *   <div class="region">     the grid that animates height
  *     <div part="content">   the grid item that clips while animating
  *       <slot>               the body
  *
@@ -72,10 +74,10 @@ import './a-expander.css'
  *   intentionally stays (no flicker). The `:active` color rule mirrors
  *   its `:hover` counterpart's specificity and follows it in source
  *   order, so it wins while pressed.
- * - **Collapse animation**: grid `0fr ↔ 1fr` on the region after the
- *   button (`ANIM_MS`), keyed off `aria-expanded`; the inner grid item
- *   clips (`overflow: clip`) while animating. The grid item must be a
- *   real shadow child — a slotted element reached through a
+ * - **Collapse animation**: grid `0fr ↔ 1fr` on `.region` (`ANIM_MS`),
+ *   keyed off the button's `aria-expanded`; the `[part="content"]` grid
+ *   item clips (`overflow: clip`) while animating. The grid item must be
+ *   a real shadow child — a slotted element reached through a
  *   `display: contents` slot doesn't size the fr track. Once open and
  *   idle the clip is dropped (delayed by `ANIM_MS` via a discrete
  *   `overflow` transition) so focus rings / nested popovers aren't cut
@@ -208,17 +210,17 @@ const SHADOW_STYLE = `
     opacity: 0.6;
   }
 
-  button + div {
+  .region {
     display: grid;
     grid-template-rows: 0fr;
   }
-  button[aria-expanded="true"] + div { grid-template-rows: 1fr; }
+  button[aria-expanded="true"] + .region { grid-template-rows: 1fr; }
   @media (prefers-reduced-motion: no-preference) {
-    button + div { transition: grid-template-rows ${ANIM_MS}ms ease; }
+    .region { transition: grid-template-rows ${ANIM_MS}ms ease; }
   }
 
-  button + div > div { min-height: 0; overflow: clip; }
-  button[aria-expanded="true"] + div > div {
+  [part="content"] { min-height: 0; overflow: clip; }
+  button[aria-expanded="true"] + .region [part="content"] {
     overflow: visible;
     transition: overflow 0s ${ANIM_MS}ms;
     transition-behavior: allow-discrete;
@@ -229,7 +231,7 @@ export class AExpanderElement extends HTMLElementBase {
   static observedAttributes = ['open']
 
   private summary: HTMLButtonElement
-  private content: HTMLDivElement
+  private region: HTMLDivElement
 
   constructor() {
     super()
@@ -250,14 +252,15 @@ export class AExpanderElement extends HTMLElementBase {
     this.summary.append(titleSlot)
     this.summary.addEventListener('click', this.onSummaryClick)
 
-    this.content = document.createElement('div')
-    const body = document.createElement('div')
-    // The collapsible body region, exposed as a part for the same reason.
-    body.setAttribute('part', 'content')
-    body.append(document.createElement('slot'))
-    this.content.append(body)
+    this.region = document.createElement('div')
+    this.region.className = 'region'
+    const content = document.createElement('div')
+    // The collapsible body, exposed as a part for the same reason.
+    content.setAttribute('part', 'content')
+    content.append(document.createElement('slot'))
+    this.region.append(content)
 
-    shadow.append(style, this.summary, this.content)
+    shadow.append(style, this.summary, this.region)
   }
 
   /** Controlled mode: the `open` attribute is present and owns the state. */
@@ -290,7 +293,7 @@ export class AExpanderElement extends HTMLElementBase {
    *  order and the accessibility tree. */
   private setOpen(open: boolean) {
     this.summary.setAttribute('aria-expanded', open ? 'true' : 'false')
-    this.content.inert = !open
+    this.region.inert = !open
   }
 
   /** Uncontrolled: toggle, then announce. Controlled: only announce the
