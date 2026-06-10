@@ -1,6 +1,6 @@
 # Anta docs site (`site/`)
 
-This is the documentation site for `@antadesign/anta`, deployed at antadesign.dev. It is **not** part of the published npm package — anything that ships to consumers lives in the repo root (`src/`, `dist/`).
+This is the documentation site for `@antadesign/anta`, deployed at anta.design. It is **not** part of the published npm package — anything that ships to consumers lives in the repo root (`src/`, `dist/`).
 
 Stack: Astro 5 static output, Preact islands (`@astrojs/preact`, with `compat: true` so `react` aliases to `preact/compat`), MDX for component pages, astro-expressive-code for syntax-highlighted code blocks, Monaco editor for the interactive playground.
 

@@ -8,8 +8,7 @@
  *
  * For a SMALLER footprint, import just the element(s) you use instead:
  *   import '@antadesign/anta/elements/a-tooltip'   // registers a-tooltip + its CSS, nothing else
- * That granular path pulls in only that element's code (e.g. it won't drag in
- * `lottie-web`, which only `a-sticker-animated` needs).
+ * That granular path pulls in only that element's code and CSS, nothing else.
  *
  * Must only be imported client-side — registration is guarded against missing
  * `customElements` (SSR), but there's no reason to load it server-side.
@@ -19,8 +18,6 @@ export { ATextElement, register_a_text } from './a-text'
 export { AIconElement, register_a_icon } from './a-icon'
 export { AButtonElement, register_a_button } from './a-button'
 export { AExpanderElement, register_a_expander } from './a-expander'
-export { AStickerElement, register_a_sticker } from './a-sticker'
-export { AStickerAnimatedElement, register_a_sticker_animated } from './a-sticker-animated'
 export { ATooltipElement, register_a_tooltip } from './a-tooltip'
 
 // `a-title` and `a-tag` are CSS-only styled tags (no JS / no element

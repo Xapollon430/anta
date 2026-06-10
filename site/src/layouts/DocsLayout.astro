@@ -21,9 +21,9 @@ const isCurrent = (href: string) => {
 
 // Fetch the latest published version from the npm registry at build time
 // so the sidebar shield labels the current release without a runtime call.
-// Prefer the `dev` dist-tag (this is what we publish under), fall back to
-// `latest`. Any failure (offline, registry hiccup) silently degrades to a
-// plain "npm" label.
+// Prefer the stable `latest` dist-tag, falling back to `dev` only if no
+// stable release exists yet. Any failure (offline, registry hiccup)
+// silently degrades to a plain "npm" label.
 let npmVersion: string | null = null
 try {
   const res = await fetch('https://registry.npmjs.org/@antadesign/anta', {
@@ -31,16 +31,52 @@ try {
   })
   if (res.ok) {
     const data = await res.json()
-    npmVersion = data?.['dist-tags']?.dev ?? data?.['dist-tags']?.latest ?? null
+    npmVersion = data?.['dist-tags']?.latest ?? data?.['dist-tags']?.dev ?? null
   }
 } catch {}
 
-// Resolve URLs against the site config (https://antadesign.dev) so
-// Open Graph / Twitter crawlers receive absolute URLs.
+// Resolve URLs against the site config (https://anta.design) so
+// Open Graph / Twitter crawlers receive absolute URLs, and the canonical
+// link always points at the production domain — Cloudflare Pages preview
+// deployments (*.pages.dev) serve identical content and would otherwise
+// compete in search indexes.
 const ogImage = new URL('/og-image.png', Astro.site).href
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href
 const pageTitle = title ? `${title} — Anta` : 'Anta'
 const description = "Antithesis design system: global CSS tokens, framework-agnostic web components, and JSX wrappers for React and Preact."
+
+// JSON-LD structured data. Every page declares the WebSite; component
+// pages add a breadcrumb trail so search results show the site hierarchy.
+const isComponentPage = /^\/components\/[^/]+\/?$/.test(Astro.url.pathname)
+const jsonLd: object[] = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Anta',
+    url: new URL('/', Astro.site).href,
+    description,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareSourceCode',
+    name: '@antadesign/anta',
+    description,
+    url: new URL('/', Astro.site).href,
+    codeRepository: 'https://github.com/antithesishq/anta',
+    programmingLanguage: 'TypeScript',
+    runtimePlatform: ['React', 'Preact'],
+  },
+]
+if (isComponentPage && title) {
+  jsonLd.push({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Anta', item: new URL('/', Astro.site).href },
+      { '@type': 'ListItem', position: 2, name: title, item: pageUrl },
+    ],
+  })
+}
 ---
 
 <html lang="en">
@@ -49,6 +85,9 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={pageUrl} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
     <link rel="icon" type="image/svg+xml" href="/anta-favicon.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
@@ -287,6 +326,7 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
 
     <script>
       import '@antadesign/anta/elements'
+      import '@antadesign/stickers/elements'
       import '../components/a-toc.ts'
 
       document.addEventListener('click', (e) => {
@@ -516,20 +556,35 @@ const description = "Antithesis design system: global CSS tokens, framework-agno
     display: none;
   }
 
-  /* Right "On this page" rail — narrower than the left nav sidebar to hand
-     the content track ~40px more room (it lets two-column sections stay
-     side-by-side a bit longer before collapsing). Sticky, full-height; holds
-     the <a-toc> web component. It widens back to 240px once it folds into the
-     slide-out panel below (≤1100px), where horizontal room is no longer at a
-     premium. */
+  /* Right "On this page" rail — sticky, full-height; holds the <a-toc> web
+     component. Defaults to 240px (matching the left nav). It only shrinks to
+     200px in the constrained mid-desktop band where the content column has no
+     room to spare (see the media query below); when there's free space around
+     the content, or once it folds into the slide-out (≤1100px), it stays 240. */
   .toc-rail {
-    width: 200px;
+    width: 240px;
     flex-shrink: 0;
     padding: 32px 16px 32px 4px;
     position: sticky;
     top: 0;
     height: 100vh;
     overflow-y: auto;
+  }
+
+  /* Constrained mid-desktop band: between the fold breakpoint (1100px) and the
+     point where even a *narrowed* 200px rail would leave free space around the
+     960px content column (240 nav + 64 padding + 960 content + 200 rail =
+     1464px), the content fills the track edge-to-edge. Shave the rail to 200px
+     here so the content — and two-column <Columns> sections — get ~40px more
+     room before collapsing. The 1464 (not 1504) upper bound is deliberate: it
+     guarantees the 200px state never coincides with visible free space — the
+     moment shrinking the rail would expose a gap, we keep the full 240px
+     instead. Above the band the base 240px stands; below 1100px the slide-out
+     rule (also 240px) wins (the lower bound keeps this off the slide-out). */
+  @media (min-width: 1101px) and (max-width: 1464px) {
+    .toc-rail {
+      width: 200px;
+    }
   }
 
   .topbar { display: none; }

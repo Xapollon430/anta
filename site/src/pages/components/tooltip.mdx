@@ -16,7 +16,9 @@ A small floating bubble that describes the element it's placed inside. Render
 element's layout, and its content can be anything.
 
 It shows on hover (after a short `delay`) and on keyboard focus, and dismisses
-on mouse leave, blur, <kbd>Esc</kbd>, or when the anchor scrolls away. By
+on mouse leave, blur, <kbd>Esc</kbd>, or when the anchor scrolls away. On touch
+devices — where there's no hover and a tap shouldn't surface it — it opens on
+**press-and-hold** and lingers briefly after you lift, so it stays readable. By
 default the bubble follows the cursor; pass `static` to pin it under the anchor,
 or `interactive` to make it hoverable and clickable (for content like links).
 
@@ -35,7 +37,7 @@ or `interactive` to make it hoverable and clickable (for content like links).
     </Button>
     <Button label="Interact">
       <Tooltip interactive placement="top">
-        See the <a href="https://antadesign.dev/">full guide</a> for details
+        See the <a href="https://anta.design/">full guide</a> for details
       </Tooltip>
     </Button>
   </div>

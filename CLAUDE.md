@@ -2,6 +2,11 @@
 
 Published as `@antadesign/anta` on npm. Portable UI component library. Works in React apps out of the box, in Preact via compat aliasing (`react` → `preact/compat`), and in custom runtimes via `configure()`.
 
+This repo is a pnpm workspace with **two publishable packages** plus the docs site:
+- `@antadesign/anta` — this package, at the repo root (`src/`, `dist/`).
+- `@antadesign/stickers` — the sticker pack, in top-level [`stickers/`](stickers/CLAUDE.md). It owns the `<a-sticker>` / `<a-sticker-animated>` elements, the `Sticker` / `StickerAnimated` wrappers, the artwork, and the **only** `lottie-web` dependency. It depends on `@antadesign/anta` for the JSX runtime and shared helpers. Kept separate so anta carries no animation runtime. **Anything sticker-related — components, tokens, docs page, the generator — lives there, not here.**
+- `site/` — the docs site (not published).
+
 ## Architecture
 
 Two tiers per component:
@@ -13,10 +18,13 @@ The tiers are decoupled — JSX wrappers emit `<a-*>` tags but never import elem
 
 ### Key files
 
-- `src/jsx-runtime.ts` — Custom JSX runtime. Defaults to `React.createElement`. Call `configure(h)` to swap.
-- `src/types.d.ts` — CSS module type declarations and `JSX.IntrinsicElements` for `a-*` custom elements.
+- `src/jsx-runtime.ts` — Custom JSX runtime. Defaults to `React.createElement`. Call `configure(h)` to swap. **Owns the `JSX.IntrinsicElements` declarations for `a-*` tags** — they must live here (not elsewhere) because tsc's `jsxImportSource` mechanism resolves JSX element types from the `JSX` namespace exported by `<source>/jsx-runtime`, and because companion packages augment this exact module (`@antadesign/stickers` does `declare module '@antadesign/anta/jsx-runtime'` to add its tags).
+- `src/general_types.ts` — Shared `BaseProps` / `BaseAttributes` plus the per-element `A{Name}Attributes` interfaces. A regular `.ts` module (never a `.d.ts` — tsc doesn't copy declaration inputs to `dist`) published as the `@antadesign/anta/general_types` subpath; `@antadesign/stickers` and all JSX wrappers import from it.
+- `src/types.d.ts` — Internal-only ambient declarations: the wildcard `declare module '*.module.css'`. Can't merge into the files above — wildcard ambient module declarations are only legal in a global (non-module) declaration file. Not shipped to `dist`.
 - `src/elements/index.ts` — Barrel export that auto-registers all web components in browser contexts. **Must only be imported client-side** — `HTMLElement` does not exist in Node/SSR.
 - `src/index.ts` — Barrel export for JSX components and `configure()`.
+
+These three type locations are each pinned by a different TypeScript mechanism (see above) — don't try to consolidate them.
 
 ## Build & dev
 
@@ -34,7 +42,7 @@ pnpm run typecheck    # Type check without emit
 
 **For any dev work — editing the anta package *or* the docs site — run `pnpm run dev` from the repo root** (run it in the background; it's long-lived). It does both halves together:
 
-- a `nodemon -w src` watcher that **rebuilds `dist`** (and regenerates the site's `docs:*` artifacts) on every change to anta's `src/**/*.{ts,tsx,css}`, and
+- a `nodemon -w src -w stickers/src` watcher that **rebuilds `dist`** (anta, then `@antadesign/stickers`) and regenerates the site's `docs:*` artifacts on every change to either package's `src/**/*.{ts,tsx,css}`, and
 - the docs site's `astro dev` (HMR for `site/`).
 
 The docs site consumes anta from the built `dist/` (workspace symlink), so this is what propagates an anta-source change through to the running site. **Do not** run `cd site && pnpm run dev` for package work — that starts only the site's Astro dev and will *not* rebuild `dist`, so anta `src` edits won't show up and you'd be stuck manually rebuilding + restarting. Pure `site/` edits (`.mdx`, Astro/Preact components) HMR fine under either, but the root command is the one to use so package edits Just Work too.
@@ -74,16 +82,31 @@ useEffect(() => { import('@antadesign/anta/elements') }, [])
 
 ## npm publishing
 
+Two packages publish from this repo: **`@antadesign/anta`** (root) and **`@antadesign/stickers`** (`stickers/`). Both go out as prereleases under the npm `dev` dist-tag. Each version string is immutable on npm — **always bump before publishing**.
+
+> **If asked to publish — or to recall how — walk the user through this, in order.** The order and the `pnpm` vs `npm` distinction are the two easy things to get wrong.
+
+**Publish anta first, then stickers.** `@antadesign/stickers` depends on `@antadesign/anta` via `workspace:*`, which pnpm rewrites to anta's **exact current version** at pack time. So the anta version stickers will pin must already be on npm — and it must be the version that carries whatever exports stickers imports (e.g. `./anta_helpers`, `./general_types`). Publishing stickers against an anta version that isn't published yet (or predates an export it needs) makes `npm install @antadesign/stickers` unresolvable.
+
 ```sh
-npm version prerelease --preid=dev   # Bump: 0.1.1-dev.1 → 0.1.1-dev.2
-npm publish --access public --tag dev  # Publish prerelease under "dev" tag
+# 1) anta — from repo root
+npm version prerelease --preid=dev        # 0.1.1-dev.8 → 0.1.1-dev.9 (or bump the version field by hand)
+npm publish --access public --tag dev     # prepublishOnly rebuilds dist
+
+# 2) stickers — from stickers/
+cd stickers
+pnpm publish --no-git-checks              # access/tag come from its publishConfig
 ```
 
-Each version string is immutable on npm — always bump before publishing.
+- **Use `pnpm publish` for `stickers`, not `npm publish`.** Only pnpm rewrites the `workspace:*` protocol to a real version; `npm publish` would leave `workspace:*` in the tarball and the package would be uninstallable. (anta has no workspace deps, so `npm publish` is fine there.)
+- `stickers/package.json` has `publishConfig: { access: "public", tag: "dev" }`, so its publish needs no `--access` / `--tag` flags. anta passes them explicitly.
+- `prepublishOnly` (anta) / `prepare` (both) rebuild `dist` before the tarball is created, so published output is always fresh.
+- Bumping the `version` field by hand (vs `npm version`) skips the auto git commit + tag. If you tag releases, create the tag manually; otherwise no action needed.
+- 2FA: append `--otp=<code>` if your npm account requires it.
 
 ## Changelog
 
-`CHANGELOG.md` at the repo root documents changes to **the `@antadesign/anta` package only** — code shipped to npm consumers (anything under `src/` and `dist/`, plus root files in the published tarball). The docs site under `site/` is its own thing and **does not** belong in the changelog. New site pages, component-docs polish, demos, layout tweaks — all of that ships only on `antadesign.dev` and isn't a consumer-facing change.
+`CHANGELOG.md` at the repo root documents changes to **the `@antadesign/anta` package only** — code shipped to npm consumers (anything under `src/` and `dist/`, plus root files in the published tarball). The docs site under `site/` is its own thing and **does not** belong in the changelog. New site pages, component-docs polish, demos, layout tweaks — all of that ships only on `anta.design` and isn't a consumer-facing change.
 
 When in doubt: would a consumer who installs this version see this change in their app? If no, leave it out of `CHANGELOG.md`. Use commit messages and PR descriptions for the docs-site narrative.
 
@@ -143,8 +166,8 @@ The same rule applies anywhere we lighten/darken/desaturate a color: prefer `col
 - **Default variant in union types** — Include default value explicitly in the type union (e.g. `tone?: 'neutral' | 'info'`).
 - **CSS modules only on JSX wrappers**, plain CSS for web components. Use `.container` as the top-level class in CSS modules.
 - **Types** — Use React global types (e.g. `React.CSSProperties`) without importing React. Components must be compatible with both React and Preact.
-- **Auto-registration (granular + barrel)** — each `a-{name}` module self-registers and imports its own CSS when loaded, so a granular `import '@antadesign/anta/elements/a-{name}'` registers just that element (and won't drag in other elements' deps — e.g. only `a-sticker-animated` pulls `lottie-web`). The `elements/index.ts` barrel re-exports every module, so `import '@antadesign/anta/elements'` registers them all. Registration is guarded against missing `customElements` (SSR-safe), but elements should still only be imported client-side.
-- **Component-token-first** — Each component defines its own CSS custom properties. Global tokens will be added later.
+- **Auto-registration (granular + barrel)** — each `a-{name}` module self-registers and imports its own CSS when loaded, so a granular `import '@antadesign/anta/elements/a-{name}'` registers just that element (and won't drag in other elements' code or deps). The `elements/index.ts` barrel re-exports every module, so `import '@antadesign/anta/elements'` registers them all. Registration is guarded against missing `customElements` (SSR-safe), but elements should still only be imported client-side. (The same pattern powers `@antadesign/stickers/elements` — its granular `a-sticker` path keeps `lottie-web` out, since only `a-sticker-animated` pulls it.)
+- **Component-token-first; the only global tokens are color roles.** The global token vocabulary is deliberately tiny and lives in `src/tokens.css`: theme-aware *role* scales for **text** (`--text-*`), **container background** (`--bg-*`), and **container border** (`--border-*`), per tone, plus fonts and link colors. A component points at these roles only when a value clearly *is* one of those three things (see `a-tag.css` — that's also what makes its dark mode free). Everything else — sizes, spacing, radii, interaction-state colors, timings — is defined per component as `--{component}-*` with literal values, **on purpose**: values are still being tuned back and forth, and component-level definitions keep every part independently changeable. Component-local literal values are policy, not debt — do **not** "clean them up" by routing them through global tokens, and do **not** introduce primitive palette tokens or global spacing/size scales. New global role families (e.g. interactive fills) only by explicit decision, once the values have actually stabilized across components.
 - **Document defaults with `@defaultValue`** — Every optional prop whose default isn't obvious (enums, numbers like `size`/`level`/`max`, a default tone/priority) **must** carry a `@defaultValue <value>` TSDoc tag on its declaration in `src/components/<Name>.tsx`. This is the single source of truth: TypeDoc captures it into `site/src/api.json`, `PropsTable.astro` renders it as the **Default** column, and the playground's `props-form.ts` reads it for control defaults. State the default *only* in the tag — don't also write "Defaults to …" in the prose description (the Default column would duplicate it). Skip the tag for booleans that default to `false` (obvious) and for required props (no default).
 - **Docs-in-sync** — When you rename a component prop, rename a `--{component}-*` token, add a token, or remove one, **update `site/src/pages/components/{name}.mdx` in the same change** so the docs page tracks the source of truth. The same applies to default values, prop type unions, and to any consumer-facing API note in `README.md`. Drift between the source and the docs site is the single most common bug report — easier to keep them in lockstep than to chase the divergence later.
 
@@ -156,7 +179,7 @@ The same rule applies anywhere we lighten/darken/desaturate a color: prefer `col
 4. Create `src/components/{Name}.tsx` — JSX wrapper, import CSS module
 5. Create `src/components/{Name}.module.css` — scoped styles for wrapper layout
 6. Add to `src/index.ts` — re-export the component
-7. Add `a-{name}` to `JSX.IntrinsicElements` in `src/types.d.ts`
+7. Define `A{Name}Attributes` in `src/general_types.ts` (extending `BaseAttributes`), then add `a-{name}` to `JSX.IntrinsicElements` in `src/jsx-runtime.ts`
 8. Add entry points to `build:js` script in `package.json`
 9. Add CSS files to `build:css` script in `package.json`
 10. Run `pnpm run build` to verify
