@@ -65,15 +65,22 @@ import './a-expander.css'
  *   left gutter: pulled left by its own 16px width + 2px gap while the
  *   host zeroes its left border/padding (see a-expander.css), so the
  *   title sits flush with surrounding content like the docs headers.
- * - **Hover/press affordance**: applies only to OUR default summary via
- *   `::slotted(a-expander-summary)` — a consumer slotting custom title
- *   markup opts out automatically. Hover eases the title to
- *   `--expander-text-hover`; on the transparent tertiary surface it adds
- *   the docs-header dotted underline. Press eases title + (closed)
+ * - **Hover/press affordance**: the button's `:hover`/`:active` set the
+ *   inherited `--_summary-color` / `--_summary-underline` custom
+ *   properties; `a-expander-summary` consumes them in its always-on rule
+ *   in `a-expander.css`. Deliberately NOT `button:hover ::slotted(…)`:
+ *   Chromium fails to invalidate slotted styles when an ancestor's hover
+ *   state changes across a gradual pointer exit, leaving the hover look
+ *   stuck (reproduced in Chrome 149; single-jump exits invalidate fine).
+ *   Property inheritance propagates reliably where selector invalidation
+ *   doesn't. The opt-out survives: only `a-expander-summary` reads the
+ *   variables, so custom title markup ignores them. Hover eases the
+ *   title to `--expander-text-hover`; the transparent tertiary surface
+ *   adds the docs-header dotted underline. Press eases title + (closed)
  *   chevron back to the at-rest look as soft feedback; the underline
- *   intentionally stays (no flicker). The `:active` color rule mirrors
- *   its `:hover` counterpart's specificity and follows it in source
- *   order, so it wins while pressed.
+ *   intentionally stays (no flicker). The `:active` var-set mirrors its
+ *   `:hover` counterpart's specificity and follows it in source order,
+ *   so it wins while pressed.
  * - **Collapse animation**: grid `0fr ↔ 1fr` on `.region` (`ANIM_MS`),
  *   keyed off the button's `aria-expanded`; the `[part="content"]` grid
  *   item clips (`overflow: clip`) while animating. The grid item must be
@@ -192,20 +199,9 @@ const SHADOW_STYLE = `
     margin-inline-end: 2px;
   }
 
-  button:hover ::slotted(a-expander-summary) {
-    color: var(--expander-text-hover);
-  }
-  :host([priority="tertiary"]) button:hover ::slotted(a-expander-summary) {
-    text-decoration: underline;
-    text-decoration-style: dotted;
-    text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
-  }
-
-  button:active ::slotted(a-expander-summary) {
-    color: var(--expander-text);
-  }
+  button:hover { --_summary-color: var(--expander-text-hover); }
+  :host([priority="tertiary"]) button:hover { --_summary-underline: underline; }
+  button:active { --_summary-color: var(--expander-text); }
   button:not([aria-expanded="true"]):active::before {
     opacity: 0.6;
   }

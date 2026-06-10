@@ -28,6 +28,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: var(--_summary-color, currentColor);
+    text-decoration-line: var(--_summary-underline, none);
+    text-decoration-style: dotted;
+    text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
     transition: color 150ms ease;
   }
   a-expander-details {
