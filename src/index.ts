@@ -39,6 +39,7 @@ export { Tooltip } from './components/Tooltip'
 export type { TooltipProps } from './components/Tooltip'
 export type { BaseProps, BaseAttributes } from './general_types'
 export { configure } from './jsx-runtime'
+export type { AntaIntrinsicElements } from './jsx-runtime'
 
 /**
  * Seed interface for the icon shape registry. The generated
