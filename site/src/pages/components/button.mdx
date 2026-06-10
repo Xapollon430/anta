@@ -55,7 +55,8 @@ A button's priority helps control how much attention it draws:
 ## Tones
 
 Six named tones — `neutral` (default), `brand`, `critical`, `info`,
-`success`, `warning`. In addition, a custom `tone` is possible: pass any
+`success`, `warning`. Omitting `tone` — or passing an empty string —
+resolves to `neutral`. In addition, a custom `tone` is possible: pass any
 literal CSS color and the button will adapt to it.
 
 <Columns>
@@ -414,7 +415,7 @@ Compose your own thin wrapper around
 your library's `Link` component — which renders an `<a>`, so it matches the
 selector.
 
-```tsx folded
+```tsx
 // LinkButton.tsx — anta-styled link for client-side routing
 import { Link, type LinkProps } from 'react-router-dom'
 import type { IconShape } from '@antadesign/anta'
@@ -442,7 +443,7 @@ export const LinkButton = ({
 
 Usage:
 
-```tsx folded
+```tsx
 <LinkButton to="/dashboard" tone="brand" label="Dashboard" />
 <LinkButton to="/docs" priority="tertiary" iconTrailing="external-link" label="Docs" />
 ```
@@ -543,7 +544,7 @@ with a hex8 fallback first.
 | `--button-focus` | Focus-ring outline color. |
 | `--button-padding-x`<br />`--button-padding-y` | Inner spacing. |
 | `--button-timing-in`<br />`--button-timing-out`<br />`--button-timing-active` | Per-state transitions — hover-in `75ms ease-in`, return-to-rest `150ms ease-out`, press `50ms linear`. Quaternary zeroes all three. |
-| `--button-loading-duration` | One slide cycle for the loading stripe (default `1s`). |
+| `--button-loading-duration` | One slide cycle for the loading stripe (default `0.5s`). |
 | `--button-loading-angle` | Stripe angle (default `125deg`). |
 | `--button-loading-period` | Stripe + gap along the gradient axis (default `30px`). |
 | `--button-loading-stripe`<br />`--button-loading-stripe-gap` | Stripe geometry (default `14px` / `16px`). |

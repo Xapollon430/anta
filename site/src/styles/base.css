@@ -747,15 +747,6 @@ code[data-copied]::after {
   margin: 0 auto 24px;
 }
 
-/* Changelog stream filter. The /changelog/ page wraps each version
-   block in <section data-stream="dev|main"> via the
-   rehype-changelog-sections plugin. The ChangelogStreamTabs component
-   sets html[data-stream="dev"|"main"] from the ?stream=… URL param
-   (or removes it for "all"). These rules hide the inverse stream's
-   sections; default (no html[data-stream]) shows everything. */
-html[data-stream="dev"]  .changelog section[data-stream="main"] { display: none; }
-html[data-stream="main"] .changelog section[data-stream="dev"]  { display: none; }
-
 /* Shared demo-island styles. Used by component demos (IconDemo,
    TruncateDemo, ExpandableDemo, TextDemo). */
 

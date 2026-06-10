@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "@antadesign/anta": "workspace:*",
+    "@antadesign/stickers": "workspace:*",
     "@astrojs/mdx": "4.3.14",
     "@astrojs/preact": "4.1.3",
+    "@astrojs/sitemap": "^3.7.3",
     "@monaco-editor/react": "4.7.0",
     "@shikijs/monaco": "3.23.0",
     "astro": "5.18.1",

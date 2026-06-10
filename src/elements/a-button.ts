@@ -18,7 +18,14 @@ declare global {
  *   15%). Final colors are wired through `--button-fg`/`--button-bg`:
  *   secondary is declared unscoped so a bare `a-button` consumer selector
  *   can override it without bumping specificity; primary/tertiary/quaternary
- *   match an explicit `[priority]` and win on specificity.
+ *   match an explicit `[priority]` and win on specificity. Secondary's rest
+ *   label is darkened by `--button-fg-secondary-l-shift` oklch lightness
+ *   (0.05 light mode, zeroed in dark) at the `--button-fg` wiring, so it
+ *   covers named and custom tones alike; secondary also carries a 1px
+ *   hairline box-shadow in the current fg tone at 50% alpha, which the
+ *   other priorities cancel in their own blocks. `[selected]` adds a 1px
+ *   inset ring in `currentColor`, declared after the priority blocks so it
+ *   survives their `box-shadow: none` cancels.
  * - **Dark mode** re-tunes with heavier alphas (30/40% vs 10/15%) and flips
  *   neutral's anchor to a lilac — mixing dark gray into a dark bg yields no
  *   contrast.
@@ -30,10 +37,11 @@ declare global {
  *   fallback picks up raw `<a-button tone="…">` on Chrome 133+/Safari 18.2+.
  * - **Hover is gated** to `(hover: hover) and (pointer: fine)` so it doesn't
  *   stick after a tap; `:active`/`[selected]` stay ungated (correct press
- *   feedback on touch). Quaternary rests at 82% fg alpha (quieter than
- *   tertiary), restores full opacity on hover, lightens by 0.05 oklch L on
- *   press (dark mode returns to rest instead — it's already light), and has
- *   instant transitions in every direction.
+ *   feedback on touch). Quaternary rests at 90% fg alpha with a slightly
+ *   heavier `font-weight: 415` (quieter than tertiary but legible), restores
+ *   full opacity on hover, lightens by 0.05 oklch L on press (dark mode
+ *   returns to rest instead — it's already light), and has instant
+ *   transitions in every direction.
  * - **Layout gotchas:** `flex-shrink: 0` (shrinking + `overflow: hidden`
  *   would clip the label silently); `font-variation-settings` must restate
  *   ALL axes — it replaces rather than merges, and dropping "slnt"/"ital"

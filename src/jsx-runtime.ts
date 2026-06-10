@@ -48,10 +48,13 @@ export function jsxs(type: ComponentType, props: Record<string, unknown> | null,
 
 export { _Fragment as Fragment }
 
-import type { AProgressAttributes, ATextAttributes, ATitleAttributes, ATagAttributes, AIconAttributes, AButtonAttributes, AStickerAttributes, AStickerAnimatedAttributes, ATooltipAttributes, AMenuAttributes, AMenuItemAttributes, AMenuGroupAttributes, BaseAttributes } from './general_types'
+import type { AProgressAttributes, ATextAttributes, ATitleAttributes, ATagAttributes, AIconAttributes, AButtonAttributes, ATooltipAttributes, AMenuAttributes, AMenuItemAttributes, AMenuGroupAttributes, BaseAttributes } from './general_types'
 
+// Declared as an `interface` (not a type alias) so downstream companion
+// packages — e.g. `@antadesign/stickers` — can augment it with their own
+// custom-element tags via `declare module '@antadesign/anta/jsx-runtime'`.
 export namespace JSX {
-  export type IntrinsicElements = React.JSX.IntrinsicElements & {
+  export interface IntrinsicElements extends React.JSX.IntrinsicElements {
     'a-progress': AProgressAttributes
     'a-progress-label': BaseAttributes
     'a-progress-number': BaseAttributes
@@ -65,8 +68,6 @@ export namespace JSX {
     'a-icon': AIconAttributes
     'a-button': AButtonAttributes
     'a-button-label': BaseAttributes
-    'a-sticker': AStickerAttributes
-    'a-sticker-animated': AStickerAnimatedAttributes
     'a-tooltip': ATooltipAttributes
     'a-menu': AMenuAttributes
     'a-menu-item': AMenuItemAttributes

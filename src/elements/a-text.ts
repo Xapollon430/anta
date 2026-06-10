@@ -113,6 +113,9 @@ const SHADOW_STYLE = `
  * - `a-text[truncate] { min-width: 0 }` is the one external requirement of
  *   the shadow clamp: the host must be allowed to shrink inside flex/grid
  *   parents so the inner clamp can actually clip content.
+ * - The default (no `priority`) is the SECONDARY level — body text reads at
+ *   `--text-2` on the base rule; `priority="primary"` opts into the
+ *   strongest `--text-1`.
  * - Priority/tone link colors: levels 1–2 keep the brand link color; levels
  *   3–5 mute the link to `currentColor` and step the hover up one level
  *   (3→2, 4→3, 5→4). Tinted variants do the same within their

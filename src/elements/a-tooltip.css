@@ -3,6 +3,13 @@
     display: none;
   }
 
+  @media (hover: none) and (pointer: coarse) {
+    :where(:has(> a-tooltip)) {
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+  }
+
   a-tooltip {
     --tooltip-bg: color-mix(in oklch, var(--bg-1) 80%, transparent);
     --tooltip-shadow:

@@ -32,6 +32,8 @@
     --button-fg-secondary-rest: #534c57;
     --button-fg-secondary-hover: #49424c;
 
+    --button-fg-secondary-l-shift: 0.05;
+
     --button-fg-tertiary-rest: #635b65;
     --button-fg-tertiary-hover: #534c57;
     --button-bg-tertiary-hover: #44374b0d;
@@ -180,6 +182,8 @@
     --button-fg-secondary-rest: #c1b9c1;
     --button-fg-secondary-hover: #d4ced4;
 
+    --button-fg-secondary-l-shift: 0;
+
     --button-fg-tertiary-rest: #afa9b1;
     --button-fg-tertiary-hover: #afa9b1;
     --button-bg-tertiary-hover: #e4d1ef14;
@@ -310,6 +314,8 @@
     border-radius: 4px;
     text-decoration: none;
 
+    box-shadow: 0 0 1px color-mix(in oklch, currentColor, transparent 50%);
+
     font-size: 15px;
     font-family: var(--sans-serif);
     font-weight: 450;
@@ -389,10 +395,6 @@
     &:focus-visible {
       outline: 1px solid var(--button-focus);
       outline-offset: 1px;
-    }
-
-    &[selected] {
-      box-shadow: inset 0 0 0 0.5px currentColor;
     }
 
     &[priority="quaternary"] {
@@ -506,6 +508,7 @@
     }
 
     &[tone]:not(
+        [tone=""],
         [tone="brand"],
         [tone="neutral"],
         [tone="critical"],
@@ -547,6 +550,7 @@
     }
 
     .dark &[tone]:not(
+        [tone=""],
         [tone="brand"],
         [tone="neutral"],
         [tone="critical"],
@@ -567,7 +571,7 @@
       --_tone-primary-l-active: 0.57;
     }
 
-    --button-fg: var(--button-fg-secondary-rest);
+    --button-fg: oklch(from var(--button-fg-secondary-rest) calc(l - var(--button-fg-secondary-l-shift)) c h);
     --button-bg: var(--button-bg-secondary-rest);
 
     @media (hover: hover) and (pointer: fine) {
@@ -584,6 +588,8 @@
     &[priority="primary"] {
       --button-fg: var(--button-fg-primary-rest);
       --button-bg: var(--button-bg-primary-rest);
+
+      box-shadow: none;
       @media (hover: hover) and (pointer: fine) {
         &:hover {
           --button-bg: var(--button-bg-primary-hover);
@@ -597,6 +603,8 @@
     &[priority="tertiary"] {
       --button-fg: var(--button-fg-tertiary-rest);
       --button-bg: transparent;
+
+      box-shadow: none;
       @media (hover: hover) and (pointer: fine) {
         &:hover {
           --button-fg: var(--button-fg-tertiary-hover);
@@ -610,8 +618,11 @@
       }
     }
     &[priority="quaternary"] {
-      --button-fg: color-mix(in oklch, var(--button-fg-quaternary-rest) 82%, transparent);
+      --button-fg: color-mix(in oklch, var(--button-fg-quaternary-rest) 90%, transparent);
       --button-bg: transparent;
+
+      box-shadow: none;
+      font-weight: 415;
       @media (hover: hover) and (pointer: fine) {
         &:hover {
           --button-fg: var(--button-fg-quaternary-hover);
@@ -627,6 +638,10 @@
       .dark &:active {
         --button-fg: var(--button-fg-quaternary-rest);
       }
+    }
+
+    &[selected] {
+      box-shadow: inset 0 0 0 1px currentColor;
     }
 
     &[disabled] {
