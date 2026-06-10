@@ -10,7 +10,7 @@ This constraint shapes the architecture: the web components carry the core styli
 
 `@antadesign/anta` is an NPM package, so you can `npm install @antadesign/anta` or do that with `pnpm` / `bun`.
 
-Since Anta is in active development we suggest using the latest dev version: `"@antadesign/anta": "dev"` in your `package.json`. For production builds we suggest pinning to a stable version from npm.
+Use the latest version from npm, but **always pin an exact version** — `"@antadesign/anta": "0.2.0"` in your `package.json` — rather than a floating tag like `"latest"` or `"dev"`, which can change between installs.
 
 ### Usage
 

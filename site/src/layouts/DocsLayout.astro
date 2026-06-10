@@ -21,9 +21,9 @@ const isCurrent = (href: string) => {
 
 // Fetch the latest published version from the npm registry at build time
 // so the sidebar shield labels the current release without a runtime call.
-// Prefer the `dev` dist-tag (this is what we publish under), fall back to
-// `latest`. Any failure (offline, registry hiccup) silently degrades to a
-// plain "npm" label.
+// Prefer the stable `latest` dist-tag, falling back to `dev` only if no
+// stable release exists yet. Any failure (offline, registry hiccup)
+// silently degrades to a plain "npm" label.
 let npmVersion: string | null = null
 try {
   const res = await fetch('https://registry.npmjs.org/@antadesign/anta', {
@@ -31,7 +31,7 @@ try {
   })
   if (res.ok) {
     const data = await res.json()
-    npmVersion = data?.['dist-tags']?.dev ?? data?.['dist-tags']?.latest ?? null
+    npmVersion = data?.['dist-tags']?.latest ?? data?.['dist-tags']?.dev ?? null
   }
 } catch {}
 

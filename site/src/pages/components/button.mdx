@@ -415,7 +415,7 @@ Compose your own thin wrapper around
 your library's `Link` component — which renders an `<a>`, so it matches the
 selector.
 
-```tsx folded
+```tsx
 // LinkButton.tsx — anta-styled link for client-side routing
 import { Link, type LinkProps } from 'react-router-dom'
 import type { IconShape } from '@antadesign/anta'
@@ -443,7 +443,7 @@ export const LinkButton = ({
 
 Usage:
 
-```tsx folded
+```tsx
 <LinkButton to="/dashboard" tone="brand" label="Dashboard" />
 <LinkButton to="/docs" priority="tertiary" iconTrailing="external-link" label="Docs" />
 ```
