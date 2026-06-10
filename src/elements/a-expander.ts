@@ -47,11 +47,14 @@ import './a-expander.css'
  *
  * - **Summary**: a real `<button>` (free focus + Enter/Space), reset to
  *   inherit the host's box/text so it reads as a plain header row. Its
- *   typography comes from the `--expander-summary-font-size` /
- *   `-line-height` / `-font-weight` host tokens, re-pointed per `[level]`
- *   in `a-expander.css` — that file mirrors the `a-title.css` type scale
- *   (keep them in sync; `a-title` is CSS-only so there is no shared
- *   constant to import).
+ *   typography (default + per-`[level]` rules) is generated from
+ *   `SUMMARY_TYPE_SCALE` below — the one place to keep in sync with the
+ *   `a-title.css` type scale (`a-title` is CSS-only, so there is no
+ *   shared constant to import). Deliberately NOT exposed as
+ *   `--expander-summary-*` tokens: `level` covers the supported
+ *   variation, the weight never varies, and `::part(summary)` is the
+ *   escape hatch for bespoke restyling — component tokens are reserved
+ *   for values external CSS must re-point (tone, surface, dark mode).
  * - **Chevron**: the button's `::before` — a mask painting with
  *   `currentColor` (the inherited, possibly toned `--expander-text`);
  *   dimmed at rest, full on hover/open, rotated 90° when open. Explicit
@@ -109,6 +112,25 @@ import './a-expander.css'
 
 const ANIM_MS = 200
 
+// Mirrors the h1–h6 scale in a-title.css (font-size / line-height, px).
+// Level 5 is the default summary typography; the weight matches <Title>.
+const SUMMARY_TYPE_SCALE: Record<string, [number, number]> = {
+  '1': [28, 32],
+  '2': [24, 28],
+  '3': [20, 24],
+  '4': [17, 20],
+  '5': [15, 20],
+  '6': [13, 16],
+}
+const SUMMARY_FONT_WEIGHT = 584.62
+
+const SUMMARY_LEVEL_RULES = Object.entries(SUMMARY_TYPE_SCALE)
+  .map(
+    ([level, [size, line]]) =>
+      `:host([level="${level}"]) button { font-size: ${size}px; line-height: ${line}px; }`,
+  )
+  .join('\n  ')
+
 const CHEVRON =
   "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m9 18 6-6-6-6'/%3e%3c/svg%3e\")"
 
@@ -134,11 +156,13 @@ const SHADOW_STYLE = `
     user-select: none;
     border-radius: 2px;
     outline-offset: 4px;
-    font-size: var(--expander-summary-font-size);
-    line-height: var(--expander-summary-line-height);
-    font-weight: var(--expander-summary-font-weight);
+    font-size: ${SUMMARY_TYPE_SCALE['5'][0]}px;
+    line-height: ${SUMMARY_TYPE_SCALE['5'][1]}px;
+    font-weight: ${SUMMARY_FONT_WEIGHT};
     letter-spacing: 0;
   }
+
+  ${SUMMARY_LEVEL_RULES}
 
   button::before {
     content: '';

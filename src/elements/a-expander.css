@@ -3,10 +3,6 @@
     --expander-text: var(--text-2);
     --expander-text-hover: var(--text-1);
 
-    --expander-summary-font-size: 15px;
-    --expander-summary-line-height: 20px;
-    --expander-summary-font-weight: 584.62;
-
     --expander-bg-secondary: var(--bg-2);
     --expander-border-secondary: var(--border-5);
     --expander-bg-primary: var(--bg-4);
@@ -25,13 +21,6 @@
     color: var(--expander-text);
     background: var(--expander-bg);
   }
-
-  a-expander[level="1"] { --expander-summary-font-size: 28px; --expander-summary-line-height: 32px; }
-  a-expander[level="2"] { --expander-summary-font-size: 24px; --expander-summary-line-height: 28px; }
-  a-expander[level="3"] { --expander-summary-font-size: 20px; --expander-summary-line-height: 24px; }
-  a-expander[level="4"] { --expander-summary-font-size: 17px; --expander-summary-line-height: 20px; }
-  a-expander[level="5"] { --expander-summary-font-size: 15px; --expander-summary-line-height: 20px; }
-  a-expander[level="6"] { --expander-summary-font-size: 13px; --expander-summary-line-height: 16px; }
 
   a-expander-summary {
     display: block;

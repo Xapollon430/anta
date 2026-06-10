@@ -235,7 +235,6 @@ filled surfaces from the theme palette, so light / dark track for free.
 | `--expander-border` | Host border color. Follows the same per-priority surface; transparent on `tertiary`. |
 | `--expander-bg-secondary`<br />`--expander-border-secondary` | Secondary (default) surface — a subtle fill (`--bg-2`) + faint edge (`--border-5`), re-pointed per tone. |
 | `--expander-bg-primary`<br />`--expander-border-primary` | Primary surface — a more pronounced card (`--bg-4` + `--border-4`), re-pointed per tone. |
-| `--expander-summary-font-size`<br />`--expander-summary-line-height`<br />`--expander-summary-font-weight` | Summary (header) typography. Mirrors the `<Title>` type scale; `level` re-points size + line-height. |
 | `--expander-tone-source` | The color a custom (non-named) `tone` derives from. Set inline by the wrapper; set it yourself to drive the derived palette from your own variable. |
 
 </Disclosure>
@@ -250,7 +249,7 @@ as [`::part`](https://developer.mozilla.org/en-US/docs/Web/CSS/::part):
 
 | Part | What it is |
 |---|---|
-| `summary` | The header `<button>`. Reach states CSS variables can't — `::part(summary):hover`, `:focus-visible`, or the chevron via `::part(summary)::before`. |
+| `summary` | The header `<button>`. Reach what CSS variables can't — states (`::part(summary):hover`, `:focus-visible`), the chevron via `::part(summary)::before`, or bespoke header typography beyond what `level` offers. |
 | `content` | The collapsible body region. |
 
 ```css
