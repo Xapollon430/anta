@@ -184,9 +184,12 @@ page's table of contents — pass a `<Title>` (or your own markup) as the
 ## Open state
 
 Leave it uncontrolled and pass `defaultOpen` for the initial state — the
-element owns open/close from there. To drive it yourself, pass
-`open` and handle `onToggle(open)` (controlled). Either way `onToggle`
-fires with the new state on every toggle.
+element owns open/close from there. To drive it yourself, pass `open`
+and handle `onToggle(open)` (controlled): the expander then only follows
+the prop, and clicking the summary just *requests* a change through
+`onToggle` — apply it to your state to accept, or ignore it to reject
+(e.g. a section that needs confirmation before closing). If you pass
+`open`, you own it.
 
 ```tsx
 // uncontrolled
@@ -232,6 +235,8 @@ filled surfaces from the theme palette, so light / dark track for free.
 | `--expander-border` | Host border color. Follows the same per-priority surface; transparent on `tertiary`. |
 | `--expander-bg-secondary`<br />`--expander-border-secondary` | Secondary (default) surface — a subtle fill (`--bg-2`) + faint edge (`--border-5`), re-pointed per tone. |
 | `--expander-bg-primary`<br />`--expander-border-primary` | Primary surface — a more pronounced card (`--bg-4` + `--border-4`), re-pointed per tone. |
+| `--expander-summary-font-size`<br />`--expander-summary-line-height`<br />`--expander-summary-font-weight` | Summary (header) typography. Mirrors the `<Title>` type scale; `level` re-points size + line-height. |
+| `--expander-tone-source` | The color a custom (non-named) `tone` derives from. Set inline by the wrapper; set it yourself to drive the derived palette from your own variable. |
 
 </Disclosure>
 

@@ -1,23 +1,12 @@
 @layer anta {
-  /* `<a-expander>` — a collapsible disclosure. The element is JS-backed
-     (see a-expander.ts): its shadow DOM holds a <button> summary + a
-     collapsible content region. This file styles the HOST box (the framed
-     container around the disclosure) and declares the theme tokens that
-     cascade — via `color` + CSS custom properties — into the shadow tree.
-     Summary typography, the chevron, and the animation live in the shadow
-     <style> (they target shadow-internal nodes external CSS can't reach).
-
-     Tones use Anta's theme-aware semantic tokens, so they need no `.dark`
-     rules — the tokens re-theme themselves (same as <a-tag>). */
-
   a-expander {
     --expander-text: var(--text-2);
     --expander-text-hover: var(--text-1);
 
-    /* Per-priority surfaces (background + border). Re-pointed per tone
-       below; consumed by the `priority` rules. Secondary is the DEFAULT —
-       a subtle near-page fill with a faint edge; primary is a more
-       pronounced card; tertiary opts out to transparent. */
+    --expander-summary-font-size: 15px;
+    --expander-summary-line-height: 20px;
+    --expander-summary-font-weight: 584.62;
+
     --expander-bg-secondary: var(--bg-2);
     --expander-border-secondary: var(--border-5);
     --expander-bg-primary: var(--bg-4);
@@ -29,8 +18,6 @@
     display: block;
     width: 100%;
     box-sizing: border-box;
-    /* Border + padding are present on every priority (transparent on
-       tertiary) so switching priority never shifts the layout. */
     padding: 4px;
     border: 1px solid var(--expander-border);
     border-radius: 4px;
@@ -39,35 +26,26 @@
     background: var(--expander-bg);
   }
 
-  /* Light-DOM composition children (slotted into the element). Like
-     <a-tag-label>, they're CSS-only styled tags — no JS, no shadow. The
-     title is projected into the shadow <button>, so it inherits that
-     button's level typography; here it just lays out + ellipsizes. The
-     body owns only layout (its indent) — no typography, so content keeps
-     its own; its open/close animation and overflow are handled shadow-side
-     (see a-expander.ts). */
+  a-expander[level="1"] { --expander-summary-font-size: 28px; --expander-summary-line-height: 32px; }
+  a-expander[level="2"] { --expander-summary-font-size: 24px; --expander-summary-line-height: 28px; }
+  a-expander[level="3"] { --expander-summary-font-size: 20px; --expander-summary-line-height: 24px; }
+  a-expander[level="4"] { --expander-summary-font-size: 17px; --expander-summary-line-height: 20px; }
+  a-expander[level="5"] { --expander-summary-font-size: 15px; --expander-summary-line-height: 20px; }
+  a-expander[level="6"] { --expander-summary-font-size: 13px; --expander-summary-line-height: 16px; }
+
   a-expander-summary {
     display: block;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    /* Ease the hover/press color change (set shadow-side on the button's
-       :hover / :active) rather than snapping. */
     transition: color 150ms ease;
   }
   a-expander-details {
-    /* The body is just a container for the consumer's content — it owns
-       only layout (the indent that lines content up under the title, past
-       the chevron). Typography is intentionally NOT set: a <Text> brings
-       its own, and raw content inherits the surrounding page. */
     display: block;
     padding: 4px 4px 4px 20px;
   }
 
-  /* Priority — the surface/emphasis axis (reuses Button/Text vocabulary).
-     secondary (default, on the base rule above) = subtle fill; primary =
-     a more pronounced card; tertiary = transparent (the bare disclosure). */
   a-expander[priority="primary"] {
     --expander-bg: var(--expander-bg-primary);
     --expander-border: var(--expander-border-primary);
@@ -77,11 +55,6 @@
     --expander-border: transparent;
   }
 
-  /* marker="outside" (tertiary only) — the docs-header layout: the chevron
-     hangs in the left gutter (negative space, see a-expander.ts) and the
-     title + body sit flush with surrounding content. Zero the left border
-     and padding so the title starts at the element's edge; the body drops
-     its indent to align under the (now flush) title. */
   a-expander[priority="tertiary"][marker="outside"] {
     border-width: 0;
     padding-left: 0;
@@ -90,8 +63,6 @@
     padding-left: 0;
   }
 
-  /* Named tones — re-point text + both filled surfaces. `color` cascades
-     into the shadow summary/body; the fills only show on secondary/primary. */
   a-expander[tone="brand"] {
     --expander-text: var(--text-2-brand);
     --expander-text-hover: var(--text-1-brand);
@@ -133,13 +104,6 @@
     --expander-border-primary: var(--border-4-critical);
   }
 
-  /* Custom tone — any non-named `tone` (a literal CSS color). Keep the
-     source hue; pin lightness/chroma per token so any input reads like a
-     sibling of the named tones (same mechanism as <a-tag> / <a-button>).
-     The JSX wrapper writes --expander-tone-source inline; the typed
-     attr() fallback picks up raw <a-expander tone="…"> on engines that
-     support it (oklch relative color: Chrome 119+, Safari 16.4+,
-     Firefox 128+). */
   a-expander[tone]:not(
       [tone="neutral"],
       [tone="brand"],
@@ -158,7 +122,6 @@
     --expander-border-primary:   oklch(from var(--expander-tone-source) 0.87 0.05 h);
   }
 
-  /* Custom tone, dark mode — lighter text, darker surfaces. */
   .dark a-expander[tone]:not(
       [tone="neutral"],
       [tone="brand"],

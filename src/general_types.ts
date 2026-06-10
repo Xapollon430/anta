@@ -138,15 +138,23 @@ export interface ATagAttributes extends BaseAttributes {
 /**
  * Attributes for the `<a-expander>` collapsible disclosure.
  *
- * The element wraps a native `<details>`/`<summary>` in its shadow DOM.
- * The title is projected via a `slot="title"`; the body is the default
- * slot. Low-level attributes; for the JSX wrapper use `Expander` from
- * `@antadesign/anta`.
+ * The element builds its own shadow DOM (no native `<details>`): a
+ * `<button>` summary carrying `aria-expanded` plus an animated content
+ * region. The title is projected via `slot="title"`; the body is the
+ * default slot. Low-level attributes; for the JSX wrapper use `Expander`
+ * from `@antadesign/anta`.
  */
 export interface AExpanderAttributes extends BaseAttributes {
-  /** Open state. Presence-based (`''` open, omit closed). The element
-   *  reflects this onto the shadow `<details>`. */
-  open?: boolean | ''
+  /** Controlled open state — value-based, like ARIA, because absence
+   *  must keep meaning "uncontrolled". When present, the attribute is
+   *  the source of truth (`''`/`'true'` open, `'false'` closed): clicks
+   *  only dispatch `toggle` with the requested state, and the consumer
+   *  answers by updating the attribute. Omit it (use `defaultopen`) for
+   *  the self-toggling uncontrolled mode. */
+  open?: '' | 'true' | 'false'
+  /** Initial open state for the uncontrolled mode. Presence-based
+   *  (`''`/bare = initially open); read once when the element connects. */
+  defaultopen?: boolean | ''
   /** Surface emphasis. `secondary` (default) is a subtle fill; `primary`
    *  is a stronger raised fill; `tertiary` is transparent. */
   priority?: 'primary' | 'secondary' | 'tertiary'
@@ -163,10 +171,13 @@ export interface AExpanderAttributes extends BaseAttributes {
   /** Heading type scale for the summary, `'1'`–`'6'` (mirrors `<a-title>`
    *  levels). Default (omitted) ≈ level 5. */
   level?: '1' | '2' | '3' | '4' | '5' | '6'
-  /** Fires on open/close. The element dispatches a `toggle` `CustomEvent`
-   *  whose `detail.open` carries the new state — bound like any DOM event
-   *  by the renderer (no ref needed). */
-  onToggle?: (e: any) => void
+  /** Fires when the summary is toggled. The element dispatches a `toggle`
+   *  `CustomEvent` whose `detail.open` carries the requested state. The
+   *  all-lowercase spelling is deliberate — it's the one form both
+   *  renderers bind to the `toggle` event (React 19 keeps the case of
+   *  whatever follows `on`, so `onToggle` would listen for "Toggle";
+   *  Preact lowercases). */
+  ontoggle?: (e: CustomEvent<{ open: boolean }>) => void
 }
 
 /**

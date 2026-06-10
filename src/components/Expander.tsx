@@ -1,4 +1,3 @@
-import { cloneElement, isValidElement } from "react";
 import type { BaseProps } from "../general_types";
 
 const NAMED_TONES = new Set([
@@ -47,32 +46,45 @@ export interface ExpanderProps extends Omit<BaseProps, "title"> {
    *  `priority="tertiary"`.
    *  @defaultValue 'inside' */
   marker?: "inside" | "outside";
-  /** Controlled open state. When provided, the consumer owns open/close
-   *  (pair with `onToggle`). */
+  /** Controlled open state. When provided, the consumer owns open/close:
+   *  the expander only follows this prop, and clicking the summary just
+   *  requests a change via `onToggle` (so a toggle can be rejected by not
+   *  updating). Leave undefined for uncontrolled. */
   open?: boolean;
   /** Initial open state for the uncontrolled case. */
   defaultOpen?: boolean;
-  /** Fired whenever the disclosure toggles, with the new open state. */
+  /** Fired whenever the summary is toggled, with the requested open
+   *  state (in controlled mode, apply it to `open` to accept). */
   onToggle?: (open: boolean) => void;
 }
 
-/** Pull the new open state out of the element's `toggle` CustomEvent,
- *  across renderers: Preact hands the raw event (`detail`), React a
- *  SyntheticEvent (`nativeEvent.detail`). */
-function toggledOpen(e: any): boolean {
-  return !!(e?.detail?.open ?? e?.nativeEvent?.detail?.open);
+/** The element's `toggle` event payload. */
+type ToggleEvent = CustomEvent<{ open: boolean }>;
+
+/** Pull the requested open state out of the element's `toggle` event,
+ *  across renderers: a raw `CustomEvent` carries `detail` directly; a
+ *  synthetic wrapper carries it on `nativeEvent.detail`. */
+function toggledOpen(e: ToggleEvent | { nativeEvent: ToggleEvent }): boolean {
+  const detail =
+    ("nativeEvent" in e ? e.nativeEvent?.detail : undefined) ??
+    ("detail" in e ? e.detail : undefined);
+  return !!detail?.open;
 }
 
 /**
  * `<Expander>` — a collapsible disclosure section.
  *
  * A pure, stateless pass-through to `<a-expander>`: the element owns all
- * interaction (toggle, keyboard, ARIA, animation) and its open state, so
- * the wrapper holds no state and grabs no ref — it only maps props to
- * attributes (safe wherever the host DOM is reconciled, incl. off the UI
- * thread). Supports controlled (`open` + `onToggle`) and uncontrolled
- * (`defaultOpen`) use; `onToggle` binds to the element's `toggle` event
- * like any DOM handler.
+ * interaction (toggle, keyboard, ARIA, animation), so the wrapper holds
+ * no state and grabs no ref — it only maps props to attributes (safe
+ * wherever the host DOM is reconciled, incl. off the UI thread).
+ *
+ * Uncontrolled (`defaultOpen`): the element owns its open state. The
+ * wrapper emits `defaultopen` — never `open` — so the DOM carries no
+ * stale state attribute. Controlled (`open` + `onToggle`): the wrapper
+ * emits `open="" | "false"`; the element treats the attribute as the
+ * source of truth and clicks only dispatch the `toggle` event, giving
+ * real controlled semantics (a consumer can reject a toggle).
  */
 export const Expander = ({
   title,
@@ -88,7 +100,7 @@ export const Expander = ({
   children,
   ...rest
 }: ExpanderProps) => {
-  const isOpen = open ?? defaultOpen ?? false;
+  const controlled = open !== undefined;
 
   // A non-named tone is a literal CSS color: feed it to the element's
   // oklch derivation via an inline custom property (the CSS attr() form
@@ -98,26 +110,36 @@ export const Expander = ({
     ? { ...style, ["--expander-tone-source"]: tone }
     : style;
 
-  // A string title is rendered as our <a-expander-summary> (which carries
-  // the hover affordance). A node title is the consumer's own markup —
-  // slot it as-is (no <a-expander-summary>), so it keeps full control and
-  // opts out of the summary hover styling.
-  const titleNode = isValidElement(title) ? (
-    cloneElement(title as React.ReactElement<{ slot?: string }>, {
-      slot: "title",
-    })
-  ) : (
-    <a-expander-summary slot="title">{title}</a-expander-summary>
-  );
+  // A string (or number) title is rendered as our <a-expander-summary>,
+  // which carries the hover affordance. A node title is the consumer's
+  // own markup: slot it through a layout-neutral display:contents span —
+  // the shadow hover hook targets ::slotted(a-expander-summary), so a
+  // custom title opts out of the summary styling automatically. (No
+  // cloneElement/isValidElement — those are React-only APIs that break
+  // the configure() portability story, and a wrapper span also handles
+  // fragments and arrays.)
+  const titleNode =
+    typeof title === "object" && title !== null ? (
+      <span slot="title" style={{ display: "contents" }}>
+        {title}
+      </span>
+    ) : (
+      <a-expander-summary slot="title">{title}</a-expander-summary>
+    );
 
   return (
     <a-expander
-      open={isOpen ? "" : undefined}
+      open={controlled ? (open ? "" : "false") : undefined}
+      defaultopen={!controlled && defaultOpen ? "" : undefined}
       level={level != null ? (String(level) as `${typeof level}`) : undefined}
       tone={tone && tone !== "neutral" ? tone : undefined}
       priority={priority && priority !== "secondary" ? priority : undefined}
       marker={marker && marker !== "inside" ? marker : undefined}
-      onToggle={onToggle ? (e: any) => onToggle(toggledOpen(e)) : undefined}
+      // All-lowercase `ontoggle` is the one event-prop spelling both
+      // renderers bind to our `toggle` event: React 19 keeps the case of
+      // whatever follows `on` (so `onToggle` would listen for "Toggle"),
+      // Preact lowercases. Verified against real React 19 + Preact.
+      ontoggle={onToggle ? (e: ToggleEvent) => onToggle(toggledOpen(e)) : undefined}
       class={className}
       style={computedStyle}
       {...rest}

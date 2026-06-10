@@ -15,37 +15,106 @@ import './a-expander.css'
  *
  * Shadow structure (no classes / ids — styled by element + structure):
  *
- *   <button>                 the summary; chevron is its ::before; the
+ *   <button part="summary">  the summary; chevron is its ::before; the
  *     <slot name="title">    title is projected here
  *   <div>                    the grid that animates height
- *     <div>                  the grid item that clips while animating
+ *     <div part="content">   the grid item that clips while animating
  *       <slot>               the body
  *
- * The `<button>` gives free focus + Enter/Space and carries the open
- * state in `aria-expanded` — which is BOTH the a11y signal and the CSS
- * state hook (`button[aria-expanded="true"] + div`), so no extra class
- * is needed. (`aria-controls` is intentionally omitted: it's optional in
- * the disclosure pattern, poorly supported by screen readers, and would
- * force a generated id.)
+ * ## Open state — controlled vs. uncontrolled
  *
- * Open state lives in the shadow (the `aria-expanded` attribute + the
- * collapsed region's `inert`) — never the host (declarative-DOM rule:
- * the host may be reconciled off the UI thread; we only touch shadow
- * internals). The host `open` attribute is the controlled input,
- * reflected IN. Clicking the summary toggles immediately and dispatches
- * a `toggle` CustomEvent on the host (`detail: { open }`).
+ * - **Uncontrolled** (no `open` attribute): the element owns its state.
+ *   Clicking the summary toggles it; `defaultopen` (presence) sets the
+ *   initial state. This is the hand-authored-HTML mode.
+ * - **Controlled** (`open` attribute present — `""`/`"true"` open,
+ *   `"false"` closed): the attribute is the single source of truth.
+ *   Clicks do NOT self-toggle; they only dispatch the `toggle` event
+ *   (`detail.open` = the *requested* state) and the consumer answers by
+ *   updating the attribute. This gives real controlled semantics — a
+ *   consumer can reject a toggle by simply not updating. If you set
+ *   `open`, you own it. The attribute is value-based (like ARIA), not
+ *   presence-based, because absence must keep meaning "uncontrolled".
+ *
+ * The internal open state lives in the shadow: `aria-expanded` on the
+ * button (BOTH the a11y signal and the CSS state hook — no extra class)
+ * plus `inert` on the collapsed region so hidden content leaves the tab
+ * order and the a11y tree. Nothing on the host is ever mutated from JS
+ * (declarative-DOM rule: the host may be reconciled off the UI thread).
+ * `aria-controls` is intentionally omitted: optional in the WAI-ARIA
+ * disclosure pattern, poorly supported, and would force a generated id.
+ *
+ * ## Shadow style notes (the sheet itself ships comment-free)
+ *
+ * - **Summary**: a real `<button>` (free focus + Enter/Space), reset to
+ *   inherit the host's box/text so it reads as a plain header row. Its
+ *   typography comes from the `--expander-summary-font-size` /
+ *   `-line-height` / `-font-weight` host tokens, re-pointed per `[level]`
+ *   in `a-expander.css` — that file mirrors the `a-title.css` type scale
+ *   (keep them in sync; `a-title` is CSS-only so there is no shared
+ *   constant to import).
+ * - **Chevron**: the button's `::before` — a mask painting with
+ *   `currentColor` (the inherited, possibly toned `--expander-text`);
+ *   dimmed at rest, full on hover/open, rotated 90° when open. Explicit
+ *   `margin-inline-end` (flex gap is 0) so spacing is tunable per
+ *   variant. With `marker="outside"` (tertiary only) it hangs in the
+ *   left gutter: pulled left by its own 16px width + 2px gap while the
+ *   host zeroes its left border/padding (see a-expander.css), so the
+ *   title sits flush with surrounding content like the docs headers.
+ * - **Hover/press affordance**: applies only to OUR default summary via
+ *   `::slotted(a-expander-summary)` — a consumer slotting custom title
+ *   markup opts out automatically. Hover eases the title to
+ *   `--expander-text-hover`; on the transparent tertiary surface it adds
+ *   the docs-header dotted underline. Press eases title + (closed)
+ *   chevron back to the at-rest look as soft feedback; the underline
+ *   intentionally stays (no flicker). The `:active` color rule mirrors
+ *   its `:hover` counterpart's specificity and follows it in source
+ *   order, so it wins while pressed.
+ * - **Collapse animation**: grid `0fr ↔ 1fr` on the region after the
+ *   button (`ANIM_MS`), keyed off `aria-expanded`; the inner grid item
+ *   clips (`overflow: clip`) while animating. The grid item must be a
+ *   real shadow child — a slotted element reached through a
+ *   `display: contents` slot doesn't size the fr track. Once open and
+ *   idle the clip is dropped (delayed by `ANIM_MS` via a discrete
+ *   `overflow` transition) so focus rings / nested popovers aren't cut
+ *   off. Known degradation: without `transition-behavior:
+ *   allow-discrete` (Firefox < 129, Safari < 18) the un-clip applies
+ *   instantly on open, so expanding content paints outside the still-
+ *   animating region for `ANIM_MS` — accepted, it's a one-frame-class
+ *   cosmetic on a progressive-enhancement property.
+ *
+ * ## Host CSS notes (`a-expander.css` — also ships comment-free)
+ *
+ * - The external file styles the HOST box and declares the theme tokens
+ *   that cascade — via `color` + custom properties — into the shadow
+ *   tree. Named tones use Anta's theme-aware semantic tokens, so no
+ *   `.dark` rules are needed (same as `<a-tag>`).
+ * - Border + padding are present on every priority (transparent on
+ *   tertiary) so switching priority never shifts layout. `secondary` is
+ *   the default surface (on the base rule); `primary` re-points to the
+ *   stronger card pair; `tertiary` goes transparent. With
+ *   `marker="outside"` the left border/padding are zeroed and the body
+ *   drops its indent, so title + body sit flush.
+ * - `<a-expander-summary>` / `<a-expander-details>` are CSS-only styled
+ *   light-DOM tags (like `<a-tag-label>`). The summary inherits the
+ *   shadow button's typography and only lays out + ellipsizes; the
+ *   details own only layout (the indent) — no typography, so content
+ *   keeps its own.
+ * - Custom (non-named) `tone` keeps the source hue and pins lightness/
+ *   chroma per token via `oklch(from …)`, re-tuned for dark mode — the
+ *   `<a-tag>` / `<a-button>` mechanism. The JSX wrapper feeds the color
+ *   in via inline `--expander-tone-source`; the typed
+ *   `attr(tone type(<color>))` fallback covers raw-HTML authors on
+ *   engines that support it.
  */
 
-// chevron-right (rotates 90° → points down when open), as a mask so it
-// paints with the inherited text color. Mirrors the Disclosure chevron.
+const ANIM_MS = 200
+
 const CHEVRON =
   "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m9 18 6-6-6-6'/%3e%3c/svg%3e\")"
 
 const SHADOW_STYLE = `
   :host { display: block; }
 
-  /* Summary — a real <button>, reset to inherit the host's box/text so
-     it reads as a plain header row. Focus + Enter/Space come for free. */
   button {
     appearance: none;
     -webkit-appearance: none;
@@ -65,24 +134,17 @@ const SHADOW_STYLE = `
     user-select: none;
     border-radius: 2px;
     outline-offset: 4px;
-    /* Default summary typography ≈ level 5 (mirrors a-title.css); the
-       :host([level]) rules below override it. Demi-bold like <Title>. */
-    font-size: 15px;
-    line-height: 20px;
-    font-weight: 584.62;
+    font-size: var(--expander-summary-font-size);
+    line-height: var(--expander-summary-line-height);
+    font-weight: var(--expander-summary-font-weight);
     letter-spacing: 0;
   }
 
-  /* Chevron — a ::before mask (no element), painting with currentColor
-     (the inherited, possibly toned --expander-text); dimmed at rest,
-     full on hover/open, rotating open. */
   button::before {
     content: '';
     width: 16px;
     height: 16px;
     flex-shrink: 0;
-    /* Space the chevron from the title explicitly (the flex gap is 0) so
-       the spacing is controllable per variant — see marker=outside. */
     margin-inline-end: 4px;
     background-color: currentColor;
     -webkit-mask-image: ${CHEVRON};
@@ -94,46 +156,27 @@ const SHADOW_STYLE = `
     -webkit-mask-position: center;
             mask-position: center;
     opacity: 0.6;
-    /* The rotation, and the hover/press opacity, all ease smoothly. */
     transition: transform 150ms ease, opacity 150ms ease;
   }
   button:hover::before { opacity: 1; }
   button[aria-expanded="true"]::before { transform: rotate(90deg); opacity: 1; }
 
-  /* marker="outside" (tertiary only) — hang the chevron in the left gutter
-     (negative space) so the title sits flush with surrounding content,
-     like the docs section headers. The host zeroes its left border/padding
-     (see a-expander.css) so the title starts at the element's edge; here we
-     pull the chevron left by its own width + a tight gap, and sit it close
-     to the title (2px). margin-inline-* keeps it logical-direction aware. */
   :host([priority="tertiary"][marker="outside"]) button::before {
     margin-inline-start: -18px;
     margin-inline-end: 2px;
   }
 
-  /* Hover affordance — applied to OUR default summary (<a-expander-summary>)
-     only, so a consumer who slots their own title markup keeps full control
-     and opts out. The text eases to --text-1 (per tone). On the transparent
-     tertiary surface the title also gets a dotted underline on hover — the
-     same affordance as the docs-site section headers (and the one title
-     restyle we DON'T apply to the default/filled variants). */
   button:hover ::slotted(a-expander-summary) {
     color: var(--expander-text-hover);
   }
   :host([priority="tertiary"]) button:hover ::slotted(a-expander-summary) {
     text-decoration: underline;
     text-decoration-style: dotted;
-    text-decoration-color: color-mix(in srgb, currentColor 75%, transparent);
+    text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
   }
 
-  /* On press, ease the title color + chevron back to their at-rest look as
-     soft press feedback (same transition as hover — no instant snap). The
-     dotted underline intentionally STAYS (it shouldn't flicker). The color
-     rule mirrors its :hover counterpart's specificity and follows it in
-     source order, so it wins while active; the chevron only reverts when
-     closed — open, its rest opacity is already 1. */
   button:active ::slotted(a-expander-summary) {
     color: var(--expander-text);
   }
@@ -141,36 +184,19 @@ const SHADOW_STYLE = `
     opacity: 0.6;
   }
 
-  /* Per-level summary typography — values mirror a-title.css h1–h6. */
-  :host([level="1"]) button { font-size: 28px; line-height: 32px; }
-  :host([level="2"]) button { font-size: 24px; line-height: 28px; }
-  :host([level="3"]) button { font-size: 20px; line-height: 24px; }
-  :host([level="4"]) button { font-size: 17px; line-height: 20px; }
-  :host([level="5"]) button { font-size: 15px; line-height: 20px; }
-  :host([level="6"]) button { font-size: 13px; line-height: 16px; }
-
-  /* Collapsible region — the <div> after the <button>. Grid 0fr-1fr
-     animates the height; its inner <div> is the grid item that clips
-     while animating and holds the body slot. (The grid item must be a
-     real shadow child — a slotted element reached through a
-     display:contents slot doesn't size the fr track.) The open state is
-     keyed off the button's aria-expanded. Collapsed content is marked
-     inert from JS (see setOpen) so it leaves the tab order + a11y tree. */
   button + div {
     display: grid;
     grid-template-rows: 0fr;
   }
   button[aria-expanded="true"] + div { grid-template-rows: 1fr; }
   @media (prefers-reduced-motion: no-preference) {
-    button + div { transition: grid-template-rows 200ms ease; }
+    button + div { transition: grid-template-rows ${ANIM_MS}ms ease; }
   }
 
   button + div > div { min-height: 0; overflow: clip; }
-  /* Drop the clip once open + idle so focus rings / nested popovers
-     aren't cut off; the delay defers it until after the expand. */
   button[aria-expanded="true"] + div > div {
     overflow: visible;
-    transition: overflow 0s 200ms;
+    transition: overflow 0s ${ANIM_MS}ms;
     transition-behavior: allow-discrete;
   }
 `
@@ -210,34 +236,45 @@ export class AExpanderElement extends HTMLElementBase {
     shadow.append(style, this.summary, this.content)
   }
 
-  connectedCallback() {
-    this.setOpen(this.hasAttribute('open'), false)
-  }
-
-  attributeChangedCallback(name: string) {
-    // Reflect the controlled `open` attribute → internal state (read host,
-    // write shadow only). No dispatch — avoids a feedback loop with the
-    // wrapper writing the attribute back.
-    if (name === 'open') this.setOpen(this.hasAttribute('open'), false)
+  /** Controlled mode: the `open` attribute is present and owns the state. */
+  private get controlled(): boolean {
+    return this.hasAttribute('open')
   }
 
   private get isOpen(): boolean {
     return this.summary.getAttribute('aria-expanded') === 'true'
   }
 
-  /** Apply open state to the shadow internals (idempotent). When
-   *  `dispatch`, also emit a `toggle` event on the host so consumers can
-   *  observe / control it. `aria-expanded` is both the a11y signal and
-   *  the CSS state hook; `inert` keeps collapsed content out of the tab
-   *  order and the accessibility tree. */
-  private setOpen(open: boolean, dispatch: boolean) {
-    this.summary.setAttribute('aria-expanded', open ? 'true' : 'false')
-    this.content.inert = !open
-    if (dispatch) this.dispatchEvent(new CustomEvent('toggle', { detail: { open } }))
+  connectedCallback() {
+    if (this.controlled) this.syncFromAttribute()
+    else this.setOpen(this.hasAttribute('defaultopen'))
   }
 
+  attributeChangedCallback() {
+    // Only `open` is observed. When it's removed (controlled →
+    // uncontrolled hand-off) the current state is kept, not reset.
+    if (this.controlled) this.syncFromAttribute()
+  }
+
+  private syncFromAttribute() {
+    this.setOpen(this.getAttribute('open') !== 'false')
+  }
+
+  /** Apply open state to the shadow internals (idempotent; reads the host,
+   *  writes only the shadow). `aria-expanded` is both the a11y signal and
+   *  the CSS state hook; `inert` keeps collapsed content out of the tab
+   *  order and the accessibility tree. */
+  private setOpen(open: boolean) {
+    this.summary.setAttribute('aria-expanded', open ? 'true' : 'false')
+    this.content.inert = !open
+  }
+
+  /** Uncontrolled: toggle, then announce. Controlled: only announce the
+   *  requested state — the consumer answers via the `open` attribute. */
   private onSummaryClick = () => {
-    this.setOpen(!this.isOpen, true)
+    const requested = !this.isOpen
+    if (!this.controlled) this.setOpen(requested)
+    this.dispatchEvent(new CustomEvent('toggle', { detail: { open: requested } }))
   }
 }
 
