@@ -140,9 +140,10 @@ export interface ATagAttributes extends BaseAttributes {
  *
  * The element builds its own shadow DOM (no native `<details>`): a
  * `<button>` summary carrying `aria-expanded` plus an animated content
- * region. The title is projected via `slot="title"`; the body is the
- * default slot. Low-level attributes; for the JSX wrapper use `Expander`
- * from `@antadesign/anta`.
+ * region. The title is projected via `slot="title"`; header actions
+ * (rendered next to the trigger, outside it) via `slot="actions"`; the
+ * body is the default slot. Low-level attributes; for the JSX wrapper
+ * use `Expander` from `@antadesign/anta`.
  */
 export interface AExpanderAttributes extends BaseAttributes {
   /** Controlled open state — value-based, like ARIA, because absence
@@ -158,11 +159,14 @@ export interface AExpanderAttributes extends BaseAttributes {
   /** Surface emphasis. `secondary` (default) is a subtle fill; `primary`
    *  is a stronger raised fill; `tertiary` is transparent. */
   priority?: 'primary' | 'secondary' | 'tertiary'
-  /** Chevron position. `inside` (default) keeps it in the header row;
-   *  `outside` hangs it in the left gutter so the title sits flush with
-   *  surrounding content (docs-header style). Only takes effect with
-   *  `priority="tertiary"`. */
-  marker?: 'inside' | 'outside'
+  /** Chevron. `inside` (default) keeps it in the header row; `outside`
+   *  (tertiary only) hangs it in the left gutter so the title sits flush
+   *  with surrounding content (docs-header style); `none` (any priority)
+   *  removes it and drops the body's chevron-alignment indent. */
+  marker?: 'inside' | 'outside' | 'none'
+  /** Disables the header: not clickable or focusable, hover affordance
+   *  off, text dimmed. The open state freezes as-is. Presence-based. */
+  disabled?: boolean | ''
   /** Semantic tone, or any literal CSS color for a one-off custom tone.
    *  Named tones re-point the text + filled surface palette; a custom
    *  color keeps its hue with lightness/chroma pinned. `'neutral'` is the

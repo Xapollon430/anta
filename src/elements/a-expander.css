@@ -58,6 +58,10 @@
     padding-left: 0;
   }
 
+  a-expander[marker="none"] a-expander-details {
+    padding-left: 4px;
+  }
+
   a-expander[tone="brand"] {
     --expander-text: var(--text-2-brand);
     --expander-text-hover: var(--text-1-brand);
@@ -131,5 +135,14 @@
     --expander-border-secondary: oklch(from var(--expander-tone-source) 0.26 0.04 h);
     --expander-bg-primary:       oklch(from var(--expander-tone-source) 0.21 0.05 h);
     --expander-border-primary:   oklch(from var(--expander-tone-source) 0.30 0.06 h);
+  }
+
+  a-expander[disabled],
+  a-expander[disabled][tone] {
+    --expander-text: #afa9b1;
+  }
+  .dark a-expander[disabled],
+  .dark a-expander[disabled][tone] {
+    --expander-text: #635b65;
   }
 }

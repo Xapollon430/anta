@@ -9,7 +9,7 @@ import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import expanderDemoCode from './expander.demo.ts'
-import { Expander, Text } from '@antadesign/anta'
+import { Expander, Text, Button } from '@antadesign/anta'
 
 # Expander
 
@@ -153,6 +153,20 @@ Use it where the expander sits in a content column with room to its left
 (a prose measure); in a full-width / edge-to-edge container the chevron
 would overhang the edge.
 
+`marker="none"` removes the chevron entirely — on any priority — and
+drops the body's chevron-alignment indent so the content lines up under
+the flush title:
+
+<Preview direction="column" gap="8px">
+  <Expander marker="none" title="No chevron" defaultOpen>
+    <Text>The body indent collapses to match the flush title.</Text>
+  </Expander>
+</Preview>
+
+```tsx folded
+<Expander marker="none" title="…">…</Expander>
+```
+
 ## Title & level
 
 `title` takes a string or any node. For a string, `level` (1–6) applies
@@ -179,6 +193,50 @@ page's table of contents — pass a `<Title>` (or your own markup) as the
 
 ```tsx
 <Expander title={<Title level={5}>A real heading node</Title>}>…</Expander>
+```
+
+## Actions
+
+Pass `actions` to render extra controls — buttons, tags — at the end of
+the header row. They sit **outside** the toggle trigger, as its flex
+siblings: clicking them never toggles the expander, they're separately
+focusable, and screen readers announce them as their own controls.
+(Don't put interactive elements *inside* a custom `title` instead —
+nesting controls in a button is an accessibility anti-pattern.)
+
+<Preview direction="column" gap="8px">
+  <Expander title="Build artifacts" actions={<Button size="small" label="Download" />}>
+    <Text>The download button lives in the header but is not part of the trigger.</Text>
+  </Expander>
+</Preview>
+
+```tsx folded
+<Expander title="Build artifacts" actions={<Button size="small" label="Download" />}>
+  …
+</Expander>
+```
+
+In raw HTML, mark your action elements with `slot="actions"`.
+
+## Disabled
+
+`disabled` freezes the expander: the header is no longer clickable or
+focusable, the hover affordance is off, and the text dims. The open
+state stays as-is — disabling an open expander keeps it open. Header
+`actions` stay live; disable them separately if needed.
+
+<Preview direction="column" gap="8px">
+  <Expander title="Disabled, closed" disabled>
+    <Text>You can't see me.</Text>
+  </Expander>
+  <Expander title="Disabled, open" disabled defaultOpen>
+    <Text>Content stays visible; the state is frozen.</Text>
+  </Expander>
+</Preview>
+
+```tsx folded
+<Expander title="Disabled, closed" disabled>…</Expander>
+<Expander title="Disabled, open" disabled defaultOpen>…</Expander>
 ```
 
 ## Open state

@@ -17,11 +17,16 @@ import './a-expander.css'
  * a class, both shadow-scoped: invisible to consumer selectors, pure
  * documentation + styling hooks):
  *
- *   <button part="summary">  the summary; chevron is its ::before; the
- *     <slot name="title">    title is projected here
- *   <div class="region">     the grid that animates height
- *     <div part="content">   the grid item that clips while animating
- *       <slot>               the body
+ *   <div class="header">       flex row: the trigger + header actions
+ *     <button part="summary">  the summary; chevron is its ::before; the
+ *       <slot name="title">    title is projected here
+ *     <slot name="actions">    header actions — SIBLINGS of the button,
+ *                              never inside it: clicks on them don't
+ *                              toggle (no propagation path through the
+ *                              button) and AT sees separate controls
+ *   <div class="region">       the grid that animates height
+ *     <div part="content">     the grid item that clips while animating
+ *       <slot>                 the body
  *
  * ## Open state — controlled vs. uncontrolled
  *
@@ -94,6 +99,21 @@ import './a-expander.css'
  *   animating region for `ANIM_MS` — accepted, it's a one-frame-class
  *   cosmetic on a progressive-enhancement property.
  *
+ * - **Disabled** (`disabled`, presence-based): the shadow button gets the
+ *   native `disabled` — unfocusable, unclickable, no hover affordance
+ *   (the hover/press rules are gated on `:enabled`). The open state
+ *   freezes as-is (matching Radix / native form controls — disabling
+ *   doesn't force-close). Host CSS dims the text; header actions stay
+ *   live (they're outside the button) unless the consumer disables them.
+ * - **Marker**: `marker="outside"` (tertiary only) hangs the chevron in
+ *   the left gutter; `marker="none"` (any priority) removes it and drops
+ *   the body's chevron-alignment indent (see a-expander.css) so the
+ *   content lines up under the flush title.
+ * - **Open-state selectors** cross from the button to `.region` via
+ *   `.header:has(button[aria-expanded="true"]) + .region` — the button
+ *   sits inside the header flex row, so plain sibling combinators can't
+ *   reach the region anymore.
+ *
  * ## Host CSS notes (`a-expander.css` — also ships comment-free)
  *
  * - The external file styles the HOST box and declares the theme tokens
@@ -146,6 +166,12 @@ const CHEVRON =
 const SHADOW_STYLE = `
   :host { display: block; }
 
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   button {
     appearance: none;
     -webkit-appearance: none;
@@ -153,7 +179,8 @@ const SHADOW_STYLE = `
     border: none;
     margin: 0;
     padding: 0;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     font: inherit;
     color: inherit;
     text-align: left;
@@ -191,18 +218,20 @@ const SHADOW_STYLE = `
     opacity: 0.6;
     transition: transform 150ms ease, opacity 150ms ease;
   }
-  button:hover::before { opacity: 1; }
+  button:enabled:hover::before { opacity: 1; }
   button[aria-expanded="true"]::before { transform: rotate(90deg); opacity: 1; }
+  :host([marker="none"]) button::before { display: none; }
 
   :host([priority="tertiary"][marker="outside"]) button::before {
     margin-inline-start: -18px;
     margin-inline-end: 2px;
   }
 
-  button:hover { --_summary-color: var(--expander-text-hover); }
-  :host([priority="tertiary"]) button:hover { --_summary-underline: underline; }
-  button:active { --_summary-color: var(--expander-text); }
-  button:not([aria-expanded="true"]):active::before {
+  button:enabled:hover { --_summary-color: var(--expander-text-hover); }
+  :host([priority="tertiary"]) button:enabled:hover { --_summary-underline: underline; }
+  button:enabled:active { --_summary-color: var(--expander-text); }
+  button:disabled { cursor: default; }
+  button:enabled:not([aria-expanded="true"]):active::before {
     opacity: 0.6;
   }
 
@@ -210,13 +239,13 @@ const SHADOW_STYLE = `
     display: grid;
     grid-template-rows: 0fr;
   }
-  button[aria-expanded="true"] + .region { grid-template-rows: 1fr; }
+  .header:has(button[aria-expanded="true"]) + .region { grid-template-rows: 1fr; }
   @media (prefers-reduced-motion: no-preference) {
     .region { transition: grid-template-rows ${ANIM_MS}ms ease; }
   }
 
   [part="content"] { min-height: 0; overflow: clip; }
-  button[aria-expanded="true"] + .region [part="content"] {
+  .header:has(button[aria-expanded="true"]) + .region [part="content"] {
     overflow: visible;
     transition: overflow 0s ${ANIM_MS}ms;
     transition-behavior: allow-discrete;
@@ -224,7 +253,7 @@ const SHADOW_STYLE = `
 `
 
 export class AExpanderElement extends HTMLElementBase {
-  static observedAttributes = ['open']
+  static observedAttributes = ['open', 'disabled']
 
   private summary: HTMLButtonElement
   private region: HTMLDivElement
@@ -248,6 +277,12 @@ export class AExpanderElement extends HTMLElementBase {
     this.summary.append(titleSlot)
     this.summary.addEventListener('click', this.onSummaryClick)
 
+    const header = document.createElement('div')
+    header.className = 'header'
+    const actionsSlot = document.createElement('slot')
+    actionsSlot.name = 'actions'
+    header.append(this.summary, actionsSlot)
+
     this.region = document.createElement('div')
     this.region.className = 'region'
     const content = document.createElement('div')
@@ -256,7 +291,7 @@ export class AExpanderElement extends HTMLElementBase {
     content.append(document.createElement('slot'))
     this.region.append(content)
 
-    shadow.append(style, this.summary, this.region)
+    shadow.append(style, header, this.region)
   }
 
   /** Controlled mode: the `open` attribute is present and owns the state. */
@@ -269,18 +304,24 @@ export class AExpanderElement extends HTMLElementBase {
   }
 
   connectedCallback() {
+    this.syncDisabled()
     if (this.controlled) this.syncFromAttribute()
     else this.setOpen(this.hasAttribute('defaultopen'))
   }
 
-  attributeChangedCallback() {
-    // Only `open` is observed. When it's removed (controlled →
-    // uncontrolled hand-off) the current state is kept, not reset.
-    if (this.controlled) this.syncFromAttribute()
+  attributeChangedCallback(name: string) {
+    if (name === 'disabled') this.syncDisabled()
+    // When `open` is removed (controlled → uncontrolled hand-off) the
+    // current state is kept, not reset.
+    else if (this.controlled) this.syncFromAttribute()
   }
 
   private syncFromAttribute() {
     this.setOpen(this.getAttribute('open') !== 'false')
+  }
+
+  private syncDisabled() {
+    this.summary.disabled = this.hasAttribute('disabled')
   }
 
   /** Apply open state to the shadow internals (idempotent; reads the host,
