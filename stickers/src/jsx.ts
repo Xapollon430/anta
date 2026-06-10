@@ -41,14 +41,33 @@ export interface AStickerAnimatedAttributes extends BaseAttributes {
   'aria-hidden'?: 'true' | 'false' | boolean
 }
 
+/**
+ * The two sticker `<a-*>` tags. Companion to anta's
+ * `AntaIntrinsicElements` — consumers using the global-merge pattern
+ * extend both to get a complete set of intrinsic elements:
+ *
+ * ```ts
+ * import type { AntaIntrinsicElements } from '@antadesign/anta'
+ * import type { StickerIntrinsicElements } from '@antadesign/stickers'
+ * declare global {
+ *   namespace JSX {
+ *     interface IntrinsicElements extends AntaIntrinsicElements, StickerIntrinsicElements {}
+ *   }
+ * }
+ * ```
+ */
+export interface StickerIntrinsicElements {
+  'a-sticker': AStickerAttributes
+  'a-sticker-animated': AStickerAnimatedAttributes
+}
+
 // Teach anta's JSX runtime about this package's two custom-element tags.
-// anta itself ships no sticker code; these intrinsics live here so the
-// wrappers (and consumers authoring raw `<a-sticker>` JSX) type-check.
+// `<a-sticker>` / `<a-sticker-animated>` written directly in JSX type-check
+// for consumers using `jsxImportSource: "@antadesign/anta"` — anta's
+// module-scoped `JSX.IntrinsicElements` picks up these members via
+// interface merging.
 declare module '@antadesign/anta/jsx-runtime' {
   namespace JSX {
-    interface IntrinsicElements {
-      'a-sticker': AStickerAttributes
-      'a-sticker-animated': AStickerAnimatedAttributes
-    }
+    interface IntrinsicElements extends StickerIntrinsicElements {}
   }
 }
