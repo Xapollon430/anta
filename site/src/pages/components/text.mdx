@@ -27,6 +27,18 @@ want emphasis. Pair with `tone` to apply a tinted palette (`brand`,
 `<Text>` are styled by the design system — there are no per-page
 overrides to maintain.
 
+<Disclosure title="Playground" anchor={false}>
+
+<Playground
+  client:visible
+  component="Text"
+  layout="side"
+  initialCode={textDemoCode}
+  initialCss={`.preview { align-items: center; justify-content: center; min-height: 100%; }`}
+/>
+
+</Disclosure>
+
 ## Link behavior
 
 Links inside `<Text>` follow a priority-aware hierarchy that keeps
@@ -53,18 +65,6 @@ the underline to full alpha.
 ## Demo
 
 <TextDemo client:load />
-
-<Disclosure title="Playground">
-
-<Playground
-  client:visible
-  component="Text"
-  layout="side"
-  initialCode={textDemoCode}
-  initialCss={`.preview { align-items: center; justify-content: center; min-height: 100%; }`}
-/>
-
-</Disclosure>
 
 ## Truncation & expansion
 
@@ -111,13 +111,13 @@ full text. `expandable` only takes effect together with `truncate`.
 </Col>
 </Columns>
 
-<Disclosure title="Component props">
+<Disclosure title="Component props" open>
 
 <PropsTable component="Text" />
 
 </Disclosure>
 
-<Disclosure title="Component tokens">
+<Disclosure title="Component tokens" open>
 
 `Text` derives its colors from the global token system. Every variable
 below has a light and dark mode value defined in

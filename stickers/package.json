@@ -1,6 +1,6 @@
 {
   "name": "@antadesign/stickers",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,9 @@
   },
   "scripts": {
     "build": "pnpm run build:js && pnpm run build:css && pnpm run build:types",
-    "build:css": "find src -name '*.css' | while IFS= read -r f; do d=\"dist/${f#src/}\"; mkdir -p \"$(dirname \"$d\")\"; cp \"$f\" \"$d\"; done && cp scripts/generate-stickers.mjs dist/",
+    "build:dev": "pnpm run build:js && pnpm run build:css:dev && pnpm run build:types",
+    "build:css": "esbuild $(find src -name '*.css') --minify --loader:.module.css=css --outdir=dist --outbase=src && cp scripts/generate-stickers.mjs dist/",
+    "build:css:dev": "find src -name '*.css' | while IFS= read -r f; do d=\"dist/${f#src/}\"; mkdir -p \"$(dirname \"$d\")\"; cp \"$f\" \"$d\"; done && cp scripts/generate-stickers.mjs dist/",
     "build:js": "esbuild $(find src \\( -name '*.ts' -o -name '*.tsx' \\) ! -name '*.d.ts') --outdir=dist --outbase=src --jsx=automatic --jsx-import-source=@antadesign/anta --format=esm --target=ES2022 --loader:.module.css=local-css --loader:.css=global-css",
     "build:types": "tsc -p src/tsconfig.json",
     "typecheck": "tsc --noEmit -p src/tsconfig.json",

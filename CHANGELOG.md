@@ -6,6 +6,17 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## 0.2.1 — June 10, 2026
+
+### Changed
+- **Secondary buttons: inset hairline edge.** The default `secondary` priority's edge is now an *inset* hairline — `box-shadow: inset 0 0 1px color-mix(in oklch, currentColor, transparent 70%)` (was a non-inset `0 0 1px color-mix(in oklch, currentColor, transparent 50%)` in 0.2.0). Softer and contained within the chip.
+- **Button loading overlay is subtler.** `--button-loading-opacity` lowered from `0.25` to `0.15`.
+- **Table borders use `--border-4`.** Raw `<table>` row separators and the `data-bordered` variant's outer frame + column dividers now use `--border-4` instead of `--border-5` — a touch stronger so the structure reads more clearly. (Both still live in `@layer anta`, overridable as before.)
+- **Monospace text carries no letter-spacing.** The reset now sets `letter-spacing: 0` on `code, kbd, samp, pre`, so a global `letter-spacing` an app applies to body prose no longer loosens code (code is metrically even by design).
+
+### Packaging
+- **Published CSS is now minified.** `build:css` runs the shipped CSS through esbuild (`--minify`), stripping comments and collapsing whitespace — smaller files in the tarball, identical rendering. Source and dev builds keep readable, commented CSS.
+
 ## 0.2.0 — June 9, 2026
 
 ### Added

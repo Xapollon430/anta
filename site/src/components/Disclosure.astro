@@ -18,9 +18,13 @@ interface Props {
   id?: string
   /** Heading level for the title. Defaults to 2 (top-level section). */
   level?: 2 | 3 | 4 | 5 | 6
+  /** When false, the title renders as a plain (non-heading, non-anchor)
+   *  label — kept out of the table of contents and not deep-linkable, while
+   *  the section stays expand/collapsible. Defaults to true. */
+  anchor?: boolean
 }
 
-const { title, open = false, id, level = 2 } = Astro.props
+const { title, open = false, id, level = 2, anchor = true } = Astro.props
 const slug = (id ?? title)
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, '-')
@@ -28,16 +32,22 @@ const slug = (id ?? title)
 const Heading = `h${level}` as const
 ---
 
-<details class="disclosure" open={open}>
+<details class:list={["disclosure", { plain: !anchor }]} open={open}>
   <summary class="summary">
     <a-icon shape="chevron-right" class="chevron"></a-icon>
     {/* A real heading carries the id so the TOC picks it up; the inner
         anchor mirrors rehype-autolink-headings' `behavior: 'wrap'` output
         (classes `header-anchor muted`) so the section deep-links and
-        hover-underlines like every other `##` heading. */}
-    <Heading id={slug} class="title">
-      <a class="header-anchor muted" href={`#${slug}`}>{title}</a>
-    </Heading>
+        hover-underlines like every other `##` heading. With `anchor={false}`
+        the title is a plain label instead — no heading, no id, no anchor — so
+        it stays out of the TOC and isn't deep-linkable, but still toggles. */}
+    {anchor ? (
+      <Heading id={slug} class="title">
+        <a class="header-anchor muted" href={`#${slug}`}>{title}</a>
+      </Heading>
+    ) : (
+      <span class="title plain">{title}</span>
+    )}
   </summary>
   <div class="body">
     <slot />
@@ -47,6 +57,12 @@ const Heading = `h${level}` as const
 <style>
   .disclosure {
     margin-block: 32px 0;
+  }
+
+  /* Plain (non-anchor) variant — e.g. the top-of-page Playground. Tighter
+     top margin since it isn't a full section heading. */
+  .disclosure.plain {
+    margin-block-start: 16px;
   }
 
   .summary {
@@ -68,6 +84,15 @@ const Heading = `h${level}` as const
      chevron in the summary row. */
   .title {
     margin: 0;
+  }
+
+  /* Plain (non-anchor) title — a label, not a heading. Sized close to h5. */
+  .title.plain {
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 584.62;
+    letter-spacing: 0;
+    color: var(--text-1);
   }
 
   .chevron {

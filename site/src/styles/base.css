@@ -235,6 +235,12 @@ code {
 
 pre code { background: none; padding: 0; }
 
+/* Font, size, line-height, weight and padding are set via Expressive Code's
+   styleOverrides (astro.config.mjs). letter-spacing has no EC setting, and EC's
+   `pre > code` rule uses `all: unset` (which resets letter-spacing too), so the
+   extra `.content` ancestor here out-specifies it. */
+.content .expressive-code pre > code { letter-spacing: 0; }
+
 :not(pre) > code {
   cursor: copy;
   position: relative;
@@ -750,6 +756,7 @@ code[data-copied]::after {
 .demoLabel {
   font-size: 0.75rem;
   font-family: var(--monospace);
+  letter-spacing: 0;
   color: var(--text-4);
 }
 .demoLabel.upper {

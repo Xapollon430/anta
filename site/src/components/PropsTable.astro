@@ -251,6 +251,7 @@ const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeComp
     font-family: var(--monospace);
     font-size: 0.9em;
     font-weight: 475;
+    letter-spacing: 0;
   }
   /* The optional `?` is its own element (text-3, not selectable) so a
      double-click selects just the name and copying omits the `?`. */
@@ -263,11 +264,19 @@ const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeComp
   .type-name {
     font-family: var(--monospace);
     font-size: 0.9em;
+    letter-spacing: 0;
     color: var(--text-3);
   }
   /* "No value" em-dash placeholders (Type / Default columns). */
   .empty {
     color: var(--text-5);
+  }
+  /* Note under the inherited table: data-*/aria-* are accepted via index
+     signatures on BaseProps, which TypeDoc can't surface as named rows. */
+  .inherited-note {
+    margin: 8px 0 0;
+    font-size: 0.85em;
+    color: var(--text-4);
   }
 </style>
 
@@ -309,5 +318,9 @@ const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeComp
         </tbody>
       </table>
     </div>
+    <p class="inherited-note">
+      Plus any <code>data-*</code> or <code>aria-*</code> attribute — forwarded
+      as-is to the underlying <code>&lt;a-*&gt;</code> element.
+    </p>
   </details>
 )}
