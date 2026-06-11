@@ -23,7 +23,7 @@
     --button-loading-x-period: calc(
       var(--button-loading-period) / cos(var(--button-loading-angle) - 90deg)
     );
-    --button-loading-opacity: 0.25;
+    --button-loading-opacity: 0.15;
     --button-loading-blur: 2.5px;
 
     --button-bg-primary-rest: #635b65;
@@ -330,10 +330,7 @@
     background-color: var(--button-bg);
     border-radius: 4px;
     text-decoration: none;
-    /* Secondary is the default priority — a 1px hairline in the current
-       fg tone (at 50% alpha) gives the chip a subtle edge. Primary,
-       tertiary, and quaternary cancel it in their own blocks below. */
-    box-shadow: 0 0 1px color-mix(in oklch, currentColor, transparent 50%);
+    box-shadow: inset 0 0 1px color-mix(in oklch, currentColor, transparent 70%);
 
     font-size: 15px;
     font-family: var(--sans-serif);

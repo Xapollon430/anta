@@ -22,6 +22,41 @@ devices — where there's no hover and a tap shouldn't surface it — it opens o
 default the bubble follows the cursor; pass `static` to pin it under the anchor,
 or `interactive` to make it hoverable and clickable (for content like links).
 
+<Disclosure title="Playground" anchor={false}>
+
+A single tooltip on a button — tweak its props (or edit the code) and hover the
+button. The props panel is generated from the `Tooltip` API and edits the
+`<Tooltip>` element, not the `<Button>` it's attached to.
+
+<Playground
+  client:visible
+  component="Tooltip"
+  layout="side"
+  initialCode={tooltipDemoCode}
+  initialCss={`.container {
+  min-height: 220px;
+  display: grid;
+
+  /* Where to park the trigger — test how the tooltip flips / clamps near an
+     edge. Comment out the active line and uncomment one below.
+     1st value = vertical (start=top, center=middle, end=bottom);
+     2nd value = horizontal (start=left, center=middle, end=right). */
+  place-items: center;
+  /* place-items: start start; */
+  /* place-items: start center; */
+  /* place-items: start end; */
+  /* place-items: center start; */
+  /* place-items: center end; */
+  /* place-items: end start; */
+  /* place-items: end center; */
+  /* place-items: end end; */
+}`}
+/>
+
+</Disclosure>
+
+## Examples
+
 <Preview>
   <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
     <Button label="Save">
@@ -87,7 +122,7 @@ The underlying `<a-tooltip>` works in plain HTML too, as a child of any element:
 </button>
 ```
 
-## Adjacent and nested tooltips
+### Adjacent and nested tooltips
 
 Only one tooltip shows at a time. Moving between **adjacent** anchors hands off
 cleanly — the outgoing bubble lingers briefly and keeps following the cursor,
@@ -125,44 +160,13 @@ when you leave. Hover the examples to feel it.
 </div>
 ```
 
-## Playground
-
-A single tooltip on a button — tweak its props (or edit the code) and hover the
-button. The props panel is generated from the `Tooltip` API and edits the
-`<Tooltip>` element, not the `<Button>` it's attached to.
-
-<Playground
-  client:visible
-  component="Tooltip"
-  layout="side"
-  initialCode={tooltipDemoCode}
-  initialCss={`.container {
-  min-height: 220px;
-  display: grid;
-
-  /* Where to park the trigger — test how the tooltip flips / clamps near an
-     edge. Comment out the active line and uncomment one below.
-     1st value = vertical (start=top, center=middle, end=bottom);
-     2nd value = horizontal (start=left, center=middle, end=right). */
-  place-items: center;
-  /* place-items: start start; */
-  /* place-items: start center; */
-  /* place-items: start end; */
-  /* place-items: center start; */
-  /* place-items: center end; */
-  /* place-items: end start; */
-  /* place-items: end center; */
-  /* place-items: end end; */
-}`}
-/>
-
-<Disclosure title="Component props">
+<Disclosure title="Component props" open>
 
 <PropsTable component="Tooltip" />
 
 </Disclosure>
 
-<Disclosure title="Component tokens">
+<Disclosure title="Component tokens" open>
 
 Tooltip exposes only the box "chrome" that lives inside the shadow popover and
 is therefore impossible to reach with plain consumer CSS. Every token below is a
