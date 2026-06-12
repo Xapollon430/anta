@@ -7,7 +7,7 @@
  * literal's indentation round-trips verbatim — Astro's MDX pipeline strips
  * common leading whitespace from JSX-attribute template literals.
  *
- * The props panel binds to the `<Tooltip>` (delay / placement / static /
+ * The props panel binds to the `<Tooltip>` (delay / placement / follow /
  * interactive); the `<Button>` is just the anchor it's attached to.
  */
 export default `import { Tooltip, Button } from '@antadesign/anta'

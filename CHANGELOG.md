@@ -8,8 +8,19 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 
 ## 0.2.2 — Unreleased
 
+### Breaking
+- **Tooltip is pinned under the anchor by default; cursor-following is now opt-in via `follow`.** Previously `<Tooltip>` / `<a-tooltip>` followed the cursor by default. It now pins beneath the anchor (matching the convention used by Material, shadcn, Carbon, Polaris). Pass `follow` for the cursor-tracking behaviour — it trails the pointer and fades by the cursor's distance from the anchor (full within ~10px, transparent by ~100px, snapping away instantly past that), instead of hanging at full opacity and trailing until the close timer fires. **The `static` attribute / prop is removed** — pinning is the default now, so drop it; add `follow` to anything that relied on the old following behaviour. `interactive` is always pinned (it ignores `follow`).
+
+### Added
+- **`--tooltip-padding`** token (defaults to `5px 8px`).
+- **Tooltip `::part(bubble)`** — the bubble surface inside the shadow popover is exposed as a shadow part, so consumers can style it directly (`a-tooltip::part(bubble) { … }`) for things the `--tooltip-*` tokens don't cover.
+
+### Changed
+- **`copy` icon is rotated a quarter-turn.** `<Icon shape="copy" />` / `<a-icon shape="copy">` now ships rotated 90° by default (the orientation used in most places), so consumers no longer need a per-use `transform: rotate(90deg)`.
+
 ### Fixed
 - **Button ignores empty / whitespace-only / `NaN` children instead of wrapping them.** `Button` auto-wraps text and number children in `<a-button-label>`; it now drops children that carry no visible content — `""`, whitespace-only strings, and `NaN` — rather than emitting a blank label (which added padding/structure for no text). `null`, `undefined`, and boolean children render nothing, and element children still pass through unwrapped; a valid `0` still renders.
+- **Button icon padding no longer miscounts a `<Tooltip>` child.** A `<Tooltip>` is invisible (`display: contents` host, out-of-flow popover) but was counted by the `:first-child` / `:last-child` / `:only-child` selectors that drive icon padding — so an icon-only button with a tooltip lost its square padding, etc. Those selectors now discount `a-tooltip` in any position.
 
 ## 0.2.1 — June 10, 2026
 
