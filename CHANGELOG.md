@@ -6,6 +6,11 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## 0.2.2 — Unreleased
+
+### Fixed
+- **Button ignores empty / whitespace-only / `NaN` children instead of wrapping them.** `Button` auto-wraps text and number children in `<a-button-label>`; it now drops children that carry no visible content — `""`, whitespace-only strings, and `NaN` — rather than emitting a blank label (which added padding/structure for no text). `null`, `undefined`, and boolean children render nothing, and element children still pass through unwrapped; a valid `0` still renders.
+
 ## 0.2.1 — June 10, 2026
 
 ### Changed

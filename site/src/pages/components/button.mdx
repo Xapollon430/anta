@@ -331,6 +331,13 @@ with the prop-driven API.
 
 Children also work without `label` — pass them as the only content.
 
+Text and number children are auto-wrapped in `<a-button-label>` (so the
+truncation rule applies and they don't trip the icon-only detector);
+element children — a `<span>`, a `<Tooltip>`, … — pass through
+unwrapped. Children with no visible content render nothing: empty or
+whitespace-only strings, `NaN`, `null` / `undefined`, and booleans are
+dropped (a valid `0` still renders).
+
 </Col>
 </Columns>
 
