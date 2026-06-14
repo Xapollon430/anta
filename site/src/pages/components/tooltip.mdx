@@ -60,9 +60,6 @@ button. The props panel is generated from the `Tooltip` API and edits the
 
 <Preview>
   <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-    <Button label="Save">
-      <Tooltip>Saves your work</Tooltip>
-    </Button>
     <span style={{ cursor: 'help', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
       <span>Status</span>
       <Icon shape="help-disk" size={16} style={{ opacity: 0.4 }} />
@@ -83,13 +80,9 @@ button. The props panel is generated from the `Tooltip` API and edits the
 </Preview>
 
 ```tsx folded
-// Place <Tooltip> inside the element it describes. Hover or focus the anchor.
-// Pinned under the anchor by default.
-<Button label="Save">
-  <Tooltip>Saves your work</Tooltip>
-</Button>
-
-// Prefer the top side (auto-flips down when there's no room).
+// Place <Tooltip> inside the element it describes; hover or focus the anchor.
+// Pinned under the anchor by default — prefer the top side here (auto-flips
+// down when there's no room).
 <span style={{ cursor: 'help' }}>
   Status
   <Tooltip placement="top">Last checked 2 minutes ago</Tooltip>
@@ -127,8 +120,8 @@ The underlying `<a-tooltip>` works in plain HTML too, as a child of any element:
 
 ```html
 <button>
-  Save
-  <a-tooltip>Saves your work</a-tooltip>
+  Publish
+  <a-tooltip>Makes the draft public</a-tooltip>
 </button>
 ```
 
@@ -206,7 +199,7 @@ that targets the content wins over the inherited baseline:
 | `--tooltip-max-width` | Maximum width before content wraps. Defaults to `min(calc(100vw - 20px), 80ch)`. |
 | `--tooltip-border` | Bubble border. Defaults to `none` — the hairline edge comes from `--tooltip-shadow`. Set e.g. `1px solid var(--border-5)` for a real border. |
 | `--tooltip-backdrop-filter` | Backdrop filter behind the bubble (the frost). Defaults to `blur(8px)`. Set to `none` (with `--tooltip-bg: transparent`) for a fully see-through bubble. |
-| `--tooltip-padding` | Inner padding of the bubble. Defaults to `5px 8px`. |
+| `--tooltip-padding` | Inner padding of the bubble. Defaults to `4px 8px`. |
 
 For anything the tokens don't cover, the bubble surface is exposed as a shadow
 **part**, so you can reach it directly with `::part(bubble)`:

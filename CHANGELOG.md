@@ -12,7 +12,7 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 - **Tooltip is pinned under the anchor by default; cursor-following is now opt-in via `follow`.** Previously `<Tooltip>` / `<a-tooltip>` followed the cursor by default. It now pins beneath the anchor (matching the convention used by Material, shadcn, Carbon, Polaris). Pass `follow` for the cursor-tracking behaviour — it trails the pointer and fades by the cursor's distance from the anchor (full within ~10px, transparent by ~100px, snapping away instantly past that), instead of hanging at full opacity and trailing until the close timer fires. **The `static` attribute / prop is removed** — pinning is the default now, so drop it; add `follow` to anything that relied on the old following behaviour. `interactive` is always pinned (it ignores `follow`).
 
 ### Added
-- **`--tooltip-padding`** token (defaults to `5px 8px`).
+- **`--tooltip-padding`** token (defaults to `4px 8px`).
 - **Tooltip `::part(bubble)`** — the bubble surface inside the shadow popover is exposed as a shadow part, so consumers can style it directly (`a-tooltip::part(bubble) { … }`) for things the `--tooltip-*` tokens don't cover.
 
 ### Changed

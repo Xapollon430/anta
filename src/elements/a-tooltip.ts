@@ -6,7 +6,7 @@ import './a-tooltip.css'
 const MARGIN = 4
 /** Approx pointer height — how far below the cursor the bubble sits in follow mode. */
 const CURSOR_SIZE = 16
-/** The bubble's horizontal padding (matches `padding: 5px 8px` in the shadow
+/** The bubble's horizontal padding (matches `padding: 4px 8px` in the shadow
  *  style). In cursor-follow mode the bubble is shifted left by this so the
  *  cursor lands at the start of the text, not to the left of the whole bubble. */
 const PADDING_X = 8
@@ -223,7 +223,7 @@ export class ATooltipElement extends HTMLElementBase {
         box-shadow: var(--tooltip-shadow, 0 1px 8px rgba(0, 0, 0, 0.2));
         -webkit-backdrop-filter: var(--tooltip-backdrop-filter, blur(8px));
         backdrop-filter: var(--tooltip-backdrop-filter, blur(8px));
-        padding: var(--tooltip-padding, 5px 8px);
+        padding: var(--tooltip-padding, 4px 8px);
         border: var(--tooltip-border, none);
         border-radius: var(--tooltip-radius, 3px);
         outline: none;
