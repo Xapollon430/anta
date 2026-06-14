@@ -6,7 +6,7 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
-## 0.2.2 — Unreleased
+## 0.2.2 — June 13, 2026
 
 ### Breaking
 - **`list-detail-view` icon renamed to `list-collapse` (and restyled to lucide `list-collapse`).** The old filled detail-view glyph is gone; `shape="list-collapse"` is the lucide three-lines-with-chevrons glyph. Migration: rename `shape="list-detail-view"` → `shape="list-collapse"`.
