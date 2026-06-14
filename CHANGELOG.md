@@ -6,6 +6,26 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## 0.2.2 — Unreleased
+
+### Breaking
+- **`list-detail-view` icon renamed to `list-collapse` (and restyled to lucide `list-collapse`).** The old filled detail-view glyph is gone; `shape="list-collapse"` is the lucide three-lines-with-chevrons glyph. Migration: rename `shape="list-detail-view"` → `shape="list-collapse"`.
+- **Tooltip is pinned under the anchor by default; cursor-following is now opt-in via `follow`.** Previously `<Tooltip>` / `<a-tooltip>` followed the cursor by default. It now pins beneath the anchor (matching the convention used by Material, shadcn, Carbon, Polaris). Pass `follow` for the cursor-tracking behaviour — it trails the pointer and fades by the cursor's distance from the anchor (full within ~10px, transparent by ~100px, snapping away instantly past that), instead of hanging at full opacity and trailing until the close timer fires. **The `static` attribute / prop is removed** — pinning is the default now, so drop it; add `follow` to anything that relied on the old following behaviour. `interactive` is always pinned (it ignores `follow`).
+
+### Added
+- **`--tooltip-padding`** token (defaults to `4px 8px`).
+- **Tooltip `::part(bubble)`** — the bubble surface inside the shadow popover is exposed as a shadow part, so consumers can style it directly (`a-tooltip::part(bubble) { … }`) for things the `--tooltip-*` tokens don't cover.
+
+### Changed
+- **`copy` icon is rotated a quarter-turn.** `<Icon shape="copy" />` / `<a-icon shape="copy">` now ships rotated 90° by default (the orientation used in most places), so consumers no longer need a per-use `transform: rotate(90deg)`.
+- **`filter` icon restyled to lucide `list-filter`.** `shape="filter"` is now the three-line stroked `list-filter` glyph (replacing the old filled three-bar shape). Same shape name — no API change.
+- **Quaternary buttons are full-weight and full-opacity at rest.** `priority="quaternary"` now uses `font-weight: 400` (was `415`), `letter-spacing: 0.06ch` (slightly looser than the `0.05ch` base), and a full-opacity rest foreground — the `90%`-alpha rest fade introduced in 0.2.0 is removed, so the label sits at the tone's full strength like the other priorities.
+- **`Button`, `Text`, and `Title` pin Anta's stylistic sets explicitly.** They now declare `font-feature-settings: 'ss02', 'ss05'` themselves (matching the `:root` default — `ss02` is the alternate `l`) rather than relying on inheritance, so a consumer's own `font-feature-settings` on an ancestor can't silently drop them (the property replaces, it doesn't merge). `<a-button>` re-states it inside its shadow for the same reason it re-states the variation axes.
+
+### Fixed
+- **Button ignores empty / whitespace-only / `NaN` children instead of wrapping them.** `Button` auto-wraps text and number children in `<a-button-label>`; it now drops children that carry no visible content — `""`, whitespace-only strings, and `NaN` — rather than emitting a blank label (which added padding/structure for no text). `null`, `undefined`, and boolean children render nothing, and element children still pass through unwrapped; a valid `0` still renders.
+- **Button icon padding no longer miscounts a `<Tooltip>` child.** A `<Tooltip>` is invisible (`display: contents` host, out-of-flow popover) but was counted by the `:first-child` / `:last-child` / `:only-child` selectors that drive icon padding — so an icon-only button with a tooltip lost its square padding, etc. Those selectors now discount `a-tooltip` in any position.
+
 ## 0.2.1 — June 10, 2026
 
 ### Changed

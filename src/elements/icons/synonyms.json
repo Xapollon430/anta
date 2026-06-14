@@ -44,7 +44,7 @@
   "braces": ["code", "brackets", "json"],
   "case-sensitive": ["aA", "capitalize", "case"],
   "text-highlight": ["mark", "highlight"],
-  "list-detail-view": ["list", "items"],
+  "list-collapse": ["list", "collapse", "expand", "items"],
   "table-2": ["table", "grid", "data", "spreadsheet", "rows", "columns"],
   "folder-open": ["directory", "browse"],
   "folder-close": ["directory"],

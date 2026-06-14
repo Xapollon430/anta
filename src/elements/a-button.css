@@ -340,6 +340,11 @@
        "slnt"/"ital" would revert them to the font file's non-zero
        defaults and Safari would render button labels italic. */
     font-variation-settings: "wdth" 88, "slnt" 0, "ital" 0;
+    /* Anta's stylistic sets: ss02 (alternate l) + ss05. Re-stated here (like
+       the variation axes above) so it survives in the shadow regardless of any
+       font-feature-settings a consumer sets on an ancestor — it replaces, not
+       merges. */
+    font-feature-settings: "ss02", "ss05";
     line-height: 18px;
     letter-spacing: 0.05ch;
 
@@ -477,11 +482,17 @@
       --button-padding-y: 0;
     }
 
-    /* Icon-only — square padding plus a min-size pin when the button
-       has exactly one child and it's an `a-icon`. Purely structural,
-       no opt-in attribute: consumers writing raw `<a-button>` get
-       icon-button styling just by passing a single `<a-icon>` inside. */
-    &:has(> a-icon:only-child) {
+    /* <a-tooltip> is invisible — `display: contents` host, out-of-flow popover —
+       so it must NOT count as a child in the icon padding logic here. A tooltip
+       may sit first, last, or beside the icon without changing the result;
+       every structural check below discounts `a-tooltip`.
+
+       Icon-only — square padding plus a min-size pin when the only counted
+       child is a single `a-icon` (a tooltip may also be present). Purely
+       structural, no opt-in attribute: raw `<a-button><a-icon></a-button>` gets
+       icon-button styling too. Reads as: has an icon, not two icons, and no
+       child that is neither an icon nor a tooltip. */
+    &:has(> a-icon):not(:has(> a-icon ~ a-icon)):not(:has(> :not(a-icon):not(a-tooltip))) {
       --button-padding-y: 5px;
       --button-padding-x: 5px;
       min-width: 28px;
@@ -505,16 +516,21 @@
       }
     }
 
-    /* Optical side padding: an icon at an edge needs less breathing room
-       than a text edge, so tighten the padding on whichever side a
-       (non-only) icon occupies — leading icon trims the start, trailing
-       icon trims the end — to ~2px under the text-edge padding (8px → 6px
-       at medium). `max(0px, …)` keeps paddingless/quaternary at 0.
-       Icon-only buttons are handled by the rule above. */
-    &:has(> a-icon:first-child:not(:only-child)) {
+    /* Optical side padding: an icon at an edge needs less breathing room than a
+       text edge, so tighten the padding on whichever side a (non-only) icon
+       occupies — leading trims the start, trailing trims the end — to ~2px under
+       the text-edge padding (8px → 6px at medium). `max(0px, …)` keeps
+       paddingless/quaternary at 0.
+
+       The icon still counts as leading/trailing when a tooltip sits at that edge
+       (`a-tooltip:first-child + a-icon` / `a-icon + a-tooltip:last-child`). The
+       second `:is(…)` is the "not icon-only" guard — two icons OR some non-icon,
+       non-tooltip content — so a tooltip beside a lone icon keeps the square
+       icon-only rule above instead of falsely trimming one side. */
+    &:is(:has(> a-icon:first-child), :has(> a-tooltip:first-child + a-icon)):is(:has(> a-icon ~ a-icon), :has(> :not(a-icon):not(a-tooltip))) {
       padding-inline-start: max(0px, var(--button-padding-x) - 2px);
     }
-    &:has(> a-icon:last-child:not(:only-child)) {
+    &:is(:has(> a-icon:last-child), :has(> a-icon + a-tooltip:last-child)):is(:has(> a-icon ~ a-icon), :has(> :not(a-icon):not(a-tooltip))) {
       padding-inline-end: max(0px, var(--button-padding-x) - 2px);
     }
 
@@ -691,14 +707,12 @@
       }
     }
     &[priority="quaternary"] {
-      /* Rest fg is the quaternary tone at 90% alpha — slightly faded, so a
-         quaternary button reads as quieter than a (full-opacity) tertiary
-         one. Hover / active restore full opacity. */
-      --button-fg: color-mix(in oklch, var(--button-fg-quaternary-rest) 90%, transparent);
+      --button-fg: var(--button-fg-quaternary-rest);
       --button-bg: transparent;
       /* Background-less — no hairline. */
       box-shadow: none;
-      font-weight: 415;
+      font-weight: 400;
+      letter-spacing: 0.06ch;
       @media (hover: hover) and (pointer: fine) {
         &:hover {
           --button-fg: var(--button-fg-quaternary-hover);
