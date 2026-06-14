@@ -9,6 +9,7 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 ## 0.2.2 — Unreleased
 
 ### Breaking
+- **`list-detail-view` icon renamed to `list-collapse` (and restyled to lucide `list-collapse`).** The old filled detail-view glyph is gone; `shape="list-collapse"` is the lucide three-lines-with-chevrons glyph. Migration: rename `shape="list-detail-view"` → `shape="list-collapse"`.
 - **Tooltip is pinned under the anchor by default; cursor-following is now opt-in via `follow`.** Previously `<Tooltip>` / `<a-tooltip>` followed the cursor by default. It now pins beneath the anchor (matching the convention used by Material, shadcn, Carbon, Polaris). Pass `follow` for the cursor-tracking behaviour — it trails the pointer and fades by the cursor's distance from the anchor (full within ~10px, transparent by ~100px, snapping away instantly past that), instead of hanging at full opacity and trailing until the close timer fires. **The `static` attribute / prop is removed** — pinning is the default now, so drop it; add `follow` to anything that relied on the old following behaviour. `interactive` is always pinned (it ignores `follow`).
 
 ### Added
@@ -17,7 +18,8 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 
 ### Changed
 - **`copy` icon is rotated a quarter-turn.** `<Icon shape="copy" />` / `<a-icon shape="copy">` now ships rotated 90° by default (the orientation used in most places), so consumers no longer need a per-use `transform: rotate(90deg)`.
-- **Quaternary buttons are full-weight and full-opacity at rest.** `priority="quaternary"` now uses `font-weight: 400` (was `415`) and a full-opacity rest foreground — the `90%`-alpha rest fade introduced in 0.2.0 is removed, so the label sits at the tone's full strength like the other priorities.
+- **`filter` icon restyled to lucide `list-filter`.** `shape="filter"` is now the three-line stroked `list-filter` glyph (replacing the old filled three-bar shape). Same shape name — no API change.
+- **Quaternary buttons are full-weight and full-opacity at rest.** `priority="quaternary"` now uses `font-weight: 400` (was `415`), `letter-spacing: 0.06ch` (slightly looser than the `0.05ch` base), and a full-opacity rest foreground — the `90%`-alpha rest fade introduced in 0.2.0 is removed, so the label sits at the tone's full strength like the other priorities.
 - **`Button`, `Text`, and `Title` pin Anta's stylistic sets explicitly.** They now declare `font-feature-settings: 'ss02', 'ss05'` themselves (matching the `:root` default — `ss02` is the alternate `l`) rather than relying on inheritance, so a consumer's own `font-feature-settings` on an ancestor can't silently drop them (the property replaces, it doesn't merge). `<a-button>` re-states it inside its shadow for the same reason it re-states the variation axes.
 
 ### Fixed

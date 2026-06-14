@@ -712,6 +712,7 @@
       /* Background-less — no hairline. */
       box-shadow: none;
       font-weight: 400;
+      letter-spacing: 0.06ch;
       @media (hover: hover) and (pointer: fine) {
         &:hover {
           --button-fg: var(--button-fg-quaternary-hover);
