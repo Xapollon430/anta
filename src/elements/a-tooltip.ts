@@ -6,7 +6,7 @@ import './a-tooltip.css'
 const MARGIN = 4
 /** Approx pointer height — how far below the cursor the bubble sits in follow mode. */
 const CURSOR_SIZE = 16
-/** The bubble's horizontal padding (matches `padding: 5px 8px` in the shadow
+/** The bubble's horizontal padding (matches `padding: 4px 8px` in the shadow
  *  style). In cursor-follow mode the bubble is shifted left by this so the
  *  cursor lands at the start of the text, not to the left of the whole bubble. */
 const PADDING_X = 8
@@ -28,6 +28,19 @@ const GRACE_MS = 300
  * into an interactive bubble before it dismisses.
  */
 const CLOSE_DELAY = 120
+/**
+ * Cursor-follow proximity fade. While a following bubble is leaving (the cursor
+ * has moved off the anchor), its opacity tracks the cursor's distance from the
+ * anchor rect: full within PROX_NEAR, a linear ramp to transparent at PROX_FAR.
+ * This makes it fade *as you move away* instead of hanging at full opacity and
+ * trailing the cursor until the close timer fires. Removal is still timed.
+ */
+const PROX_NEAR = 10
+const PROX_FAR = 100
+/** Transition (ms) on the proximity opacity channel — small, just to smooth the
+ *  discrete mousemove steps. Must stay well under FADE_MS so it never competes
+ *  with the enter / cross-fade on the outer container. */
+const PROX_FADE_MS = 60
 /**
  * Touch press-and-hold duration (ms) before a long-press opens the tooltip.
  * Touch has no hover, so a deliberate hold is the open gesture; a quick tap
@@ -73,7 +86,14 @@ function clearGrace() {
 
 /** Called from an element as it shows: close the previous one (cross-fade) and claim the slot. */
 function claimOpen(el: ATooltipElement) {
-  if (currentOpen && currentOpen !== el) currentOpen.hide()
+  if (currentOpen && currentOpen !== el) {
+    // Normally hide() (animated cross-fade). But if the previous tooltip was
+    // orphaned without its disconnectedCallback firing, the coordinator's
+    // strong ref kept it — and its document/window listeners — alive; fully
+    // tear it down instead so nothing leaks.
+    if (currentOpen.isConnected) currentOpen.hide()
+    else currentOpen.cleanup()
+  }
   currentOpen = el
   clearGrace()
 }
@@ -119,6 +139,10 @@ export class ATooltipElement extends HTMLElementBase {
 
   /** Shadow-internal popover surface — the only thing we ever mutate. */
   private container!: HTMLDivElement
+  /** Inner bubble inside `.container`. Holds the slot + all visual chrome and
+   *  carries the proximity (distance-from-anchor) opacity, kept separate from
+   *  the container's enter/exit/cross-fade opacity. */
+  private bubble!: HTMLDivElement
   private anchor: HTMLElement | null = null
 
   listening = false
@@ -142,63 +166,38 @@ export class ATooltipElement extends HTMLElementBase {
     // are confined to this shadow subtree — never the host or light DOM.
     const shadow = this.attachShadow({ mode: 'open' })
 
+    // Two layers of opacity (they multiply): `.container` is the popover and
+    // owns the lifecycle fade — `allow-discrete` keeps the bubble rendered
+    // through its fade-out after hidePopover(), and `@starting-style` starts
+    // every open from opacity 0 so the first paint at a not-yet-computed
+    // transform is invisible (no flash at a stale spot). `.bubble` owns the
+    // visual chrome + the proximity (distance-from-anchor) opacity set from JS.
+    // `.container` also resets the UA `[popover]` defaults (solid border, 0.25em
+    // padding, Canvas background, overflow:auto) so only `.bubble` paints.
+    //
+    // No comments inside the CSS below: this string is injected verbatim into
+    // every instance's shadow root and isn't run through the CSS minifier.
+    // `.bubble` is the single text-baseline choke point — its font/letter
+    // properties stop the anchor's inheritable text styles from bleeding into
+    // the slotted content; a consumer overrides by styling their own content.
     const style = document.createElement('style')
     style.textContent = `
       :host { display: contents; }
 
       .container {
         --_dur: ${FADE_MS}ms;
-
         position: fixed;
         left: 0;
         top: 0;
         margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        overflow: visible;
         box-sizing: border-box;
         width: fit-content;
-        max-width: var(--tooltip-max-width, min(calc(100vw - 20px), 80ch));
-        max-height: calc(100vh - 20px);
-        overflow: clip;
         pointer-events: none;
-        text-align: left;
-
-        background: var(--tooltip-bg, Canvas);
-        color: var(--text-3, CanvasText);
-        box-shadow: var(--tooltip-shadow, 0 1px 8px rgba(0, 0, 0, 0.2));
-        -webkit-backdrop-filter: var(--tooltip-backdrop-filter, blur(8px));
-        backdrop-filter: var(--tooltip-backdrop-filter, blur(8px));
-        padding: 5px 8px;
-        border: var(--tooltip-border, none);
-        border-radius: var(--tooltip-radius, 3px);
-        outline: none;
-
-        /* The bubble establishes its own text baseline so inheritable text
-           properties from the anchor (e.g. a Button's condensed "wdth" 88
-           axis, its 0.05ch letter-spacing, an uppercase transform, a custom
-           font) don't bleed into the slotted content. The content is slotted
-           light DOM, so it inherits these *from this container* — making this
-           the single choke point. Values mirror Anta's body text. Consumers
-           still customise a single tooltip by styling their own content
-           element directly (a class on the content overrides what it inherits
-           — see the Tooltip docs). */
-        font-family: var(--sans-serif, system-ui, sans-serif);
-        font-size: 14px;
-        font-weight: 400;
-        font-style: normal;
-        font-stretch: normal;
-        font-variation-settings: "wdth" 100, "slnt" 0, "ital" 0;
-        line-height: 1.5;
-        letter-spacing: 0.02ch;
-        word-spacing: normal;
-        text-transform: none;
-        white-space: break-spaces;
-        word-break: break-word;
-        overflow-wrap: break-word;
-
-        /* Clean enter/exit fade. allow-discrete keeps the bubble rendered
-           through its fade-out after hidePopover(), and @starting-style
-           gives every open a from-opacity:0 — so the first paint at a
-           not-yet-computed transform is invisible (no flash at a stale
-           spot), and re-appearing is always clean. */
         opacity: 0;
         transition:
           opacity var(--_dur) ease,
@@ -212,8 +211,39 @@ export class ATooltipElement extends HTMLElementBase {
         .container:popover-open { opacity: 0; }
       }
 
-      /* Interactive tooltips accept pointer events so their content (links,
-         buttons) is clickable; the default click-through bubble does not. */
+      .bubble {
+        box-sizing: border-box;
+        width: fit-content;
+        max-width: var(--tooltip-max-width, min(calc(100vw - 20px), 80ch));
+        max-height: calc(100vh - 20px);
+        overflow: clip;
+        text-align: left;
+        background: var(--tooltip-bg, Canvas);
+        color: var(--text-3, CanvasText);
+        box-shadow: var(--tooltip-shadow, 0 1px 8px rgba(0, 0, 0, 0.2));
+        -webkit-backdrop-filter: var(--tooltip-backdrop-filter, blur(8px));
+        backdrop-filter: var(--tooltip-backdrop-filter, blur(8px));
+        padding: var(--tooltip-padding, 4px 8px);
+        border: var(--tooltip-border, none);
+        border-radius: var(--tooltip-radius, 3px);
+        outline: none;
+        font-family: var(--sans-serif, system-ui, sans-serif);
+        font-size: 14px;
+        font-weight: 400;
+        font-style: normal;
+        font-stretch: normal;
+        font-variation-settings: "wdth" 100, "slnt" 0, "ital" 0;
+        line-height: 1.5;
+        letter-spacing: 0.02ch;
+        word-spacing: normal;
+        text-transform: none;
+        white-space: break-spaces;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        opacity: 1;
+        transition: opacity ${PROX_FADE_MS}ms linear;
+      }
+
       :host([interactive]) .container { pointer-events: auto; }
     `
 
@@ -221,7 +251,17 @@ export class ATooltipElement extends HTMLElementBase {
     this.container.className = 'container'
     this.container.setAttribute('popover', 'manual')
     this.container.setAttribute('role', 'tooltip')
-    this.container.append(document.createElement('slot'))
+
+    // Inner bubble holds the slot + visual chrome and carries the proximity
+    // opacity; the container owns the lifecycle/cross-fade opacity.
+    this.bubble = document.createElement('div')
+    this.bubble.className = 'bubble'
+    // Expose the bubble as a shadow part so consumers can reach the surface
+    // itself — `a-tooltip::part(bubble) { … }` — for things the `--tooltip-*`
+    // vars don't cover.
+    this.bubble.setAttribute('part', 'bubble')
+    this.bubble.append(document.createElement('slot'))
+    this.container.append(this.bubble)
 
     // Keep an interactive bubble open while the cursor is inside it (these
     // only fire when pointer-events is on, i.e. interactive mode). The
@@ -242,16 +282,10 @@ export class ATooltipElement extends HTMLElementBase {
   }
 
   disconnectedCallback() {
-    this.hide()
-    // Force-detach the fade-time move listener immediately (the element is
-    // going away; don't wait out the fade timer).
-    if (this.fadeTimer !== undefined) { clearTimeout(this.fadeTimer); this.fadeTimer = undefined }
-    this.fading = false
-    if (this.docMoveBound) {
-      this.doc.removeEventListener('mousemove', this.onDocMove)
-      this.docMoveBound = false
-    }
-    this.teardownListeners()
+    // Single source of truth for teardown: closes the popover now, detaches
+    // every document/window/anchor listener, clears all timers, releases the
+    // coordinator slot. (Don't wait out the fade — the element is going away.)
+    this.cleanup()
     if (this.anchor) {
       if (anchorToTooltip.get(this.anchor) === this) {
         anchorToTooltip.delete(this.anchor)
@@ -293,16 +327,13 @@ export class ATooltipElement extends HTMLElementBase {
     return this.hasAttribute('interactive')
   }
 
-  /** Pinned under the anchor (no cursor-following). Interactive implies this —
-   *  you can't move into a bubble that's chasing the cursor. */
-  private get isStatic(): boolean {
-    return this.hasAttribute('static') || this.isInteractive
-  }
-
-  /** Pinned to the anchor for any reason: the `static`/`interactive` attrs, or
-   *  a touch long-press (a finger can't track a following bubble). */
+  /** Pinned under the anchor (no cursor-following) — the DEFAULT. Following the
+   *  cursor is opt-in via the `follow` attribute. `interactive` (you can't move
+   *  into a bubble that chases the cursor) and a touch long-press (a finger
+   *  can't track one) force pinned regardless of `follow`. */
   private get isPinned(): boolean {
-    return this.isStatic || this.touchOpen
+    if (this.isInteractive || this.touchOpen) return true
+    return !this.hasAttribute('follow')
   }
 
   private get prefersTop(): boolean {
@@ -380,6 +411,20 @@ export class ATooltipElement extends HTMLElementBase {
     else this.positionToTarget()
   }
 
+  /** Opacity for the inner bubble from the cursor's distance to the anchor rect
+   *  (0 inside the rect): 1 within PROX_NEAR, a linear ramp to 0 at PROX_FAR.
+   *  Cursor-follow only — drives the "fade as you move away" behaviour. */
+  private proximityOpacity(e: MouseEvent): number {
+    if (!this.anchor) return 1
+    const r = this.anchor.getBoundingClientRect()
+    const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right)
+    const dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom)
+    const dist = Math.hypot(dx, dy)
+    if (dist <= PROX_NEAR) return 1
+    if (dist >= PROX_FAR) return 0
+    return 1 - (dist - PROX_NEAR) / (PROX_FAR - PROX_NEAR)
+  }
+
   // --- show / hide ---
 
   show = (e?: MouseEvent) => {
@@ -397,6 +442,9 @@ export class ATooltipElement extends HTMLElementBase {
     if (!this.shown) {
       this.shown = true
       this.fading = false
+      // Start fully opaque — a fresh open, a re-enter, or a cross-fade-in all
+      // begin at proximity 1; onDocMove then ramps it down as the cursor leaves.
+      this.bubble.style.opacity = '1'
       if (this.fadeTimer !== undefined) { clearTimeout(this.fadeTimer); this.fadeTimer = undefined }
       this.container.showPopover()
       // A fixed-position popover doesn't scroll with the page, so dismiss
@@ -407,7 +455,7 @@ export class ATooltipElement extends HTMLElementBase {
       // Follow the cursor for the whole time it's shown — including after the
       // pointer has left the anchor (close pending) AND through the exit fade
       // — so a following bubble keeps trailing the mouse instead of freezing.
-      // (No-op for static/interactive.) Detached when the fade finishes.
+      // (No-op for pinned tooltips.) Detached when the fade finishes.
       if (!this.docMoveBound) { this.doc.addEventListener('mousemove', this.onDocMove); this.docMoveBound = true }
     }
     // Position AFTER showPopover so the bubble is laid out & measurable
@@ -422,31 +470,74 @@ export class ATooltipElement extends HTMLElementBase {
     this.shown = false
     this.touchOpen = false
     this.container.hidePopover()
-    this.view.removeEventListener('scroll', this.hide, { capture: true } as any)
-    this.doc.removeEventListener('keydown', this.onKeyDown, true)
-    // Keep the cursor-follow listener through the exit fade (a following bubble
-    // trails the pointer as it fades instead of freezing), then detach it.
+    // Keep the scroll / key / cursor-follow listeners through the exit fade (a
+    // following bubble keeps trailing the pointer as it fades), then detach all.
     this.fading = true
     if (this.fadeTimer !== undefined) clearTimeout(this.fadeTimer)
-    this.fadeTimer = setTimeout(() => {
-      this.fading = false
-      this.fadeTimer = undefined
-      if (this.docMoveBound) {
-        this.doc.removeEventListener('mousemove', this.onDocMove)
-        this.docMoveBound = false
-      }
-    }, FADE_MS)
+    this.fadeTimer = setTimeout(() => this.detachGlobals(), FADE_MS)
     releaseOpen(this)
   }
 
-  /** While shown, track the cursor even after it has left the anchor (during
-   *  the close delay). Cursor-following only — static/interactive bubbles
-   *  stay pinned. */
-  private onDocMove = (e: MouseEvent) => {
-    if ((this.shown || this.fading) && !this.isPinned) {
-      this.lastMouse = e
-      this.positionToMouse(e)
+  /** Remove every document / window listener this element binds and stop the
+   *  fade timer. Used by hide() (after the exit fade) and by cleanup()
+   *  (immediately). Idempotent. */
+  private detachGlobals() {
+    if (this.fadeTimer !== undefined) { clearTimeout(this.fadeTimer); this.fadeTimer = undefined }
+    this.fading = false
+    this.view.removeEventListener('scroll', this.hide, { capture: true } as any)
+    this.doc.removeEventListener('keydown', this.onKeyDown, true)
+    if (this.docMoveBound) {
+      this.doc.removeEventListener('mousemove', this.onDocMove)
+      this.docMoveBound = false
     }
+  }
+
+  /** Full, immediate teardown: close the popover now (no fade), detach every
+   *  listener, clear all timers, release the coordinator slot, reset state.
+   *  Idempotent. Called from disconnectedCallback, and from the orphan safety
+   *  net (claimOpen / onDocMove) when the element is gone but
+   *  disconnectedCallback didn't fire. Not `private` — the module coordinator
+   *  calls it. */
+  cleanup() {
+    this.cancelHide()
+    if (this.shown) {
+      this.shown = false
+      this.touchOpen = false
+      if (this.container.matches(':popover-open')) this.container.hidePopover()
+    }
+    this.detachGlobals()
+    this.teardownListeners()
+    releaseOpen(this)
+    this.bubble.style.opacity = ''
+  }
+
+  /** While shown, track the cursor even after it has left the anchor (during
+   *  the close delay). Only runs for `follow` tooltips — pinned bubbles
+   *  (the default, `interactive`, touch) stay put. */
+  private onDocMove = (e: MouseEvent) => {
+    // Orphan safety net: if the host was removed without disconnectedCallback
+    // firing, the coordinator's strong ref kept us (and this listener) alive.
+    // The next mouse move tears us down — mousemove is the one global event
+    // guaranteed to keep firing while a following bubble is up.
+    if (!this.isConnected) { this.cleanup(); return }
+    if (!(this.shown || this.fading) || this.isPinned) return
+    this.lastMouse = e
+    const o = this.proximityOpacity(e)
+    // Beyond PROX_FAR the cursor has clearly left: blank the bubble instantly
+    // (no transition) AND dismiss now, so a fast flick can't leave it trailing
+    // or fading across the screen. Doesn't wait on the close timer or further
+    // mouse samples. Safe for the cross-fade — a >PROX_FAR jump means there's no
+    // adjacent anchor to hand off to.
+    if (o === 0) {
+      this.bubble.style.transition = 'none'
+      this.bubble.style.opacity = '0'
+      if (this.shown) this.hide()
+      return
+    }
+    // Within the ramp: follow the cursor and fade smoothly by distance.
+    this.positionToMouse(e)
+    this.bubble.style.transition = ''
+    this.bubble.style.opacity = String(o)
   }
 
   /** Hide after CLOSE_DELAY unless something cancels it first (re-enter, or

@@ -12,12 +12,14 @@ export interface TooltipProps extends BaseProps {
    *  side when there isn't room.
    *  @defaultValue bottom */
   placement?: 'top' | 'bottom'
-  /** Pin the bubble under the anchor instead of following the cursor. */
-  static?: boolean
+  /** Follow the cursor instead of pinning under the anchor. The bubble is
+   *  pinned (anchored beneath the target) by default; pass `follow` for the
+   *  cursor-tracking behaviour, which fades by distance as the cursor leaves. */
+  follow?: boolean
   /** Make the bubble hoverable and clickable — enables pointer events and
    *  keeps it open while the cursor is over it, so its content (links,
-   *  buttons) can be interacted with. Implies `static` (an interactive
-   *  bubble can't follow the cursor). */
+   *  buttons) can be interacted with. Always pinned (an interactive bubble
+   *  can't follow the cursor, even with `follow`). */
   interactive?: boolean
 }
 
@@ -29,8 +31,8 @@ export interface TooltipProps extends BaseProps {
  * Shows on hover (after `delay`) and on keyboard focus; dismisses on mouse
  * leave, blur, Escape, or when the anchor scrolls away. On touch devices it
  * opens on press-and-hold (a tap never surfaces it) and lingers briefly after
- * release. Follows the cursor by default — pass `static` to pin it under the
- * anchor instead.
+ * release. Pinned under the anchor by default — pass `follow` to make it track
+ * the cursor instead.
  *
  * Requires `@antadesign/anta/elements` to be imported (client-side only)
  * to register the underlying custom element.
@@ -46,20 +48,28 @@ export interface TooltipProps extends BaseProps {
  * </button>
  * ```
  *
- * @example Pinned above, rich content
+ * @example Above the anchor, rich content
  * ```tsx
  * <span style={{ cursor: 'help' }}>
  *   Status
- *   <Tooltip placement="top" static>
+ *   <Tooltip placement="top">
  *     <strong>Healthy</strong> — last checked 2m ago
  *   </Tooltip>
  * </span>
+ * ```
+ *
+ * @example Follow the cursor
+ * ```tsx
+ * <button>
+ *   Hover me
+ *   <Tooltip follow>Tracks the pointer</Tooltip>
+ * </button>
  * ```
  */
 export const Tooltip = ({
   delay,
   placement,
-  static: isStatic,
+  follow,
   interactive,
   className,
   children,
@@ -71,7 +81,7 @@ export const Tooltip = ({
       // 'bottom' is the implicit default — emit no DOM attribute for it.
       placement={placement === 'top' ? 'top' : undefined}
       // Boolean attributes: presence form when on, omitted when off.
-      static={isStatic ? '' : undefined}
+      follow={follow ? '' : undefined}
       interactive={interactive ? '' : undefined}
       class={className}
       {...rest}

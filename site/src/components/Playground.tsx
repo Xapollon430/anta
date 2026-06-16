@@ -1068,10 +1068,25 @@ function ExampleAccordion({
 // Iframe lifecycle helpers
 
 // Transparent iframe body so the playground's surrounding panel
-// background shows through. The html class="dark" + cloned-stylesheet
-// pipeline still applies anta tokens for typography and colors;
-// removing the body background just lets the host card paint behind.
-const IFRAME_SRCDOC = `<!DOCTYPE html><html class="dark"><head><meta charset="utf-8"><style>
+// background shows through. The cloned-stylesheet pipeline applies anta
+// tokens for typography and colors; removing the body background just lets
+// the host card paint behind.
+//
+// The inline <script> below seeds the theme synchronously *during parse*,
+// before first paint: it reads the parent docs theme (srcdoc iframes are
+// same-origin, so parent.document is reachable) and sets the iframe's own
+// `.dark` class + `color-scheme`. Setting color-scheme ON THE EMBEDDED
+// DOCUMENT is what makes its blank UA canvas paint the right shade — an iframe
+// element's color-scheme does NOT propagate into the document (its canvas
+// defaults to light), which is why a white flash appeared on expand in dark
+// mode. The setupIframe mirror keeps the `.dark` class in sync on later toggles.
+const IFRAME_SRCDOC = `<!DOCTYPE html><html><head><meta charset="utf-8"><script>
+  try {
+    var d = parent.document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', d);
+    document.documentElement.style.colorScheme = d ? 'dark' : 'light';
+  } catch (e) {}
+</script><style>
   /* Pin the Antithesis-sans variable font's slnt / ital axes to 0.
      Safari leaves variable-font axes at the font file's internal
      defaults unless they're explicitly set — and our font ships
@@ -1143,13 +1158,13 @@ function setupIframe(iframe: HTMLIFrameElement) {
   `
   doc.head.appendChild(reg)
 
-  // 4) Mirror the parent's .dark class.
+  // 4) Mirror the parent's .dark class (and color-scheme, so a light docs
+  //    theme flips the iframe canvas back to light — the srcdoc defaults to
+  //    dark to avoid the white expand-flash in dark mode).
   const apply = () => {
-    if (document.documentElement.classList.contains('dark')) {
-      doc.documentElement.classList.add('dark')
-    } else {
-      doc.documentElement.classList.remove('dark')
-    }
+    const dark = document.documentElement.classList.contains('dark')
+    doc.documentElement.classList.toggle('dark', dark)
+    doc.documentElement.style.colorScheme = dark ? 'dark' : 'light'
   }
   apply()
   const obs = new MutationObserver(apply)

@@ -47,8 +47,16 @@ export default defineConfig({
       styleOverrides: {
         borderWidth: '1px',
         borderColor: 'var(--border-5)',
+        codeFontFamily: 'var(--monospace)',
+        uiFontFamily: 'var(--sans-serif)',
+        codeFontSize: '13px',
+        codeFontWeight: '440',
+        codeLineHeight: '20px',
         codeBackground: 'var(--bg-canvas)',
-        codePaddingBlock: '0.75rem',
+        // EC renders this as `padding: <value> 0` on `pre > code`, so the
+        // 3-value form gives asymmetric block padding (10px top / 6px bottom,
+        // 0 inline) — there's no separate block-start/-end setting.
+        codePaddingBlock: '10px 0 6px',
         codePaddingInline: '1rem',
         frames: {
           frameBoxShadowCssValue: 'none',

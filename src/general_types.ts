@@ -222,11 +222,11 @@ export interface ATooltipAttributes extends BaseAttributes {
   delay?: number | string
   /** Preferred side; auto-flips when there's no room. Defaults to `'bottom'`. */
   placement?: 'top' | 'bottom'
-  /** Pin under the anchor instead of following the cursor. Presence-based
-   *  (`''` on, omit off). */
-  static?: boolean | ''
+  /** Follow the cursor instead of pinning under the anchor (pinned is the
+   *  default). Presence-based (`''` on, omit off). */
+  follow?: boolean | ''
   /** Make the bubble hoverable/clickable (pointer events on, stays open while
-   *  hovered). Implies `static`. Presence-based (`''` on, omit off). */
+   *  hovered). Always pinned. Presence-based (`''` on, omit off). */
   interactive?: boolean | ''
   /** HTML `id`. */
   id?: string

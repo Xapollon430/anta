@@ -18,7 +18,19 @@ component (or `<a role="button">` when `href` is set). Tone, priority,
 size, and state are all plain attributes, so the styling is identical
 whether you use the wrapper or author the element by hand.
 
-Play with it in [playground](#playground).
+<Disclosure title="Playground" anchor={false}>
+
+<Playground
+  client:visible
+  component="Button"
+  layout="side"
+  panelHeight={400}
+  initialCode={buttonDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: center; justify-content: center; }`}
+/>
+
+</Disclosure>
 
 ## Priorities
 
@@ -319,6 +331,13 @@ with the prop-driven API.
 
 Children also work without `label` — pass them as the only content.
 
+Text and number children are auto-wrapped in `<a-button-label>` (so the
+truncation rule applies and they don't trip the icon-only detector);
+element children — a `<span>`, a `<Tooltip>`, … — pass through
+unwrapped. Children with no visible content render nothing: empty or
+whitespace-only strings, `NaN`, `null` / `undefined`, and booleans are
+dropped (a valid `0` still renders).
+
 </Col>
 </Columns>
 
@@ -453,7 +472,7 @@ other routing library.
 
 </Disclosure>
 
-## Special events
+<Disclosure title="Special events">
 
 Beyond a plain click, a `Button` can drive a native form or emit your own
 event:
@@ -509,27 +528,15 @@ without taking ownership of `onClick`.
 </Col>
 </Columns>
 
-<Disclosure title="Playground">
-
-<Playground
-  client:visible
-  component="Button"
-  layout="side"
-  panelHeight={400}
-  initialCode={buttonDemoCode}
-  initialCss={`html, body { height: 100%; }
-.preview { min-height: 100%; align-items: center; justify-content: center; }`}
-/>
-
 </Disclosure>
 
-<Disclosure title="Component props">
+<Disclosure title="Component props" open>
 
 <PropsTable component="Button" />
 
 </Disclosure>
 
-<Disclosure title="Component tokens">
+<Disclosure title="Component tokens" open>
 
 Override any of these on a single instance
 (`style={{ '--button-padding-x': '12px' }}`) or on a selector wrapping
@@ -548,7 +555,7 @@ with a hex8 fallback first.
 | `--button-loading-angle` | Stripe angle (default `125deg`). |
 | `--button-loading-period` | Stripe + gap along the gradient axis (default `30px`). |
 | `--button-loading-stripe`<br />`--button-loading-stripe-gap` | Stripe geometry (default `14px` / `16px`). |
-| `--button-loading-opacity` | Overlay opacity (default `0.25`). |
+| `--button-loading-opacity` | Overlay opacity (default `0.15`). |
 | `--button-loading-blur` | Stripe-edge softening (default `2.5px`). |
 
 </Disclosure>

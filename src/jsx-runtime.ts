@@ -54,23 +54,25 @@ import type { AProgressAttributes, ATextAttributes, ATitleAttributes, ATagAttrib
 // packages — e.g. `@antadesign/stickers` — can augment it with their own
 // custom-element tags via `declare module '@antadesign/anta/jsx-runtime'`.
 export namespace JSX {
-  export interface IntrinsicElements extends React.JSX.IntrinsicElements {
-    'a-progress': AProgressAttributes
-    'a-progress-label': BaseAttributes
-    'a-progress-number': BaseAttributes
-    'a-progress-text': BaseAttributes
-    'a-progress-hint': BaseAttributes
-    'a-text': ATextAttributes
-    'a-title': ATitleAttributes
-    'a-tag': ATagAttributes
-    'a-tag-label': BaseAttributes
-    'a-tag-value': BaseAttributes
-    'a-expander': AExpanderAttributes
-    'a-expander-summary': BaseAttributes
-    'a-expander-details': BaseAttributes
-    'a-icon': AIconAttributes
-    'a-button': AButtonAttributes
-    'a-button-label': BaseAttributes
-    'a-tooltip': ATooltipAttributes
-  }
+  export interface IntrinsicElements extends React.JSX.IntrinsicElements, AntaIntrinsicElements {}
+}
+
+export interface AntaIntrinsicElements {
+  'a-progress': AProgressAttributes
+  'a-progress-label': BaseAttributes
+  'a-progress-number': BaseAttributes
+  'a-progress-text': BaseAttributes
+  'a-progress-hint': BaseAttributes
+  'a-text': ATextAttributes
+  'a-title': ATitleAttributes
+  'a-tag': ATagAttributes
+  'a-tag-label': BaseAttributes
+  'a-tag-value': BaseAttributes
+  'a-expander': AExpanderAttributes
+  'a-expander-summary': BaseAttributes
+  'a-expander-details': BaseAttributes
+  'a-icon': AIconAttributes
+  'a-button': AButtonAttributes
+  'a-button-label': BaseAttributes
+  'a-tooltip': ATooltipAttributes
 }
