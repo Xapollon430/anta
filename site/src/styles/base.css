@@ -137,6 +137,15 @@ html, body {
 
 summary { cursor: pointer; }
 
+/* Hide the native <details> disclosure triangle on every docs summary. Kept
+   global (not in a component's scoped <style>) so it can't be lost to CSS
+   bundling/hoisting — the scoped style on <Disclosure> is for layout only, and
+   PropsTable's "Inherited props" summary carries no scoped style at all.
+   `list-style: none` drops the standard marker; the -webkit pseudo covers
+   older Safari, which ignores `list-style` on <summary>. */
+summary { list-style: none; }
+summary::-webkit-details-marker { display: none; }
+
 /* Heading sizes / weight / margins live in anta's reset
    (`src/reset.css`); the docs site no longer needs its own overrides. */
 
