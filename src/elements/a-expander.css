@@ -51,7 +51,6 @@
   }
 
   a-expander[priority="tertiary"][marker="outside"] {
-    border-width: 0;
     padding-left: 0;
   }
   a-expander[priority="tertiary"][marker="outside"] a-expander-details {
@@ -59,7 +58,7 @@
   }
 
   a-expander[marker="none"] a-expander-details {
-    padding-left: 4px;
+    padding-left: 0;
   }
 
   a-expander[tone="brand"] {

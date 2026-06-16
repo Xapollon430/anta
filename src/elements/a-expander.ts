@@ -78,8 +78,9 @@ import './a-expander.css'
  *   `margin-inline-end` (flex gap is 0) so spacing is tunable per
  *   variant. With `marker="outside"` (tertiary only) it hangs in the
  *   left gutter: pulled left by its own 16px width + 2px gap while the
- *   host zeroes its left border/padding (see a-expander.css), so the
- *   title sits flush with surrounding content like the docs headers.
+ *   host zeroes its left padding (keeping the border, now transparent,
+ *   for stable box geometry — see a-expander.css), so the title sits at
+ *   the element's edge like the docs headers.
  * - **Hover/press affordance**: the button's `:hover`/`:active` set the
  *   inherited `--_summary-color` / `--_summary-underline` custom
  *   properties; `a-expander-summary` consumes them in its always-on rule
@@ -134,8 +135,9 @@ import './a-expander.css'
  *   tertiary) so switching priority never shifts layout. `secondary` is
  *   the default surface (on the base rule); `primary` re-points to the
  *   stronger card pair; `tertiary` goes transparent. With
- *   `marker="outside"` the left border/padding are zeroed and the body
- *   drops its indent, so title + body sit flush.
+ *   `marker="outside"` only the left padding is zeroed (the border stays,
+ *   transparent, so the box geometry is unchanged) and the body drops its
+ *   indent, so title + body sit at the element's edge.
  * - `<a-expander-summary>` / `<a-expander-details>` are CSS-only styled
  *   light-DOM tags (like `<a-tag-label>`). The summary inherits the
  *   shadow button's typography and only lays out + ellipsizes; the
