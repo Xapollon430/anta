@@ -3,9 +3,9 @@
  * the rationale on storing this in a sibling .ts file rather than inlining
  * the template literal in the .mdx.
  */
-export default `import { Expander, Text } from '@antadesign/anta'
+export default `import { Expander, Text, Button, Tag } from '@antadesign/anta'
 
-<Expander title="What is Antithesis?" level={4} defaultOpen>
+<Expander title="What is Antithesis?" defaultOpen>
   <Text>
     Antithesis is an autonomous testing platform that hunts for the bugs
     in your software — running it inside a deterministic simulation so any

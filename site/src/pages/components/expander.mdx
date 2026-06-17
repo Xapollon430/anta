@@ -9,7 +9,7 @@ import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import expanderDemoCode from './expander.demo.ts'
-import { Expander, Text, Button } from '@antadesign/anta'
+import { Expander, Text, Button, Icon } from '@antadesign/anta'
 
 # Expander
 
@@ -132,17 +132,17 @@ hue is kept while lightness and chroma are pinned to the named-tone curve
 (and re-tuned for dark mode), the same mechanism as `Button` / `Tag`:
 
 <Preview direction="column" gap="8px">
-  <Expander title="Magenta" tone="#ff1493"><Text>Custom hue, derived surface + text.</Text></Expander>
-  <Expander title="Purple" tone="rebeccapurple"><Text>Custom hue, derived surface + text.</Text></Expander>
-  <Expander title="Teal" tone="#0d9488"><Text>Custom hue, derived surface + text.</Text></Expander>
+  <Expander title="Magenta" tone="#ff1493" priority="primary"><Text>Custom hue, derived surface + text.</Text></Expander>
+  <Expander title="Purple" tone="rebeccapurple" priority="primary"><Text>Custom hue, derived surface + text.</Text></Expander>
+  <Expander title="Teal" tone="#0d9488" priority="primary"><Text>Custom hue, derived surface + text.</Text></Expander>
 </Preview>
 
 ```tsx folded
-// shown on the default `secondary` surface — the custom tone tints the fill;
-// add priority="primary" for a stronger card, or "tertiary" for text only.
-<Expander tone="#ff1493" title="Magenta" />
-<Expander tone="rebeccapurple" title="Purple" />
-<Expander tone="#0d9488" title="Teal" />
+// shown on the `primary` surface — the custom tone tints the fill;
+// drop to "secondary" (the default) for a subtler card, or "tertiary" for text only.
+<Expander tone="#ff1493" priority="primary" title="Magenta" />
+<Expander tone="rebeccapurple" priority="primary" title="Purple" />
+<Expander tone="#0d9488" priority="primary" title="Teal" />
 ```
 
 ## Outdent
@@ -154,10 +154,14 @@ content — the same layout as the section headers in these docs. The
 border stays (transparent, so the box geometry is unchanged); only the
 left padding is zeroed, so the title sits at the element's edge.
 
-<Preview direction="column" gap="8px">
-  <Expander priority="tertiary" outdent title="Flush header, chevron in the gutter" defaultOpen>
-    <Text>The chevron hangs to the left of the title; the title and this body align with the surrounding content.</Text>
-  </Expander>
+<Preview>
+  <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <Text>A line of surrounding prose above the expander — note where its left edge sits.</Text>
+    <Expander priority="tertiary" outdent title="Flush header, chevron in the gutter" defaultOpen>
+      <Text>The chevron hangs to the left of the title; the title and this body align with the surrounding content.</Text>
+    </Expander>
+    <Text>A line of surrounding prose below — the flush title and body line up with both.</Text>
+  </div>
 </Preview>
 
 ```tsx folded
@@ -215,10 +219,16 @@ focusable, and screen readers announce them as their own controls.
 nesting controls in a button is an accessibility anti-pattern.)
 
 <Preview direction="column" gap="8px">
-  <Expander title="Build artifacts" actions={<Button size="small" label="Download" />}>
-    <Text>The download button lives in the header but is not part of the trigger.</Text>
-  </Expander>
+  <a-expander>
+    <a-expander-summary slot="title">Build artifacts</a-expander-summary>
+    <Button slot="actions" size="small" label="Download" />
+    <a-expander-details><Text>The download button lives in the header but is not part of the trigger.</Text></a-expander-details>
+  </a-expander>
 </Preview>
+
+{/* These docs render statically, so the preview above uses the equivalent
+    element composition — passing the `actions` vnode as a prop is dropped by
+    Astro's static SSR. In your app, the JSX `actions={…}` form below is the API. */}
 
 ```tsx folded
 <Expander title="Build artifacts" actions={<Button size="small" label="Download" />}>
@@ -229,21 +239,22 @@ nesting controls in a button is an accessibility anti-pattern.)
 The header never wraps: actions keep their intrinsic size and the
 title ellipsizes first, so keep actions compact (a small button or
 two, a tag). Pass several controls as a fragment — they form a row
-with an 8px gap:
+with a 2px gap:
 
 <Preview direction="column" gap="8px">
-  <Expander
-    title="A long section title that gives way to the actions and ellipsizes when space runs out"
-    actions={<><Button size="small" label="Share" /><Button size="small" label="Download" /></>}
-  >
-    <Text>Actions hold their size; the title truncates.</Text>
-  </Expander>
+  <a-expander>
+    <a-expander-summary slot="title">A very long expandable section title that shows how the actions would push content to ellipsize when space runs out</a-expander-summary>
+    <Button slot="actions" size="small" label="Expand" />
+    <Button slot="actions" size="small" label="Share" />
+    <Button slot="actions" size="small" label="Download" />
+    <a-expander-details><Text>Actions hold their size; the title truncates.</Text></a-expander-details>
+  </a-expander>
 </Preview>
 
 ```tsx folded
 <Expander
-  title="A long section title that gives way to the actions…"
-  actions={<><Button size="small" label="Share" /><Button size="small" label="Download" /></>}
+  title="A very long expandable section title that shows how the actions would push content to ellipsize when space runs out"
+  actions={<><Button size="small" label="Expand" /><Button size="small" label="Share" /><Button size="small" label="Download" /></>}
 >
   …
 </Expander>
@@ -264,15 +275,18 @@ becomes the collapsible body.
 <Preview direction="column" gap="8px">
   <a-expander>
     <a-expander-summary slot="title">Hand-authored markup</a-expander-summary>
-    <button slot="actions">Download</button>
-    <a-expander-details>The body — everything without a <code>slot</code> attribute.</a-expander-details>
+    <Button slot="actions" size="small" label="Share" />
+    <Button slot="actions" size="small" label="Download" />
+    <a-expander-details><Text>The body — everything without a <code>slot</code> attribute.</Text></a-expander-details>
   </a-expander>
 </Preview>
 
 ```html
 <a-expander>
   <a-expander-summary slot="title">Hand-authored markup</a-expander-summary>
-  <button slot="actions">Download</button>
+  <!-- several elements can share slot="actions" -->
+  <a-button slot="actions" size="small" label="Share"></a-button>
+  <a-button slot="actions" size="small" label="Download"></a-button>
   <a-expander-details>The body — everything without a slot attribute.</a-expander-details>
 </a-expander>
 ```
@@ -319,21 +333,68 @@ const [open, setOpen] = useState(false)
 
 ## Styling the chevron & header
 
+{/* Live CSS for every example in this section. `is:inline` so Astro renders it
+    verbatim (the rules target web-component internals — ::part, :state — that a
+    scoped style can't reach). Each shown recipe below uses the same selectors. */}
+<style is:inline>{`
+  a-expander.hide-chevron::part(summary)::before { display: none; }
+  a-expander.hide-chevron a-expander-details { padding-left: 4px; }
+
+  a-expander.hover-tint::part(summary):hover  { background: var(--bg-3); }
+  a-expander.hover-tint::part(summary):active { background: var(--bg-2); }
+
+  a-expander.title-highlight { --expander-text-hover: var(--text-1-brand); }
+
+  a-expander.code-like {
+    --expander-text: var(--text-4);
+    --expander-text-hover: var(--text-2);
+    --expander-bg: var(--bg-canvas);
+    --expander-border: var(--border-5);
+
+    border-radius: 5.5px;
+  }
+  a-expander.code-like::part(summary) {
+    min-height: 2.25rem;
+    padding-inline: 4px;
+    border-radius: 5.5px 5.5px 0 0;
+    font-weight: 450;
+    background: var(--bg-4);
+  }
+
+  a-expander.indicator::part(summary)::before { display: none; }
+  a-expander.indicator::part(summary) { padding-left: 12px; }
+  a-expander.indicator a-expander-details { padding-left: 12px; }
+  a-expander.indicator [slot="actions"] { pointer-events: none; color: var(--text-4); transition: transform 150ms ease; }
+  a-expander.indicator:state(open) [slot="actions"] { transform: rotate(90deg); }
+`}</style>
+
 There's deliberately no prop to hide the chevron: a region that folds
 needs a visible affordance, so the default is to always show one. If you
 have a genuine one-off need, the chevron is the summary's `::before`, so
 you can remove it in CSS — zero the body indent too so the content stays
 aligned with the now-unoffset title:
 
-```css
+<Preview direction="column" gap="8px">
+  <Expander class="hide-chevron" title="No chevron" defaultOpen>
+    <Text>The affordance is gone; the title and body sit at the header edge.</Text>
+  </Expander>
+</Preview>
+
+```css folded
 a-expander::part(summary)::before { display: none; }
-a-expander a-expander-details { padding-left: 0; }
+a-expander a-expander-details { padding-left: 4px; }
 ```
 
 To tint the **whole header** on hover / press, style the summary part
 (the header `<button>`):
 
-```css
+<Preview direction="column" gap="8px">
+  <Expander class="hover-tint" title="Hover or press the header" priority="tertiary">
+    <Text>The whole header bar tints on hover and again while pressed.</Text>
+  </Expander>
+</Preview>
+
+```css folded
 a-expander::part(summary):hover  { background: var(--bg-3); }
 a-expander::part(summary):active { background: var(--bg-2); }
 ```
@@ -342,7 +403,13 @@ Or just **highlight the title** — the header already eases the title to
 `--expander-text-hover` on hover, so re-point that token (per tone if you
 like) instead of writing your own hover rule:
 
-```css
+<Preview direction="column" gap="8px">
+  <Expander class="title-highlight" title="Hover the title" priority="tertiary">
+    <Text>The title eases to the brand color on hover — no extra :hover rule.</Text>
+  </Expander>
+</Preview>
+
+```css folded
 a-expander { --expander-text-hover: var(--text-1-brand); }
 ```
 
@@ -350,27 +417,10 @@ The header also exposes its open/closed state as the **`:state(open)`**
 custom state, so your CSS can react to it (in controlled and uncontrolled
 mode alike) — no JS. Two worked examples:
 
-{/* Live CSS for the two examples below. `is:inline` so Astro renders it
-    verbatim (the rules target web-component internals — ::part, :state — that
-    a scoped style can't reach). The shown recipes use the same selectors. */}
-<style is:inline>{`
-  a-expander.code-like {
-    --expander-text: var(--text-4);
-    --expander-text-hover: var(--text-2);
-    --expander-bg: var(--bg-canvas);
-    --expander-border: var(--border-5);
-  }
-  a-expander.code-like::part(summary) { background: var(--bg-4); border-radius: 3px 3px 0 0; }
-
-  a-expander.indicator::part(summary)::before { display: none; }
-  a-expander.indicator a-expander-details { padding-left: 4px; }
-  a-expander.indicator [slot="actions"] { pointer-events: none; color: var(--text-4); transition: transform 150ms ease; }
-  a-expander.indicator:state(open) [slot="actions"] { transform: rotate(90deg); }
-`}</style>
-
-**Match a code block** — re-point the text + surface tokens and paint the
-header bar with `::part(summary)`, so an Expander reads like the foldable
-code blocks on this site:
+**Custom expandable code block** — re-point the text + surface tokens and
+paint the header bar with `::part(summary)`, so an Expander reads like the
+foldable code blocks on this site (a `--bg-4` bar with a `--border-5`
+outline over a `--bg-canvas` body):
 
 <Preview direction="column" gap="8px">
   <Expander class="code-like" title="example.tsx" level={6} defaultOpen>
@@ -378,46 +428,55 @@ code blocks on this site:
   </Expander>
 </Preview>
 
-```css
+```css folded
 a-expander.code-like {
-  --expander-text: var(--text-4);
+  --expander-text: var(--text-4);            /* bar label + body, text-4 → text-2 on hover */
   --expander-text-hover: var(--text-2);
-  --expander-bg: var(--bg-canvas);          /* body surface */
-  --expander-border: var(--border-5);
+  --expander-bg: var(--bg-canvas);           /* body (editor) surface */
+  --expander-border: var(--border-5);        /* frame outline */
+
+  border-radius: 5.5px;                       /* match the foldable-frame radius */
 }
-a-expander.code-like::part(summary) { background: var(--bg-4); border-radius: 3px 3px 0 0; }
+a-expander.code-like::part(summary) {
+  min-height: 2.25rem;                        /* the fold bar height */
+  padding-inline: 4px;
+  border-radius: 5.5px 5.5px 0 0;
+  font-weight: 450;                           /* the lighter bar-label weight */
+  background: var(--bg-4);                     /* the header bar fill */
+}
 ```
 
 **Chevron as a status indicator** — drop the built-in toggle chevron and
 put a **non-interactive** chevron in `actions` instead. The whole header
 still toggles; the indicator only reflects state, rotating via
-`:state(open)`:
+`:state(open)`. With the `<Expander>` JSX wrapper, pass
+`actions={<Icon shape="chevron-right" />}` (the preview below uses the
+equivalent element composition because these docs render statically):
 
 <Preview direction="column" gap="8px">
   <a-expander class="indicator" defaultopen>
     <a-expander-summary slot="title">Build log</a-expander-summary>
-    <a-icon slot="actions" shape="chevron-right"></a-icon>
+    <Icon slot="actions" shape="chevron-right" />
     <a-expander-details><Text>The header is the trigger; the actions chevron is an indicator only.</Text></a-expander-details>
   </a-expander>
 </Preview>
 
-```html
-<!-- the indicator goes in the actions slot; the whole header still toggles -->
-<a-expander class="indicator">
-  <a-expander-summary slot="title">Build log</a-expander-summary>
-  <a-icon slot="actions" shape="chevron-right"></a-icon>
-  <a-expander-details>…</a-expander-details>
-</a-expander>
-```
-With the `<Expander>` JSX wrapper, pass `actions={<Icon shape="chevron-right" />}` instead; it wraps the icon in a layout-neutral span, so target `[slot="actions"] a-icon` in the rules below.
+```tsx folded
+{/* renders an <a-expander> whose only header control is a non-interactive
+    chevron in the actions slot; the whole header toggles, the chevron rotates */}
+<Expander actions={<Icon shape="chevron-right" />} className="indicator" defaultOpen>
+  Build log
+</Expander>
 
-```css
-/* drop the built-in toggle chevron + realign the body under the now-flush title */
-a-expander.indicator::part(summary)::before { display: none; }
-a-expander.indicator a-expander-details { padding-left: 4px; }
-/* the actions chevron is an indicator only (never intercepts) and rotates with open */
-a-expander.indicator [slot="actions"] { pointer-events: none; transition: transform 150ms ease; }
-a-expander.indicator:state(open) [slot="actions"] { transform: rotate(90deg); }
+{/* custom CSS for the .indicator class (the JSX wrapper boxes the icon in a
+    layout-neutral span, so target the [slot="actions"] element) */}
+<style>{`
+  a-expander.indicator::part(summary)::before { display: none; }   /* drop the built-in chevron */
+  a-expander.indicator::part(summary) { padding-left: 12px; }       /* roomier inset without it */
+  a-expander.indicator a-expander-details { padding-left: 12px; }
+  a-expander.indicator [slot="actions"] { pointer-events: none; transition: transform 150ms ease; }
+  a-expander.indicator:state(open) [slot="actions"] { transform: rotate(90deg); }  /* rotate with open */
+`}</style>
 ```
 
 <Disclosure title="Component props" open>

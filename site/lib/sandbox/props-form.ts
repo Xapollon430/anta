@@ -429,7 +429,21 @@ function controlFor(p: any): PropEntry | null {
     )
   }
 
-  // Anything else — `ReactNode`, `CSSProperties`, named references,
+  // `ReactNode`-typed props (e.g. Expander's `actions`, `title`) — make
+  // them editable via a text input whose content is spliced into the
+  // code as a raw JSX expression (`actions={<Button … />}`), parsed
+  // exactly as if typed in the CODE tab. Detected as a reference to
+  // React's `ReactNode`. Genuinely non-authorable references
+  // (`CSSProperties`, named refs, functions) fall through to the
+  // documentation row below.
+  if (t.type === 'reference' && (t.name === 'ReactNode' || t.qualifiedName === 'React.ReactNode')) {
+    return wrap(
+      { kind: 'text', name, description: description || 'A JSX expression, e.g. `<Button label="Download" />`.' },
+      { name, kind: 'expression' },
+    )
+  }
+
+  // Anything else — `CSSProperties`, named references,
   // intersection / mapped types, etc. Surface as a documentation
   // row: name + rendered type + description, no input. Lets the
   // panel double as the prop reference, eliminating the need for a
