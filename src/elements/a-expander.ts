@@ -76,11 +76,13 @@ import './a-expander.css'
  *   `currentColor` (the inherited, possibly toned `--expander-text`);
  *   dimmed at rest, full on hover/open, rotated 90° when open. Explicit
  *   `margin-inline-end` (flex gap is 0) so spacing is tunable per
- *   variant. With `marker="outside"` (tertiary only) it hangs in the
- *   left gutter: pulled left by its own 16px width + 2px gap while the
- *   host zeroes its left padding (keeping the border, now transparent,
- *   for stable box geometry — see a-expander.css), so the title sits at
- *   the element's edge like the docs headers.
+ *   variant. With `outdent` (tertiary only) it hangs in the left gutter:
+ *   pulled left by its own 16px width + 2px gap while the host zeroes its
+ *   left padding (keeping the border, now transparent, for stable box
+ *   geometry — see a-expander.css), so the title sits at the element's
+ *   edge like the docs headers. The chevron itself can't be hidden via an
+ *   attribute (a foldable region needs a visible affordance) — restyle or
+ *   remove it through ::part(summary)::before if a consumer must.
  * - **Hover/press affordance**: the button's `:hover`/`:active` set the
  *   inherited `--_summary-color` / `--_summary-underline` custom
  *   properties; `a-expander-summary` consumes them in its always-on rule
@@ -116,10 +118,10 @@ import './a-expander.css'
  *   freezes as-is (matching Radix / native form controls — disabling
  *   doesn't force-close). Host CSS dims the text; header actions stay
  *   live (they're outside the button) unless the consumer disables them.
- * - **Marker**: `marker="outside"` (tertiary only) hangs the chevron in
- *   the left gutter; `marker="none"` (any priority) removes it and drops
- *   the body's chevron-alignment indent (see a-expander.css) so the
- *   content lines up under the flush title.
+ * - **Outdent**: `outdent` (tertiary only) hangs the chevron in the left
+ *   gutter and drops the body's chevron-alignment indent (see
+ *   a-expander.css) so the title + content line up flush with the
+ *   surrounding column, like the docs section headers.
  * - **Open-state selectors** cross from the button to `.region` via
  *   `.header:has(button[aria-expanded="true"]) + .region` — the button
  *   sits inside the header flex row, so plain sibling combinators can't
@@ -134,8 +136,8 @@ import './a-expander.css'
  * - Border + padding are present on every priority (transparent on
  *   tertiary) so switching priority never shifts layout. `secondary` is
  *   the default surface (on the base rule); `primary` re-points to the
- *   stronger card pair; `tertiary` goes transparent. With
- *   `marker="outside"` only the left padding is zeroed (the border stays,
+ *   stronger card pair; `tertiary` goes transparent. With `outdent`
+ *   (tertiary only) just the left padding is zeroed (the border stays,
  *   transparent, so the box geometry is unchanged) and the body drops its
  *   indent, so title + body sit at the element's edge.
  * - `<a-expander-summary>` / `<a-expander-details>` are CSS-only styled
@@ -240,9 +242,8 @@ const SHADOW_STYLE = `
   }
   button:enabled:hover::before { opacity: 1; }
   button[aria-expanded="true"]::before { transform: rotate(90deg); opacity: 1; }
-  :host([marker="none"]) button::before { display: none; }
 
-  :host([priority="tertiary"][marker="outside"]) button::before {
+  :host([priority="tertiary"][outdent]) button::before {
     margin-inline-start: -18px;
     margin-inline-end: 2px;
   }

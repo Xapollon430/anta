@@ -40,13 +40,11 @@ export interface ExpanderProps extends Omit<BaseProps, "title"> {
    *  bare disclosure).
    *  @defaultValue 'secondary' */
   priority?: "primary" | "secondary" | "tertiary";
-  /** Chevron. `inside` (default) keeps it in the header row; `outside`
-   *  hangs it in the left gutter so the title sits flush with
-   *  surrounding content (the docs-header layout; `priority="tertiary"`
-   *  only); `none` removes it on any priority and drops the body's
-   *  chevron-alignment indent.
-   *  @defaultValue 'inside' */
-  marker?: "inside" | "outside" | "none";
+  /** Outdent the chevron into the left gutter so the title and body sit
+   *  flush with surrounding content (the docs-header layout). Only takes
+   *  effect with `priority="tertiary"` — on the filled priorities the
+   *  container edge has to bound the chevron, so it's a no-op there. */
+  outdent?: boolean;
   /** Header actions (e.g. buttons, tags) rendered at the end of the
    *  header row, OUTSIDE the toggle trigger — clicking them never
    *  toggles, they're separately focusable, and screen readers see them
@@ -102,7 +100,7 @@ export const Expander = ({
   level,
   tone,
   priority,
-  marker,
+  outdent,
   actions,
   disabled,
   open,
@@ -147,7 +145,7 @@ export const Expander = ({
       level={level != null ? (String(level) as `${typeof level}`) : undefined}
       tone={tone && tone !== "neutral" ? tone : undefined}
       priority={priority && priority !== "secondary" ? priority : undefined}
-      marker={marker && marker !== "inside" ? marker : undefined}
+      outdent={outdent ? "" : undefined}
       disabled={disabled ? "" : undefined}
       // All-lowercase `ontoggle` is the one event-prop spelling both
       // renderers bind to our `toggle` event: React 19 keeps the case of

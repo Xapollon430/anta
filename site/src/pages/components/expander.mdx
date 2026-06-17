@@ -143,62 +143,52 @@ hue is kept while lightness and chroma are pinned to the named-tone curve
 <Expander tone="#0d9488" title="Teal" />
 ```
 
-## Marker
+## Outdent
 
-By default the chevron sits **inside** the header row. With
-`priority="tertiary"`, set `marker="outside"` to hang it in the left
-gutter (negative space) so the **title and body sit flush** with the
-surrounding content — the same layout as the section headers in these
-docs. The element keeps its border (transparent, so the box geometry is
-unchanged) and zeroes only its left padding for this variant, so the
-title sits at the element's edge.
+By default the chevron sits **inside** the header row. On a transparent
+`priority="tertiary"` expander, add `outdent` to hang the chevron in the
+left gutter so the **title and body sit flush** with the surrounding
+content — the same layout as the section headers in these docs. The
+border stays (transparent, so the box geometry is unchanged); only the
+left padding is zeroed, so the title sits at the element's edge.
 
 <Preview direction="column" gap="8px">
-  <Expander priority="tertiary" marker="outside" title="Flush header, chevron in the gutter" defaultOpen>
+  <Expander priority="tertiary" outdent title="Flush header, chevron in the gutter" defaultOpen>
     <Text>The chevron hangs to the left of the title; the title and this body align with the surrounding content.</Text>
   </Expander>
 </Preview>
 
 ```tsx folded
-<Expander priority="tertiary" marker="outside" title="…">…</Expander>
+<Expander priority="tertiary" outdent title="…">…</Expander>
 ```
 
-Use it where the expander sits in a content column with room to its left
-(a prose measure); in a full-width / edge-to-edge container the chevron
-would overhang the edge.
-
-`marker="none"` removes the chevron entirely — on any priority — and
-drops the body's chevron-alignment indent so the content lines up under
-the flush title:
-
-<Preview direction="column" gap="8px">
-  <Expander marker="none" title="No chevron" defaultOpen>
-    <Text>The body indent collapses to match the flush title.</Text>
-  </Expander>
-</Preview>
-
-```tsx folded
-<Expander marker="none" title="…">…</Expander>
-```
+`outdent` only takes effect on `tertiary` — on the filled priorities
+(`secondary` / `primary`) the container edge has to bound the chevron, so
+it's a no-op there. Use it where the expander sits in a content column
+with room to its left (a prose measure); in a full-width / edge-to-edge
+container the chevron would overhang the edge.
 
 ## Title & level
 
 `title` takes a string or any node. For a string, `level` (1–6) applies
 the matching heading **type scale** — the same scale as `<Title>` —
-without changing the document outline.
+without changing the document outline. The header **padding scales with
+the level** too, so a larger title gets more breathing room from the
+container edges instead of looking cramped (levels 1–4 step the padding
+up; 5–6 keep the compact default).
 
 <Preview direction="column" gap="8px">
-  <Expander title="A level-2 header" level={2}>
-    <Text>The summary uses the level-2 heading type scale.</Text>
-  </Expander>
-  <Expander title="A level-4 header" level={4}>
-    <Text>And this one the level-4 scale.</Text>
-  </Expander>
+  <Expander title="Level 1" level={1}><Text>Roomy padding for the largest title.</Text></Expander>
+  <Expander title="Level 2" level={2}><Text>The summary uses the level-2 type scale.</Text></Expander>
+  <Expander title="Level 3" level={3}><Text>Padding steps down with the level.</Text></Expander>
+  <Expander title="Level 5 (default)"><Text>The compact default.</Text></Expander>
 </Preview>
 
 ```tsx folded
-<Expander title="A level-2 header" level={2}>…</Expander>
-<Expander title="A level-4 header" level={4}>…</Expander>
+<Expander title="Level 1" level={1}>…</Expander>
+<Expander title="Level 2" level={2}>…</Expander>
+<Expander title="Level 3" level={3}>…</Expander>
+<Expander title="Level 5 (default)">…</Expander>      {/* level 5 is the default */}
 ```
 
 When you need real heading **semantics** — so the title lands in a
@@ -321,6 +311,35 @@ const [open, setOpen] = useState(false)
 <Expander title="Details" open={open} onToggle={setOpen}>…</Expander>
 ```
 
+## Styling the chevron & header
+
+There's deliberately no prop to hide the chevron: a region that folds
+needs a visible affordance, so the default is to always show one. If you
+have a genuine one-off need, the chevron is the summary's `::before`, so
+you can remove it in CSS — zero the body indent too so the content stays
+aligned with the now-unoffset title:
+
+```css
+a-expander::part(summary)::before { display: none; }
+a-expander a-expander-details { padding-left: 0; }
+```
+
+To tint the **whole header** on hover / press, style the summary part
+(the header `<button>`):
+
+```css
+a-expander::part(summary):hover  { background: var(--bg-3); }
+a-expander::part(summary):active { background: var(--bg-2); }
+```
+
+Or just **highlight the title** — the header already eases the title to
+`--expander-text-hover` on hover, so re-point that token (per tone if you
+like) instead of writing your own hover rule:
+
+```css
+a-expander { --expander-text-hover: var(--text-1-brand); }
+```
+
 <Disclosure title="Component props" open>
 
 <PropsTable component="Expander" />
@@ -337,6 +356,7 @@ filled surfaces from the theme palette, so light / dark track for free.
 | Token | Description |
 |---|---|
 | `--expander-text` | Header + body text color (and the chevron, via `currentColor`). Tones re-point this. |
+| `--expander-text-hover` | Title color on header hover. Tones re-point this; override it to recolor the hover highlight. |
 | `--expander-bg` | Host background. The secondary fill by default; the primary fill on `primary`; transparent on `tertiary`. |
 | `--expander-border` | Host border color. Follows the same per-priority surface; transparent on `tertiary`. |
 | `--expander-bg-secondary`<br />`--expander-border-secondary` | Secondary (default) surface — a subtle fill (`--bg-2`) + faint edge (`--border-5`), re-pointed per tone. |

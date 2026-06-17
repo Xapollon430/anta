@@ -22,6 +22,16 @@
     background: var(--expander-bg);
   }
 
+  /* Padding scales with the title's type scale so a larger header isn't
+     cramped against the container edges. Default (no level / level 5/6)
+     keeps the base 4px above; levels 1–4 step it up to match their bigger
+     summary text. The body stays aligned because both title and body
+     measure their indent from the host's content edge. */
+  a-expander[level="4"] { padding: 6px; }
+  a-expander[level="3"] { padding: 8px; }
+  a-expander[level="2"] { padding: 10px; }
+  a-expander[level="1"] { padding: 12px; }
+
   a-expander-summary {
     display: block;
     min-width: 0;
@@ -50,14 +60,10 @@
     --expander-border: transparent;
   }
 
-  a-expander[priority="tertiary"][marker="outside"] {
+  a-expander[priority="tertiary"][outdent] {
     padding-left: 0;
   }
-  a-expander[priority="tertiary"][marker="outside"] a-expander-details {
-    padding-left: 0;
-  }
-
-  a-expander[marker="none"] a-expander-details {
+  a-expander[priority="tertiary"][outdent] a-expander-details {
     padding-left: 0;
   }
 

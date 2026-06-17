@@ -159,11 +159,11 @@ export interface AExpanderAttributes extends BaseAttributes {
   /** Surface emphasis. `secondary` (default) is a subtle fill; `primary`
    *  is a stronger raised fill; `tertiary` is transparent. */
   priority?: 'primary' | 'secondary' | 'tertiary'
-  /** Chevron. `inside` (default) keeps it in the header row; `outside`
-   *  (tertiary only) hangs it in the left gutter so the title sits flush
-   *  with surrounding content (docs-header style); `none` (any priority)
-   *  removes it and drops the body's chevron-alignment indent. */
-  marker?: 'inside' | 'outside' | 'none'
+  /** Outdent the chevron into the left gutter so the title + body sit
+   *  flush with surrounding content (the docs-header layout). Tertiary
+   *  only — a no-op on the filled priorities, where the container edge
+   *  has to bound the chevron. Presence-based. */
+  outdent?: boolean | ''
   /** Disables the header: not clickable or focusable, hover affordance
    *  off, text dimmed. The open state freezes as-is. Presence-based. */
   disabled?: boolean | ''
