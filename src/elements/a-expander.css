@@ -18,8 +18,8 @@
        width + height of the host so the hit area is maximal and consumers can
        fully restyle `::part(summary)` edge-to-edge. The header's own padding
        (padding: 4px on the button, see a-expander.ts) sets the title inset, so
-       the left rhythm is constant across every `level` (4px edge + 16px chevron
-       + 2px gap = 22px), not size-dependent. The body matches via its 22px
+       the left rhythm is constant across every `level` (4px edge + 16px
+       chevron = 20px), not size-dependent. The body matches via its 20px
        left padding below. */
     border: 1px solid var(--expander-border);
     border-radius: 4px;
@@ -45,8 +45,13 @@
   a-expander-details {
     display: block;
     /* Left padding aligns the body under the title: 4px header edge + 16px
-       chevron + 2px gap = 22px. */
-    padding: 4px 4px 4px 22px;
+       chevron + 0 gap = 20px. Tighter top (2px) to sit close under the header,
+       a touch more (6px) at the bottom. */
+    padding: 2px 4px 6px 20px;
+    /* Default the body to <Text>'s line-height (20px at the inherited 15px)
+       so plain text in the body doesn't inherit a roomy consumer body
+       line-height; a nested <Text> overrides it with the same value. */
+    line-height: 20px;
   }
 
   a-expander[priority="primary"] {

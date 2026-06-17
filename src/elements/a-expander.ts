@@ -82,10 +82,10 @@ import './a-expander.css'
  * - **Chevron**: the button's `::before` — a mask painting with
  *   `currentColor` (the inherited, possibly toned `--expander-text`);
  *   dimmed at rest, full on hover/open, rotated 90° when open. Explicit
- *   `margin-inline-end: 2px` (flex gap is 0) so the title sits 4px (button
- *   padding) + 16px (chevron) + 2px = 22px from the edge. With `outdent`
+ *   no `margin-inline-end` (flex gap is 0) so the title sits 4px (button
+ *   padding) + 16px (chevron) = 20px from the edge. With `outdent`
  *   (tertiary only) it hangs in the left gutter: pulled left by its own 16px
- *   width + 2px gap while the button zeroes its left padding (the border
+ *   width while the button zeroes its left padding (the border
  *   stays, now transparent, for stable box geometry — see a-expander.css), so
  *   the title sits at the element's edge like the docs headers. The chevron
  *   itself can't be hidden via an attribute (a foldable region needs a visible
@@ -141,7 +141,7 @@ import './a-expander.css'
  *   tree. Named tones use Anta's theme-aware semantic tokens, so no
  *   `.dark` rules are needed (same as `<a-tag>`).
  * - The host carries no padding — the header `<button>` (full width + height)
- *   owns the content inset, so the title's left rhythm (22px) is constant for
+ *   owns the content inset, so the title's left rhythm (20px) is constant for
  *   every `level` and the hit area is the whole header. The border is present
  *   on every priority (transparent on tertiary) so switching priority never
  *   shifts layout. `secondary` is the default surface; `primary` re-points to
@@ -200,11 +200,11 @@ const SHADOW_STYLE = `
   .header.has-actions slot[name="actions"] {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 2px;
     flex-shrink: 0;
     margin-inline-start: 8px;
     /* Inset from the right edge (the host has no padding of its own). */
-    margin-inline-end: 4px;
+    margin-inline-end: 2px;
   }
 
   button {
@@ -215,8 +215,8 @@ const SHADOW_STYLE = `
     margin: 0;
     /* The button is the full-bleed header: it spans the host's width (flex: 1)
        and height (.header stretch). Its own padding is the only content inset —
-       4px edge + 16px chevron + 2px gap puts the title at 22px, constant across
-       every level. Restyle it edge-to-edge via ::part(summary). */
+       4px edge + 16px chevron puts the title at 20px, constant across every
+       level. Restyle it edge-to-edge via ::part(summary). */
     padding: 4px;
     flex: 1;
     min-width: 0;
@@ -244,7 +244,7 @@ const SHADOW_STYLE = `
     width: 16px;
     height: 16px;
     flex-shrink: 0;
-    margin-inline-end: 2px;
+    margin-inline-end: 0;
     background-color: currentColor;
     -webkit-mask-image: ${CHEVRON};
             mask-image: ${CHEVRON};
@@ -264,7 +264,7 @@ const SHADOW_STYLE = `
     padding-left: 0;
   }
   :host([priority="tertiary"][outdent]) button::before {
-    margin-inline-start: -18px;
+    margin-inline-start: -16px;
   }
 
   button:enabled:hover { --_summary-color: var(--expander-text-hover); }
