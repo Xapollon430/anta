@@ -14,23 +14,19 @@
     display: block;
     width: 100%;
     box-sizing: border-box;
-    padding: 4px;
+    /* No host padding: the shadow header (the `<button>`) covers the full
+       width + height of the host so the hit area is maximal and consumers can
+       fully restyle `::part(summary)` edge-to-edge. The header's own padding
+       (padding: 4px on the button, see a-expander.ts) sets the title inset, so
+       the left rhythm is constant across every `level` (4px edge + 16px chevron
+       + 2px gap = 22px), not size-dependent. The body matches via its 22px
+       left padding below. */
     border: 1px solid var(--expander-border);
     border-radius: 4px;
 
     color: var(--expander-text);
     background: var(--expander-bg);
   }
-
-  /* Padding scales with the title's type scale so a larger header isn't
-     cramped against the container edges. Default (no level / level 5/6)
-     keeps the base 4px above; levels 1–4 step it up to match their bigger
-     summary text. The body stays aligned because both title and body
-     measure their indent from the host's content edge. */
-  a-expander[level="4"] { padding: 6px; }
-  a-expander[level="3"] { padding: 8px; }
-  a-expander[level="2"] { padding: 10px; }
-  a-expander[level="1"] { padding: 12px; }
 
   a-expander-summary {
     display: block;
@@ -48,7 +44,9 @@
   }
   a-expander-details {
     display: block;
-    padding: 4px 4px 4px 20px;
+    /* Left padding aligns the body under the title: 4px header edge + 16px
+       chevron + 2px gap = 22px. */
+    padding: 4px 4px 4px 22px;
   }
 
   a-expander[priority="primary"] {
@@ -60,9 +58,9 @@
     --expander-border: transparent;
   }
 
-  a-expander[priority="tertiary"][outdent] {
-    padding-left: 0;
-  }
+  /* Outdent: the body drops its title-alignment indent so it sits flush with
+     the surrounding content (the header's button zeroes its own left padding
+     in a-expander.ts, and the chevron hangs in the gutter). */
   a-expander[priority="tertiary"][outdent] a-expander-details {
     padding-left: 0;
   }

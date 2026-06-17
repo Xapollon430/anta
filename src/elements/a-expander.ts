@@ -60,6 +60,13 @@ import './a-expander.css'
  * `aria-controls` is intentionally omitted: optional in the WAI-ARIA
  * disclosure pattern, poorly supported, and would force a generated id.
  *
+ * The open state is also mirrored to a custom state via `ElementInternals`
+ * (`:state(open)`) purely as a *styling hook* for consumers — e.g. rotating a
+ * chevron placed in `actions`, or matching an open header to a design. This is
+ * declarative-DOM-safe: a custom state is element-internal, not a host
+ * attribute, so it never mutates the host DOM. Guarded for engines without
+ * `attachInternals` (it just doesn't expose the hook there).
+ *
  * ## Shadow style notes (the sheet itself ships comment-free)
  *
  * - **Summary**: a real `<button>` (free focus + Enter/Space), reset to
@@ -75,14 +82,14 @@ import './a-expander.css'
  * - **Chevron**: the button's `::before` — a mask painting with
  *   `currentColor` (the inherited, possibly toned `--expander-text`);
  *   dimmed at rest, full on hover/open, rotated 90° when open. Explicit
- *   `margin-inline-end` (flex gap is 0) so spacing is tunable per
- *   variant. With `outdent` (tertiary only) it hangs in the left gutter:
- *   pulled left by its own 16px width + 2px gap while the host zeroes its
- *   left padding (keeping the border, now transparent, for stable box
- *   geometry — see a-expander.css), so the title sits at the element's
- *   edge like the docs headers. The chevron itself can't be hidden via an
- *   attribute (a foldable region needs a visible affordance) — restyle or
- *   remove it through ::part(summary)::before if a consumer must.
+ *   `margin-inline-end: 2px` (flex gap is 0) so the title sits 4px (button
+ *   padding) + 16px (chevron) + 2px = 22px from the edge. With `outdent`
+ *   (tertiary only) it hangs in the left gutter: pulled left by its own 16px
+ *   width + 2px gap while the button zeroes its left padding (the border
+ *   stays, now transparent, for stable box geometry — see a-expander.css), so
+ *   the title sits at the element's edge like the docs headers. The chevron
+ *   itself can't be hidden via an attribute (a foldable region needs a visible
+ *   affordance) — restyle or remove it through ::part(summary)::before.
  * - **Hover/press affordance**: the button's `:hover`/`:active` set the
  *   inherited `--_summary-color` / `--_summary-underline` custom
  *   properties; `a-expander-summary` consumes them in its always-on rule
@@ -133,11 +140,13 @@ import './a-expander.css'
  *   that cascade — via `color` + custom properties — into the shadow
  *   tree. Named tones use Anta's theme-aware semantic tokens, so no
  *   `.dark` rules are needed (same as `<a-tag>`).
- * - Border + padding are present on every priority (transparent on
- *   tertiary) so switching priority never shifts layout. `secondary` is
- *   the default surface (on the base rule); `primary` re-points to the
- *   stronger card pair; `tertiary` goes transparent. With `outdent`
- *   (tertiary only) just the left padding is zeroed (the border stays,
+ * - The host carries no padding — the header `<button>` (full width + height)
+ *   owns the content inset, so the title's left rhythm (22px) is constant for
+ *   every `level` and the hit area is the whole header. The border is present
+ *   on every priority (transparent on tertiary) so switching priority never
+ *   shifts layout. `secondary` is the default surface; `primary` re-points to
+ *   the stronger card pair; `tertiary` goes transparent. With `outdent`
+ *   (tertiary only) the button zeroes its left padding (the border stays,
  *   transparent, so the box geometry is unchanged) and the body drops its
  *   indent, so title + body sit at the element's edge.
  * - `<a-expander-summary>` / `<a-expander-details>` are CSS-only styled
@@ -182,7 +191,9 @@ const SHADOW_STYLE = `
 
   .header {
     display: flex;
-    align-items: center;
+    /* Stretch so the trigger button (and the actions row) fill the full host
+       height — the title's hit area is the whole header, not just the text. */
+    align-items: stretch;
   }
 
   slot[name="actions"] { display: none; }
@@ -192,6 +203,8 @@ const SHADOW_STYLE = `
     gap: 8px;
     flex-shrink: 0;
     margin-inline-start: 8px;
+    /* Inset from the right edge (the host has no padding of its own). */
+    margin-inline-end: 4px;
   }
 
   button {
@@ -200,7 +213,11 @@ const SHADOW_STYLE = `
     background: none;
     border: none;
     margin: 0;
-    padding: 0;
+    /* The button is the full-bleed header: it spans the host's width (flex: 1)
+       and height (.header stretch). Its own padding is the only content inset —
+       4px edge + 16px chevron + 2px gap puts the title at 22px, constant across
+       every level. Restyle it edge-to-edge via ::part(summary). */
+    padding: 4px;
     flex: 1;
     min-width: 0;
     font: inherit;
@@ -227,7 +244,7 @@ const SHADOW_STYLE = `
     width: 16px;
     height: 16px;
     flex-shrink: 0;
-    margin-inline-end: 4px;
+    margin-inline-end: 2px;
     background-color: currentColor;
     -webkit-mask-image: ${CHEVRON};
             mask-image: ${CHEVRON};
@@ -243,9 +260,11 @@ const SHADOW_STYLE = `
   button:enabled:hover::before { opacity: 1; }
   button[aria-expanded="true"]::before { transform: rotate(90deg); opacity: 1; }
 
+  :host([priority="tertiary"][outdent]) button {
+    padding-left: 0;
+  }
   :host([priority="tertiary"][outdent]) button::before {
     margin-inline-start: -18px;
-    margin-inline-end: 2px;
   }
 
   button:enabled:hover { --_summary-color: var(--expander-text-hover); }
@@ -278,9 +297,17 @@ export class AExpanderElement extends HTMLElementBase {
 
   private summary: HTMLButtonElement
   private region: HTMLDivElement
+  // ElementInternals exposes the open/closed state as a custom state
+  // (`:state(open)`) for consumer styling — e.g. rotating a chevron that lives
+  // in `actions`, or matching an open header to a design. It's NOT a host
+  // attribute (declarative-DOM safe: no host mutation, no reconciliation
+  // churn), just element-internal state the browser exposes for CSS matching.
+  // Guarded for engines without attachInternals / CustomStateSet (no-op there).
+  private internals?: ElementInternals
 
   constructor() {
     super()
+    this.internals = typeof this.attachInternals === 'function' ? this.attachInternals() : undefined
     const shadow = this.attachShadow({ mode: 'open' })
 
     const style = document.createElement('style')
@@ -360,6 +387,11 @@ export class AExpanderElement extends HTMLElementBase {
   private setOpen(open: boolean) {
     this.summary.setAttribute('aria-expanded', open ? 'true' : 'false')
     this.region.inert = !open
+    // Mirror to the `:state(open)` custom state for external CSS hooks.
+    try {
+      if (open) this.internals?.states.add('open')
+      else this.internals?.states.delete('open')
+    } catch {}
   }
 
   /** Uncontrolled: toggle, then announce. Controlled: only announce the
