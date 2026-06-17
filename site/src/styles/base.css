@@ -447,7 +447,7 @@ pre code { background: none; padding: 0; }
      which made them different heights — zero that and pin the height here. */
   min-height: var(--fold-header-h);
   padding-block: 0;
-  padding-inline: 8px;
+  padding-inline: 4px;
   border: 1px solid var(--border-5);
   background: var(--bg-4);
   cursor: pointer;
@@ -684,6 +684,28 @@ code[data-copied]::after {
   container-type: inline-size;
 }
 
+/* Brand-tinted disclosure header (set via `<Disclosure brand>`). Colors
+   only the summary's title text + chevron, mirroring how `<Expander
+   tone="brand">` tints its summary: rest at `--text-2-brand`, hover at
+   `--text-1-brand`, with the chevron brand-tinted and strengthening on
+   hover. The body internals (Preview / panel) stay neutral. Specificity
+   (.disclosure.brand > summary …) clears the scoped `.summary` / `.chevron`
+   rules in Disclosure.astro. */
+.disclosure.brand > summary .title,
+.disclosure.brand > summary .title.plain,
+.disclosure.brand > summary .title .header-anchor {
+  color: var(--text-2-brand);
+}
+.disclosure.brand > summary .chevron {
+  color: var(--text-2-brand);
+}
+.disclosure.brand > summary:hover .title,
+.disclosure.brand > summary:hover .title.plain,
+.disclosure.brand > summary:hover .title .header-anchor,
+.disclosure.brand > summary:hover .chevron {
+  color: var(--text-1-brand);
+}
+
 .content > *,
 .disclosure > .body > * {
   max-width: 960px;
@@ -730,11 +752,11 @@ code[data-copied]::after {
   --columns-row-gap: 20px;
   column-gap: var(--columns-col-gap);
   row-gap: var(--columns-row-gap);
-  /* Block-level bottom margin like figure/pre, so a following block (a code
-     sample, a paragraph) is separated from the column group consistently in
-     both row and stacked layouts — the column children end flush (trailing
-     margins zeroed below), so the group itself owns the gap to what follows. */
-  margin-block-end: 1.5em;
+  /* Block-level bottom margin so a following block (a code sample, a
+     paragraph) is separated from the column group consistently in both row and
+     stacked layouts — the column children end flush (trailing margins zeroed
+     below), so the group itself owns the gap to what follows. */
+  margin-block-end: 8px;
 }
 /* The gap owns the spacing between stacked rows, so a column's last flow
    child must not add its own bottom margin on top of `row-gap`. Zeroing it

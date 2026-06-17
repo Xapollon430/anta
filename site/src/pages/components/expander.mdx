@@ -24,7 +24,7 @@ used across these docs.
 The `title` is the always-visible header; the `children` are the
 collapsible body.
 
-<Disclosure title="Playground" anchor={false}>
+<Disclosure title="Playground" anchor={false} brand>
 
 <Playground
   client:visible
@@ -138,6 +138,8 @@ hue is kept while lightness and chroma are pinned to the named-tone curve
 </Preview>
 
 ```tsx folded
+// shown on the default `secondary` surface — the custom tone tints the fill;
+// add priority="primary" for a stronger card, or "tertiary" for text only.
 <Expander tone="#ff1493" title="Magenta" />
 <Expander tone="rebeccapurple" title="Purple" />
 <Expander tone="#0d9488" title="Teal" />
@@ -172,23 +174,27 @@ container the chevron would overhang the edge.
 
 `title` takes a string or any node. For a string, `level` (1–6) applies
 the matching heading **type scale** — the same scale as `<Title>` —
-without changing the document outline. The header **padding scales with
-the level** too, so a larger title gets more breathing room from the
-container edges instead of looking cramped (levels 1–4 step the padding
-up; 5–6 keep the compact default).
+without changing the document outline. Only the type scale changes: the
+title's left alignment is constant across every level (the chevron + a
+fixed 4px edge inset), so swapping `level` never shifts the header
+horizontally.
 
 <Preview direction="column" gap="8px">
-  <Expander title="Level 1" level={1}><Text>Roomy padding for the largest title.</Text></Expander>
-  <Expander title="Level 2" level={2}><Text>The summary uses the level-2 type scale.</Text></Expander>
-  <Expander title="Level 3" level={3}><Text>Padding steps down with the level.</Text></Expander>
+  <Expander title="Level 1" level={1}><Text>The level-1 type scale.</Text></Expander>
+  <Expander title="Level 2" level={2}><Text>The level-2 type scale.</Text></Expander>
+  <Expander title="Level 3" level={3}><Text>The level-3 type scale.</Text></Expander>
+  <Expander title="Level 4" level={4}><Text>The level-4 type scale.</Text></Expander>
   <Expander title="Level 5 (default)"><Text>The compact default.</Text></Expander>
+  <Expander title="Level 6" level={6}><Text>The smallest type scale.</Text></Expander>
 </Preview>
 
 ```tsx folded
 <Expander title="Level 1" level={1}>…</Expander>
 <Expander title="Level 2" level={2}>…</Expander>
 <Expander title="Level 3" level={3}>…</Expander>
+<Expander title="Level 4" level={4}>…</Expander>
 <Expander title="Level 5 (default)">…</Expander>      {/* level 5 is the default */}
+<Expander title="Level 6" level={6}>…</Expander>
 ```
 
 When you need real heading **semantics** — so the title lands in a
@@ -340,6 +346,80 @@ like) instead of writing your own hover rule:
 a-expander { --expander-text-hover: var(--text-1-brand); }
 ```
 
+The header also exposes its open/closed state as the **`:state(open)`**
+custom state, so your CSS can react to it (in controlled and uncontrolled
+mode alike) — no JS. Two worked examples:
+
+{/* Live CSS for the two examples below. `is:inline` so Astro renders it
+    verbatim (the rules target web-component internals — ::part, :state — that
+    a scoped style can't reach). The shown recipes use the same selectors. */}
+<style is:inline>{`
+  a-expander.code-like {
+    --expander-text: var(--text-4);
+    --expander-text-hover: var(--text-2);
+    --expander-bg: var(--bg-canvas);
+    --expander-border: var(--border-5);
+  }
+  a-expander.code-like::part(summary) { background: var(--bg-4); border-radius: 3px 3px 0 0; }
+
+  a-expander.indicator::part(summary)::before { display: none; }
+  a-expander.indicator a-expander-details { padding-left: 4px; }
+  a-expander.indicator [slot="actions"] { pointer-events: none; color: var(--text-4); transition: transform 150ms ease; }
+  a-expander.indicator:state(open) [slot="actions"] { transform: rotate(90deg); }
+`}</style>
+
+**Match a code block** — re-point the text + surface tokens and paint the
+header bar with `::part(summary)`, so an Expander reads like the foldable
+code blocks on this site:
+
+<Preview direction="column" gap="8px">
+  <Expander class="code-like" title="example.tsx" level={6} defaultOpen>
+    <Text>The header reads like a code-block bar; the body is the editor surface.</Text>
+  </Expander>
+</Preview>
+
+```css
+a-expander.code-like {
+  --expander-text: var(--text-4);
+  --expander-text-hover: var(--text-2);
+  --expander-bg: var(--bg-canvas);          /* body surface */
+  --expander-border: var(--border-5);
+}
+a-expander.code-like::part(summary) { background: var(--bg-4); border-radius: 3px 3px 0 0; }
+```
+
+**Chevron as a status indicator** — drop the built-in toggle chevron and
+put a **non-interactive** chevron in `actions` instead. The whole header
+still toggles; the indicator only reflects state, rotating via
+`:state(open)`:
+
+<Preview direction="column" gap="8px">
+  <a-expander class="indicator" defaultopen>
+    <a-expander-summary slot="title">Build log</a-expander-summary>
+    <a-icon slot="actions" shape="chevron-right"></a-icon>
+    <a-expander-details><Text>The header is the trigger; the actions chevron is an indicator only.</Text></a-expander-details>
+  </a-expander>
+</Preview>
+
+```html
+<!-- the indicator goes in the actions slot; the whole header still toggles -->
+<a-expander class="indicator">
+  <a-expander-summary slot="title">Build log</a-expander-summary>
+  <a-icon slot="actions" shape="chevron-right"></a-icon>
+  <a-expander-details>…</a-expander-details>
+</a-expander>
+```
+With the `<Expander>` JSX wrapper, pass `actions={<Icon shape="chevron-right" />}` instead; it wraps the icon in a layout-neutral span, so target `[slot="actions"] a-icon` in the rules below.
+
+```css
+/* drop the built-in toggle chevron + realign the body under the now-flush title */
+a-expander.indicator::part(summary)::before { display: none; }
+a-expander.indicator a-expander-details { padding-left: 4px; }
+/* the actions chevron is an indicator only (never intercepts) and rotates with open */
+a-expander.indicator [slot="actions"] { pointer-events: none; transition: transform 150ms ease; }
+a-expander.indicator:state(open) [slot="actions"] { transform: rotate(90deg); }
+```
+
 <Disclosure title="Component props" open>
 
 <PropsTable component="Expander" />
@@ -349,19 +429,25 @@ a-expander { --expander-text-hover: var(--text-1-brand); }
 <Disclosure title="Component tokens" open>
 
 Override any of these on a single instance
-(`style={{ '--expander-text': 'var(--text-1)' }}`) or on a selector
-wrapping the expander. The named tones re-point `--expander-text` and the
-filled surfaces from the theme palette, so light / dark track for free.
+(`style={{ '--expander-text': 'var(--text-1)' }}`) or on a wrapping
+selector. These are the text + resolved-surface roles; tones re-point them
+from the theme palette (so light / dark track for free) and `priority`
+selects the fill. For interaction states beyond color — the header
+hover/press background, the chevron — reach `::part(summary)` (see below).
 
 | Token | Description |
 |---|---|
-| `--expander-text` | Header + body text color (and the chevron, via `currentColor`). Tones re-point this. |
-| `--expander-text-hover` | Title color on header hover. Tones re-point this; override it to recolor the hover highlight. |
-| `--expander-bg` | Host background. The secondary fill by default; the primary fill on `primary`; transparent on `tertiary`. |
-| `--expander-border` | Host border color. Follows the same per-priority surface; transparent on `tertiary`. |
-| `--expander-bg-secondary`<br />`--expander-border-secondary` | Secondary (default) surface — a subtle fill (`--bg-2`) + faint edge (`--border-5`), re-pointed per tone. |
-| `--expander-bg-primary`<br />`--expander-border-primary` | Primary surface — a more pronounced card (`--bg-4` + `--border-4`), re-pointed per tone. |
-| `--expander-tone-source` | The color a custom (non-named) `tone` derives from. Set inline by the wrapper; set it yourself to drive the derived palette from your own variable. |
+| `--expander-text` | Header + body text color (and the chevron, via `currentColor`). |
+| `--expander-text-hover` | Title color on header hover. Set it to recolor the hover highlight. (It's a token rather than a `:hover` rule because the slotted title takes the color via an inherited property — a Chromium slotted-invalidation workaround.) |
+| `--expander-bg` | Host background — the resolved surface fill (`secondary` by default, `primary` on `priority="primary"`, transparent on `tertiary`). |
+| `--expander-border` | Host border color — follows the same resolved surface. |
+| `--expander-tone-source` | The color a custom (non-named) `tone` derives from. The wrapper sets it inline; set it yourself to derive the palette from your own variable. |
+
+Each tone internally re-points per-priority pairs
+(`--expander-{bg,border}-{secondary,primary}`) and `priority` picks which
+pair is live — that's plumbing for the tone × priority matrix, not an
+override surface. Reach for the resolved `--expander-bg` / `--expander-border`
+(or `::part(summary)`) instead.
 
 </Disclosure>
 
