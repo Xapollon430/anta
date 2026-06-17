@@ -6,6 +6,12 @@ Stack: Astro 5 static output, Preact islands (`@astrojs/preact`, with `compat: t
 
 The docs site consumes Anta via the workspace symlink (`"@antadesign/anta": "workspace:*"`), so Anta must be built first (`pnpm run build` at the repo root) before `site/` resolves `dist/` artifacts.
 
+## CSS
+
+- **All component styles stay co-located** (a `.astro` scoped `<style>` or a `.module.css`). `astro.config.mjs` sets `build.inlineStylesheets: 'never'` so scoped styles are emitted into *linked* bundles, never inlined into the page `<head>` — Astro's per-page inline path can land present-but-inert in production for a component used inside MDX wrapping a hydrated island. Per-route CSS code-splitting stays on (default), so heavy island CSS (Monaco/Playground) loads only where it's used.
+- For a one-off style that must stay inline and untouched by Astro's pipeline, use **`<style is:inline>`** — it's rendered verbatim (no scoping, bundling, or hoisting).
+- **`pnpm --filter anta-site lint:css` runs Stylelint** (config: `site/stylelint.config.mjs`) over `src/**/*.{css,astro}`, including the `<style>` blocks inside `.astro` files (`postcss-html` custom syntax). It's a CI step. The config is tuned for *correctness*, not house style — most stylistic rules are off; the point is to catch CSS that the browser would silently drop. **Watch for `*/` inside a CSS comment** — e.g. writing `data-*/aria-*` ends the comment early and spills the rest into the stylesheet as invalid CSS, which (when bundled with other components) silently drops their rules in production. Stylelint now flags this.
+
 ## Playground
 
 The `<Playground>` component (`site/src/components/Playground.tsx`) is the playground that lands on `/components/<name>/` pages. It is the largest single component in this directory and is intentionally self-contained so that a future migration to a dedicated package (`@antadesign/sandbox` or similar) and a dedicated repository can lift it out without disturbing the rest of the site.
