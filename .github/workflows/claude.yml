@@ -32,7 +32,10 @@ jobs:
 
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@v1
+        # Pinned: @v1 floats to v1.0.151 (2026-06-17), whose only change was to
+        # the token-exchange path and which crashes every run at SDK auth init.
+        # v1.0.150 is the last good release. Revisit when a newer fix lands.
+        uses: anthropics/claude-code-action@v1.0.150
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 

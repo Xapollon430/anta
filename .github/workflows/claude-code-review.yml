@@ -40,7 +40,9 @@ jobs:
 
       - name: Run Claude Code Review
         id: claude-review
-        uses: anthropics/claude-code-action@v1
+        # Pinned to last good release; @v1 floats to v1.0.151 which crashes at
+        # SDK auth init (token-exchange regression). See claude.yml for detail.
+        uses: anthropics/claude-code-action@v1.0.150
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
