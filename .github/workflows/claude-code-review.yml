@@ -1,12 +1,16 @@
 name: Claude Code Review
 
+# PARKED (2026-06-18): upstream claude-code-action SDK-init crash (exit 1, $0
+# cost, before any API call). See .github/workflows/claude.yml header and
+# github.com/anthropics/claude-code-action issues #914 #892 #947 #853.
+# Auto-review is disabled so it stops failing on every ready PR. To RE-ENABLE:
+# delete `workflow_dispatch` and uncomment the pull_request block below.
 on:
-  pull_request:
-    # Review once the PR is ready for review (not on every push). `opened`
-    # covers PRs created directly as non-draft; `ready_for_review` covers the
-    # draft → ready transition. The `draft == false` job guard skips draft
-    # PRs, and the absence of `synchronize` means pushes don't re-trigger.
-    types: [opened, ready_for_review]
+  workflow_dispatch:
+  # pull_request:
+  #   # Review once the PR is ready (not on every push). `opened` covers PRs
+  #   # opened non-draft; `ready_for_review` covers the draft → ready transition.
+  #   types: [opened, ready_for_review]
     # Optional: Only run on specific file changes
     # paths:
     #   - "src/**/*.ts"
