@@ -8,18 +8,32 @@ project-specific invariants that matter most here and that a generic reviewer
 would miss. **Treat violations of these as real findings, not nits**, and cite
 the offending file/line. Skip a section when the diff doesn't touch it.
 
-## Correctness & portability (highest priority)
+**Know which rules apply where — this is critical:**
 
-Anta's JSX may be rendered from a **Web Worker**, and the host app may reconcile
-the light DOM from a worker thread. The following are hard rules:
+- **The published packages** — `src/` (anta) and `stickers/src/` (stickers) —
+  are the portable library that may run anywhere, including a Web Worker. The
+  "Correctness & portability" rules below apply **only here**.
+- **The docs site** — `site/` — is an ordinary Astro + Preact web app running on
+  the main thread in a browser. **`useEffect`, other effect hooks, and browser
+  APIs (`window`, `document`, etc.) are perfectly fine in `site/`** — do NOT flag
+  them there. Only the "Docs site" section (and the relevant API/docs-sync
+  points) apply to `site/`. Do not apply package rules to site code.
 
-- **No `useEffect` in JSX wrappers.** `src/components/*.tsx` must never use
-  `useEffect` (or other effect hooks that assume a DOM/main-thread lifecycle).
-  Flag any introduction of one.
-- **No browser/DOM APIs in JSX.** JSX wrappers must not touch `window`,
-  `document`, `navigator`, `localStorage`, timers tied to the DOM, etc. — the
-  component may execute in a worker with no `document`. Logic that needs the DOM
-  belongs in the web component's shadow internals, not the wrapper.
+## Correctness & portability — packages only (`src/`, `stickers/src/`)
+
+These apply to the published library, **not** to `site/`. The library's JSX may
+be rendered from a **Web Worker**, and the host app may reconcile the light DOM
+from a worker thread. The following are hard rules **for package code**:
+
+- **No `useEffect` in package JSX wrappers.** `src/components/*.tsx` (and any
+  `stickers/src/` wrappers) must never use `useEffect` (or other effect hooks
+  that assume a DOM/main-thread lifecycle). Flag any introduction of one. (This
+  does **not** apply to `site/` — effect hooks are fine in site islands.)
+- **No browser/DOM APIs in package JSX.** Package JSX wrappers must not touch
+  `window`, `document`, `navigator`, `localStorage`, timers tied to the DOM,
+  etc. — the component may execute in a worker with no `document`. Logic that
+  needs the DOM belongs in the web component's shadow internals, not the wrapper.
+  (Again: `site/` code may use browser APIs freely.)
 - **No host / light-DOM mutation from element JS.** An element class
   (constructor, `attributeChangedCallback`, handlers) must never `setAttribute`,
   set `className`, set inline `style`, or add/move/remove nodes on the **host**

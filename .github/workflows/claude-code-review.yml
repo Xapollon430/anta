@@ -2,7 +2,11 @@ name: Claude Code Review
 
 on:
   pull_request:
-    types: [opened, synchronize, ready_for_review, reopened]
+    # Review once the PR is ready for review (not on every push). `opened`
+    # covers PRs created directly as non-draft; `ready_for_review` covers the
+    # draft → ready transition. The `draft == false` job guard skips draft
+    # PRs, and the absence of `synchronize` means pushes don't re-trigger.
+    types: [opened, ready_for_review]
     # Optional: Only run on specific file changes
     # paths:
     #   - "src/**/*.ts"
@@ -17,6 +21,9 @@ jobs:
     #   github.event.pull_request.user.login == 'external-contributor' ||
     #   github.event.pull_request.user.login == 'new-developer' ||
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+
+    # Skip drafts — only review ready PRs.
+    if: github.event.pull_request.draft == false
 
     runs-on: ubuntu-latest
     permissions:
