@@ -57,5 +57,5 @@ jobs:
           # checks as the auto-review. NOTE: do not add `--allowed-tools` here —
           # passing it in claude_args breaks the action's OAuth token injection
           # and the run crashes at SDK init (matches the working review config).
-          claude_args: '--append-system-prompt-file ./.github/anta-review.md'
+          claude_args: '--debug --append-system-prompt-file ./.github/anta-review.md'
 
