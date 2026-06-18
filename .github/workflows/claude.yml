@@ -46,7 +46,9 @@ jobs:
           # Optional: Add claude_args to customize behavior and configuration
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
-          # Allow pnpm/gh tooling, and load Anta's review rubric so an @claude
-          # mention asking for a review follows the same checks as the auto-review.
-          claude_args: '--allowed-tools "Bash(pnpm install),Bash(pnpm run build),Bash(pnpm run typecheck),Bash(gh pr *)" --append-system-prompt-file ./.github/anta-review.md'
+          # Load Anta's review rubric so an @claude mention follows the same
+          # checks as the auto-review. NOTE: do not add `--allowed-tools` here —
+          # passing it in claude_args breaks the action's OAuth token injection
+          # and the run crashes at SDK init (matches the working review config).
+          claude_args: '--append-system-prompt-file ./.github/anta-review.md'
 
