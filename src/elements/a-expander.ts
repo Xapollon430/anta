@@ -80,16 +80,16 @@ import './a-expander.css'
  *   escape hatch for bespoke restyling — component tokens are reserved
  *   for values external CSS must re-point (tone, surface, dark mode).
  * - **Chevron**: the button's `::before` — a mask painting with
- *   `currentColor` (the inherited, possibly toned `--expander-text`);
- *   dimmed at rest, full on hover/open, rotated 90° when open. Explicit
- *   no `margin-inline-end` (flex gap is 0) so the title sits 4px (button
- *   padding) + 16px (chevron) = 20px from the edge. With `outdent`
- *   (tertiary only) it hangs in the left gutter: pulled left by its own 16px
- *   width while the button zeroes its left padding (the border
- *   stays, now transparent, for stable box geometry — see a-expander.css), so
- *   the title sits at the element's edge like the docs headers. The chevron
- *   itself can't be hidden via an attribute (a foldable region needs a visible
- *   affordance) — restyle or remove it through ::part(summary)::before.
+ *   `currentColor` (the inherited, possibly toned `--expander-text`); dimmed at
+ *   rest, full on hover/open, rotated 90° when open (the rotate composes with
+ *   the vertical-centering `translateY(-50%)`). It's positioned ABSOLUTELY
+ *   inside the gutter (`left: var(--expander-gutter) - 16px`), out of flow, so
+ *   it never pushes the title — the title's inset is purely `--expander-gutter`
+ *   (the same var the body uses). With `outdent` the gutter is 0, so the
+ *   chevron auto-hangs at -16px in the negative gutter and the title sits at the
+ *   element's edge (the border stays, transparent, for stable box geometry).
+ *   The chevron can't be hidden via an attribute (a foldable region needs a
+ *   visible affordance) — restyle or remove it through ::part(summary)::before.
  * - **Hover/press affordance**: the button's `:hover`/`:active` set the
  *   inherited `--_summary-color` / `--_summary-underline` custom
  *   properties; `a-expander-summary` consumes them in its always-on rule
@@ -141,14 +141,16 @@ import './a-expander.css'
  *   tree. Named tones use Anta's theme-aware semantic tokens, so no
  *   `.dark` rules are needed (same as `<a-tag>`).
  * - The host carries no padding — the header `<button>` (full width + height)
- *   owns the content inset, so the title's left rhythm (20px) is constant for
- *   every `level` and the hit area is the whole header. The border is present
- *   on every priority (transparent on tertiary) so switching priority never
- *   shifts layout. `secondary` is the default surface; `primary` re-points to
- *   the stronger card pair; `tertiary` goes transparent. With `outdent`
- *   (tertiary only) the button zeroes its left padding (the border stays,
- *   transparent, so the box geometry is unchanged) and the body drops its
- *   indent, so title + body sit at the element's edge.
+ *   owns the content inset via `--expander-gutter`, the single value the title
+ *   inset, the body inset, AND the chevron position all derive from (20px
+ *   default; the chevron sits absolutely in it). So the title's left rhythm is
+ *   constant for every `level`, the body always lines up under it, and the hit
+ *   area is the whole header. The border is present on every priority
+ *   (transparent on tertiary) so switching priority never shifts layout.
+ *   `secondary` is the default surface; `primary` re-points to the stronger
+ *   card pair; `tertiary` goes transparent. `outdent` (tertiary only) just sets
+ *   `--expander-gutter: 0` — title + body go flush and the chevron auto-hangs
+ *   in the negative gutter (the border stays, transparent, geometry unchanged).
  * - `<a-expander-summary>` / `<a-expander-details>` are CSS-only styled
  *   light-DOM tags (like `<a-tag-label>`). The summary inherits the
  *   shadow button's typography and only lays out + ellipsizes; the
@@ -204,7 +206,7 @@ const SHADOW_STYLE = `
     flex-shrink: 0;
     margin-inline-start: 8px;
     /* Inset from the right edge (the host has no padding of its own). */
-    margin-inline-end: 2px;
+    margin-inline-end: 4px;
   }
 
   button {
@@ -214,10 +216,13 @@ const SHADOW_STYLE = `
     border: none;
     margin: 0;
     /* The button is the full-bleed header: it spans the host's width (flex: 1)
-       and height (.header stretch). Its own padding is the only content inset —
-       4px edge + 16px chevron puts the title at 20px, constant across every
-       level. Restyle it edge-to-edge via ::part(summary). */
-    padding: 4px;
+       and height (.header stretch). The title is inset by --expander-gutter
+       (the chevron lives absolutely inside that gutter, below — it never pushes
+       the title), so the title + the body share one inset value; 6px block
+       gives the header a touch more height. Restyle it edge-to-edge via
+       ::part(summary). */
+    position: relative;
+    padding: 6px 4px 6px var(--expander-gutter);
     flex: 1;
     min-width: 0;
     font: inherit;
@@ -239,12 +244,18 @@ const SHADOW_STYLE = `
 
   ${SUMMARY_LEVEL_RULES}
 
+  /* The chevron sits absolutely INSIDE the gutter — out of flow, so it never
+     pushes the title. Its right edge lands at the gutter (left = gutter - 16px),
+     so at the default 20px gutter it's inset, and on outdent (gutter 0) it
+     auto-hangs at -16px in the negative gutter. One var drives the title inset,
+     the body inset, and the chevron position. */
   button::before {
     content: '';
+    position: absolute;
+    left: calc(var(--expander-gutter) - 16px);
+    top: 50%;
     width: 16px;
     height: 16px;
-    flex-shrink: 0;
-    margin-inline-end: 0;
     background-color: currentColor;
     -webkit-mask-image: ${CHEVRON};
             mask-image: ${CHEVRON};
@@ -255,17 +266,13 @@ const SHADOW_STYLE = `
     -webkit-mask-position: center;
             mask-position: center;
     opacity: 0.6;
+    /* translateY centers it; the open state adds rotate (same transform so the
+       transition animates only the rotation). */
+    transform: translateY(-50%);
     transition: transform 150ms ease, opacity 150ms ease;
   }
   button:enabled:hover::before { opacity: 1; }
-  button[aria-expanded="true"]::before { transform: rotate(90deg); opacity: 1; }
-
-  :host([priority="tertiary"][outdent]) button {
-    padding-left: 0;
-  }
-  :host([priority="tertiary"][outdent]) button::before {
-    margin-inline-start: -16px;
-  }
+  button[aria-expanded="true"]::before { transform: translateY(-50%) rotate(90deg); opacity: 1; }
 
   button:enabled:hover { --_summary-color: var(--expander-text-hover); }
   :host([priority="tertiary"]) button:enabled:hover { --_summary-underline: underline; }

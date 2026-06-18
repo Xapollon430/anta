@@ -820,6 +820,15 @@ code[data-copied]::after {
      the prose — without it the table left-aligns while paragraphs center. */
   margin: 0 auto 24px;
 }
+/* The first column is an identifier (a token name, a part name, a prop) — keep
+   it on one line instead of letting the full-width table starve the column and
+   break the long `--component-token` names mid-word. `auto` table layout then
+   sizes the column to the widest identifier and lets the description wrap.
+   `<br>`-separated identifiers still break on the explicit break. */
+.content table th:first-child,
+.content table td:first-child {
+  white-space: nowrap;
+}
 
 /* Shared demo-island styles. Used by component demos (IconDemo,
    TruncateDemo, ExpandableDemo, TextDemo). */

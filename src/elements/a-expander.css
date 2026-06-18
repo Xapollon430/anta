@@ -11,16 +11,20 @@
     --expander-bg: var(--expander-bg-secondary);
     --expander-border: var(--expander-border-secondary);
 
+    /* The single gutter that the title inset, the body inset, AND the chevron
+       position all derive from (see a-expander.ts). The chevron sits absolutely
+       in this gutter (right edge at the gutter) instead of pushing the title,
+       so one value keeps title + body aligned at every `level`. `outdent` just
+       sets it to 0 (title/body flush, chevron auto-hangs in the negative
+       gutter). 20px = 4px edge + the 16px chevron. */
+    --expander-gutter: 20px;
+
     display: block;
     width: 100%;
     box-sizing: border-box;
     /* No host padding: the shadow header (the `<button>`) covers the full
        width + height of the host so the hit area is maximal and consumers can
-       fully restyle `::part(summary)` edge-to-edge. The header's own padding
-       (padding: 4px on the button, see a-expander.ts) sets the title inset, so
-       the left rhythm is constant across every `level` (4px edge + 16px
-       chevron = 20px), not size-dependent. The body matches via its 20px
-       left padding below. */
+       fully restyle `::part(summary)` edge-to-edge. */
     border: 1px solid var(--expander-border);
     border-radius: 4px;
 
@@ -44,10 +48,11 @@
   }
   a-expander-details {
     display: block;
-    /* Left padding aligns the body under the title: 4px header edge + 16px
-       chevron + 0 gap = 20px. Tighter top (2px) to sit close under the header,
-       a touch more (6px) at the bottom. */
-    padding: 2px 4px 6px 20px;
+    /* Left padding = the same `--expander-gutter` the header uses, so the body
+       always lines up under the title (one value, no separate sync). Tighter
+       top (2px) to sit close under the header, a touch more (6px) at the
+       bottom. */
+    padding: 2px 4px 6px var(--expander-gutter);
     /* Default the body to <Text>'s line-height (20px at the inherited 15px)
        so plain text in the body doesn't inherit a roomy consumer body
        line-height; a nested <Text> overrides it with the same value. */
@@ -63,11 +68,11 @@
     --expander-border: transparent;
   }
 
-  /* Outdent: the body drops its title-alignment indent so it sits flush with
-     the surrounding content (the header's button zeroes its own left padding
-     in a-expander.ts, and the chevron hangs in the gutter). */
-  a-expander[priority="tertiary"][outdent] a-expander-details {
-    padding-left: 0;
+  /* Outdent: zero the gutter — the title + body go flush with the surrounding
+     content and the chevron auto-hangs at -16px in the negative gutter. One
+     line replaces the old title/body/chevron overrides. */
+  a-expander[priority="tertiary"][outdent] {
+    --expander-gutter: 0px;
   }
 
   a-expander[tone="brand"] {
@@ -121,12 +126,12 @@
     ) {
     --expander-tone-source: attr(tone type(<color>), currentColor);
 
-    --expander-text:             oklch(from var(--expander-tone-source) 0.46 0.15 h);
-    --expander-text-hover:       oklch(from var(--expander-tone-source) 0.40 0.17 h);
-    --expander-bg-secondary:     oklch(from var(--expander-tone-source) 0.97 0.02 h);
-    --expander-border-secondary: oklch(from var(--expander-tone-source) 0.91 0.04 h);
-    --expander-bg-primary:       oklch(from var(--expander-tone-source) 0.95 0.04 h);
-    --expander-border-primary:   oklch(from var(--expander-tone-source) 0.87 0.05 h);
+    --expander-text:             oklch(from var(--expander-tone-source) 0.41 0.15 h);
+    --expander-text-hover:       oklch(from var(--expander-tone-source) 0.33 0.15 h);
+    --expander-bg-secondary:     oklch(from var(--expander-tone-source) 0.99 0.006 h);
+    --expander-border-secondary: oklch(from var(--expander-tone-source) 0.93 0.03 h);
+    --expander-bg-primary:       oklch(from var(--expander-tone-source) 0.955 0.02 h);
+    --expander-border-primary:   oklch(from var(--expander-tone-source) 0.895 0.045 h);
   }
 
   .dark a-expander[tone]:not(
@@ -137,12 +142,12 @@
       [tone="warning"],
       [tone="critical"]
     ) {
-    --expander-text:             oklch(from var(--expander-tone-source) 0.80 0.11 h);
-    --expander-text-hover:       oklch(from var(--expander-tone-source) 0.86 0.12 h);
-    --expander-bg-secondary:     oklch(from var(--expander-tone-source) 0.17 0.03 h);
-    --expander-border-secondary: oklch(from var(--expander-tone-source) 0.26 0.04 h);
-    --expander-bg-primary:       oklch(from var(--expander-tone-source) 0.21 0.05 h);
-    --expander-border-primary:   oklch(from var(--expander-tone-source) 0.30 0.06 h);
+    --expander-text:             oklch(from var(--expander-tone-source) 0.75 0.11 h);
+    --expander-text-hover:       oklch(from var(--expander-tone-source) 0.82 0.10 h);
+    --expander-bg-secondary:     oklch(from var(--expander-tone-source) 0.13 0.02 h);
+    --expander-border-secondary: oklch(from var(--expander-tone-source) 0.22 0.05 h);
+    --expander-bg-primary:       oklch(from var(--expander-tone-source) 0.19 0.04 h);
+    --expander-border-primary:   oklch(from var(--expander-tone-source) 0.26 0.07 h);
   }
 
   a-expander[disabled],
