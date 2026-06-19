@@ -798,7 +798,15 @@ export class AMenuElement extends HTMLElementBase {
       // repositions); optional hover opens/closes with intent timing. Closing is
       // owned by the usual paths: outside-click, Esc, ←, hover-away, or picking
       // an item.
-      const onClick = (e: MouseEvent) => this.requestOpen({ originEvent: e })
+      const onClick = (e: MouseEvent) => {
+        // Only a DIRECT click on the parent item (re)opens the flyout. A click
+        // that bubbled up from inside the already-open submenu — e.g. ticking a
+        // checkbox in `data-menu-open` custom content — would otherwise re-enter
+        // show() and collapse this submenu (and any deeper) via the
+        // sibling-collapse pass. Ignore those.
+        if (e.composedPath().includes(this.surface)) return
+        this.requestOpen({ originEvent: e })
+      }
       anchor.addEventListener('click', onClick)
       let onEnter: ((e: Event) => void) | undefined
       let onLeave: (() => void) | undefined
