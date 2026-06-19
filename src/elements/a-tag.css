@@ -10,16 +10,25 @@
      the text is never clipped and a consumer can retune the padding
      tokens without fighting a hard height.
 
-     Color comes from Anta's theme-aware semantic tokens (`--text-*`,
-     `--bg-*`), so the named tones need no `.dark` rules — the tokens
-     re-theme themselves. Only the custom-tone `oklch` knobs are re-tuned
-     for dark mode. The hairline border derives from `--tag-text`, so
-     every tone (named or custom) gets a matching edge. */
+     Text comes from Anta's theme-aware `--text-3{,-tone}` tokens (they
+     re-theme themselves for dark). The fill + hairline border are alpha
+     tints of a per-tone `--tag-tint` hue — a light bg, a slightly stronger
+     border, both over the same hue — re-tuned for dark mode in the `.dark`
+     rules below. This mirrors the Figma `component/tag/secondary/*` set. */
 
   a-tag {
     --tag-text: var(--text-3);
-    --tag-bg: var(--bg-4);
-    --tag-border: color-mix(in oklch, var(--tag-text) 9%, transparent);
+    /* Secondary fill is an alpha tint of a per-tone hue, not a solid bg:
+       the fill sits light and the hairline border a touch stronger, both
+       over the same `--tag-tint`. Neutral's tint is a plum-gray that flips
+       light↔dark (see the `.dark` rule); the colored tones keep one hue and
+       just deepen their alpha for dark mode. */
+    --tag-tint: #44374b;        /* neutral tint hue (light) */
+    --_tag-bg-alpha: 7%;        /* neutral fill is fainter than the colored tones */
+    --_tag-border-alpha: 15%;
+
+    --tag-bg:        color-mix(in oklch, var(--tag-tint) var(--_tag-bg-alpha), transparent);
+    --tag-border:    color-mix(in oklch, var(--tag-tint) var(--_tag-border-alpha), transparent);
     --tag-separator: color-mix(in oklch, var(--tag-text) 30%, transparent);
 
     /* 1.5px top/bottom — the extra 0.5px each side compensates for the
@@ -106,20 +115,42 @@
     border-left: 0.5px solid var(--tag-separator);
   }
 
-  /* Named tones — re-point text + bg only; the border re-derives, and
-     dark mode falls out of the semantic tokens for free. */
-  a-tag[tone="brand"]    { --tag-text: var(--text-2-brand);    --tag-bg: var(--bg-4-brand);    }
-  a-tag[tone="info"]     { --tag-text: var(--text-2-info);     --tag-bg: var(--bg-4-info);     }
-  a-tag[tone="success"]  { --tag-text: var(--text-2-success);  --tag-bg: var(--bg-4-success);  }
-  a-tag[tone="warning"]  { --tag-text: var(--text-2-warning);  --tag-bg: var(--bg-4-warning);  }
-  a-tag[tone="critical"] { --tag-text: var(--text-2-critical); --tag-bg: var(--bg-4-critical); }
+  /* Named tones — text uses the theme-aware `--text-3-{tone}` (self-themes
+     for dark); the fill + border tint the tone's vivid hue. Light alpha is
+     10% fill / 15% border (inherited); dark deepens it below. */
+  a-tag[tone="brand"]    { --tag-text: var(--text-3-brand);    --tag-tint: #7460d7; --_tag-bg-alpha: 10%; }
+  a-tag[tone="info"]     { --tag-text: var(--text-3-info);     --tag-tint: #2686d9; --_tag-bg-alpha: 10%; }
+  a-tag[tone="success"]  { --tag-text: var(--text-3-success);  --tag-tint: #329550; --_tag-bg-alpha: 10%; }
+  a-tag[tone="warning"]  { --tag-text: var(--text-3-warning);  --tag-tint: #c37416; --_tag-bg-alpha: 10%; }
+  a-tag[tone="critical"] { --tag-text: var(--text-3-critical); --tag-tint: #de4545; --_tag-bg-alpha: 10%; }
 
-  /* Custom tone — any non-named `tone` value. Keep the source hue;
-     pin lightness/chroma so any input reads like a sibling of the named
-     tones. Knobs are the only numbers to tune; the dark block re-tunes
-     them and the formulas resolve against whichever value computes.
-     The JSX wrapper writes `--tag-tone-source` inline; the typed
-     `attr()` fallback picks up raw `<a-tag tone="…">` on modern engines.
+  /* Neutral, dark — the tint flips to a light plum so it still reads as a
+     tint on the dark surface; the fill alpha lifts to ≈12%, border stays
+     ≈15%. (Scoped to the default + explicit `neutral` so it never touches a
+     colored or custom tone.) */
+  .dark a-tag:not([tone]),
+  .dark a-tag[tone="neutral"] {
+    --tag-tint: #e4d1ef;
+    --_tag-bg-alpha: 12%;
+  }
+
+  /* Colored tones, dark — same hue, deeper alpha (fill ≈20%, border ≈25%). */
+  .dark a-tag[tone="brand"],
+  .dark a-tag[tone="info"],
+  .dark a-tag[tone="success"],
+  .dark a-tag[tone="warning"],
+  .dark a-tag[tone="critical"] {
+    --_tag-bg-alpha: 20%;
+    --_tag-border-alpha: 25%;
+  }
+
+  /* Custom tone — any non-named `tone` value. Built like the named
+     secondary tones (the "brand secondary" recipe): the fill + border are
+     alpha tints of the source hue, and the text deepens that same hue to a
+     readable foreground, pinned at the `--text-2-brand` lightness/chroma and
+     carried at the 80% alpha the `--text-3-{tone}` tokens use. The JSX
+     wrapper writes `--tag-tone-source` inline; the typed `attr()` fallback
+     picks up raw `<a-tag tone="…">` on modern engines.
      (oklch relative color: Chrome 119+, Safari 16.4+, Firefox 128+.) */
   a-tag[tone]:not(
       [tone="neutral"],
@@ -130,18 +161,20 @@
       [tone="critical"]
     ) {
     --tag-tone-source: attr(tone type(<color>), currentColor);
+    --tag-tint: var(--tag-tone-source);
+    --_tag-bg-alpha: 10%;
+    --_tag-border-alpha: 15%;
 
-    --_tag-text-l: 0.46;   /* fg lightness */
-    --_tag-text-c: 0.17;   /* fg chroma */
-    --_tag-bg-l: 0.96;     /* tinted-bg lightness — a hair above the named --bg-4 so the tint reads light */
-    --_tag-bg-c: 0.04;     /* tinted-bg chroma — light pastel, like --bg-4-{tone} */
-
-    --tag-text: oklch(from var(--tag-tone-source) var(--_tag-text-l) var(--_tag-text-c) h);
-    --tag-bg:   oklch(from var(--tag-tone-source) var(--_tag-bg-l) var(--_tag-bg-c) h);
+    --_tag-text-l: 0.40;   /* fg lightness — matches --text-2-brand (light) */
+    --_tag-text-c: 0.15;   /* fg chroma */
+    --tag-text: color-mix(in oklch,
+      oklch(from var(--tag-tone-source) var(--_tag-text-l) var(--_tag-text-c) h) 80%,
+      transparent);
   }
 
-  /* Custom tone, dark mode — lighter fg; the tint sits a touch above the
-     dark --bg-4-{tone} lightness so it doesn't read pitch-black. */
+  /* Custom tone, dark mode — deeper tint alpha (fill ≈20%, border ≈25%) and a
+     lighter foreground, mirroring the colored tones' dark bump and the dark
+     `--text-3-{tone}` base. */
   .dark a-tag[tone]:not(
       [tone="neutral"],
       [tone="brand"],
@@ -150,10 +183,10 @@
       [tone="warning"],
       [tone="critical"]
     ) {
-    --_tag-text-l: 0.80;
+    --_tag-bg-alpha: 20%;
+    --_tag-border-alpha: 25%;
+    --_tag-text-l: 0.75;   /* matches --text-2-brand dark base */
     --_tag-text-c: 0.11;
-    --_tag-bg-l: 0.21;
-    --_tag-bg-c: 0.05;
   }
 
   a-tag[size="small"] {
