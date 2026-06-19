@@ -161,9 +161,16 @@
       [tone="critical"]
     ) {
     --tag-tone-source: attr(tone type(<color>), currentColor);
-    --tag-tint: var(--tag-tone-source);
     --_tag-bg-alpha: 10%;
     --_tag-border-alpha: 15%;
+
+    /* Tint — source hue, but lightness/chroma pinned near Brand so any
+       input tints like a sibling of the named tones instead of alpha-ing
+       the raw color (the alpha is applied by the base `--tag-bg` /
+       `--tag-border` formula). Mirrors `<a-button>`'s custom-tone bg. */
+    --_tag-tint-l: 0.54;   /* tint lightness — near Brand (light) */
+    --_tag-tint-c: 0.16;   /* tint chroma */
+    --tag-tint: oklch(from var(--tag-tone-source) var(--_tag-tint-l) var(--_tag-tint-c) h);
 
     --_tag-text-l: 0.40;   /* fg lightness — matches --text-2-brand (light) */
     --_tag-text-c: 0.15;   /* fg chroma */
@@ -185,6 +192,7 @@
     ) {
     --_tag-bg-alpha: 20%;
     --_tag-border-alpha: 25%;
+    --_tag-tint-l: 0.58;   /* tint lifts a touch to read against a dark page */
     --_tag-text-l: 0.75;   /* matches --text-2-brand dark base */
     --_tag-text-c: 0.11;
   }
