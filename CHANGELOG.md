@@ -12,6 +12,50 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 - **New `Menu` component** (`<Menu>` / `<a-menu>`) with `MenuItem`, `MenuSeparator`, and `MenuGroup`. A dropdown / context menu that anchors to any target: place `<Menu>` immediately after the trigger (its previous element sibling) and it opens on click, positions itself with room-aware vertical flipping + viewport clamping, and dismisses on outside-click, <kbd>Esc</kbd>, or scroll. Rows are dedicated **`<a-menu-item>`s** (not buttons) composing a leading `icon`, a `label` (or `children`), a trailing `kbd` hint, and an optional trailing icon; `tone="critical"` styles a destructive action and `disabled` greys one out. **Submenus are first-class** — pass a nested `<Menu submenu>` on a `MenuItem`'s `submenu` prop to get a chevron + flyout that opens to the side (flips near the edge) on click, or on hover with intent timing via `hover`. **Trigger modes:** click (default), right-click via `context`, and open-at-cursor via `coord`. **Close contract:** selecting a `MenuItem` closes the menu, but arbitrary injected content (a slider, an input) never does — opt an item, a `MenuGroup`, or any container out of closing with `data-menu-open`, or let custom content close with `data-menu-close`. Open state is uncontrolled by default — listen for the `openchange` event or call `.open()` / `.close()` / `.toggle()` on the element — or controlled via the `state` attribute (`'opened'` / `'closed'`). Submenu parent items carry `aria-haspopup="menu"` with live `aria-expanded` reflection; click-trigger anchors get the same `aria-expanded` reflection. Full keyboard support (↑/↓, Home/End, type-ahead, →/← to enter/leave submenus, <kbd>Enter</kbd>/<kbd>Space</kbd> to activate, <kbd>Esc</kbd> to close, <kbd>Tab</kbd> cycles within the open menu). Renders in the top layer via the Popover API (no z-index management); positioning is JS-based and realm-aware (works inside an iframe). Architecture is ready for `menuitemcheckbox` / `menuitemradio` items. Exposes `--menu-bg`, `--menu-border`, `--menu-radius`, `--menu-shadow`, `--menu-padding`, `--menu-min-width`, `--menu-backdrop-filter` and item-level `--menu-item-*` tokens. Registered via the `@antadesign/anta/elements` barrel or granularly (`@antadesign/anta/elements/a-menu`).
 - New `square-menu` icon shape (lucide), available as `<Icon shape="square-menu" />` / `<a-icon shape="square-menu">` and in the `IconShape` union.
 
+## 0.2.3 — June 18, 2026
+
+### Added
+- **New `Expander` component** (`<Expander>` / `<a-expander>`) — a collapsible disclosure (a header that toggles a content region). Built on a real `<button>` summary + a grid content region (no native `<details>`), so it follows the WAI-ARIA disclosure pattern with full keyboard support; collapsed content is `inert`. Registered via the `@antadesign/anta/elements` barrel.
+  - **State** — controlled (`open` + `onToggle`) or uncontrolled (`defaultOpen`).
+  - **Title** — `title` takes a string or a node; `level` (1–6) applies the `<Title>` type scale to a string title, or pass a `<Title>` for real heading semantics.
+  - **Surface** — `priority` (`secondary` default / `primary` / `tertiary`) and `tone` (the named tones or **any literal CSS color**) tint the fill and text, tracking light/dark automatically.
+  - **Header** — `actions` renders controls (buttons, tags) at the end of the header, outside the toggle (separately focusable; the title ellipsizes first). `disabled` freezes the header. `outdent` (with `tertiary`) sets the title + body flush with surrounding content.
+  - **Styling hooks** — `--expander-gutter` (the shared title/body/chevron inset) plus `--expander-text` / `--expander-text-hover` / `--expander-bg` / `--expander-border`; the `::part(summary)` / `::part(actions)` / `::part(content)` parts; and the `:state(open)` custom state.
+
+### Changed
+- **Tooltip shadow DOM is one level flatter.** The bubble surface is now the `<slot>` itself (styled `display: block`) instead of a `<div>` wrapping a slot, so the shadow tree carries one fewer node. No API change — `::part(bubble)` (which now resolves to the slot), the `--tooltip-*` tokens, and all behaviour are identical. The new `Expander` ships the same way: `::part(content)` is its body `<slot>`. Verified across Chromium, Firefox, and Safari/WebKit.
+
+## 0.2.2 — June 13, 2026
+
+### Breaking
+- **`list-detail-view` icon renamed to `list-collapse` (and restyled to lucide `list-collapse`).** The old filled detail-view glyph is gone; `shape="list-collapse"` is the lucide three-lines-with-chevrons glyph. Migration: rename `shape="list-detail-view"` → `shape="list-collapse"`.
+- **Tooltip is pinned under the anchor by default; cursor-following is now opt-in via `follow`.** Previously `<Tooltip>` / `<a-tooltip>` followed the cursor by default. It now pins beneath the anchor (matching the convention used by Material, shadcn, Carbon, Polaris). Pass `follow` for the cursor-tracking behaviour — it trails the pointer and fades by the cursor's distance from the anchor (full within ~10px, transparent by ~100px, snapping away instantly past that), instead of hanging at full opacity and trailing until the close timer fires. **The `static` attribute / prop is removed** — pinning is the default now, so drop it; add `follow` to anything that relied on the old following behaviour. `interactive` is always pinned (it ignores `follow`).
+
+### Added
+- **`--tooltip-padding`** token (defaults to `4px 8px`).
+- **Tooltip `::part(bubble)`** — the bubble surface inside the shadow popover is exposed as a shadow part, so consumers can style it directly (`a-tooltip::part(bubble) { … }`) for things the `--tooltip-*` tokens don't cover.
+
+### Changed
+- **`copy` icon is rotated a quarter-turn.** `<Icon shape="copy" />` / `<a-icon shape="copy">` now ships rotated 90° by default (the orientation used in most places), so consumers no longer need a per-use `transform: rotate(90deg)`.
+- **`filter` icon restyled to lucide `list-filter`.** `shape="filter"` is now the three-line stroked `list-filter` glyph (replacing the old filled three-bar shape). Same shape name — no API change.
+- **Quaternary buttons are full-weight and full-opacity at rest.** `priority="quaternary"` now uses `font-weight: 400` (was `415`), `letter-spacing: 0.06ch` (slightly looser than the `0.05ch` base), and a full-opacity rest foreground — the `90%`-alpha rest fade introduced in 0.2.0 is removed, so the label sits at the tone's full strength like the other priorities.
+- **`Button`, `Text`, and `Title` pin Anta's stylistic sets explicitly.** They now declare `font-feature-settings: 'ss02', 'ss05'` themselves (matching the `:root` default — `ss02` is the alternate `l`) rather than relying on inheritance, so a consumer's own `font-feature-settings` on an ancestor can't silently drop them (the property replaces, it doesn't merge). `<a-button>` re-states it inside its shadow for the same reason it re-states the variation axes.
+
+### Fixed
+- **Button ignores empty / whitespace-only / `NaN` children instead of wrapping them.** `Button` auto-wraps text and number children in `<a-button-label>`; it now drops children that carry no visible content — `""`, whitespace-only strings, and `NaN` — rather than emitting a blank label (which added padding/structure for no text). `null`, `undefined`, and boolean children render nothing, and element children still pass through unwrapped; a valid `0` still renders.
+- **Button icon padding no longer miscounts a `<Tooltip>` child.** A `<Tooltip>` is invisible (`display: contents` host, out-of-flow popover) but was counted by the `:first-child` / `:last-child` / `:only-child` selectors that drive icon padding — so an icon-only button with a tooltip lost its square padding, etc. Those selectors now discount `a-tooltip` in any position.
+
+## 0.2.1 — June 10, 2026
+
+### Changed
+- **Secondary buttons: inset hairline edge.** The default `secondary` priority's edge is now an *inset* hairline — `box-shadow: inset 0 0 1px color-mix(in oklch, currentColor, transparent 70%)` (was a non-inset `0 0 1px color-mix(in oklch, currentColor, transparent 50%)` in 0.2.0). Softer and contained within the chip.
+- **Button loading overlay is subtler.** `--button-loading-opacity` lowered from `0.25` to `0.15`.
+- **Table borders use `--border-4`.** Raw `<table>` row separators and the `data-bordered` variant's outer frame + column dividers now use `--border-4` instead of `--border-5` — a touch stronger so the structure reads more clearly. (Both still live in `@layer anta`, overridable as before.)
+- **Monospace text carries no letter-spacing.** The reset now sets `letter-spacing: 0` on `code, kbd, samp, pre`, so a global `letter-spacing` an app applies to body prose no longer loosens code (code is metrically even by design).
+
+### Packaging
+- **Published CSS is now minified.** `build:css` runs the shipped CSS through esbuild (`--minify`), stripping comments and collapsing whitespace — smaller files in the tarball, identical rendering. Source and dev builds keep readable, commented CSS.
+
 ## 0.2.0 — June 9, 2026
 
 ### Added

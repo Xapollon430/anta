@@ -20,7 +20,19 @@ you use the wrapper or author the element by hand. Content is composed
 from `icon`, `label`, `value`, and `iconTrailing` props, the same way
 `Button` works.
 
-Play with it in [playground](#playground).
+<Disclosure title="Playground" anchor={false} brand>
+
+<Playground
+  client:visible
+  component="Tag"
+  layout="side"
+  panelHeight={400}
+  initialCode={tagDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }`}
+/>
+
+</Disclosure>
 
 ## Tones
 
@@ -173,27 +185,13 @@ keeps it as `GitHub`.
 <Tag icon="github-logo" nocaps label="GitHub" value="v1.6.9" />
 ```
 
-<Disclosure title="Playground">
-
-<Playground
-  client:visible
-  component="Tag"
-  layout="side"
-  panelHeight={400}
-  initialCode={tagDemoCode}
-  initialCss={`html, body { height: 100%; }
-.preview { min-height: 100%; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }`}
-/>
-
-</Disclosure>
-
-<Disclosure title="Component props">
+<Disclosure title="Component props" open>
 
 <PropsTable component="Tag" />
 
 </Disclosure>
 
-<Disclosure title="Component tokens">
+<Disclosure title="Component tokens" open>
 
 Override any of these on a single instance
 (`style={{ '--tag-bg': 'var(--bg-5)' }}`) or on a selector wrapping the

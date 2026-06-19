@@ -209,6 +209,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--monospace);
+  letter-spacing: 0;
   font-size: 1.6rem;
   font-weight: 600;
   background: var(--bg-pane);
@@ -236,6 +237,7 @@
 
 .tokenName {
   font-family: var(--monospace);
+  letter-spacing: 0;
   font-size: 0.85rem;
   color: var(--text-1);
   align-self: flex-start;
@@ -316,6 +318,7 @@
   bottom: 10px;
   right: 14px;
   font-family: var(--monospace);
+  letter-spacing: 0;
   font-size: 0.7rem;
   color: var(--text-4);
 }
@@ -351,6 +354,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--monospace);
+  letter-spacing: 0;
   font-size: 0.8rem;
   color: var(--text-3);
   border-width: 1px;
@@ -395,6 +399,7 @@
 .a11yHeadCell {
   font-size: 0.7rem;
   font-family: var(--monospace);
+  letter-spacing: 0;
   color: var(--text-4);
   padding: 4px 8px;
   line-height: 1.3;

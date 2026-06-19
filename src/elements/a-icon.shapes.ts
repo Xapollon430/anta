@@ -56,7 +56,7 @@ export const ICON_SHAPES = [
   'jira-logo',
   'linear-logo',
   'link',
-  'list-detail-view',
+  'list-collapse',
   'maximize',
   'megaphone',
   'menu',
@@ -145,7 +145,7 @@ export const ICON_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   'braces': ['code', 'brackets', 'json'],
   'case-sensitive': ['aA', 'capitalize', 'case'],
   'text-highlight': ['mark', 'highlight'],
-  'list-detail-view': ['list', 'items'],
+  'list-collapse': ['list', 'collapse', 'expand', 'items'],
   'table-2': ['table', 'grid', 'data', 'spreadsheet', 'rows', 'columns'],
   'folder-open': ['directory', 'browse'],
   'folder-close': ['directory'],
@@ -244,7 +244,7 @@ declare module '@antadesign/anta' {
     'jira-logo': true
     'linear-logo': true
     'link': true
-    'list-detail-view': true
+    'list-collapse': true
     'maximize': true
     'megaphone': true
     'menu': true

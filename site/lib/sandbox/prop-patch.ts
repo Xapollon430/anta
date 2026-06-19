@@ -22,8 +22,13 @@ export interface PropDescriptor {
    *    element's body content (between opening and closing tags).
    *  - `style-css`: the value is a CSS-declaration string like
    *    `color: red; padding: 8px` and is parsed into a JSX object
-   *    literal — `style={{ color: 'red', padding: '8px' }}`. */
-  kind: 'string' | 'number' | 'boolean' | 'literal-union' | 'children' | 'style-css'
+   *    literal — `style={{ color: 'red', padding: '8px' }}`.
+   *  - `expression`: the value is a raw JS/JSX expression spliced
+   *    verbatim inside braces — `actions={<Button label="Go" />}`.
+   *    Used for `ReactNode`-typed props so the user can type any
+   *    expression, parsed exactly as if typed in the CODE tab. An
+   *    empty value removes the attribute. */
+  kind: 'string' | 'number' | 'boolean' | 'literal-union' | 'children' | 'style-css' | 'expression'
   /** Default value — if `next === defaultValue` we omit the attribute. */
   defaultValue?: string | number | boolean | null
 }
@@ -130,7 +135,10 @@ function applyEdit(
   open: ReturnType<typeof locateOpeningTag> & object,
   existing: ReturnType<typeof findAttribute>,
 ): string {
-  const shouldRemove = isAtDefault(nextValue, prop) || nextValue === '' || nextValue == null
+  // An expression with a blank (whitespace-only) value is treated as
+  // empty — remove the attribute rather than emit `name={}`.
+  const blankExpression = prop.kind === 'expression' && typeof nextValue === 'string' && nextValue.trim() === ''
+  const shouldRemove = isAtDefault(nextValue, prop) || nextValue === '' || nextValue == null || blankExpression
   if (shouldRemove) {
     if (!existing) return source
     return removeAttribute(source, existing.start, existing.end)
@@ -174,6 +182,11 @@ function serializeAttribute(prop: PropDescriptor, value: string | number | boole
       return `${prop.name}={${Number(value)}}`
     case 'style-css':
       return `${prop.name}={${cssDeclarationsToObjectLiteral(String(value))}}`
+    case 'expression':
+      // Splice the value verbatim inside braces — no quoting. The user
+      // types valid JSX/JS; an empty value is handled upstream in
+      // `applyEdit` (removes the attribute rather than writing `={}`).
+      return `${prop.name}={${String(value)}}`
     case 'children':
       // Should never reach here — replaceProp short-circuits children
       // edits before serialization. Return empty just in case.

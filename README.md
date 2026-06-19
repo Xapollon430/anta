@@ -125,6 +125,45 @@ import { h, Fragment } from 'preact'
 configure(h, Fragment)
 ```
 
+### TypeScript: typing raw `<a-*>` tags in JSX
+
+If you only use the JSX wrappers (`<Button>`, `<Progress>`, …) you need no setup — they're typed like any React component. This section is only for writing the raw `<a-*>` tags directly in JSX.
+
+**Option A (preferred)** — point your JSX types at anta in `tsconfig.json`:
+
+```jsonc
+{ "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "@antadesign/anta" } }
+```
+
+Every `a-*` tag type-checks, all standard HTML tags keep working, and importing anything from `@antadesign/stickers` adds the sticker tags automatically.
+
+**Option B** — if you can't change `jsxImportSource` (a shared tsconfig, Emotion's `@emotion/react` source, an older `@types/react` without the `React.JSX` namespace), merge anta's tag map into your JSX namespace yourself. Anta exports it as a standalone interface, `AntaIntrinsicElements` — and `@antadesign/stickers` exports the matching `StickerIntrinsicElements` — so it's a single `extends` in any `.d.ts` covered by your tsconfig:
+
+```ts
+import type { AntaIntrinsicElements } from '@antadesign/anta'
+import type { StickerIntrinsicElements } from '@antadesign/stickers' // only if you use stickers
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements extends AntaIntrinsicElements, StickerIntrinsicElements {}
+  }
+}
+```
+
+On modern `@types/react` (≥18) with `jsx: "react-jsx"`, the JSX namespace is module-scoped and the global declaration above is silently ignored — target the `react` module instead:
+
+```ts
+import type { AntaIntrinsicElements } from '@antadesign/anta'
+
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements extends AntaIntrinsicElements {}
+  }
+}
+```
+
+Either way the tags stay fully typed — unknown `a-*` tags and wrong prop types are still errors. New tags arrive automatically when you upgrade anta; there's no per-tag list to maintain.
+
 ### Raw web components (no JSX)
 
 ```html

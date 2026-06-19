@@ -55,6 +55,12 @@ export function readProp(
   if (attr.valueRange.kind === 'string') {
     // Strip the surrounding quotes.
     const raw = attr.valueRange.text.slice(1, -1)
+    // An expression prop with a bare string-literal attribute
+    // (`actions="x"`) — surface the quoted literal verbatim so the
+    // field repopulates and re-serializes to a valid `actions={"x"}`.
+    if (prop.kind === 'expression') {
+      return { kind: 'literal', value: attr.valueRange.text }
+    }
     if (prop.kind === 'string' || prop.kind === 'literal-union') {
       return { kind: 'literal', value: raw }
     }
@@ -65,6 +71,12 @@ export function readProp(
 
   // Expression container: strip the `{ … }`.
   const inner = attr.valueRange.text.slice(1, -1).trim()
+  // Expression prop: return the inner expression text verbatim so the
+  // editable field shows exactly what's between the braces (the
+  // brace-balanced scan in `findAttribute` already handled nesting).
+  if (prop.kind === 'expression') {
+    return { kind: 'literal', value: inner }
+  }
   // Numeric literal.
   if (prop.kind === 'number') {
     if (/^-?\d+(\.\d+)?$/.test(inner)) return { kind: 'literal', value: Number(inner) }

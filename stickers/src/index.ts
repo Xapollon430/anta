@@ -22,6 +22,11 @@ export { Sticker } from './Sticker'
 export type { StickerProps } from './Sticker'
 export { StickerAnimated } from './StickerAnimated'
 export type { StickerAnimatedProps } from './StickerAnimated'
+export type {
+  AStickerAttributes,
+  AStickerAnimatedAttributes,
+  StickerIntrinsicElements,
+} from './jsx'
 
 // Generated per-sticker components (Sticker{Name} / Sticker{Name}Animated).
 export * from './generated'

@@ -18,7 +18,7 @@
     --button-loading-x-period: calc(
       var(--button-loading-period) / cos(var(--button-loading-angle) - 90deg)
     );
-    --button-loading-opacity: 0.25;
+    --button-loading-opacity: 0.15;
     --button-loading-blur: 2.5px;
 
     --button-bg-primary-rest: #635b65;
@@ -314,13 +314,18 @@
     border-radius: 4px;
     text-decoration: none;
 
-    box-shadow: 0 0 1px color-mix(in oklch, currentColor, transparent 50%);
+    box-shadow: inset 0 0 1px color-mix(in oklch, currentColor, transparent 70%);
 
     font-size: 15px;
     font-family: var(--sans-serif);
     font-weight: 450;
 
     font-variation-settings: "wdth" 88, "slnt" 0, "ital" 0;
+    /* Anta's stylistic sets: ss02 (alternate l) + ss05. Re-stated here (like
+       the variation axes above) so it survives in the shadow regardless of any
+       font-feature-settings a consumer sets on an ancestor — it replaces, not
+       merges. */
+    font-feature-settings: "ss02", "ss05";
     line-height: 18px;
     letter-spacing: 0.05ch;
 
@@ -446,7 +451,7 @@
       --button-padding-y: 0;
     }
 
-    &:has(> a-icon:only-child) {
+    &:has(> a-icon):not(:has(> a-icon ~ a-icon)):not(:has(> :not(a-icon):not(a-tooltip))) {
       --button-padding-y: 5px;
       --button-padding-x: 5px;
       min-width: 28px;
@@ -467,10 +472,10 @@
       }
     }
 
-    &:has(> a-icon:first-child:not(:only-child)) {
+    &:is(:has(> a-icon:first-child), :has(> a-tooltip:first-child + a-icon)):is(:has(> a-icon ~ a-icon), :has(> :not(a-icon):not(a-tooltip))) {
       padding-inline-start: max(0px, var(--button-padding-x) - 2px);
     }
-    &:has(> a-icon:last-child:not(:only-child)) {
+    &:is(:has(> a-icon:last-child), :has(> a-icon + a-tooltip:last-child)):is(:has(> a-icon ~ a-icon), :has(> :not(a-icon):not(a-tooltip))) {
       padding-inline-end: max(0px, var(--button-padding-x) - 2px);
     }
 
@@ -618,11 +623,12 @@
       }
     }
     &[priority="quaternary"] {
-      --button-fg: color-mix(in oklch, var(--button-fg-quaternary-rest) 90%, transparent);
+      --button-fg: var(--button-fg-quaternary-rest);
       --button-bg: transparent;
 
       box-shadow: none;
-      font-weight: 415;
+      font-weight: 400;
+      letter-spacing: 0.06ch;
       @media (hover: hover) and (pointer: fine) {
         &:hover {
           --button-fg: var(--button-fg-quaternary-hover);

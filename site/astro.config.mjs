@@ -26,6 +26,15 @@ const reactCompatShim = fileURLToPath(new URL('./lib/react-compat-shim.mjs', imp
 export default defineConfig({
   site: 'https://anta.design',
   devToolbar: { enabled: false },
+  // Never inline component styles into the page `<head>`. Astro's default
+  // (`'auto'`) inlines small scoped style sets — but for a component used
+  // inside MDX that wraps a hydrated island (e.g. <Disclosure> around the
+  // <Playground>), that inline <style> can land present-but-inert in the
+  // production build (the rule is in `<head>` but the browser never parses it
+  // into CSSOM), so the styles silently don't apply on the deployed site while
+  // dev looks fine. Forcing every component's CSS into the linked, always-
+  // parsed bundle makes dev and prod render identically.
+  build: { inlineStylesheets: 'never' },
   integrations: [
     // compat:false — we install the react→preact/compat aliases ourselves in
     // `vite.resolve.alias` below (so the interface-kit useEffectEvent shim
@@ -47,8 +56,16 @@ export default defineConfig({
       styleOverrides: {
         borderWidth: '1px',
         borderColor: 'var(--border-5)',
+        codeFontFamily: 'var(--monospace)',
+        uiFontFamily: 'var(--sans-serif)',
+        codeFontSize: '13px',
+        codeFontWeight: '440',
+        codeLineHeight: '20px',
         codeBackground: 'var(--bg-canvas)',
-        codePaddingBlock: '0.75rem',
+        // EC renders this as `padding: <value> 0` on `pre > code`, so the
+        // 3-value form gives asymmetric block padding (10px top / 6px bottom,
+        // 0 inline) — there's no separate block-start/-end setting.
+        codePaddingBlock: '10px 0 6px',
         codePaddingInline: '1rem',
         frames: {
           frameBoxShadowCssValue: 'none',

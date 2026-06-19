@@ -21,6 +21,18 @@ Raw `<h1>`–`<h6>` get the same default styling via anta's reset, so
 reach for a real heading tag when SEO matters and you don't need the
 `tone` / `priority` props. Use `<Title>` when you do.
 
+<Disclosure title="Playground" anchor={false} brand>
+
+<Playground
+  client:visible
+  component="Title"
+  layout="side"
+  initialCode={titleDemoCode}
+  initialCss={`.preview { align-items: center; justify-content: center; min-height: 100%; }`}
+/>
+
+</Disclosure>
+
 ## Levels in context
 
 Six levels interleaved with paragraphs of `<Text>`, all rendered with
@@ -183,19 +195,7 @@ ignore ARIA headings — if SEO matters, write raw `<h{level}>` instead
 (it gets the same visual treatment from the reset) and skip the
 component.
 
-<Disclosure title="Playground">
-
-<Playground
-  client:visible
-  component="Title"
-  layout="side"
-  initialCode={titleDemoCode}
-  initialCss={`.preview { align-items: center; justify-content: center; min-height: 100%; }`}
-/>
-
-</Disclosure>
-
-<Disclosure title="Component props">
+<Disclosure title="Component props" open>
 
 <PropsTable component="Title" />
 

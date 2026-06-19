@@ -20,6 +20,19 @@ import progressDemoCode from './progress.demo.ts'
 A progress indicator for displaying task completion. Consists of a track
 (background bar), an indicator (filled portion), and an optional label area.
 
+<Disclosure title="Playground" anchor={false} brand>
+
+<Playground
+  client:visible
+  component="Progress"
+  layout="side"
+  initialCode={progressDemoCode}
+/>
+
+</Disclosure>
+
+## Examples
+
 <Preview>
   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
     <Progress value={60} />
@@ -55,24 +68,13 @@ function AnimatedProgress({ speed = 1 }) {
 }
 ```
 
-<Disclosure title="Playground">
-
-<Playground
-  client:visible
-  component="Progress"
-  layout="side"
-  initialCode={progressDemoCode}
-/>
-
-</Disclosure>
-
-<Disclosure title="Component props">
+<Disclosure title="Component props" open>
 
 <PropsTable component="Progress" />
 
 </Disclosure>
 
-<Disclosure title="Component tokens">
+<Disclosure title="Component tokens" open>
 
 Progress exposes these CSS custom properties as its theming surface. Override any of them in consumer CSS to retint a single instance, or set them on a `[tone="…"]` selector to add a new tone variant. Tokens marked *(shadow-only API)* style elements inside the shadow DOM and can **only** be customized via these properties — consumer CSS can't reach those elements directly.
 

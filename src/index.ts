@@ -45,8 +45,11 @@ export { MenuSeparator } from './components/MenuSeparator'
 export type { MenuSeparatorProps } from './components/MenuSeparator'
 export { MenuGroup } from './components/MenuGroup'
 export type { MenuGroupProps } from './components/MenuGroup'
+export { Expander } from './components/Expander'
+export type { ExpanderProps } from './components/Expander'
 export type { BaseProps, BaseAttributes } from './general_types'
 export { configure } from './jsx-runtime'
+export type { AntaIntrinsicElements } from './jsx-runtime'
 
 /**
  * Seed interface for the icon shape registry. The generated
