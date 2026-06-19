@@ -137,6 +137,43 @@ html, body {
 
 summary { cursor: pointer; }
 
+/* Hide the native <details> disclosure triangle on every docs summary. Kept
+   global (not in a component's scoped <style>) so it can't be lost to CSS
+   bundling/hoisting — the scoped style on <Disclosure> is for layout only, and
+   PropsTable's "Inherited props" summary carries no scoped style at all.
+   `list-style: none` drops the standard marker; the -webkit pseudo covers
+   older Safari, which ignores `list-style` on <summary>. */
+summary { list-style: none; }
+summary::-webkit-details-marker { display: none; }
+
+/* Default disclosure chevron for a bare <summary> (one without its own
+   component-provided marker — e.g. PropsTable's "Inherited props"). Mirrors
+   <a-icon shape="chevron-right">: the same glyph via CSS mask, --text-3
+   (→ --text-1 on hover), rotating 90° when the <details> is open. <Disclosure>
+   renders its own <a-icon class="chevron"> (with the gutter-hang / marker
+   variants), so its `.summary` opts out here to avoid a double marker. */
+summary:not(.summary) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+summary:not(.summary)::before {
+  content: "";
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  background-color: var(--text-3);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 4l4 4-4 4'/%3E%3C/svg%3E%0A") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 4l4 4-4 4'/%3E%3C/svg%3E%0A") center / contain no-repeat;
+  transition: transform 150ms ease-out, background-color 120ms ease-out;
+}
+summary:not(.summary):hover::before {
+  background-color: var(--text-1);
+}
+details[open] > summary:not(.summary)::before {
+  transform: rotate(90deg);
+}
+
 /* Heading sizes / weight / margins live in anta's reset
    (`src/reset.css`); the docs site no longer needs its own overrides. */
 
@@ -403,14 +440,18 @@ pre code { background: none; padding: 0; }
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 0;
+  /* Chevron → "Code"/title gap + left inset mirror <a-expander>'s header:
+     2px between the chevron and the label, chevron inset 6px from the edge
+     (the expander's `--expander-gutter` is 6px edge + 16px chevron + 2px gap),
+     so a folded code block and an Expander read with the same rhythm. */
+  gap: 2px;
   /* Fixed bar height (≈ the original titled-header height) so it stays constant
      in every state and matches across editor/terminal/plain frames. EC pads
      these headers differently (the terminal header gets extra padding-block),
      which made them different heights — zero that and pin the height here. */
   min-height: var(--fold-header-h);
   padding-block: 0;
-  padding-inline: 8px;
+  padding-inline: 6px 4px;
   border: 1px solid var(--border-5);
   background: var(--bg-4);
   cursor: pointer;
@@ -647,6 +688,28 @@ code[data-copied]::after {
   container-type: inline-size;
 }
 
+/* Brand-tinted disclosure header (set via `<Disclosure brand>`). Colors
+   only the summary's title text + chevron, mirroring how `<Expander
+   tone="brand">` tints its summary: rest at `--text-2-brand`, hover at
+   `--text-1-brand`, with the chevron brand-tinted and strengthening on
+   hover. The body internals (Preview / panel) stay neutral. Specificity
+   (.disclosure.brand > summary …) clears the scoped `.summary` / `.chevron`
+   rules in Disclosure.astro. */
+.disclosure.brand > summary .title,
+.disclosure.brand > summary .title.plain,
+.disclosure.brand > summary .title .header-anchor {
+  color: var(--text-2-brand);
+}
+.disclosure.brand > summary .chevron {
+  color: var(--text-2-brand);
+}
+.disclosure.brand > summary:hover .title,
+.disclosure.brand > summary:hover .title.plain,
+.disclosure.brand > summary:hover .title .header-anchor,
+.disclosure.brand > summary:hover .chevron {
+  color: var(--text-1-brand);
+}
+
 .content > *,
 .disclosure > .body > * {
   max-width: 960px;
@@ -684,17 +747,33 @@ code[data-copied]::after {
 .columns {
   display: flex;
   flex-direction: column;
-  /* Default column gap (used in row mode below); override per-instance. */
-  --columns-gap: 20px;
-  column-gap: var(--columns-gap);
-  /* No vertical gap when stacked — the stacked blocks' own margins
-     handle that spacing. The horizontal gap is added in row mode. */
+  /* Gaps default to 20px each; either axis is overridable per-instance via
+     <Columns> (`gap` / `colGap` / `rowGap`). `row-gap` spaces the stacked
+     rows (this column-flex mode); `column-gap` spaces the columns in row
+     mode below. Setting both here keeps the gap authoritative in either
+     layout — see the trailing-margin reset just below. */
+  --columns-col-gap: 20px;
+  --columns-row-gap: 20px;
+  column-gap: var(--columns-col-gap);
+  row-gap: var(--columns-row-gap);
+  /* Block-level bottom margin so a following block (a code sample, a
+     paragraph) is separated from the column group consistently in both row and
+     stacked layouts — the column children end flush (trailing margins zeroed
+     below), so the group itself owns the gap to what follows. */
+  margin-block-end: 8px;
+}
+/* The gap owns the spacing between stacked rows, so a column's last flow
+   child must not add its own bottom margin on top of `row-gap`. Zeroing it
+   also evens out column heights in row mode (no dangling trailing margin).
+   Scoped under `.content` so it outweighs a child's own scoped margin (e.g.
+   <Preview>'s `margin-bottom: 4px`), which otherwise ties on specificity. */
+.content .columns > * > :last-child {
+  margin-bottom: 0;
 }
 @container (min-width: 900px) {
   .columns {
     flex-direction: row;
     align-items: start;
-    column-gap: var(--columns-gap);
   }
   /* Default: every child is an equal column with a sensible min width. */
   .columns > * {
@@ -744,6 +823,15 @@ code[data-copied]::after {
      `rehype-table-wrap` doesn't wrap) still centers in the 960 measure like
      the prose — without it the table left-aligns while paragraphs center. */
   margin: 0 auto 24px;
+}
+/* The first column is an identifier (a token name, a part name, a prop) — keep
+   it on one line instead of letting the full-width table starve the column and
+   break the long `--component-token` names mid-word. `auto` table layout then
+   sizes the column to the widest identifier and lets the description wrap.
+   `<br>`-separated identifiers still break on the explicit break. */
+.content table th:first-child,
+.content table td:first-child {
+  white-space: nowrap;
 }
 
 /* Shared demo-island styles. Used by component demos (IconDemo,

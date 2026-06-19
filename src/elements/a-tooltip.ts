@@ -139,10 +139,12 @@ export class ATooltipElement extends HTMLElementBase {
 
   /** Shadow-internal popover surface — the only thing we ever mutate. */
   private container!: HTMLDivElement
-  /** Inner bubble inside `.container`. Holds the slot + all visual chrome and
-   *  carries the proximity (distance-from-anchor) opacity, kept separate from
-   *  the container's enter/exit/cross-fade opacity. */
-  private bubble!: HTMLDivElement
+  /** Inner bubble inside `.container`. This IS the `<slot>` (styled
+   *  `display:block`), so it both projects the content and paints all visual
+   *  chrome — one element instead of a div-wrapping-a-slot. It carries the
+   *  proximity (distance-from-anchor) opacity, kept separate from the
+   *  container's enter/exit/cross-fade opacity. */
+  private bubble!: HTMLSlotElement
   private anchor: HTMLElement | null = null
 
   listening = false
@@ -177,9 +179,14 @@ export class ATooltipElement extends HTMLElementBase {
     //
     // No comments inside the CSS below: this string is injected verbatim into
     // every instance's shadow root and isn't run through the CSS minifier.
-    // `.bubble` is the single text-baseline choke point — its font/letter
-    // properties stop the anchor's inheritable text styles from bleeding into
-    // the slotted content; a consumer overrides by styling their own content.
+    // `.bubble` is the `<slot>` itself, promoted to `display:block` so it owns
+    // a box (chrome + the slotted content lay out inside it). It's the single
+    // text-baseline choke point — its font/letter properties flow down the
+    // flat-tree to the slotted content (inheritance passes through a styled
+    // slot), stopping the anchor's inheritable text styles from bleeding in; a
+    // consumer overrides by styling their own content. `display` is not an
+    // inherited property, so `display:block` on the slot does NOT leak onto the
+    // slotted children — they keep their own layout.
     const style = document.createElement('style')
     style.textContent = `
       :host { display: contents; }
@@ -212,6 +219,7 @@ export class ATooltipElement extends HTMLElementBase {
       }
 
       .bubble {
+        display: block;
         box-sizing: border-box;
         width: fit-content;
         max-width: var(--tooltip-max-width, min(calc(100vw - 20px), 80ch));
@@ -252,15 +260,16 @@ export class ATooltipElement extends HTMLElementBase {
     this.container.setAttribute('popover', 'manual')
     this.container.setAttribute('role', 'tooltip')
 
-    // Inner bubble holds the slot + visual chrome and carries the proximity
-    // opacity; the container owns the lifecycle/cross-fade opacity.
-    this.bubble = document.createElement('div')
+    // The bubble IS the slot (styled `display:block`): it projects the content
+    // AND paints the visual chrome, and carries the proximity opacity; the
+    // container owns the lifecycle/cross-fade opacity. One element, not a
+    // div-wrapping-a-slot. Exposed as a shadow part so consumers can reach the
+    // surface itself — `a-tooltip::part(bubble) { … }` (`::part` matches any
+    // shadow element with the name, slots included) — for things the
+    // `--tooltip-*` vars don't cover.
+    this.bubble = document.createElement('slot')
     this.bubble.className = 'bubble'
-    // Expose the bubble as a shadow part so consumers can reach the surface
-    // itself — `a-tooltip::part(bubble) { … }` — for things the `--tooltip-*`
-    // vars don't cover.
     this.bubble.setAttribute('part', 'bubble')
-    this.bubble.append(document.createElement('slot'))
     this.container.append(this.bubble)
 
     // Keep an interactive bubble open while the cursor is inside it (these

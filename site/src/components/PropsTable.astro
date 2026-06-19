@@ -271,8 +271,10 @@ const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeComp
   .empty {
     color: var(--text-5);
   }
-  /* Note under the inherited table: data-*/aria-* are accepted via index
-     signatures on BaseProps, which TypeDoc can't surface as named rows. */
+  /* Note under the inherited table: data-* and aria-* attributes are accepted
+     via index signatures on BaseProps, which TypeDoc can't surface as named
+     rows. (Don't put a slash right after an asterisk here — an asterisk-slash
+     ends a CSS comment early and corrupts the rest of the bundled chunk.) */
   .inherited-note {
     margin: 8px 0 0;
     font-size: 0.85em;

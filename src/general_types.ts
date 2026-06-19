@@ -31,6 +31,8 @@ export interface BaseAttributes {
   /** Inline styles applied to the element. */
   style?: React.CSSProperties
   children?: React.ReactNode
+  /** Assigns the element to a named `<slot>` (e.g. `slot="title"`). */
+  slot?: string
   /** Tab order. Set to `0` to make the element keyboard-focusable. */
   tabIndex?: number
   /** ARIA role override. */
@@ -131,6 +133,55 @@ export interface ATagAttributes extends BaseAttributes {
   /** Render in normal case instead of the default uppercase.
    *  Presence-based (`''` on, omit off). */
   nocaps?: boolean | ''
+}
+
+/**
+ * Attributes for the `<a-expander>` collapsible disclosure.
+ *
+ * The element builds its own shadow DOM (no native `<details>`): a
+ * `<button>` summary carrying `aria-expanded` plus an animated content
+ * region. The title is projected via `slot="title"`; header actions
+ * (rendered next to the trigger, outside it) via `slot="actions"`; the
+ * body is the default slot. Low-level attributes; for the JSX wrapper
+ * use `Expander` from `@antadesign/anta`.
+ */
+export interface AExpanderAttributes extends BaseAttributes {
+  /** Controlled open state — value-based, like ARIA, because absence
+   *  must keep meaning "uncontrolled". When present, the attribute is
+   *  the source of truth (`''`/`'true'` open, `'false'` closed): clicks
+   *  only dispatch `toggle` with the requested state, and the consumer
+   *  answers by updating the attribute. Omit it (use `defaultopen`) for
+   *  the self-toggling uncontrolled mode. */
+  open?: '' | 'true' | 'false'
+  /** Initial open state for the uncontrolled mode. Presence-based
+   *  (`''`/bare = initially open); read once when the element connects. */
+  defaultopen?: boolean | ''
+  /** Surface emphasis. `secondary` (default) is a subtle fill; `primary`
+   *  is a stronger raised fill; `tertiary` is transparent. */
+  priority?: 'primary' | 'secondary' | 'tertiary'
+  /** Outdent the chevron into the left gutter so the title + body sit
+   *  flush with surrounding content (the docs-header layout). Tertiary
+   *  only — a no-op on the filled priorities, where the container edge
+   *  has to bound the chevron. Presence-based. */
+  outdent?: boolean | ''
+  /** Disables the header: not clickable or focusable, hover affordance
+   *  off, text dimmed. The open state freezes as-is. Presence-based. */
+  disabled?: boolean | ''
+  /** Semantic tone, or any literal CSS color for a one-off custom tone.
+   *  Named tones re-point the text + filled surface palette; a custom
+   *  color keeps its hue with lightness/chroma pinned. `'neutral'` is the
+   *  default (same as omitting it). */
+  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Heading type scale for the summary, `'1'`–`'6'` (mirrors `<a-title>`
+   *  levels). Default (omitted) ≈ level 5. */
+  level?: '1' | '2' | '3' | '4' | '5' | '6'
+  /** Fires when the summary is toggled. The element dispatches a `toggle`
+   *  `CustomEvent` whose `detail.open` carries the requested state. The
+   *  all-lowercase spelling is deliberate — it's the one form both
+   *  renderers bind to the `toggle` event (React 19 keeps the case of
+   *  whatever follows `on`, so `onToggle` would listen for "Toggle";
+   *  Preact lowercases). */
+  ontoggle?: (e: CustomEvent<{ open: boolean }>) => void
 }
 
 /**

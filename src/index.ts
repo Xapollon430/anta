@@ -37,6 +37,8 @@ export type {
 export { ICON_SHAPES, ICON_SYNONYMS } from './elements/a-icon.shapes'
 export { Tooltip } from './components/Tooltip'
 export type { TooltipProps } from './components/Tooltip'
+export { Expander } from './components/Expander'
+export type { ExpanderProps } from './components/Expander'
 export type { BaseProps, BaseAttributes } from './general_types'
 export { configure } from './jsx-runtime'
 export type { AntaIntrinsicElements } from './jsx-runtime'

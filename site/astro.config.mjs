@@ -26,6 +26,15 @@ const reactCompatShim = fileURLToPath(new URL('./lib/react-compat-shim.mjs', imp
 export default defineConfig({
   site: 'https://anta.design',
   devToolbar: { enabled: false },
+  // Never inline component styles into the page `<head>`. Astro's default
+  // (`'auto'`) inlines small scoped style sets — but for a component used
+  // inside MDX that wraps a hydrated island (e.g. <Disclosure> around the
+  // <Playground>), that inline <style> can land present-but-inert in the
+  // production build (the rule is in `<head>` but the browser never parses it
+  // into CSSOM), so the styles silently don't apply on the deployed site while
+  // dev looks fine. Forcing every component's CSS into the linked, always-
+  // parsed bundle makes dev and prod render identically.
+  build: { inlineStylesheets: 'never' },
   integrations: [
     // compat:false — we install the react→preact/compat aliases ourselves in
     // `vite.resolve.alias` below (so the interface-kit useEffectEvent shim

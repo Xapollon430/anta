@@ -6,6 +6,19 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## 0.2.3 — June 18, 2026
+
+### Added
+- **New `Expander` component** (`<Expander>` / `<a-expander>`) — a collapsible disclosure (a header that toggles a content region). Built on a real `<button>` summary + a grid content region (no native `<details>`), so it follows the WAI-ARIA disclosure pattern with full keyboard support; collapsed content is `inert`. Registered via the `@antadesign/anta/elements` barrel.
+  - **State** — controlled (`open` + `onToggle`) or uncontrolled (`defaultOpen`).
+  - **Title** — `title` takes a string or a node; `level` (1–6) applies the `<Title>` type scale to a string title, or pass a `<Title>` for real heading semantics.
+  - **Surface** — `priority` (`secondary` default / `primary` / `tertiary`) and `tone` (the named tones or **any literal CSS color**) tint the fill and text, tracking light/dark automatically.
+  - **Header** — `actions` renders controls (buttons, tags) at the end of the header, outside the toggle (separately focusable; the title ellipsizes first). `disabled` freezes the header. `outdent` (with `tertiary`) sets the title + body flush with surrounding content.
+  - **Styling hooks** — `--expander-gutter` (the shared title/body/chevron inset) plus `--expander-text` / `--expander-text-hover` / `--expander-bg` / `--expander-border`; the `::part(summary)` / `::part(actions)` / `::part(content)` parts; and the `:state(open)` custom state.
+
+### Changed
+- **Tooltip shadow DOM is one level flatter.** The bubble surface is now the `<slot>` itself (styled `display: block`) instead of a `<div>` wrapping a slot, so the shadow tree carries one fewer node. No API change — `::part(bubble)` (which now resolves to the slot), the `--tooltip-*` tokens, and all behaviour are identical. The new `Expander` ships the same way: `::part(content)` is its body `<slot>`. Verified across Chromium, Firefox, and Safari/WebKit.
+
 ## 0.2.2 — June 13, 2026
 
 ### Breaking
