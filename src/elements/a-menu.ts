@@ -4,6 +4,12 @@ import './a-menu.css'
 
 /** Gap (px) the surface keeps from the anchor / viewport edge. */
 const MARGIN = 4
+/** Cross-axis overhang (px): the aligned edge of a placement menu extends this
+ *  far past the trigger's matching edge (left for `-start`, right for `-end`).
+ *  Cancels the surface's own border + padding inset (≈ `--menu-padding`) so the
+ *  menu's items — and its visual edge under the trigger's focus ring — line up
+ *  with the trigger rather than sitting tucked in. */
+const EDGE_OVERHANG = 4
 /** Smallest usable surface height when space is tight (it scrolls inside). */
 const MIN_HEIGHT = 96
 /** Hover-open / hover-close intent delays for submenus (ms). */
@@ -64,20 +70,28 @@ function unbindDocListeners() {
 /** A node is "inside the open menu system" if the event path crosses any
  *  open menu's surface or its anchor. `composedPath` crosses shadow
  *  boundaries, so slotted custom content (a slider, an input) counts as
- *  inside — clicking it never dismisses the menu. */
-function pathHitsMenus(e: Event): boolean {
+ *  inside — clicking it never dismisses the menu.
+ *
+ *  `primaryClick` marks a left-button pointerdown. A context menu's anchor is
+ *  the whole region it follows and re-triggers ONLY on right-click, so on a
+ *  normal left-click it isn't part of the menu system — a click on it must
+ *  dismiss like any outside click. (A click-trigger anchor stays exempt so its
+ *  own click handler toggles instead of racing the dismiss.) */
+function pathHitsMenus(e: Event, primaryClick = false): boolean {
   const path = e.composedPath()
   for (const m of openStack) {
     if (path.includes(m.surface)) return true
     const anchor = m.triggerAnchor
-    if (anchor && path.includes(anchor)) return true
+    if (!anchor) continue
+    if (primaryClick && m.hasAttribute('context')) continue
+    if (path.includes(anchor)) return true
   }
   return false
 }
 
 function onDocPointerDown(e: Event) {
   if (!openStack.length) return
-  if (!pathHitsMenus(e)) dismiss(e)
+  if (!pathHitsMenus(e, (e as MouseEvent).button === 0)) dismiss(e)
 }
 
 function onDocContextMenu(e: Event) {
@@ -596,8 +610,13 @@ export class AMenuElement extends HTMLElementBase {
         surface.style.maxHeight = `${Math.max(MIN_HEIGHT, Math.floor(space))}px`
 
         const box = surface.getBoundingClientRect()
-        // Cross axis: -start aligns left edges, -end aligns right edges.
-        left = p.endsWith('end') ? a.right - box.width : a.left
+        // Cross axis: -start aligns left edges, -end aligns right edges, each
+        // overhanging the trigger by EDGE_OVERHANG so the menu's content (inset
+        // by its border + padding) lines up with the trigger instead of looking
+        // shifted in.
+        left = p.endsWith('end')
+          ? a.right - box.width + EDGE_OVERHANG
+          : a.left - EDGE_OVERHANG
         if (left + box.width > vw - MARGIN) left = vw - box.width - MARGIN
         left = Math.max(MARGIN, left)
 
