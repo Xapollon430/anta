@@ -440,14 +440,18 @@ pre code { background: none; padding: 0; }
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 0;
+  /* Chevron → "Code"/title gap + left inset mirror <a-expander>'s header:
+     2px between the chevron and the label, chevron inset 6px from the edge
+     (the expander's `--expander-gutter` is 6px edge + 16px chevron + 2px gap),
+     so a folded code block and an Expander read with the same rhythm. */
+  gap: 2px;
   /* Fixed bar height (≈ the original titled-header height) so it stays constant
      in every state and matches across editor/terminal/plain frames. EC pads
      these headers differently (the terminal header gets extra padding-block),
      which made them different heights — zero that and pin the height here. */
   min-height: var(--fold-header-h);
   padding-block: 0;
-  padding-inline: 4px;
+  padding-inline: 6px 4px;
   border: 1px solid var(--border-5);
   background: var(--bg-4);
   cursor: pointer;

@@ -35,8 +35,10 @@ import './a-expander.css'
  *                              the header represents the section either
  *                              way (the MUI / GitHub convention).
  *   <div class="region">       the grid that animates height
- *     <div part="content">     the grid item that clips while animating
- *       <slot>                 the body
+ *     <slot part="content">    the body — this slot IS the grid item the
+ *                              fr-track sizes (styled display:block) and
+ *                              clips while animating; it projects the body
+ *                              directly, no wrapper div
  *
  * ## Open state — controlled vs. uncontrolled
  *
@@ -83,11 +85,15 @@ import './a-expander.css'
  *   `currentColor` (the inherited, possibly toned `--expander-text`); dimmed at
  *   rest, full on hover/open, rotated 90° when open (the rotate composes with
  *   the vertical-centering `translateY(-50%)`). It's positioned ABSOLUTELY
- *   inside the gutter (`left: var(--expander-gutter) - 16px`), out of flow, so
- *   it never pushes the title — the title's inset is purely `--expander-gutter`
+ *   inside the gutter (`left: var(--expander-gutter) - 16px - 2px`, so its right
+ *   edge sits 2px before the gutter — a 2px gap before the title), out of flow,
+ *   so it never pushes the title — the title's inset is purely `--expander-gutter`
  *   (the same var the body uses). With `outdent` the gutter is 0, so the
- *   chevron auto-hangs at -16px in the negative gutter and the title sits at the
- *   element's edge (the border stays, transparent, for stable box geometry).
+ *   chevron auto-hangs at -18px in the negative gutter and the title sits flush
+ *   with the surrounding content. (The 1px transparent border stays — it keeps
+ *   tertiary content aligned with the filled priorities — so a -1px correction
+ *   on the header + region cancels its content-box inset; see the SHADOW_STYLE
+ *   outdent rule.)
  *   The chevron can't be hidden via an attribute (a foldable region needs a
  *   visible affordance) — restyle or remove it through ::part(summary)::before.
  * - **Hover/press affordance**: the button's `:hover`/`:active` set the
@@ -108,9 +114,11 @@ import './a-expander.css'
  *   so it wins while pressed.
  * - **Collapse animation**: grid `0fr ↔ 1fr` on `.region` (`ANIM_MS`),
  *   keyed off the button's `aria-expanded`; the `[part="content"]` grid
- *   item clips (`overflow: clip`) while animating. The grid item must be
- *   a real shadow child — a slotted element reached through a
- *   `display: contents` slot doesn't size the fr track. Once open and
+ *   item clips (`overflow: clip`) while animating. The grid item is the
+ *   `<slot>` itself, promoted to `display: block` so it generates a box and
+ *   acts as the fr-sized grid track — a `display: contents` slot (the UA
+ *   default) has no box and wouldn't size the track, which is why the slot
+ *   carries `display: block` rather than projecting through a wrapper. Once open and
  *   idle the clip is dropped (delayed by `ANIM_MS` via a discrete
  *   `overflow` transition) so focus rings / nested popovers aren't cut
  *   off. Known degradation: without `transition-behavior:
@@ -142,15 +150,16 @@ import './a-expander.css'
  *   `.dark` rules are needed (same as `<a-tag>`).
  * - The host carries no padding — the header `<button>` (full width + height)
  *   owns the content inset via `--expander-gutter`, the single value the title
- *   inset, the body inset, AND the chevron position all derive from (20px
+ *   inset, the body inset, AND the chevron position all derive from (24px
  *   default; the chevron sits absolutely in it). So the title's left rhythm is
  *   constant for every `level`, the body always lines up under it, and the hit
  *   area is the whole header. The border is present on every priority
  *   (transparent on tertiary) so switching priority never shifts layout.
  *   `secondary` is the default surface; `primary` re-points to the stronger
- *   card pair; `tertiary` goes transparent. `outdent` (tertiary only) just sets
- *   `--expander-gutter: 0` — title + body go flush and the chevron auto-hangs
- *   in the negative gutter (the border stays, transparent, geometry unchanged).
+ *   card pair; `tertiary` goes transparent. `outdent` (tertiary only) sets
+ *   `--expander-gutter: 0` so title + body go flush with surrounding content
+ *   and the chevron auto-hangs in the negative gutter; the transparent border
+ *   stays (a -1px shadow correction cancels its 1px content-box inset).
  * - `<a-expander-summary>` / `<a-expander-details>` are CSS-only styled
  *   light-DOM tags (like `<a-tag-label>`). The summary inherits the
  *   shadow button's typography and only lays out + ellipsizes; the
@@ -245,14 +254,15 @@ const SHADOW_STYLE = `
   ${SUMMARY_LEVEL_RULES}
 
   /* The chevron sits absolutely INSIDE the gutter — out of flow, so it never
-     pushes the title. Its right edge lands at the gutter (left = gutter - 16px),
-     so at the default 20px gutter it's inset, and on outdent (gutter 0) it
-     auto-hangs at -16px in the negative gutter. One var drives the title inset,
+     pushes the title. Its right edge lands 2px before the gutter (left = gutter
+     - 16px - 2px), leaving a 2px gap before the title; at the default 24px
+     gutter the chevron box is [6px, 22px], and on outdent (gutter 0) it
+     auto-hangs at -18px in the negative gutter. One var drives the title inset,
      the body inset, and the chevron position. */
   button::before {
     content: '';
     position: absolute;
-    left: calc(var(--expander-gutter) - 16px);
+    left: calc(var(--expander-gutter) - 16px - 2px);
     top: 50%;
     width: 16px;
     height: 16px;
@@ -287,11 +297,21 @@ const SHADOW_STYLE = `
     grid-template-rows: 0fr;
   }
   .header:has(button[aria-expanded="true"]) + .region { grid-template-rows: 1fr; }
+
+  /* Outdent flush correction: the host keeps its 1px (transparent) border for
+     cross-priority box stability, which insets the content-box by 1px. Pull the
+     header + region back by that 1px so the title and body land exactly on the
+     surrounding content (the chevron, absolutely positioned inside the header,
+     rides along). Logical start so it follows RTL. */
+  :host([priority="tertiary"][outdent]) .header,
+  :host([priority="tertiary"][outdent]) .region {
+    margin-inline-start: -1px;
+  }
   @media (prefers-reduced-motion: no-preference) {
     .region { transition: grid-template-rows ${ANIM_MS}ms ease; }
   }
 
-  [part="content"] { min-height: 0; overflow: clip; }
+  [part="content"] { display: block; min-height: 0; overflow: clip; }
   .header:has(button[aria-expanded="true"]) + .region [part="content"] {
     overflow: visible;
     transition: overflow 0s ${ANIM_MS}ms;
@@ -348,10 +368,12 @@ export class AExpanderElement extends HTMLElementBase {
 
     this.region = document.createElement('div')
     this.region.className = 'region'
-    const content = document.createElement('div')
-    // The collapsible body, exposed as a part for the same reason.
+    // The collapsible body IS the `<slot>` (styled `display:block` in the
+    // sheet), so it's both the grid item the fr-track sizes AND the content
+    // projection — one element, not a div-wrapping-a-slot. Exposed as a part
+    // for the same reason (`::part` matches slots too).
+    const content = document.createElement('slot')
     content.setAttribute('part', 'content')
-    content.append(document.createElement('slot'))
     this.region.append(content)
 
     shadow.append(style, header, this.region)

@@ -151,10 +151,11 @@ By default the chevron sits **inside** the header row. On a transparent
 `priority="tertiary"` expander, add `outdent` to hang the chevron in the
 left gutter so the **title and body sit flush** with the surrounding
 content — the same layout as the section headers in these docs. Under the
-hood it just zeroes `--expander-gutter`: the title and body lose their
-inset and the chevron, positioned in that gutter, auto-hangs to the left.
-The border stays (transparent, so the box geometry is unchanged), so the
-title sits at the element's edge.
+hood it zeroes `--expander-gutter`: the title and body lose their inset and
+the chevron, positioned in that gutter, auto-hangs to the left. The
+transparent border stays (it keeps tertiary content aligned with the filled
+priorities), and a small internal correction cancels the border's 1px inset
+so the title and body line up exactly with the surrounding content.
 
 <Preview>
   <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -387,13 +388,13 @@ an emoji or a down-arrow glyph — into the title:
   </Expander>
   <style is:inline>{`
     a-expander.hide-chevron::part(summary)::before { display: none; }
-    a-expander.hide-chevron { --expander-gutter: 12px; }  /* default is 20px */
+    a-expander.hide-chevron { --expander-gutter: 12px; }  /* default is 24px */
   `}</style>
 </Preview>
 
 ```css folded
 a-expander.hide-chevron::part(summary)::before { display: none; }  /* remove the built-in chevron */
-a-expander.hide-chevron { --expander-gutter: 12px; }               /* tighten the inset (default 20px) */
+a-expander.hide-chevron { --expander-gutter: 12px; }               /* tighten the inset (default 24px) */
 ```
 
 To tint the **whole header** on hover / press, style the summary part
@@ -587,7 +588,7 @@ hover/press background, the chevron — reach `::part(summary)` (see below).
 
 | Token | Description |
 |---|---|
-| `--expander-gutter` | The shared left inset (`20px` default) the title, the body, **and** the chevron position all derive from — the chevron sits absolutely inside it instead of pushing the title, so overriding this one value re-insets header + body in lockstep. `outdent` sets it to `0`. |
+| `--expander-gutter` | The shared left inset (`24px` default) the title, the body, **and** the chevron position all derive from — the chevron sits absolutely inside it instead of pushing the title, so overriding this one value re-insets header + body in lockstep. `outdent` sets it to `0`. |
 | `--expander-text` | Header + body text color (and the chevron, via `currentColor`). |
 | `--expander-text-hover` | Title color on header hover. Set it to recolor the hover highlight. (It's a token rather than a `:hover` rule because the slotted title takes the color via an inherited property — a Chromium slotted-invalidation workaround.) |
 | `--expander-bg` | Host background — the resolved surface fill (`secondary` by default, `primary` on `priority="primary"`, transparent on `tertiary`). |

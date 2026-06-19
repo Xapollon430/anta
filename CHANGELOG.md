@@ -16,6 +16,9 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
   - **Header** — `actions` renders controls (buttons, tags) at the end of the header, outside the toggle (separately focusable; the title ellipsizes first). `disabled` freezes the header. `outdent` (with `tertiary`) sets the title + body flush with surrounding content.
   - **Styling hooks** — `--expander-gutter` (the shared title/body/chevron inset) plus `--expander-text` / `--expander-text-hover` / `--expander-bg` / `--expander-border`; the `::part(summary)` / `::part(actions)` / `::part(content)` parts; and the `:state(open)` custom state.
 
+### Changed
+- **Tooltip shadow DOM is one level flatter.** The bubble surface is now the `<slot>` itself (styled `display: block`) instead of a `<div>` wrapping a slot, so the shadow tree carries one fewer node. No API change — `::part(bubble)` (which now resolves to the slot), the `--tooltip-*` tokens, and all behaviour are identical. The new `Expander` ships the same way: `::part(content)` is its body `<slot>`. Verified across Chromium, Firefox, and Safari/WebKit.
+
 ## 0.2.2 — June 13, 2026
 
 ### Breaking

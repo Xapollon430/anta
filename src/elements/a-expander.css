@@ -13,11 +13,13 @@
 
     /* The single gutter that the title inset, the body inset, AND the chevron
        position all derive from (see a-expander.ts). The chevron sits absolutely
-       in this gutter (right edge at the gutter) instead of pushing the title,
-       so one value keeps title + body aligned at every `level`. `outdent` just
-       sets it to 0 (title/body flush, chevron auto-hangs in the negative
-       gutter). 20px = 4px edge + the 16px chevron. */
-    --expander-gutter: 20px;
+       in this gutter with its right edge 2px before the gutter, so there's a 2px
+       gap between the chevron and the title (it never pushes the title), and one
+       value keeps title + body aligned at every `level`. `outdent` just sets it
+       to 0 (title/body flush, chevron auto-hangs in the negative gutter).
+       24px = 6px edge + 16px chevron + 2px gap. (The docs site's foldable
+       code-block header mirrors this spacing.) */
+    --expander-gutter: 24px;
 
     display: block;
     width: 100%;
@@ -68,9 +70,12 @@
     --expander-border: transparent;
   }
 
-  /* Outdent: zero the gutter — the title + body go flush with the surrounding
-     content and the chevron auto-hangs at -16px in the negative gutter. One
-     line replaces the old title/body/chevron overrides. */
+  /* Outdent: zero the gutter so the title + body go flush with the surrounding
+     content, and the chevron auto-hangs in the negative gutter. The 1px
+     (transparent) border stays — it's what keeps tertiary content aligned with
+     the filled priorities — so the content is still inset 1px by the border-box;
+     the shadow cancels that with a -1px correction on the header + region (see
+     a-expander.ts) so the title/body land exactly on the surrounding content. */
   a-expander[priority="tertiary"][outdent] {
     --expander-gutter: 0px;
   }
