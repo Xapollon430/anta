@@ -793,9 +793,12 @@ export class AMenuElement extends HTMLElementBase {
     }
 
     if (this.isSubmenu) {
-      // The enclosing item drives the submenu: click toggles; optional hover
-      // opens/closes with intent timing.
-      const onClick = (e: MouseEvent) => this.toggle({ originEvent: e })
+      // The enclosing item drives the submenu: click OPENS (never toggles shut —
+      // re-clicking the parent that spawned the flyout keeps it open, just
+      // repositions); optional hover opens/closes with intent timing. Closing is
+      // owned by the usual paths: outside-click, Esc, ←, hover-away, or picking
+      // an item.
+      const onClick = (e: MouseEvent) => this.requestOpen({ originEvent: e })
       anchor.addEventListener('click', onClick)
       let onEnter: ((e: Event) => void) | undefined
       let onLeave: (() => void) | undefined
