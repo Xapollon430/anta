@@ -362,18 +362,6 @@ export class ATooltipElement extends HTMLElementBase {
     this.debouncedShow = debounce((e?: MouseEvent) => this.show(e), this.delay)
   }
 
-  /** The element's OWN window / document. The class may be defined in a
-   *  different realm than the element lives in (e.g. the docs playground
-   *  renders into an iframe but reuses the parent page's element class), so
-   *  the module-global `window`/`document` can point at the wrong frame.
-   *  Everything viewport- or document-scoped (clamping, scroll/key/move
-   *  listeners) must go through these so it's correct in any frame. */
-  private get view(): (Window & typeof globalThis) {
-    return (this.ownerDocument?.defaultView as Window & typeof globalThis) ?? window
-  }
-  private get doc(): Document {
-    return this.ownerDocument ?? document
-  }
 
   private get isInteractive(): boolean {
     return this.hasAttribute('interactive')

@@ -108,15 +108,6 @@
     pointer-events: none;
   }
 
-  a-menu-item[role="menuitemcheckbox"] > a-icon[data-check],
-  a-menu-item[role="menuitemradio"] > a-icon[data-check] {
-    visibility: hidden;
-  }
-  a-menu-item[role="menuitemcheckbox"][checked] > a-icon[data-check],
-  a-menu-item[role="menuitemradio"][checked] > a-icon[data-check] {
-    visibility: visible;
-  }
-
   .dark a-menu-item {
     --menu-item-hover: 13%;
     --menu-item-active: 19%;

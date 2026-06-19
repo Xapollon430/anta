@@ -4,12 +4,6 @@ import './a-menu.css'
 
 /** Gap (px) the surface keeps from the anchor / viewport edge. */
 const MARGIN = 4
-/** Cross-axis overhang (px): the aligned edge of a placement menu extends this
- *  far past the trigger's matching edge (left for `-start`, right for `-end`).
- *  Cancels the surface's own border + padding inset (≈ `--menu-padding`) so the
- *  menu's items — and its visual edge under the trigger's focus ring — line up
- *  with the trigger rather than sitting tucked in. */
-const EDGE_OVERHANG = 4
 /** Smallest usable surface height when space is tight (it scrolls inside). */
 const MIN_HEIGHT = 96
 /** Hover-open / hover-close intent delays for submenus (ms). */
@@ -231,7 +225,7 @@ export class AMenuElement extends HTMLElementBase {
     style.textContent = `
       :host { display: contents; }
 
-      div {
+      .container {
         position: fixed;
         left: 0;
         top: 0;
@@ -255,13 +249,14 @@ export class AMenuElement extends HTMLElementBase {
         backdrop-filter: var(--menu-backdrop-filter, blur(20px));
         outline: none;
       }
-      div:popover-open {
+      .container:popover-open {
         display: flex;
         animation: a-menu-enter 80ms ease-out;
       }
       @keyframes a-menu-enter { from { opacity: 0; } }
     `
     this.surface = document.createElement('div')
+    this.surface.className = 'container'
     this.surface.setAttribute('popover', 'manual')
     this.surface.append(document.createElement('slot'))
 
@@ -333,13 +328,6 @@ export class AMenuElement extends HTMLElementBase {
     return this.hasAttribute('state')
   }
 
-  /* --- realm-correct window / document (iframe playground safety) --- */
-  private get view(): Window & typeof globalThis {
-    return (this.ownerDocument?.defaultView as Window & typeof globalThis) ?? window
-  }
-  private get doc(): Document {
-    return this.ownerDocument ?? document
-  }
 
   /* --- config getters --- */
   get isSubmenu(): boolean {
@@ -397,9 +385,12 @@ export class AMenuElement extends HTMLElementBase {
     return el.getClientRects().length > 0
   }
 
+  /** The subset of `focusables()` that are menu items (drives arrow / Home /
+   *  End / type-ahead navigation). Same visibility / disabled / ownership
+   *  filter — just narrowed to `a-menu-item`. */
   private focusableItems(): AMenuItemElement[] {
-    return (Array.from(this.querySelectorAll('a-menu-item')) as AMenuItemElement[]).filter(
-      (it) => it.closest('a-menu') === this && !it.hasAttribute('disabled') && this.isVisible(it),
+    return this.focusables().filter(
+      (el): el is AMenuItemElement => el instanceof AMenuItemElement,
     )
   }
 
@@ -610,13 +601,16 @@ export class AMenuElement extends HTMLElementBase {
         surface.style.maxHeight = `${Math.max(MIN_HEIGHT, Math.floor(space))}px`
 
         const box = surface.getBoundingClientRect()
-        // Cross axis: -start aligns left edges, -end aligns right edges, each
-        // overhanging the trigger by EDGE_OVERHANG so the menu's content (inset
-        // by its border + padding) lines up with the trigger instead of looking
-        // shifted in.
+        // Cross axis: -start aligns left edges, -end aligns right edges. Pull
+        // the menu OUT by its own border + padding on the aligned side so the
+        // first item's *content* — not the surface chrome — lines up with the
+        // trigger edge. Read live, so overriding `--menu-padding` keeps it true.
+        const cs = view.getComputedStyle(surface)
+        const insetStart = parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft)
+        const insetEnd = parseFloat(cs.borderRightWidth) + parseFloat(cs.paddingRight)
         left = p.endsWith('end')
-          ? a.right - box.width + EDGE_OVERHANG
-          : a.left - EDGE_OVERHANG
+          ? a.right - box.width + insetEnd
+          : a.left - insetStart
         if (left + box.width > vw - MARGIN) left = vw - box.width - MARGIN
         left = Math.max(MARGIN, left)
 
@@ -663,9 +657,6 @@ export class AMenuElement extends HTMLElementBase {
         }
         // Submenu parent → its own handler opens the submenu; don't close.
         if (node.hasAttribute('submenu')) return
-        // Checkbox / radio items toggle in place — implicit keep-open.
-        const role = node.getAttribute('role')
-        if (role === 'menuitemcheckbox' || role === 'menuitemradio') return
         return this.closeSystem(e)
       }
 

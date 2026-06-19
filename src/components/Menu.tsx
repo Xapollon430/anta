@@ -29,9 +29,27 @@ export interface MenuProps extends BaseProps {
    *  response. A string (not a boolean) so there's no `"false"`-as-truthy
    *  footgun. Submenus are always uncontrolled regardless of this. */
   state?: 'opened' | 'closed'
+  /** Fired whenever the open state changes — on open, and on every dismiss
+   *  (Esc, outside-click, scroll, selecting an item). `open` is the new state.
+   *  This is the declarative way to observe a menu, and the handler you pair
+   *  with `state` to drive a controlled menu (flip `state` in response). */
+  onOpenChange?: (open: boolean) => void
   /** The menu's contents: `MenuItem`, `MenuSeparator`, `MenuGroup`, or any
    *  custom element. */
   children?: React.ReactNode
+}
+
+/** The element's `openchange` event payload. */
+type OpenChangeEvent = CustomEvent<{ open: boolean }>
+
+/** Pull the new open state out of the element's `openchange` event, across
+ *  renderers: a raw `CustomEvent` carries `detail` directly; a synthetic
+ *  wrapper carries it on `nativeEvent.detail`. */
+function openChanged(e: OpenChangeEvent | { nativeEvent: OpenChangeEvent }): boolean {
+  const detail =
+    ('nativeEvent' in e ? e.nativeEvent?.detail : undefined) ??
+    ('detail' in e ? e.detail : undefined)
+  return !!detail?.open
 }
 
 /**
@@ -68,6 +86,7 @@ export const Menu = ({
   hover,
   offset,
   state,
+  onOpenChange,
   className,
   children,
   ...rest
@@ -83,6 +102,10 @@ export const Menu = ({
       offset={offset != null ? String(offset) : undefined}
       // Controlled lever — string ('opened'/'closed'); omit ⇒ uncontrolled.
       state={state}
+      // All-lowercase `onopenchange` is the one event-prop spelling both React
+      // and Preact bind to a custom element's custom event (they lowercase
+      // whatever follows `on`, so `onOpenChange` would listen for "OpenChange").
+      onopenchange={onOpenChange ? (e: OpenChangeEvent) => onOpenChange(openChanged(e)) : undefined}
       role="menu"
       aria-orientation="vertical"
       class={className}

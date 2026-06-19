@@ -73,13 +73,9 @@ export default function MenuNestedDemo() {
                           <input type="checkbox" checked={on[c]} onChange={() => toggle(c)} />
                           <span>{c}</span>
                         </label>
-                        {/* onClick on a native wrapper, not the anta Button:
-                            Preact wires on* handlers reliably on built-in
-                            elements; forwarding onClick onto a custom element
-                            through the wrapper doesn't always attach. */}
-                        <span style={{ display: 'contents' }} onClick={() => only(c)}>
-                          <Button priority="tertiary" size="small">Only</Button>
-                        </span>
+                        <Button priority="tertiary" size="small" onClick={() => only(c)}>
+                          Only
+                        </Button>
                       </div>
                     ))}
                   </Menu>

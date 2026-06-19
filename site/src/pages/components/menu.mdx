@@ -21,11 +21,11 @@ on outside-click, `Escape`, or scroll. Rows are dedicated **`MenuItem`s** (not
 buttons), with optional leading icons, trailing keyboard hints, separators,
 grouped sections, and nested submenus.
 
-Open state is uncontrolled by default — listen for the **`openchange`** event
-(`detail: { open, previousState }`, the new state as a boolean and the old as a
-string) to observe it, or pass **`state="opened" | "closed"`** to control it
-(submenus stay uncontrolled). You can also grab a `ref` and call `.open()` /
-`.close()` / `.toggle()`.
+Open state is uncontrolled by default — pass **`onOpenChange`** (or listen for
+the raw **`openchange`** event, `detail: { open, previousState }`) to observe it,
+or pass **`state="opened" | "closed"`** to control it, flipping `state` from your
+`onOpenChange` handler (submenus stay uncontrolled). You can also grab a `ref`
+and call `.open()` / `.close()` / `.toggle()`.
 
 The previews below are live — **click a trigger to open its menu**. Play with
 the full API in the [playground](#playground).
@@ -351,8 +351,9 @@ run off the UI thread. Walking out from the click, the nearest marker wins:
   element (or a "Done" button inside a `data-menu-open` region) can dismiss the
   menu without being a `MenuItem`.
 
-For programmatic open/close from app state, drive the `open` attribute (or call
-`.close()` on the element via a `ref`).
+For programmatic open/close from app state, drive the `state` attribute
+(`"opened"` / `"closed"`) and react via `onOpenChange`, or grab a `ref` and call
+`.open()` / `.close()` / `.toggle()`.
 
 </Col>
 <Col>

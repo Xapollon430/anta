@@ -42,8 +42,6 @@ declare global {
  *   the nested `<a-menu>` is the actual last child, so the trim rule doesn't
  *   fire — and the chevron / a trailing icon is instead nudged toward the
  *   edge with relative positioning (visual only, no reflow).
- * - Future checkbox / radio items: a leading `a-icon[data-check]` slot keyed
- *   off `role` + `checked` presence; no item logic changes needed.
  */
 export class AMenuItemElement extends HTMLElementBase {
   connectedCallback() {
