@@ -27,8 +27,24 @@ or pass **`state="opened" | "closed"`** to control it, flipping `state` from you
 `onOpenChange` handler (submenus stay uncontrolled). You can also grab a `ref`
 and call `.open()` / `.close()` / `.toggle()`.
 
-The previews below are live — **click a trigger to open its menu**. Play with
-the full API in the [playground](#playground).
+<Disclosure title="Playground" anchor={false} brand open>
+
+Tweak the props (or edit the code), then **click the trigger to open the menu**.
+The props panel is generated from the `Menu` API and edits the `<Menu>` element.
+
+<Playground
+  client:visible
+  component="Menu"
+  layout="side"
+  panelHeight={440}
+  initialCode={menuDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: flex-start; justify-content: center; padding-top: 24px; }`}
+/>
+
+</Disclosure>
+
+The examples below are live — **click a trigger to open its menu**.
 
 ## Dropdown from a button
 
@@ -404,20 +420,6 @@ While open, the menu keeps Tab focus contained. Open the trigger with `Enter` /
 - **Enter / Space** — activate the focused item
 - **Tab / Shift+Tab** — cycle through the focusables *inside* the menu — items **and** any nested controls (a slider, an input, a button) — wrapping at the ends so focus stays in the open menu. Arrow keys hand off to a nested control once it's focused
 - **Esc** — close the topmost menu and return focus to its parent item or trigger
-
-<Disclosure title="Playground">
-
-<Playground
-  client:visible
-  component="Menu"
-  layout="side"
-  panelHeight={440}
-  initialCode={menuDemoCode}
-  initialCss={`html, body { height: 100%; }
-.preview { min-height: 100%; align-items: flex-start; justify-content: center; padding-top: 24px; }`}
-/>
-
-</Disclosure>
 
 <Disclosure title="Menu props">
 
