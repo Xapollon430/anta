@@ -272,7 +272,6 @@ export interface AInputAttributes extends BaseAttributes {
   placeholder?: string
   autocomplete?: string
   inputmode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
-  enterkeyhint?: string
   maxlength?: number | string
   minlength?: number | string
   pattern?: string

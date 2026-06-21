@@ -10,6 +10,7 @@ import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import inputDemoCode from './input.demo.ts'
 import InputSelectDemo from '../../components/InputSelectDemo'
+import InputPasswordDemo from '../../components/InputPasswordDemo'
 import InputValidationDemo from '../../components/InputValidationDemo'
 import { Input, Icon, Button } from '@antadesign/anta'
 
@@ -189,7 +190,13 @@ decorations across browsers.
 </Col>
 </Columns>
 
-## Dropdown (select) pattern
+## Trailing-control patterns
+
+The `trailing` slot takes any node, so common field affordances are just
+compositions — no dedicated props needed. Two examples: a select-style dropdown,
+and a password reveal toggle.
+
+### Select dropdown
 
 <Columns>
 <Col>
@@ -245,6 +252,53 @@ This is illustrative — a real `<Select>` will own the popover positioning,
 keyboard navigation (arrow keys, type-ahead), and the full listbox ARIA. The
 point here is that the field itself already provides the slots and states the
 pattern needs.
+
+</Col>
+</Columns>
+
+### Password reveal
+
+<Columns>
+<Col>
+
+<Preview>
+  <InputPasswordDemo client:load />
+</Preview>
+
+```tsx folded
+// Reveal toggle = flip `type` between password and text. Native masking when
+// hidden, plain text when shown; password managers keep working.
+const [reveal, setReveal] = useState(false)
+
+<Input
+  label="Password"
+  type={reveal ? 'text' : 'password'}
+  defaultValue="hunter2"
+  trailing={
+    <Button
+      priority="tertiary"
+      icon="eye"
+      selected={reveal}
+      aria-label={reveal ? 'Hide password' : 'Show password'}
+      onClick={() => setReveal(v => !v)}
+    />
+  }
+/>
+```
+
+</Col>
+<Col>
+
+A `trailing` eye `<Button>` flips the field's `type` between `password` and
+`text` — native disc masking when hidden, plain text when revealed. Because it
+stays a real `type="password"` when hidden, password managers and autofill keep
+working. The `selected` button state reflects the toggle, and the uncontrolled
+value is preserved across it.
+
+(The mask glyph stays the browser default — it can't be restyled on a native
+password field. Controlling the glyph means dropping `type="password"`, which
+loses manager support and isn't masked in Firefox, so it's intentionally not a
+built-in.)
 
 </Col>
 </Columns>
@@ -456,14 +510,14 @@ Parts: `field`, `input`, `label`, `leading`, `trailing`, `clear`, `hint`. State
 hooks: `:state(filled)` and `:state(invalid)`. (The clear button itself is a
 real `<a-button>` in the `clear` slot — style it directly.)
 
-The border is drawn as a **`box-shadow`** (outset), not a real `border`, so its
+The border is drawn as an **inset `box-shadow`**, not a real `border`, so its
 width (`0.5px` → `1px` when invalid) and placement never change the box size —
-the field height stays locked to the matching Button. Add a leading `inset` to
-the field's `box-shadow` to draw the border inside instead.
+the field height stays locked to the matching Button. Drop the leading `inset`
+from the field's `box-shadow` to draw the border as an outset ring instead.
 
-Or re-point a `--a-input-*` token on one instance
-(`style={{ '--a-input-radius': '8px' }}`) or a wrapping selector. The resolver
-lives in `@layer anta`, so any un-layered rule of yours wins.
+Or re-point a `--a-input-*` color token on one instance
+(`style={{ '--a-input-border': 'var(--border-1)' }}`) or a wrapping selector.
+The resolver lives in `@layer anta`, so any un-layered rule of yours wins.
 
 </Col>
 </Columns>
@@ -491,10 +545,5 @@ the input.
 | `--a-input-placeholder` | Placeholder color. Defaults to `--text-4`. |
 | `--a-input-hint` | Hint text color. Defaults to `--text-3`. |
 | `--a-input-error-text` | Error message + glyph color. Defaults to `--text-2-critical`. |
-| `--a-input-radius` | Corner radius (default `4px`). |
-| `--a-input-border-width` | Border thickness (default `0.5px`; `1px` when invalid). Drawn as an outset `box-shadow`, so changing it never reflows. |
-| `--a-input-height` | Field min-height for the current size (24 / 28 / 32px). |
-| `--a-input-pad-x` | Horizontal text inset (`7px`, uniform across sizes). |
-| `--a-input-font-size`<br />`--a-input-line` | Font size / line-height (default `15px` / `20px`, constant across sizes). |
 
 </Disclosure>

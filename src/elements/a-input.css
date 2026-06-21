@@ -18,34 +18,16 @@
     --a-input-hint: var(--text-3);
     --a-input-error-text: var(--text-2-critical);
 
-    --a-input-radius: 4px;
-    --a-input-border-width: 0.5px;
-    --a-input-font-size: 15px;
-    --a-input-line: 20px;
-    /* Horizontal text inset — uniform across sizes. */
-    --a-input-pad-x: 7px;
-
-    /* medium (default) height; small/large override below. */
-    --a-input-height: 28px;
-
     display: block;
     width: 100%;
   }
 
-  a-input[size="small"] {
-    --a-input-height: 24px;
-  }
-  a-input[size="large"] {
-    --a-input-height: 32px;
-  }
-
-  /* Invalid: the border goes critical at 1px and stops reacting to hover. The
-     warning glyph + error-colored message are handled inside the shadow off
-     the same `[invalid]` host attribute. */
+  /* Invalid: the border goes critical and stops reacting to hover (the 1px
+     width bump + warning glyph + error message are handled inside the shadow
+     off the same `[invalid]` host attribute). */
   a-input[invalid] {
     --a-input-border: var(--a-input-border-error);
     --a-input-border-hover: var(--a-input-border-error);
-    --a-input-border-width: 1px;
   }
 
   a-input[disabled] {

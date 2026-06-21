@@ -53,10 +53,6 @@ export interface InputProps extends Omit<BaseProps, 'children'> {
   readOnly?: boolean
   /** Mark the field required (drives native validity). */
   required?: boolean
-  /** Virtual-keyboard hint forwarded to the control. */
-  inputMode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
-  /** Virtual-keyboard enter-key label forwarded to the control. */
-  enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send'
   /** Toggle native spell-checking. */
   spellCheck?: boolean
   /** Max input length. */
@@ -88,6 +84,12 @@ const isStringish = (n: React.ReactNode) => typeof n === 'string' || typeof n ==
 // no standard token, so none is set — password managers still key off
 // `type="password"`, the numeric keyboard off `type="number"`, etc.
 const AUTOCOMPLETE_BY_TYPE: Record<string, string> = { email: 'email', tel: 'tel', url: 'url' }
+// Virtual-keyboard hint derived from `type` (not a prop). `type` already drives
+// the keyboard for these, so this is belt-and-suspenders; a raw <a-input> can
+// still set `inputmode` directly to decouple keyboard from type (e.g. an OTP).
+const INPUTMODE_BY_TYPE: Record<string, 'email' | 'tel' | 'url' | 'numeric'> = {
+  email: 'email', tel: 'tel', url: 'url', number: 'numeric',
+}
 
 /**
  * `<Input>` — a text field. Renders an `<a-input>` web component whose real
@@ -125,8 +127,6 @@ export const Input = ({
   disabled,
   readOnly,
   required,
-  inputMode,
-  enterKeyHint,
   spellCheck,
   maxLength,
   minLength,
@@ -162,8 +162,7 @@ export const Input = ({
       readonly={presence(readOnly)}
       required={presence(required)}
       autocomplete={!multiline && rows == null && type ? AUTOCOMPLETE_BY_TYPE[type] : undefined}
-      inputmode={inputMode}
-      enterkeyhint={enterKeyHint}
+      inputmode={!multiline && rows == null && type ? INPUTMODE_BY_TYPE[type] : undefined}
       spellcheck={spellCheck != null ? (spellCheck ? 'true' : 'false') : undefined}
       maxlength={maxLength != null ? String(maxLength) : undefined}
       minlength={minLength != null ? String(minLength) : undefined}

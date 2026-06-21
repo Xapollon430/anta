@@ -53,7 +53,7 @@ import './a-input.css'
 
 // Attributes copied straight through to the shadow control.
 const FORWARDED = [
-  'placeholder', 'type', 'name', 'autocomplete', 'inputmode', 'enterkeyhint',
+  'placeholder', 'type', 'name', 'autocomplete', 'inputmode',
   'maxlength', 'minlength', 'pattern', 'spellcheck', 'readonly', 'required',
   'min', 'max', 'step',
 ] as const
@@ -83,8 +83,8 @@ const SHADOW_STYLE = `
     display: none;
     color: var(--a-input-label);
     font-family: var(--sans-serif);
-    font-size: var(--a-input-font-size);
-    line-height: var(--a-input-line);
+    font-size: 15px;
+    line-height: 20px;
     font-weight: 500;
     margin-bottom: 4px;
   }
@@ -92,21 +92,26 @@ const SHADOW_STYLE = `
 
   .field {
     --_bc: var(--a-input-border);
+    --_bw: 0.5px;
 
     display: flex;
     align-items: center;
     box-sizing: border-box;
-    min-height: var(--a-input-height);
+    min-height: 28px;
     background: var(--a-input-bg);
-    border-radius: var(--a-input-radius);
+    border-radius: 4px;
     /* The border is a shadow, not a real border, so it never affects the box
        size: the rest→invalid width change (0.5px→1px) causes no reflow, and the
-       height still matches a same-size Button. Drawn outset (a ring just
-       outside the box); add a leading \`inset\` to draw it inside instead. */
-    box-shadow: 0 0 0 var(--a-input-border-width) var(--_bc);
+       height still matches a same-size Button. Drawn inset (inside the box);
+       drop the leading \`inset\` to draw it as an outset ring instead. */
+    box-shadow: inset 0 0 0 var(--_bw) var(--_bc);
     transition: box-shadow 120ms ease;
   }
   :host([multiline]) .field { align-items: stretch; }
+  :host([invalid]) .field { --_bw: 1px; }
+  /* Field height by size — matches the same-size Button (24 / 28 / 32). */
+  :host([size="small"]) .field { min-height: 24px; }
+  :host([size="large"]) .field { min-height: 32px; }
 
   @media (hover: hover) and (pointer: fine) {
     :host(:not([disabled])) .field:hover { --_bc: var(--a-input-border-hover); }
@@ -130,14 +135,14 @@ const SHADOW_STYLE = `
     border: 0;
     margin: 0;
     padding-block: 0;
-    padding-inline: var(--a-input-pad-x);
+    padding-inline: 7px;
     background: transparent;
     outline: none;
     color: var(--a-input-text);
     font-family: var(--sans-serif);
     font-feature-settings: 'ss02', 'ss05';
-    font-size: var(--a-input-font-size);
-    line-height: var(--a-input-line);
+    font-size: 15px;
+    line-height: 20px;
     font-weight: 400;
     /* No browser-injected affordances (search clear/magnifier, number spinners,
        reveal/clear in Edge) — Anta owns every in-field control. */
@@ -184,9 +189,9 @@ const SHADOW_STYLE = `
   /* A leading item is inset from the edge by the same amount as the text's
      padding, so it lines up on the field's left rhythm. The gap from the icon
      to the text is a touch tighter than the edge padding. */
-  .field.has-leading slot[name="leading"] { margin-inline-start: var(--a-input-pad-x); }
+  .field.has-leading slot[name="leading"] { margin-inline-start: 7px; }
   .field.has-leading input,
-  .field.has-leading textarea { padding-inline-start: calc(var(--a-input-pad-x) - 2px); }
+  .field.has-leading textarea { padding-inline-start: 5px; }
   :host([multiline]) .field.has-leading slot[name="leading"],
   :host([multiline]) .field.has-trailing slot[name="trailing"] {
     align-items: flex-start;
@@ -200,8 +205,8 @@ const SHADOW_STYLE = `
     margin-top: 4px;
     color: var(--a-input-hint);
     font-family: var(--sans-serif);
-    font-size: var(--a-input-font-size);
-    line-height: var(--a-input-line);
+    font-size: 15px;
+    line-height: 20px;
   }
   .hint.has-hint { display: flex; }
   :host([invalid]) .hint { color: var(--a-input-error-text); }
@@ -210,7 +215,7 @@ const SHADOW_STYLE = `
     display: none;
     flex-shrink: 0;
     width: 16px;
-    height: var(--a-input-line);
+    height: 20px;
     background-color: currentColor;
     -webkit-mask-image: ${WARN_DIAMOND};
             mask-image: ${WARN_DIAMOND};
@@ -399,7 +404,7 @@ export class AInputElement extends HTMLElementBase {
       ta.rows = 1
       ta.style.setProperty('field-sizing', 'content')
       // line * maxrows + block padding (4+4) + borders (~1)
-      ta.style.maxHeight = maxrows != null ? `calc(${parseInt(maxrows, 10) || 1} * var(--a-input-line) + 10px)` : ''
+      ta.style.maxHeight = maxrows != null ? `calc(${parseInt(maxrows, 10) || 1} * 20px + 10px)` : ''
     }
   }
 
