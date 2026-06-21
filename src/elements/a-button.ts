@@ -7,13 +7,21 @@ declare global {
   }
 }
 
+/** Install the one-per-document delegated key/click handlers that power Enter/
+ *  Space activation, form submit/reset, and `data-custom-event`. Idempotent.
+ *  Called eagerly at registration (so the handlers exist before the first click
+ *  — e.g. a freshly-rendered clear button in a sandboxed iframe) and again from
+ *  connectedCallback as a fallback. */
+function installDocumentHandlers() {
+  if (typeof document === "undefined" || document.hasKeyListenerForAButton) return;
+  document.addEventListener("keydown", handleKeyDown, true);
+  document.addEventListener("click", handleClick, true);
+  document.hasKeyListenerForAButton = true;
+}
+
 export class AButtonElement extends HTMLElementBase {
   connectedCallback() {
-    if (!document.hasKeyListenerForAButton) {
-      document.addEventListener("keydown", handleKeyDown, true);
-      document.addEventListener("click", handleClick, true);
-      document.hasKeyListenerForAButton = true;
-    }
+    installDocumentHandlers();
   }
 }
 
@@ -83,6 +91,10 @@ function handleClick(e: MouseEvent) {
 
 export function register_a_button() {
   if (typeof customElements === "undefined") return;
+  // Eager install so the delegated handlers exist as soon as a-button is
+  // defined — before any button (incl. a wrapper-rendered clear button) is
+  // first clicked. connectedCallback re-checks as a fallback.
+  installDocumentHandlers();
   if (!customElements.get("a-button")) {
     customElements.define("a-button", AButtonElement);
   }

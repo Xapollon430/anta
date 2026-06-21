@@ -1,0 +1,7 @@
+/* Rotate only the chevron glyph (the inner <a-icon>), not the whole button. */
+.chevron a-icon {
+  transition: transform 150ms ease;
+}
+.chevron.open a-icon {
+  transform: rotate(180deg);
+}

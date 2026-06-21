@@ -1,0 +1,222 @@
+import type { BaseProps } from '../general_types'
+import { Button } from './Button'
+
+export interface InputProps extends Omit<BaseProps, 'children'> {
+  /** Field label, shown above the control. A string is rendered with the
+   *  label type scale; pass a node for full control. Associated with the
+   *  control as its accessible name (the element mirrors the label text to
+   *  `aria-label`, since `<label for>` can't cross the shadow boundary). */
+  label?: React.ReactNode
+  /** Helper text below the field (`--text-3`, no icon). Replaced by `error`
+   *  when that's set. */
+  hint?: React.ReactNode
+  /** Error state. Truthy ⇒ the field is marked invalid (red border, warning
+   *  glyph). A node/string is shown below in place of `hint`; `true` flags the
+   *  border only. */
+  error?: React.ReactNode | boolean
+  /** Size variant. small=24px, medium=28px, large=32px tall; the font stays
+   *  15px at every size.
+   *  @defaultValue medium */
+  size?: 'small' | 'medium' | 'large'
+  /** Controlled value. Pair with `onChange` / `onInput`. */
+  value?: string
+  /** Initial value for the uncontrolled case. */
+  defaultValue?: string
+  /** Render a `<textarea>` instead of an `<input>`. Without `rows` it grows
+   *  with its content (capped by `maxRows` if set). */
+  multiline?: boolean
+  /** Fixed visible row count — a constant-height `<textarea>` (implies
+   *  `multiline`). */
+  rows?: number
+  /** Cap the autogrow height (in rows) of a `multiline` field with no `rows`.
+   *  Omit for unbounded growth. */
+  maxRows?: number
+  /** Show a clear button as the first trailing item once the field has a
+   *  value. */
+  clearable?: boolean
+  /** Content pinned to the start of the field (e.g. an icon). */
+  leading?: React.ReactNode
+  /** Content pinned to the end of the field (e.g. icons, buttons), after the
+   *  clear button when `clearable`. */
+  trailing?: React.ReactNode
+  /** Single-line input type. Ignored when `multiline`. (`search` is omitted
+   *  deliberately — it triggers browser-injected clear/search affordances.)
+   *  @defaultValue text */
+  type?: 'text' | 'email' | 'password' | 'tel' | 'url' | 'number'
+  /** Form field name — submitted with the form via ElementInternals. */
+  name?: string
+  /** Placeholder shown when empty. */
+  placeholder?: string
+  /** Disable the field. */
+  disabled?: boolean
+  /** Make the field read-only. */
+  readOnly?: boolean
+  /** Mark the field required (drives native validity). */
+  required?: boolean
+  /** Virtual-keyboard hint forwarded to the control. */
+  inputMode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
+  /** Virtual-keyboard enter-key label forwarded to the control. */
+  enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send'
+  /** Toggle native spell-checking. */
+  spellCheck?: boolean
+  /** Max input length. */
+  maxLength?: number
+  /** Min input length. */
+  minLength?: number
+  /** Validation pattern (single-line). */
+  pattern?: string
+  /** Min / max / step — for `type="number"`. */
+  min?: number | string
+  max?: number | string
+  step?: number | string
+  /** Fires on every keystroke. Read `e.target.value`. */
+  onInput?: (e: any) => void
+  /** Fires on commit (blur / Enter). Read `e.target.value`. */
+  onChange?: (e: any) => void
+  /** Fires when the built-in clear button (`clearable`) is activated. The field
+   *  is cleared first — so `onInput` / `onChange` fire too — making this useful
+   *  for reacting specifically to a clear. Backed by the element's bubbling
+   *  `clearinput` event. */
+  onClearInput?: (e: CustomEvent) => void
+}
+
+const presence = (on: boolean | undefined) => (on ? '' : undefined)
+const isStringish = (n: React.ReactNode) => typeof n === 'string' || typeof n === 'number'
+
+// Autocomplete is derived from `type` (not a prop): the types that *are* valid
+// autocomplete tokens map to themselves; the rest (text/password/number) have
+// no standard token, so none is set — password managers still key off
+// `type="password"`, the numeric keyboard off `type="number"`, etc.
+const AUTOCOMPLETE_BY_TYPE: Record<string, string> = { email: 'email', tel: 'tel', url: 'url' }
+
+/**
+ * `<Input>` — a text field. Renders an `<a-input>` web component whose real
+ * `<input>` / `<textarea>` lives in shadow DOM, so it's self-contained: focus,
+ * forms (via `ElementInternals`), IME, and autofill are all native, and the
+ * control is reachable for styling through `::part(input)`.
+ *
+ * The wrapper is stateless — it maps props to attributes and slots. The clear
+ * button is dropped into `slot="trailing"`; its click finds the host and calls
+ * `clear()`, and its visibility is CSS off the element's `:state(filled)`.
+ *
+ * Requires `@antadesign/anta/elements` to be imported (client-side only).
+ *
+ * @example
+ * ```tsx
+ * <Input label="Email" type="email" placeholder="you@example.com" clearable />
+ * ```
+ */
+export const Input = ({
+  label,
+  hint,
+  error,
+  size,
+  value,
+  defaultValue,
+  multiline,
+  rows,
+  maxRows,
+  clearable,
+  leading,
+  trailing,
+  type,
+  name,
+  placeholder,
+  disabled,
+  readOnly,
+  required,
+  inputMode,
+  enterKeyHint,
+  spellCheck,
+  maxLength,
+  minLength,
+  pattern,
+  min,
+  max,
+  step,
+  onInput,
+  onChange,
+  onClearInput,
+  className,
+  style,
+  ...rest
+}: InputProps) => {
+  const invalid = !!error
+  // error replaces hint as the message; a boolean `error` flags the border only.
+  const message =
+    error != null && typeof error !== 'boolean' ? error : invalid ? undefined : hint
+
+  return (
+    <a-input
+      size={size && size !== 'medium' ? size : undefined}
+      value={value}
+      defaultvalue={value === undefined ? defaultValue : undefined}
+      multiline={presence(multiline || rows != null)}
+      rows={rows != null ? String(rows) : undefined}
+      maxrows={maxRows != null ? String(maxRows) : undefined}
+      invalid={presence(invalid)}
+      type={!multiline && rows == null ? type : undefined}
+      name={name}
+      placeholder={placeholder}
+      disabled={presence(disabled)}
+      readonly={presence(readOnly)}
+      required={presence(required)}
+      autocomplete={!multiline && rows == null && type ? AUTOCOMPLETE_BY_TYPE[type] : undefined}
+      inputmode={inputMode}
+      enterkeyhint={enterKeyHint}
+      spellcheck={spellCheck != null ? (spellCheck ? 'true' : 'false') : undefined}
+      maxlength={maxLength != null ? String(maxLength) : undefined}
+      minlength={minLength != null ? String(minLength) : undefined}
+      pattern={pattern}
+      min={min}
+      max={max}
+      step={step}
+      aria-invalid={invalid ? 'true' : undefined}
+      oninput={onInput}
+      onchange={onChange}
+      onclearinput={onClearInput}
+      class={className}
+      style={style}
+      {...rest}
+    >
+      {label != null &&
+        (isStringish(label) ? (
+          <span slot="label">{label}</span>
+        ) : (
+          <span slot="label" style={{ display: 'contents' }}>
+            {label}
+          </span>
+        ))}
+
+      {leading != null && (
+        <span slot="leading" style={{ display: 'contents' }}>
+          {leading}
+        </span>
+      )}
+
+      {clearable && (
+        // A real <a-button> (light DOM → fully styled, keyboard-focusable) in
+        // the element's `clear` slot — the element owns its visibility (shown
+        // only when filled + editable). It fires the bubbling `clearinput`
+        // event via a-button's global listener, so clearing works even without
+        // framework hydration; the element clears on that.
+        <span slot="clear" style={{ display: 'contents' }}>
+          <Button
+            priority="tertiary"
+            size={size}
+            icon="x"
+            aria-label="Clear"
+            data-custom-event="clearinput"
+          />
+        </span>
+      )}
+      {trailing != null && (
+        <span slot="trailing" style={{ display: 'contents' }}>
+          {trailing}
+        </span>
+      )}
+
+      {message != null && <span slot="hint">{message}</span>}
+    </a-input>
+  )
+}

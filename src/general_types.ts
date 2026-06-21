@@ -233,6 +233,66 @@ export interface ATooltipAttributes extends BaseAttributes {
 }
 
 /**
+ * Attributes for the `<a-input>` custom element — a form-associated text
+ * field whose real `<input>` / `<textarea>` lives in shadow DOM. For the
+ * typed JSX wrapper use `Input` from `@antadesign/anta`.
+ *
+ * Slots (light-DOM children): `label`, `leading`, `trailing`, `hint`.
+ * The element exposes `::part(field | input | label | leading | trailing | hint)`
+ * for styling, and `:state(filled)` / `:state(invalid)` as CSS hooks.
+ */
+export interface AInputAttributes extends BaseAttributes {
+  /** Controlled value (string). Reflected to the shadow control only when it
+   *  differs, so the caret survives re-renders. */
+  value?: string
+  /** Initial value for the uncontrolled case; read once on connect. */
+  defaultvalue?: string
+  /** Render a `<textarea>` rather than `<input>`. Presence-based. */
+  multiline?: boolean | ''
+  /** Fixed visible row count for a `<textarea>` (implies multiline). */
+  rows?: number | string
+  /** Cap autogrow height (rows) for a multiline field with no `rows`. */
+  maxrows?: number | string
+  /** Invalid state — critical border + warning glyph. Presence-based. */
+  invalid?: boolean | ''
+  /** Disabled state. Presence-based. */
+  disabled?: boolean | ''
+  /** Read-only state. Presence-based. */
+  readonly?: boolean | ''
+  /** Required — drives native validity. Presence-based. */
+  required?: boolean | ''
+  /** Size variant. small=24px, medium (default)=28px, large=32px. */
+  size?: 'small' | 'medium' | 'large'
+  /** Single-line input type (ignored when multiline). `search` is intentionally
+   *  unavailable — it triggers browser-injected clear/search affordances. */
+  type?: 'text' | 'email' | 'password' | 'tel' | 'url' | 'number'
+  /** Form field name — submitted via ElementInternals. */
+  name?: string
+  /** Placeholder shown when empty. */
+  placeholder?: string
+  autocomplete?: string
+  inputmode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
+  enterkeyhint?: string
+  maxlength?: number | string
+  minlength?: number | string
+  pattern?: string
+  min?: number | string
+  max?: number | string
+  step?: number | string
+  spellcheck?: 'true' | 'false' | boolean
+  /** Fires on every keystroke (`input` is composed — it reaches the host). */
+  oninput?: (e: any) => void
+  /** Fires on commit; the element re-dispatches the control's `change` on the
+   *  host (native `change` isn't composed). */
+  onchange?: (e: any) => void
+  /** Fires when the built-in clear button is activated (bubbling `clearinput`
+   *  event). All-lowercase so it binds in React *and* Preact. */
+  onclearinput?: (e: any) => void
+  'aria-invalid'?: 'true' | 'false' | boolean
+  'aria-label'?: string
+}
+
+/**
  * Attributes for the `<a-button>` custom element. For the typed JSX
  * wrapper use `Button` from `@antadesign/anta`.
  */

@@ -1,0 +1,500 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Input
+---
+import Playground from '../../components/Playground'
+import Preview from '../../components/Preview.astro'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
+import Columns from '../../components/Columns.astro'
+import Col from '../../components/Col.astro'
+import inputDemoCode from './input.demo.ts'
+import InputSelectDemo from '../../components/InputSelectDemo'
+import InputValidationDemo from '../../components/InputValidationDemo'
+import { Input, Icon, Button } from '@antadesign/anta'
+
+# Input
+
+A text field. The `Input` wrapper renders an `<a-input>` web component whose
+real `<input>` / `<textarea>` lives in **shadow DOM** — so the field is
+self-contained (you never pass a control in) yet fully native underneath:
+focus, IME, autofill, and form submission all work, and the control is reachable
+for styling through `::part(input)`.
+
+It's Anta's first **form-associated** element: it participates in native forms
+via `ElementInternals`, reporting its value under `name`.
+
+<Disclosure title="Playground" anchor={false} brand>
+
+<Playground
+  client:visible
+  component="Input"
+  layout="side"
+  panelHeight={460}
+  initialCode={inputDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: center; justify-content: center; }
+.preview :where(a-input) { width: 320px; }`}
+/>
+
+</Disclosure>
+
+## Sizes
+
+<Columns>
+<Col>
+
+<Preview>
+  <Input size="small" label="Small" placeholder="24px tall" />
+  <Input size="medium" label="Medium" placeholder="28px tall" />
+  <Input size="large" label="Large" placeholder="32px tall" />
+</Preview>
+
+```tsx folded
+<Input size="small"  label="Small"  placeholder="24px tall" />
+<Input size="medium" label="Medium" placeholder="28px tall" /> {/* default */}
+<Input size="large"  label="Large"  placeholder="32px tall" />
+```
+
+</Col>
+<Col>
+
+Three sizes (`medium` is the default). Only the field **height** changes — the
+font (**15px / 20px**) and the **7px** horizontal text padding stay constant at
+every size, so text alignment across a form of mixed-size fields stays
+consistent.
+
+| size | height | text padding-x |
+|---|---|---|
+| `small` | 24px | 7px |
+| `medium` (default) | 28px | 7px |
+| `large` | 32px | 7px |
+
+Each size is exactly the **same height as the matching `Button`** size
+(24 / 28 / 32px), so an input and a button sit flush on one row — a search
+field next to a submit button, an input group, a toolbar.
+
+</Col>
+</Columns>
+
+## Label & hint
+
+<Columns>
+<Col>
+
+<Preview>
+  <Input label="Display name" defaultValue="Ada Lovelace" />
+  <Input label="API key" hint="Find this in Settings → Developers." placeholder="sk-…" />
+</Preview>
+
+```tsx folded
+<Input label="Display name" defaultValue="Ada Lovelace" />
+<Input label="API key" hint="Find this in Settings → Developers." placeholder="sk-…" />
+```
+
+</Col>
+<Col>
+
+`label` sits above the field; `hint` is neutral helper text below it
+(`--text-3`, no icon). Both accept a **string or a React node**, so you can
+embed links, `<code>`, or a `<Text>` for full control.
+
+The label is wired as the control's accessible name automatically — the element
+mirrors the label text into `aria-label`, since a native `<label for>` can't
+cross the shadow boundary.
+
+</Col>
+</Columns>
+
+## Error
+
+<Columns>
+<Col>
+
+<Preview>
+  <Input label="Email" defaultValue="not-an-email" error="Enter a valid email address." />
+  <Input label="Password" type="password" defaultValue="123" error />
+</Preview>
+
+```tsx folded
+{/* A message marks the field invalid AND replaces the hint */}
+<Input label="Email" defaultValue="not-an-email" error="Enter a valid email address." />
+{/* `error` alone flags the border only */}
+<Input label="Password" type="password" defaultValue="123" error />
+```
+
+</Col>
+<Col>
+
+`error` takes a node/string **or** a boolean. Any truthy value flips the field
+to invalid — critical border, warning glyph, and the `:state(invalid)` hook. A
+message **replaces** the `hint`; a bare `error` (boolean) marks the border only.
+
+Invalid state also drives native validity through `ElementInternals`, so the
+field reports as invalid to a surrounding `<form>`.
+
+</Col>
+</Columns>
+
+## Leading, trailing & clear
+
+<Columns>
+<Col>
+
+<Preview>
+  <Input label="Search" placeholder="Search…" clearable defaultValue="design tokens" />
+</Preview>
+
+```tsx folded
+{/* clearable — the clear button shows once there's a value */}
+<Input label="Search" placeholder="Search…" clearable defaultValue="design tokens" />
+
+{/* leading / trailing take any node — see the live playground above */}
+<Input label="Search" leading={<Icon shape="search" />} clearable />
+<Input
+  label="Date"
+  leading={<Icon shape="calendar" />}
+  trailing={<Button priority="quaternary" size="small" icon="eye" aria-label="Pick" />}
+/>
+```
+
+</Col>
+<Col>
+
+`leading` and `trailing` paste any node at the field edges (like the expander's
+`actions`) — an icon, a button, a unit label. A leading item is inset from the
+left by the same `pad-x` as the text, so it lines up on the field's rhythm; the
+playground at the top of this page shows a live leading icon alongside the clear
+button.
+
+`clearable` adds a built-in clear button at the right edge that appears once the
+field has a value (the element owns its visibility via the filled state). It's a
+real `<a-button>` in the element's dedicated `clear` slot, so it gets the full
+button styling and is **keyboard-focusable**. It carries
+`data-custom-event="clearinput"`, so a-button's own global handler fires that
+bubbling event on click *and* Enter/Space — the element listens and clears,
+which works **without any framework hydration**. Clearing empties the field,
+fires `input` / `change` (so a controlled consumer's `onChange` runs with an
+empty value), and refocuses the control. To react specifically to a clear, use
+the typed **`onClearInput`** prop on `<Input>`. (It's backed by the element's
+bubbling `clearinput` event; on a raw `<a-input>` bind it all-lowercase as
+`onclearinput` — React keeps the case after `on` while Preact lowercases, so
+lowercase works in both.)
+
+Note: there's no `type="search"` — that type makes browsers inject their own
+clear button and magnifier (and style them inconsistently). Anta owns every
+in-field control, and the element resets the native search/number/reveal
+decorations across browsers.
+
+</Col>
+</Columns>
+
+## Dropdown (select) pattern
+
+<Columns>
+<Col>
+
+<Preview>
+  <InputSelectDemo client:load />
+</Preview>
+
+```tsx folded
+// A select-like field, composed today from <Input> + a trailing chevron
+// <Button> + a small menu. (A proper <Select> is coming later.)
+const OPTIONS = ['Brand', 'Critical', 'Info', 'Success', 'Warning']
+const [open, setOpen] = useState(false)
+const [value, setValue] = useState('')
+
+<Input
+  label="Tone"
+  placeholder="Select a tone…"
+  value={value}
+  readOnly
+  trailing={
+    <Button
+      priority="tertiary"
+      icon="chevron-down"
+      aria-label="Toggle options"
+      aria-expanded={open}
+      onClick={() => setOpen(o => !o)}
+      className={open ? 'chevron open' : 'chevron'}  /* CSS rotates just the icon: .chevron.open a-icon { transform: rotate(180deg) } */
+    />
+  }
+/>
+{open && (
+  <div role="listbox" /* …positioned below the field… */>
+    {OPTIONS.map(o => (
+      <Button key={o} priority="quaternary" label={o} selected={o === value}
+              style={{ width: '100%', justifyContent: 'flex-start' }}
+              onClick={() => { setValue(o); setOpen(false) }} />
+    ))}
+  </div>
+)}
+```
+
+</Col>
+<Col>
+
+Until there's a dedicated `<Select>`, a dropdown is a small composition: an
+`<Input>` that's **`readOnly`** and **not `clearable`**, a **`trailing`**
+chevron `<Button>` that toggles a menu, and a few option `<Button>`s that set
+the value and close. The chevron rotates on open, and the menu closes on outside
+click / `Escape`.
+
+This is illustrative — a real `<Select>` will own the popover positioning,
+keyboard navigation (arrow keys, type-ahead), and the full listbox ARIA. The
+point here is that the field itself already provides the slots and states the
+pattern needs.
+
+</Col>
+</Columns>
+
+## Multiline
+
+<Columns>
+<Col>
+
+<Preview>
+  <Input multiline label="Bio (autogrows)" placeholder="Tell us about yourself…" maxRows={6} />
+  <Input multiline rows={3} label="Notes (fixed 3 rows)" placeholder="Scrolls past 3 rows" />
+</Preview>
+
+```tsx folded
+{/* Grows with content, capped at 6 rows, then scrolls */}
+<Input multiline maxRows={6} label="Bio (autogrows)" placeholder="Tell us…" />
+
+{/* Constant height of 3 rows */}
+<Input multiline rows={3} label="Notes (fixed 3 rows)" placeholder="…" />
+```
+
+</Col>
+<Col>
+
+`multiline` renders a `<textarea>` under the same API. With **no `rows`** it
+**autogrows** with its content via CSS `field-sizing: content` — capped by
+`maxRows` if you set one (omit for unbounded growth), then it scrolls. Pass a
+fixed **`rows`** count for a constant-height box instead.
+
+Autogrow needs `field-sizing` (Chromium & Safari; Firefox is catching up) —
+where it's unsupported the field degrades to a normal scrolling textarea.
+
+</Col>
+</Columns>
+
+## Controlled & uncontrolled
+
+<Columns>
+<Col>
+
+```tsx
+// Uncontrolled — the element owns the value
+<Input label="Name" defaultValue="Ada" onChange={(e) => log(e.target.value)} />
+
+// Controlled — you own the value
+const [v, setV] = useState('')
+<Input label="Name" value={v} onInput={(e) => setV(e.target.value)} />
+```
+
+</Col>
+<Col>
+
+Like a native input: pass `defaultValue` for **uncontrolled**, or `value` +
+`onInput` / `onChange` for **controlled**. The controlled value is reflected to
+the shadow control only when it differs from what's there, so the caret never
+jumps mid-edit.
+
+Read the value off `e.target.value` in either handler — the event retargets to
+the `<a-input>` host, whose `value` getter returns the control's value.
+
+Note: like other custom-element form controls (and unlike React's built-in
+`<input>`), a controlled value that you *transform* applies on the next render,
+but one you *reject* — set state back to the same string — isn't auto-reverted,
+since the framework skips the re-render. Constrain hard with `maxLength` /
+`pattern` / `type`, or transform in the handler.
+
+</Col>
+</Columns>
+
+## Forms
+
+<Columns>
+<Col>
+
+<Preview>
+  <form action="javascript:void(0)" style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '320px' }}>
+    <Input name="email" label="Email" type="email" placeholder="you@example.com" required clearable />
+    <div style={{ display: 'flex', gap: '8px' }}>
+      <Button tone="brand" type="submit" label="Sign up" />
+      <Button priority="tertiary" type="reset" label="Reset" />
+    </div>
+  </form>
+</Preview>
+
+```tsx folded
+<form onSubmit={handle}>
+  <Input name="email" label="Email" type="email" required clearable />
+  <Button tone="brand" type="submit" label="Sign up" />
+  <Button priority="tertiary" type="reset" label="Reset" />
+</form>
+```
+
+</Col>
+<Col>
+
+Because `<a-input>` is form-associated, it submits with the surrounding
+`<form>` under its `name` — `new FormData(form)` includes it, no hidden mirror
+needed. `required` participates in native validity, and `<Button type="reset">`
+restores the field to its `defaultValue` via `formResetCallback`.
+
+</Col>
+</Columns>
+
+## Types & validation
+
+<Columns>
+<Col>
+
+<Preview cols={1}>
+  <Input type="text" label="Text" placeholder="Plain text" />
+  <Input type="email" label="Email" placeholder="you@example.com" />
+  <Input type="password" label="Password" placeholder="••••••••" />
+  <Input type="tel" label="Tel" placeholder="+1 555 0100" />
+  <Input type="url" label="URL" placeholder="https://example.com" />
+  <Input type="number" label="Number" placeholder="0" min={0} max={100} />
+</Preview>
+
+```tsx folded
+<Input type="text"     label="Text" />
+<Input type="email"    label="Email" />
+<Input type="password" label="Password" />
+<Input type="tel"      label="Tel" />
+<Input type="url"      label="URL" />
+<Input type="number"   label="Number" min={0} max={100} />
+```
+
+</Col>
+<Col>
+
+`type` accepts `text` (default), `email`, `password`, `tel`, `url`, and
+`number` — each gets the right mobile keyboard, autofill behaviour, and native
+constraint validation. (`search` is omitted on purpose — see above.)
+`number` also takes `min` / `max` / `step`.
+
+Every type carries its native constraints (`required`, the `type` itself,
+`pattern`, `min`/`max`, `min`/`maxLength`). The field reports them to the
+surrounding `<form>` automatically (via `ElementInternals`), so submission is
+blocked while invalid — no extra wiring.
+
+</Col>
+</Columns>
+
+### Native validation as Anta errors
+
+<Columns>
+<Col>
+
+<Preview>
+  <InputValidationDemo client:load />
+</Preview>
+
+```tsx folded
+// Surface the browser's own validity messages as Anta's error UI.
+const [errors, setErrors] = useState({})
+
+function onSubmit(e) {
+  e.preventDefault()
+  const next = {}
+  e.currentTarget.querySelectorAll('a-input').forEach((el) => {
+    if (!el.checkValidity()) next[el.name] = el.validationMessage
+  })
+  setErrors(next)
+}
+
+<form noValidate onSubmit={onSubmit}>
+  <Input name="email" type="email" required error={errors.email}
+         onInput={() => setErrors(p => ({ ...p, email: undefined }))} />
+  <Input name="age" type="number" min="18" max="120" error={errors.age}
+         onInput={() => setErrors(p => ({ ...p, age: undefined }))} />
+  <Button type="submit" label="Submit" />
+</form>
+```
+
+</Col>
+<Col>
+
+Turning standard validation into Anta's own error styling is **easy** — the
+element already does the work. The inner control computes native validity, and
+the element proxies it: `<a-input>` exposes `checkValidity()` and
+`validationMessage` (the browser's localized message).
+
+So you read `validationMessage` and pass it to **`error`** — the field goes red,
+shows the warning glyph, and the message replaces the hint. Mark the form
+`noValidate` so the browser's default bubbles step aside and Anta's styling
+shows instead. Try submitting empty or with a bad email / out-of-range age.
+
+</Col>
+</Columns>
+
+## Styling
+
+<Columns>
+<Col>
+
+The control and every region are exposed as shadow parts, so you can reach them
+from your own CSS without piercing the boundary blindly:
+
+```css
+a-input::part(field) { border-radius: 999px; }
+a-input::part(input) { font-variant-numeric: tabular-nums; }
+a-input::part(label) { text-transform: uppercase; }
+```
+
+</Col>
+<Col>
+
+Parts: `field`, `input`, `label`, `leading`, `trailing`, `clear`, `hint`. State
+hooks: `:state(filled)` and `:state(invalid)`. (The clear button itself is a
+real `<a-button>` in the `clear` slot — style it directly.)
+
+The border is drawn as a **`box-shadow`** (outset), not a real `border`, so its
+width (`0.5px` → `1px` when invalid) and placement never change the box size —
+the field height stays locked to the matching Button. Add a leading `inset` to
+the field's `box-shadow` to draw the border inside instead.
+
+Or re-point a `--a-input-*` token on one instance
+(`style={{ '--a-input-radius': '8px' }}`) or a wrapping selector. The resolver
+lives in `@layer anta`, so any un-layered rule of yours wins.
+
+</Col>
+</Columns>
+
+<Disclosure title="Component props" open>
+
+<PropsTable component="Input" />
+
+</Disclosure>
+
+<Disclosure title="Component tokens" open>
+
+Override any of these on a single instance
+(`style={{ '--a-input-border': 'var(--border-1)' }}`) or on a selector wrapping
+the input.
+
+| Token | Description |
+|---|---|
+| `--a-input-bg` | Field background. Defaults to `--bg-1`. |
+| `--a-input-border`<br />`--a-input-border-hover` | Border color at rest / hover. Default `--border-2` / `--border-1`. |
+| `--a-input-border-error` | Border color when `invalid`. |
+| `--a-input-focus` | Focus-ring color. |
+| `--a-input-text` | Value (typed text) color. Defaults to `--text-1`. |
+| `--a-input-label` | Label color. Defaults to `--text-1`. |
+| `--a-input-placeholder` | Placeholder color. Defaults to `--text-4`. |
+| `--a-input-hint` | Hint text color. Defaults to `--text-3`. |
+| `--a-input-error-text` | Error message + glyph color. Defaults to `--text-2-critical`. |
+| `--a-input-radius` | Corner radius (default `4px`). |
+| `--a-input-border-width` | Border thickness (default `0.5px`; `1px` when invalid). Drawn as an outset `box-shadow`, so changing it never reflows. |
+| `--a-input-height` | Field min-height for the current size (24 / 28 / 32px). |
+| `--a-input-pad-x` | Horizontal text inset (`7px`, uniform across sizes). |
+| `--a-input-font-size`<br />`--a-input-line` | Font size / line-height (default `15px` / `20px`, constant across sizes). |
+
+</Disclosure>

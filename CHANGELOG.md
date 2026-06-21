@@ -6,6 +6,17 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## 0.2.4 — June 20, 2026
+
+### Added
+- **New `Input` component** (`<Input>` / `<a-input>`) — a text field. The real `<input>` / `<textarea>` lives in the element's shadow DOM, so the field is fully self-contained: focus, IME, autofill, and native form participation (via `ElementInternals`) all work, and the control is reachable for styling through `::part(input)`. Registered via the `@antadesign/anta/elements` barrel. This is Anta's first stateful, form-associated element.
+  - **Value** — controlled (`value` + `onChange`/`onInput`) or uncontrolled (`defaultValue`); the controlled value is reflected only when it differs, so the caret survives re-renders. Submits with native forms under `name`, with `formResetCallback` / validity wired through `ElementInternals`.
+  - **Label & messages** — `label`, `hint`, and `error` all take strings **or** React nodes. `hint` is neutral helper text; `error` marks the field invalid (critical border + warning glyph) and, when given a message, replaces the hint.
+  - **Multiline** — `multiline` renders a `<textarea>`; with no `rows` it autogrows (`field-sizing: content`), capped by `maxRows`; a fixed `rows` count gives a constant-height box.
+  - **Slots & clear** — `leading` / `trailing` paste content flush at the field edges; `clearable` adds a built-in clear button — a real, keyboard-focusable `<a-button>` in `slot="trailing"` that fires a bubbling `clearinput` event (via a-button's `data-custom-event`), which the element clears on, so it works even before the framework hydrates (listen for `clearinput` yourself with the all-lowercase `onclearinput`). Browser-injected affordances are suppressed — no `type="search"` (it's omitted from the type union), and the native search/number/reveal decorations are reset across browsers.
+  - **Sizes** — `small` (24px) / `medium` (28px, default) / `large` (32px), each exactly the height of the matching `Button` size; the font stays 15px throughout. The border is an inset `box-shadow`, so width/placement changes never reflow.
+  - **Styling hooks** — `--a-input-*` tokens (bg, border, focus, text, placeholder, hint, error, radius, height, padding); the `::part(field | input | label | leading | trailing | clear | hint)` parts; and the `:state(filled)` / `:state(invalid)` custom states.
+
 ## 0.2.3 — June 18, 2026
 
 ### Added

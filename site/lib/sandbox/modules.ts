@@ -18,7 +18,7 @@ import * as preactHooks from 'preact/hooks'
  *  resolve plugin uses these names to emit a deterministic shim per
  *  module. Each name must exist on `getDemoModules()[path]` at runtime. */
 export const moduleManifest: Record<string, string[]> = {
-  '@antadesign/anta': ['Progress', 'Text', 'Title', 'Tag', 'Expander', 'Icon', 'Button', 'Tooltip', 'configure'],
+  '@antadesign/anta': ['Progress', 'Text', 'Title', 'Tag', 'Expander', 'Icon', 'Button', 'Tooltip', 'Input', 'configure'],
   '@antadesign/anta/elements': [],  // side-effect only
   'preact': ['createElement', 'Fragment', 'h', 'render'],
   'preact/hooks': ['useState', 'useEffect', 'useRef', 'useMemo', 'useCallback', 'useReducer'],
@@ -37,6 +37,7 @@ export function getDemoModules(): Record<string, Record<string, unknown>> {
       Icon: (anta as any).Icon,
       Button: (anta as any).Button,
       Tooltip: (anta as any).Tooltip,
+      Input: (anta as any).Input,
       configure: (anta as any).configure,
     },
     '@antadesign/anta/elements': {},
