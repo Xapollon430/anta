@@ -18,7 +18,11 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
   - **Events** — `onInput` (per keystroke) and `onChange` (on commit) carry native DOM timing; `onAnyChange(event, attrs)` unifies them (plus clear) with a convenience `attrs` snapshot (`value`/`name`/`id`/`type`/`className`/`empty`/`valid`/`validationMessage`) for one-line state updates. `onFocus`/`onBlur` and any other DOM handler (`onKeyDown`, `onPaste`, …) are forwarded, on both `<Input>` and the raw `<a-input>`. `autocomplete` and `inputmode` are derived from `type`.
   - **Disabled** — the control is disabled, value/label dim to `--text-4`, the hint to `--text-5`, and slotted leading/trailing content to 50% + non-interactive.
   - **Styling hooks** — `--input-*` tokens are color-only (bg, border, border-hover, border-error, focus, text, label, placeholder, hint, error-text); every dimension (height/radius/padding/border-width/font) is a fixed internal literal. Plus the `::part(field | input | label | leading | trailing | clear | hint)` parts and the `:state(filled)` / `:state(invalid)` custom states.
+  - **Layout** — the label / field / hint are laid out as a **grid** on the host (single column by default — the familiar stacked form), each exposed as a part. Re-template the grid from your own CSS to move them around: label-on-the-left, a shared label column aligned across a whole form (each field opts into the form's tracks with `grid-template-columns: subgrid`, which reaches through the shadow boundary), or wrapping multi-column layouts. No layout prop — the element's defaults are in `@layer anta`, so your rule wins.
 - **New icon shapes** — `eye`, `eye-closed` (lucide), and `warning-diamond` (the field's default error glyph, swappable via `Input`'s `iconError`).
+
+### Changed
+- **`Text` / `<a-text>` now sets `text-wrap: pretty`**, evening out widows/orphans on multi-line body copy (headings already use `text-wrap: balance`, and the raw `<p>` reset already used `pretty`). Only affects the non-truncated case — `truncate` clamps in shadow DOM.
 
 ## 0.2.3 — June 18, 2026
 

@@ -79,7 +79,18 @@ const SHADOW_STYLE = `
   /* Suppress any UA focus outline on the host — with delegatesFocus some
      browsers ring the host too; the field's own ring is the single indicator.
      (The inner input/textarea also sets outline:none below.) */
-  :host { display: block; outline: none; }
+  /* The three regions (label / field / hint) are the host grid's members,
+     each exposed as a ::part — so consumers re-place or resize them with their
+     own CSS (label-on-the-left, a shared label column across a form via
+     subgrid, etc.; see the docs "Layout" section). The default is a single
+     column with a 4px row rhythm — i.e. the familiar stacked layout. An empty
+     label/hint is display:none, so it contributes no track or gap. */
+  :host {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 4px;
+    outline: none;
+  }
 
   .label {
     display: none;
@@ -88,7 +99,6 @@ const SHADOW_STYLE = `
     font-size: 15px;
     line-height: 20px;
     font-weight: 500;
-    margin-bottom: 4px;
   }
   .label.has-label { display: block; }
 
@@ -208,7 +218,6 @@ const SHADOW_STYLE = `
     display: none;
     gap: 4px;
     align-items: flex-start;
-    margin-top: 4px;
     color: var(--input-hint);
     font-family: var(--sans-serif);
     font-size: 15px;

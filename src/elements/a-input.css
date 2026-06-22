@@ -18,7 +18,8 @@
     --input-hint: var(--text-3);
     --input-error-text: var(--text-2-critical);
 
-    display: block;
+    /* `display` is owned by the shadow `:host` (a grid) so consumer CSS can
+       re-template it; we only set the box width here. */
     width: 100%;
   }
 

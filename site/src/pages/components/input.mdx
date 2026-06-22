@@ -527,6 +527,139 @@ shows instead. Try submitting empty or with a bad email / out-of-range age.
 </Col>
 </Columns>
 
+## Layout
+
+<Columns>
+<Col>
+
+The label, field, and hint **aren't hardcoded to "stacked."** The element lays
+them out as a single-column **grid** by default — that's where the familiar
+label-above / hint-below rhythm comes from — and exposes each region as a shadow
+part (`label`, `field`, `hint`). So you rearrange them entirely from your own
+CSS: re-template the grid on `a-input`, then place the parts. There's no layout
+prop to learn and nothing to opt into; your rule wins because the element's
+defaults live in `@layer anta`.
+
+</Col>
+<Col>
+
+And because each `<a-input>` is itself a normal grid/flex item, **wrapping** is
+just sizing: give the inputs a `min-width` (and maybe `max-width`) inside any
+wrapping container and they reflow by available width — the field's internal
+grid is independent of how the fields themselves flow.
+
+The `.label-side` / `.aligned-form` / `.wrap-fields` classes below are only to
+scope each demo — swap your own selector.
+
+</Col>
+</Columns>
+
+### Label on the left
+
+Re-template the host to two columns and drop each part into one. The hint stays
+under the field by landing in the same column.
+
+<Preview>
+  <Input className="label-side" label="Display name" hint="Shown on your profile" placeholder="Ada Lovelace" style={{ width: '100%', maxWidth: '440px' }} />
+  <style is:inline>{`
+    a-input.label-side {
+      grid-template-columns: max-content minmax(0, 1fr);
+      column-gap: 12px;
+      align-items: center;
+    }
+    a-input.label-side::part(label) { grid-column: 1; }
+    a-input.label-side::part(field) { grid-column: 2; }
+    a-input.label-side::part(hint)  { grid-column: 2; }
+  `}</style>
+</Preview>
+
+```tsx folded
+<Input className="label-side" label="Display name" hint="Shown on your profile" />
+
+{/* .label-side is just for the demo — use your own selector */}
+<style>{`
+  a-input.label-side {
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: center;
+  }
+  a-input.label-side::part(label) { grid-column: 1; }
+  a-input.label-side::part(field) { grid-column: 2; }
+  a-input.label-side::part(hint)  { grid-column: 2; }
+`}</style>
+```
+
+### A shared label column across a form
+
+Put the fields in a grid and let each one adopt the form's tracks with
+`grid-template-columns: subgrid` — which reaches *through* the shadow boundary,
+so every label shares one column sized to the longest label, and every field
+left-edge lines up. Each hint still tucks under its own field.
+
+<Preview>
+  <div className="aligned-form" style={{ width: '100%', maxWidth: '460px' }}>
+    <Input label="Email" type="email" hint="We'll never share it." placeholder="you@example.com" />
+    <Input label="Confirm password" type="password" placeholder="••••••••" />
+    <Input label="PIN" placeholder="0000" />
+  </div>
+  <style is:inline>{`
+    .aligned-form { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 16px 12px; }
+    .aligned-form > a-input { grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; }
+    .aligned-form > a-input::part(label) { grid-column: 1; }
+    .aligned-form > a-input::part(field),
+    .aligned-form > a-input::part(hint)  { grid-column: 2; }
+  `}</style>
+</Preview>
+
+```tsx folded
+<div className="aligned-form">
+  <Input label="Email" type="email" hint="We'll never share it." />
+  <Input label="Confirm password" type="password" />
+  <Input label="PIN" />
+</div>
+
+<style>{`
+  /* one shared label column; subgrid lets each field adopt the form's tracks */
+  .aligned-form { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 16px 12px; }
+  .aligned-form > a-input { grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; }
+  .aligned-form > a-input::part(label) { grid-column: 1; }
+  .aligned-form > a-input::part(field),
+  .aligned-form > a-input::part(hint)  { grid-column: 2; }
+`}</style>
+```
+
+### Wrap by field width
+
+Leave the fields stacked and let an outer grid flow them into as many columns as
+fit — `minmax(200px, 1fr)` makes each field claim at least 200px, so the row
+wraps to fewer columns as it narrows. Resize the preview to see it reflow.
+
+<Preview>
+  <div className="wrap-fields" style={{ width: '100%', maxWidth: '520px' }}>
+    <Input label="First name" placeholder="Ada" />
+    <Input label="Last name" placeholder="Lovelace" />
+    <Input label="Email" type="email" placeholder="you@example.com" />
+    <Input label="Phone" type="tel" placeholder="+1 555 0100" />
+  </div>
+  <style is:inline>{`
+    .wrap-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  `}</style>
+</Preview>
+
+```tsx folded
+<div className="wrap-fields">
+  <Input label="First name" />
+  <Input label="Last name" />
+  <Input label="Email" type="email" />
+  <Input label="Phone" type="tel" />
+</div>
+
+<style>{`
+  /* fields stay stacked; the grid wraps them by available width */
+  .wrap-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+`}</style>
+```
+
 ## Styling
 
 <Columns>
