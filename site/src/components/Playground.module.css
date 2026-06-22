@@ -14,7 +14,28 @@
 .body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  /* Stacked layout: Preview on top, panel below, fused into one unit by a
+     single shared seam (no gap). The touching corners are squared and the
+     panel's top border is dropped below so Preview's bottom border is the
+     lone divider (mirrors the `.preview:has(+ .expressive-code)` fuse in
+     base.css). Outer corners stay rounded. */
+  gap: 0;
+}
+
+/* Stacked-layout seam (the default for both `stacked` pages and `side`
+   pages below the grid threshold): square the touching corners + drop the
+   panel's top border so Preview's bottom border is the single divider, and
+   the two read as one box (mirrors the `.preview:has(+ .expressive-code)`
+   fuse in base.css). Outer corners stay rounded. The side-layout grid below
+   RESETS these and swaps in a horizontal seam. */
+.body > .preview {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.body > .panel {
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 /* Side layout: preview left, tabbed panel right. It activates only when
@@ -33,12 +54,32 @@
   @container (min-width: 520px) {
     .bodySide {
       display: grid;
-      /* preview | handle | panel. Preview floors at 80px. */
-      grid-template-columns: minmax(80px, 1fr) 8px var(--demo-panel-w, 400px);
+      /* preview | panel — no separator column. The two share a single
+         seam border (Preview keeps its right border; the panel drops its
+         left one below) and the resize handle is overlaid absolutely on
+         the seam, so the columns meet flush. Preview floors at 80px. */
+      grid-template-columns: minmax(80px, 1fr) var(--demo-panel-w, 400px);
       gap: 0;
       align-items: stretch;
-      /* Anchor the bottom-right corner grip. */
+      /* Anchor the bottom-right corner grip + the overlaid resize handle. */
       position: relative;
+    }
+    /* Swap the stacked (vertical) seam for a horizontal one: restore the
+       bottom corners + the panel's top border that the column-mode rules
+       above zeroed, then square the LEFT/RIGHT touching corners and drop the
+       panel's LEFT border so Preview's right border is the single divider.
+       Outer corners stay rounded. */
+    .bodySide > .preview {
+      border-bottom-left-radius: 8px;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .bodySide > .panel {
+      border-top: 1px solid var(--border-4);
+      border-left: 0;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-top-right-radius: 8px;
     }
     .resizeHandle {
       display: block;
@@ -49,10 +90,21 @@
   }
 }
 
-/* Resize handle: 8px-wide hit area with a centred 1px rail that
-   shows up only on hover / active so it stays calm at rest. */
+/* Resize handle: an 8px-wide invisible hit area straddling the Preview/panel
+   seam (centred on the panel's left edge). Absolutely positioned so it sits
+   on the seam without occupying a grid column, keeping the two halves flush.
+   On hover / active a 1px rail overlays the seam (Preview's right border)
+   exactly — full height, no top/bottom gaps — so the separator just brightens.
+   `left` is computed from the panel width (set inline as `--demo-panel-w`). */
 .resizeHandle {
-  position: relative;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* Seam sits at (panel width) from the right edge; centre the 8px hit
+     area on it. */
+  right: calc(var(--demo-panel-w, 400px) - 4px);
+  width: 8px;
+  z-index: 1;
   cursor: col-resize;
   touch-action: none;
   user-select: none;
@@ -61,12 +113,15 @@
 .resizeHandle::after {
   content: "";
   position: absolute;
-  top: 8px;
-  bottom: 8px;
-  left: 50%;
+  /* Edge to edge — match the full-height seam, no top/bottom gaps. */
+  top: 0;
+  bottom: 0;
+  /* The 8px handle is centred on the seam (local x=4); Preview's right border
+     is the 1px just left of it (local x=[3,4]). `right: 50%` lands the rail on
+     exactly that pixel so it overlays the separator instead of sitting 1px in. */
+  right: 50%;
   width: 1px;
   background: transparent;
-  border-radius: 1px;
   transition: background 120ms ease-out;
 }
 
@@ -97,7 +152,7 @@
 }
 
 .preview {
-  border: 1px solid var(--border-5);
+  border: 1px solid var(--border-4);
   border-radius: 8px;
   background: var(--bg-pane);
   overflow: hidden;
@@ -110,7 +165,7 @@
    color) since it's just a single label. */
 .previewHeader {
   padding: 7px 12px 6px;
-  border-bottom: 1px solid var(--border-5);
+  border-bottom: 1px solid var(--border-4);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.06em;
@@ -139,7 +194,7 @@
 }
 
 .panel {
-  border: 1px solid var(--border-5);
+  border: 1px solid var(--border-4);
   border-radius: 8px;
   background: var(--bg-pane);
   display: flex;
@@ -161,7 +216,7 @@
    strip's bottom border. */
 .tabs {
   display: flex;
-  border-bottom: 1px solid var(--border-5);
+  border-bottom: 1px solid var(--border-4);
 }
 
 .tabBtn {
@@ -280,7 +335,7 @@
 }
 
 .example {
-  border-bottom: 1px solid var(--border-5);
+  border-bottom: 1px solid var(--border-4);
 }
 .example:last-child {
   border-bottom: none;

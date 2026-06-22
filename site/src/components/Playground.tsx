@@ -109,6 +109,15 @@ export default function Playground({ component, initialCode, initialCss = '', la
   const monacoRef = useRef<any>(null)
   const editorRef = useRef<any>(null)
   const cssEditorRef = useRef<any>(null)
+  // True while a `setCode` originated from the user typing in the TSX
+  // editor (so the editor already holds that text). The `code`-sync
+  // effect uses this to skip echoing the value back into Monaco —
+  // pushing it back races with fast typing and scrambles the input.
+  const editorChangePendingRef = useRef(false)
+  // True while the sync effect is applying an external edit to the
+  // model, so the resulting `onDidChangeModelContent` → onChange echo
+  // is ignored (mirrors @monaco-editor/react's own guard).
+  const applyingExternalRef = useRef(false)
   const tsxHostRef = useRef<HTMLDivElement | null>(null)
   const cssHostRef = useRef<HTMLDivElement | null>(null)
 
@@ -445,12 +454,68 @@ export default function Playground({ component, initialCode, initialCss = '', la
 
   function handleEditorChange(next: string | undefined) {
     if (next == null) return
-    // Update only if the model's value drifted from React state. When
-    // we push state into Monaco via the `value` prop the wrapper
-    // echoes a change event with the same string — bail in that case
-    // so React doesn't re-render unnecessarily.
-    setCode((prev) => prev === next ? prev : next)
+    // Ignore the echo from our own external-sync edit (see effect below).
+    if (applyingExternalRef.current) return
+    // This change came from the user typing in the editor, so the
+    // editor's model is already the source of truth — mark it so the
+    // `code`-sync effect below does NOT push the (now-stale, one render
+    // behind) string back into Monaco. Pushing it back is what raced
+    // with in-flight keystrokes and scrambled the text / reset the
+    // caret when typing inside a tag (e.g. adding `style={{…}}`); see
+    // the sync effect for the full story.
+    setCode((prev) => {
+      if (prev === next) return prev
+      // Flag set inside the updater so it only trips when `code` will
+      // actually change (and thus the sync effect will actually run to
+      // clear it) — avoids a stale flag swallowing a later external edit.
+      editorChangePendingRef.current = true
+      return next
+    })
   }
+
+  // Sync EXTERNAL `code` changes (form-control edits, the Reset button)
+  // into the TSX editor's model. Typing in the editor is excluded via
+  // `editorChangePendingRef` — that path's text is already in the model,
+  // and re-pushing it is exactly what scrambled fast typing back when the
+  // editor was controlled by `value={code}`. For a genuine external edit
+  // we replace only the changed run (common-prefix/suffix diff) so the
+  // caret and selection stay put, then `pushUndoStop` so it's one undo.
+  useEffect(() => {
+    if (editorChangePendingRef.current) {
+      editorChangePendingRef.current = false
+      return
+    }
+    const editor = editorRef.current
+    const model = editor?.getModel?.()
+    if (!model) return
+    const current = model.getValue()
+    if (current === code) return
+    // Narrow the edit to the differing middle so unchanged regions (and
+    // the caret outside them) aren't disturbed.
+    let p = 0
+    const minLen = Math.min(current.length, code.length)
+    while (p < minLen && current[p] === code[p]) p++
+    let sCur = current.length
+    let sNew = code.length
+    while (sCur > p && sNew > p && current[sCur - 1] === code[sNew - 1]) {
+      sCur--
+      sNew--
+    }
+    const start = model.getPositionAt(p)
+    const end = model.getPositionAt(sCur)
+    const range = {
+      startLineNumber: start.lineNumber,
+      startColumn: start.column,
+      endLineNumber: end.lineNumber,
+      endColumn: end.column,
+    }
+    applyingExternalRef.current = true
+    editor.executeEdits('external-sync', [
+      { range, text: code.slice(p, sNew), forceMoveMarkers: true },
+    ])
+    editor.pushUndoStop()
+    applyingExternalRef.current = false
+  }, [code])
 
   // ────────────────────────────────────────────────────────────────
   // Render
@@ -611,7 +676,16 @@ export default function Playground({ component, initialCode, initialCss = '', la
                   height="100%"
                   defaultLanguage="typescript"
                   path="user.tsx"
-                  value={code}
+                  // Uncontrolled: seed the initial text, then let the
+                  // editor own its model. We deliberately do NOT pass
+                  // `value={code}` — @monaco-editor/react reacts to a
+                  // changing `value` by replacing the whole model range
+                  // with that string, which (one render behind during
+                  // fast typing) clobbered in-flight keystrokes and
+                  // reset the caret. External edits (form controls,
+                  // Reset) are pushed into the model imperatively by the
+                  // sync effect instead.
+                  defaultValue={initialCode}
                   theme={isDark ? 'tokyo-night' : 'github-light'}
                   onChange={handleEditorChange}
                   beforeMount={(monaco) => {
