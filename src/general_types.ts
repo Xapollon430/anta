@@ -289,8 +289,12 @@ export interface AInputAttributes extends BaseAttributes {
   /** Fires on commit; the element re-dispatches the control's `change` on the
    *  host (native `change` isn't composed). */
   onchange?: (e: any) => void
-  /** Fires when the built-in clear button is activated (bubbling `clearinput`
-   *  event). All-lowercase so it binds in React *and* Preact. */
+  /** Fires when the built-in clear button is clicked, before clearing
+   *  (cancelable, bubbling `clearclick` event — preventDefault keeps the
+   *  value). All-lowercase so it binds in React *and* Preact. */
+  onclearclick?: (e: any) => void
+  /** Fires after the field has been cleared (bubbling `clearinput` event).
+   *  All-lowercase so it binds in React *and* Preact. */
   onclearinput?: (e: any) => void
   'aria-invalid'?: 'true' | 'false' | boolean
   'aria-label'?: string

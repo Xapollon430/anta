@@ -182,11 +182,18 @@ function serializeAttribute(prop: PropDescriptor, value: string | number | boole
       return `${prop.name}={${Number(value)}}`
     case 'style-css':
       return `${prop.name}={${cssDeclarationsToObjectLiteral(String(value))}}`
-    case 'expression':
-      // Splice the value verbatim inside braces — no quoting. The user
-      // types valid JSX/JS; an empty value is handled upstream in
-      // `applyEdit` (removes the attribute rather than writing `={}`).
-      return `${prop.name}={${String(value)}}`
+    case 'expression': {
+      // ReactNode props accept JSX *or* a plain string. Splice verbatim inside
+      // braces only when the value looks like an expression (starts like JSX /
+      // an object / array / group / quoted string). Otherwise treat it as a
+      // string literal — so typing a plain `error`/`hint`/`label` message
+      // doesn't become an undefined identifier (`error={dghdgf}` → crash).
+      // (Empty value is handled upstream in `applyEdit`.)
+      const s = String(value)
+      return /^\s*[<{[("'`]/.test(s)
+        ? `${prop.name}={${s}}`
+        : `${prop.name}="${s.replace(/"/g, '&quot;')}"`
+    }
     case 'children':
       // Should never reach here — replaceProp short-circuits children
       // edits before serialization. Return empty just in case.

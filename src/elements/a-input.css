@@ -6,17 +6,17 @@
      get a `.dark` override below. Sizes change height + horizontal padding
      only — the font stays 15/20 at every size (per the design). */
   a-input {
-    --a-input-bg: var(--bg-1);
-    --a-input-border: var(--border-2);
-    --a-input-border-hover: var(--border-1);
-    --a-input-border-error: #c9302c;
-    --a-input-focus: #503cb4;
+    --input-bg: var(--bg-1);
+    --input-border: var(--border-2);
+    --input-border-hover: var(--border-1);
+    --input-border-error: #c9302c;
+    --input-focus: #503cb4;
 
-    --a-input-text: var(--text-1);
-    --a-input-label: var(--text-1);
-    --a-input-placeholder: var(--text-4);
-    --a-input-hint: var(--text-3);
-    --a-input-error-text: var(--text-2-critical);
+    --input-text: var(--text-1);
+    --input-label: var(--text-1);
+    --input-placeholder: var(--text-4);
+    --input-hint: var(--text-3);
+    --input-error-text: var(--text-2-critical);
 
     display: block;
     width: 100%;
@@ -26,19 +26,19 @@
      width bump + warning glyph + error message are handled inside the shadow
      off the same `[invalid]` host attribute). */
   a-input[invalid] {
-    --a-input-border: var(--a-input-border-error);
-    --a-input-border-hover: var(--a-input-border-error);
+    --input-border: var(--input-border-error);
+    --input-border-hover: var(--input-border-error);
   }
 
   a-input[disabled] {
-    --a-input-text: var(--text-4);
-    --a-input-label: var(--text-4);
-    --a-input-hint: var(--text-5);
+    --input-text: var(--text-4);
+    --input-label: var(--text-4);
+    --input-hint: var(--text-5);
     cursor: not-allowed;
   }
 
   .dark a-input {
-    --a-input-border-error: #de4545;
-    --a-input-focus: #a897fc;
+    --input-border-error: #de4545;
+    --input-focus: #a897fc;
   }
 }

@@ -60,13 +60,20 @@ const FORWARDED = [
 // Presence-based among the forwarded set (toggled, not value-copied).
 const BOOL_FORWARDED = new Set(['readonly', 'required'])
 
-// Custom event the wrapper's clear button dispatches (via a-button's
-// `data-custom-event`); the element listens for it and clears. Works with no
-// framework hydration — a-button's global click/keydown listeners fire it.
-// All-lowercase so it binds portably as `onclearinput` in React *and* Preact
-// (React keeps the case after `on`; Preact lowercases) — same rule as
-// `oninput`/`onchange`. It bubbles, so consumers can listen too.
-const CLEAR_EVENT = 'clearinput'
+// Internal trigger the clear button dispatches (via a-button's
+// `data-custom-event`) when activated by click/Enter/Space — fired with no
+// framework hydration needed. The element converts it into the public clear
+// lifecycle (see the constructor listener): a cancelable `clearclick`, then —
+// if not prevented — `clear()`, which empties the field and fires `clearinput`.
+const CLEAR_TRIGGER = 'clearrequest'
+
+// Public clear events. Both bubble and are all-lowercase so they bind portably
+// as `onclearclick` / `onclearinput` in React *and* Preact (React keeps the
+// case after `on`; Preact lowercases) — same rule as `oninput`/`onchange`.
+// `clearclick` fires first and is cancelable (preventDefault keeps the value);
+// `clearinput` fires after the value has actually been cleared.
+const CLEAR_CLICK_EVENT = 'clearclick'
+const CLEAR_INPUT_EVENT = 'clearinput'
 
 const SHADOW_STYLE = `
   /* Suppress any UA focus outline on the host — with delegatesFocus some
@@ -76,7 +83,7 @@ const SHADOW_STYLE = `
 
   .label {
     display: none;
-    color: var(--a-input-label);
+    color: var(--input-label);
     font-family: var(--sans-serif);
     font-size: 15px;
     line-height: 20px;
@@ -86,14 +93,14 @@ const SHADOW_STYLE = `
   .label.has-label { display: block; }
 
   .field {
-    --_bc: var(--a-input-border);
+    --_bc: var(--input-border);
     --_bw: 0.5px;
 
     display: flex;
     align-items: center;
     box-sizing: border-box;
     min-height: 28px;
-    background: var(--a-input-bg);
+    background: var(--input-bg);
     border-radius: 4px;
     /* The border is a shadow, not a real border, so it never affects the box
        size: the rest→invalid width change (0.5px→1px) causes no reflow, and the
@@ -109,14 +116,14 @@ const SHADOW_STYLE = `
   :host([size="large"]) .field { min-height: 32px; }
 
   @media (hover: hover) and (pointer: fine) {
-    :host(:not([disabled])) .field:hover { --_bc: var(--a-input-border-hover); }
+    :host(:not([disabled])) .field:hover { --_bc: var(--input-border-hover); }
   }
   /* Ring shows only when the *control* is focused — not when focus is on a
      slotted child like the clear button (that would be :focus-within). The
      clear button keeps its own focus ring. */
   .field:has(input:focus, textarea:focus) {
-    --_bc: var(--a-input-border-hover);
-    outline: 1px solid var(--a-input-focus);
+    --_bc: var(--input-border-hover);
+    outline: 1px solid var(--input-focus);
     outline-offset: 1px;
   }
 
@@ -133,7 +140,7 @@ const SHADOW_STYLE = `
     padding-inline: 7px;
     background: transparent;
     outline: none;
-    color: var(--a-input-text);
+    color: var(--input-text);
     font-family: var(--sans-serif);
     font-feature-settings: 'ss02', 'ss05';
     font-size: 15px;
@@ -149,7 +156,7 @@ const SHADOW_STYLE = `
     padding-block: 4px;
     overflow-y: auto;
   }
-  input::placeholder, textarea::placeholder { color: var(--a-input-placeholder); opacity: 1; }
+  input::placeholder, textarea::placeholder { color: var(--input-placeholder); opacity: 1; }
   input:disabled, textarea:disabled { cursor: not-allowed; }
   input::-webkit-search-cancel-button,
   input::-webkit-search-decoration,
@@ -202,7 +209,7 @@ const SHADOW_STYLE = `
     gap: 4px;
     align-items: flex-start;
     margin-top: 4px;
-    color: var(--a-input-hint);
+    color: var(--input-hint);
     font-family: var(--sans-serif);
     font-size: 15px;
     line-height: 20px;
@@ -210,7 +217,7 @@ const SHADOW_STYLE = `
   .hint.has-hint { display: flex; }
   /* Invalid recolors the whole hint row (message + the wrapper-rendered error
      <Icon>, which paints with currentColor). */
-  :host([invalid]) .hint { color: var(--a-input-error-text); }
+  :host([invalid]) .hint { color: var(--input-error-text); }
 `
 
 type Control = HTMLInputElement | HTMLTextAreaElement
@@ -282,12 +289,20 @@ export class AInputElement extends HTMLElementBase {
     // Leading, then (control inserted here on build), then trailing, then clear.
     this.field.append(this.leadingSlot, this.trailingSlot, clearSlot)
 
-    // A clear button placed in slot="trailing" (an <a-button data-custom-event>)
-    // dispatches this bubbling event on click/Enter/Space — without needing the
-    // framework to hydrate — and we clear here. clear() dispatches input+change,
-    // which is what a controlled consumer reacts to; an uncontrolled field is
-    // just emptied. One path serves both.
-    this.addEventListener(CLEAR_EVENT, () => this.clear())
+    // The clear button (an <a-button data-custom-event="clearrequest"> in the
+    // `clear` slot) fires CLEAR_TRIGGER on click/Enter/Space — without needing
+    // the framework to hydrate. We turn that into the public lifecycle: a
+    // cancelable `clearclick` first (a consumer's onClearClick may
+    // preventDefault to keep the value), then clear() unless it was prevented.
+    // clear() empties the field and dispatches input+change (+ clearinput) —
+    // what a controlled consumer reacts to; an uncontrolled field is just
+    // emptied. One path serves both.
+    this.addEventListener(CLEAR_TRIGGER, () => {
+      const proceed = this.dispatchEvent(
+        new CustomEvent(CLEAR_CLICK_EVENT, { bubbles: true, cancelable: true }),
+      )
+      if (proceed) this.clear()
+    })
 
     this.hintBox = document.createElement('div')
     this.hintBox.className = 'hint'
@@ -299,7 +314,16 @@ export class AInputElement extends HTMLElementBase {
     })
     this.hintBox.append(hintSlot)
 
-    shadow.append(style, this.labelBox, this.field, this.hintBox)
+    // Default (unnamed) slot for projecting extra children. It sits *between*
+    // the field and the hint, so a plain child renders directly under the field
+    // and pushes the hint/error message down. A no-box child like an Anta
+    // <a-tooltip> (display:contents, positioned popover) takes no vertical space
+    // and just anchors to this host — mirroring how a shadow-less <a-button>
+    // already accepts a tooltip child; the slot is what lets a shadow-DOM
+    // element do the same.
+    const extrasSlot = document.createElement('slot')
+
+    shadow.append(style, this.labelBox, this.field, extrasSlot, this.hintBox)
   }
 
   connectedCallback() {
@@ -477,6 +501,7 @@ export class AInputElement extends HTMLElementBase {
     this.updateFilled()
     this.dispatchEvent(new Event('input', { bubbles: true }))
     this.dispatchEvent(new Event('change', { bubbles: true }))
+    this.dispatchEvent(new CustomEvent(CLEAR_INPUT_EVENT, { bubbles: true }))
     this.control.focus()
   }
 

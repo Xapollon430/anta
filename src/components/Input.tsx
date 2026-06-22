@@ -24,7 +24,13 @@ export interface InputChangeAttrs {
   validationMessage: string
 }
 
-export interface InputProps extends Omit<BaseProps, 'children'> {
+export interface InputProps extends BaseProps {
+  /** Extra content rendered directly under the field, above the hint/error (it
+   *  pushes the message down). A no-box child like an Anta `<Tooltip>` takes no
+   *  space and just anchors to the field — consistent with how tooltips attach
+   *  to any other element. Use the named `leading` / `trailing` props for
+   *  in-field content. */
+  children?: React.ReactNode
   /** Field label, shown above the control. A string is rendered with the
    *  label type scale; pass a node for full control. Associated with the
    *  control as its accessible name (the element mirrors the label text to
@@ -38,9 +44,9 @@ export interface InputProps extends Omit<BaseProps, 'children'> {
    *  border only. */
   error?: React.ReactNode | boolean
   /** Icon shown before the error message. Defaults to `warning-diamond`; pass
-   *  another shape to swap it, or `false` to drop it.
+   *  another shape (or any icon-name string) to swap it, or `false` to drop it.
    *  @defaultValue warning-diamond */
-  iconError?: IconShape | false
+  iconError?: IconShape | (string & {}) | false
   /** Size variant. small=24px, medium=28px, large=32px tall; the font stays
    *  15px at every size.
    *  @defaultValue medium */
@@ -103,10 +109,15 @@ export interface InputProps extends Omit<BaseProps, 'children'> {
    *  [attrs.name]: attrs.value }))` without digging into the event. Use
    *  `event.type` to tell a live edit (`input`) from a commit (`change`). */
   onAnyChange?: (event: any, attrs: InputChangeAttrs) => void
-  /** Fires when the built-in clear button (`clearable`) is activated. The field
-   *  is cleared first — so `onInput` / `onChange` fire too — making this useful
-   *  for reacting specifically to a clear. Backed by the element's bubbling
-   *  `clearinput` event. */
+  /** Fires when the built-in clear button (`clearable`) is clicked, *before*
+   *  the field is cleared. Call `e.preventDefault()` to keep the current value
+   *  — the clear is cancelled and `onClearInput` won't fire. Backed by the
+   *  element's cancelable, bubbling `clearclick` event. */
+  onClearClick?: (e: CustomEvent) => void
+  /** Fires after the built-in clear button (`clearable`) has cleared the field
+   *  — so `onInput` / `onChange` fire too — making this useful for reacting
+   *  specifically to a clear. Doesn't fire if `onClearClick` cancelled the
+   *  clear. Backed by the element's bubbling `clearinput` event. */
   onClearInput?: (e: CustomEvent) => void
   /** Fires when the field gains focus. */
   onFocus?: (e: any) => void
@@ -199,7 +210,9 @@ export const Input = ({
   onInput,
   onChange,
   onAnyChange,
+  onClearClick,
   onClearInput,
+  children,
   className,
   style,
   ...rest
@@ -236,6 +249,7 @@ export const Input = ({
       aria-invalid={invalid ? 'true' : undefined}
       oninput={onInput || onAnyChange ? (e: any) => { onInput?.(e); onAnyChange?.(e, attrsOf(e)) } : undefined}
       onchange={onChange || onAnyChange ? (e: any) => { onChange?.(e); onAnyChange?.(e, attrsOf(e)) } : undefined}
+      onclearclick={onClearClick}
       onclearinput={onClearInput}
       class={className}
       style={style}
@@ -259,16 +273,16 @@ export const Input = ({
       {clearable && (
         // A real <a-button> (light DOM → fully styled, keyboard-focusable) in
         // the element's `clear` slot — the element owns its visibility (shown
-        // only when filled + editable). It fires the bubbling `clearinput`
+        // only when filled + editable). It fires the bubbling `clearrequest`
         // event via a-button's global listener, so clearing works even without
-        // framework hydration; the element clears on that.
+        // framework hydration; the element turns that into clearclick→clear().
         <span slot="clear" style={{ display: 'contents' }}>
           <Button
             priority="tertiary"
             size={size}
             icon="x"
             aria-label="Clear"
-            data-custom-event="clearinput"
+            data-custom-event="clearrequest"
           />
         </span>
       )}
@@ -281,11 +295,14 @@ export const Input = ({
       {message != null && (
         <span slot="hint" style={{ display: 'contents' }}>
           {invalid && iconError !== false && (
-            <Icon shape={iconError} aria-hidden="true" style={{ marginTop: '2px' }} />
+            <Icon shape={iconError as IconShape} aria-hidden="true" style={{ marginTop: '2px' }} />
           )}
           <span>{message}</span>
         </span>
       )}
+
+      {/* Unslotted extras → default slot, rendered under the field above the hint. */}
+      {children}
     </a-input>
   )
 }
