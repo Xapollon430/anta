@@ -17,6 +17,7 @@ export { AProgressElement, register_a_progress } from './a-progress'
 export { ATextElement, register_a_text } from './a-text'
 export { AIconElement, register_a_icon } from './a-icon'
 export { AButtonElement, register_a_button } from './a-button'
+export { ACheckboxElement, register_a_checkbox } from './a-checkbox'
 export { ATooltipElement, register_a_tooltip } from './a-tooltip'
 
 // `a-title` and `a-tag` are CSS-only styled tags (no JS / no element

@@ -182,6 +182,42 @@ export interface ATooltipAttributes extends BaseAttributes {
 }
 
 /**
+ * Attributes for the `<a-checkbox>` custom element. `<a-checkbox>` is a light-DOM
+ * interactive element: its visual state lives on `ElementInternals` (styled via
+ * the `:state(checked)` / `:state(indeterminate)` pseudo-class, not host
+ * attributes), driven by the `state` attribute (controlled) or `default-state`
+ * (uncontrolled seed). It sets no ARIA itself — `role` / `aria-*` are the
+ * consumer's job (the wrapper supplies them). The label is its children.
+ * Low-level attributes — for the typed JSX wrapper use `Checkbox` from
+ * `@antadesign/anta`.
+ */
+export interface ACheckboxAttributes extends BaseAttributes {
+  /** Colour variant, or any literal CSS color for a one-off custom tone.
+   *  `'brand'` is the default (same as omitting it). */
+  tone?: 'brand' | 'neutral' | (string & {})
+  /** Size variant. `small` = 16px, `medium` (default) = 18px, `large` = 20px box. */
+  size?: 'small' | 'medium' | 'large'
+  /** Controlled state — the element reflects changes to this attribute. Use this
+   *  (driven from your store) for a controlled checkbox; use `default-state` for
+   *  an uncontrolled one. */
+  state?: 'checked' | 'unchecked' | 'indeterminate'
+  /** Uncontrolled initial state — read once at connect / form-reset, then the
+   *  element self-manages. */
+  'default-state'?: 'checked' | 'unchecked' | 'indeterminate'
+  /** Disabled state. Presence-based (`''` on, omit off). */
+  disabled?: boolean | ''
+  /** Form field name — the key this checkbox submits under inside a `<form>`. */
+  name?: string
+  /** Value submitted when checked. Defaults to `"on"`. */
+  value?: string
+  /** ARIA — set by the consumer / the `Checkbox` wrapper (the element never
+   *  touches these itself). */
+  'aria-checked'?: 'true' | 'false' | 'mixed'
+  'aria-disabled'?: 'true' | 'false'
+  'aria-label'?: string
+}
+
+/**
  * Attributes for the `<a-button>` custom element. For the typed JSX
  * wrapper use `Button` from `@antadesign/anta`.
  */

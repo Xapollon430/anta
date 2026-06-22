@@ -1,0 +1,272 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Checkbox
+---
+import Playground from '../../components/Playground'
+import Preview from '../../components/Preview.astro'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
+import Columns from '../../components/Columns.astro'
+import Col from '../../components/Col.astro'
+import SelectAllDemo from '../../components/SelectAllDemo'
+import checkboxDemoCode from './checkbox.demo.ts'
+import { Checkbox } from '@antadesign/anta'
+
+# Checkbox
+
+Checkboxes let the user select one or more items from a set, or turn a single
+option on or off.
+
+If you have several options in a list, checkboxes save space compared with a row
+of on/off switches. For a single option that takes effect immediately, a switch
+reads more clearly than a lone checkbox.
+
+The `Checkbox` wrapper renders an `<a-checkbox>` web component — a small
+interactive element that owns its state (and its `role="checkbox"` accessibility)
+internally, so it works both **controlled** and **uncontrolled**. State is a
+single `state` prop — `'checked'`, `'unchecked'`, or `'indeterminate'`. The label
+is its `children`; `tone` and `size` are plain attributes.
+
+<Disclosure title="Playground" anchor={false}>
+
+<Playground
+  client:visible
+  component="Checkbox"
+  layout="side"
+  panelHeight={400}
+  initialCode={checkboxDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: center; justify-content: center; }`}
+/>
+
+</Disclosure>
+
+## Basic checkboxes
+
+A checkbox is `unchecked`, `checked`, or `indeterminate` — the last is the
+"mixed" state for a parent whose children are partly selected. Indeterminate
+renders a minus and takes visual precedence over `checked`; clicking it resolves
+to checked. `disabled` fades the box and drops it from the tab order; it works in
+every state.
+
+<Preview gap="16px">
+  <Checkbox defaultState="checked" />
+  <Checkbox />
+  <Checkbox defaultState="indeterminate" />
+  <Checkbox disabled />
+  <Checkbox disabled defaultState="checked" />
+</Preview>
+
+```tsx folded
+<Checkbox defaultState="checked" />
+<Checkbox />
+<Checkbox defaultState="indeterminate" />
+<Checkbox disabled />
+<Checkbox disabled defaultState="checked" />
+```
+
+## Label
+
+Pass the label as `children` (or the `label` prop for the common single-string
+case) and the whole control — box plus text — becomes one clickable, focusable
+target. Or omit it for a box-only checkbox — useful in a table header "select
+all" or a row whose neighbouring columns already give it context. Either way,
+give the checkbox an accessible name with `aria-label` (a `role="checkbox"` isn't
+named by its visible text — see [Accessibility](#accessibility)).
+
+<Preview>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
+    <Checkbox defaultState="checked">Label</Checkbox>
+    <Checkbox>Remember me</Checkbox>
+    <Checkbox disabled>Disabled</Checkbox>
+    <Checkbox aria-label="Select all" />
+  </div>
+</Preview>
+
+```tsx folded
+<Checkbox defaultState="checked">Label</Checkbox>
+<Checkbox>Remember me</Checkbox>
+<Checkbox disabled>Disabled</Checkbox>
+<Checkbox aria-label="Select all" />  {/* box-only — give it an accessible name */}
+```
+
+## Size
+
+Three sizes — `small` (16px), `medium` (18px, the default — emits no attribute),
+and `large` (20px). The label's type scale tracks the box (13/16, 15/20, 17/24),
+matching `Text`.
+
+<Preview gap="16px">
+  <Checkbox defaultState="checked" size="small">Small</Checkbox>
+  <Checkbox defaultState="checked">Medium</Checkbox>
+  <Checkbox defaultState="checked" size="large">Large</Checkbox>
+</Preview>
+
+```tsx folded
+<Checkbox defaultState="checked" size="small">Small</Checkbox>
+<Checkbox defaultState="checked">Medium</Checkbox>
+<Checkbox defaultState="checked" size="large">Large</Checkbox>
+```
+
+## Color
+
+<Columns>
+<Col>
+
+`tone="brand"` (the default purple) for primary selections, `tone="neutral"` for
+quieter contexts where a coloured box would feel too prominent. Both track light
+and dark mode automatically.
+
+In addition, a custom `tone` is possible: pass **any literal CSS color** and the
+box adapts to it — it keeps the colour's hue and chroma but pins lightness to the
+brand fill curve.
+
+<Preview gap="16px">
+  <Checkbox defaultState="checked">Brand</Checkbox>
+  <Checkbox defaultState="checked" tone="neutral">Neutral</Checkbox>
+  <Checkbox defaultState="checked" tone="#e0457b">Pink</Checkbox>
+  <Checkbox defaultState="checked" tone="teal">Teal</Checkbox>
+</Preview>
+
+```tsx folded
+<Checkbox defaultState="checked">Brand</Checkbox>
+<Checkbox defaultState="checked" tone="neutral">Neutral</Checkbox>
+<Checkbox defaultState="checked" tone="#e0457b">Pink</Checkbox>
+<Checkbox defaultState="checked" tone="teal">Teal</Checkbox>
+```
+
+</Col>
+<Col>
+
+The tone only colours the filled (checked / indeterminate) box — an unchecked
+box is the same neutral outline regardless of tone.
+
+<Preview gap="16px">
+  <Checkbox defaultState="indeterminate">Brand</Checkbox>
+  <Checkbox defaultState="indeterminate" tone="neutral">Neutral</Checkbox>
+  <Checkbox defaultState="indeterminate" tone="#e0457b">Pink</Checkbox>
+</Preview>
+
+```tsx folded
+<Checkbox defaultState="indeterminate">Brand</Checkbox>
+<Checkbox defaultState="indeterminate" tone="neutral">Neutral</Checkbox>
+<Checkbox defaultState="indeterminate" tone="#e0457b">Pink</Checkbox>
+```
+
+</Col>
+</Columns>
+
+## Controlled
+
+By default a checkbox is **uncontrolled** — pass `defaultState` (or nothing) and
+it flips itself on click; read the value from `onChange` or at form-submit time.
+To drive it from your own store, make it **controlled** with `state` and
+`onChange`: it renders exactly the `state` you pass, and `onChange` hands you the
+new state to store.
+
+```tsx
+const [state, setState] = useState('unchecked')
+
+<Checkbox state={state} onChange={setState}>I agree</Checkbox>
+```
+
+> A controlled checkbox with no `onChange` is effectively read-only — it reflects
+> `state` and ignores clicks. If a box "won't toggle", it's almost always a
+> `state` with no `onChange` updating it.
+
+## Indeterminate
+
+A checkbox input only has two states in a form — checked or unchecked — but
+*visually* it has three. `state="indeterminate"` shows the minus glyph and takes
+visual precedence; the underlying checked-ness then only affects what a form
+submits (an indeterminate box submits nothing, like a native one).
+
+The canonical use is a parent whose state is **derived** from its children:
+`'checked'` when both are on, `'indeterminate'` when they differ. Click the
+children and watch the parent resolve between the three states.
+
+<Preview>
+  <SelectAllDemo client:visible />
+</Preview>
+
+```tsx
+function ParentChild() {
+  const [on, setOn] = useState([true, false])
+  const checked = (b) => (b ? 'checked' : 'unchecked')
+  return (
+    <>
+      <Checkbox
+        state={on[0] && on[1] ? 'checked' : on[0] || on[1] ? 'indeterminate' : 'unchecked'}
+        onChange={(next) => setOn([next === 'checked', next === 'checked'])}
+      >
+        Parent
+      </Checkbox>
+      <div style={{ marginInlineStart: 24 }}>
+        <Checkbox state={checked(on[0])} onChange={(next) => setOn([next === 'checked', on[1]])}>
+          Child 1
+        </Checkbox>
+        <Checkbox state={checked(on[1])} onChange={(next) => setOn([on[0], next === 'checked'])}>
+          Child 2
+        </Checkbox>
+      </div>
+    </>
+  )
+}
+```
+
+## When to use
+
+- **Checkboxes vs. switches** — a checkbox marks an item as selected, usually
+  staged until a later "save" or "submit". A switch toggles a setting that takes
+  effect immediately. For a single binary option that applies right away, prefer
+  a switch; for selecting items in a list, use checkboxes.
+- **Multiple independent choices** — when options aren't mutually exclusive (the
+  user can pick any combination), use checkboxes. For a single choice out of
+  several mutually-exclusive options, use radio buttons instead.
+
+## Accessibility
+
+The `Checkbox` wrapper applies `role="checkbox"` and `aria-checked` (`"true"` /
+`"false"` / `"mixed"`) from the state it's given — live for a controlled
+checkbox, the initial seed for an uncontrolled one (prefer controlled when a
+screen reader must track later toggles). The web component itself sets no ARIA;
+on a raw `<a-checkbox>` you wire it yourself. It's keyboard-operable:
+<kbd>Space</kbd> toggles it (funnelled through the click path).
+
+A `role="checkbox"` takes its name from the author, not its contents, so give
+each one an accessible name with `aria-label` (or `aria-labelledby`):
+
+```tsx
+<Checkbox aria-label="Accept terms" />
+```
+
+Follows the [WAI-ARIA checkbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/).
+
+<Disclosure title="Component props" open>
+
+<PropsTable component="Checkbox" />
+
+</Disclosure>
+
+<Disclosure title="Component tokens" open>
+
+Override any of these on a single instance via `style`, or on a selector wrapping
+the checkbox. The box background is the themed `--bg-1` role; the fills, borders,
+disabled overlays, and focus ring are per-tone values with a matching dark-mode
+block.
+
+| Token | Description |
+|---|---|
+| `--checkbox-size` | Box edge length (`18px` medium, `16px` small, `20px` large). |
+| `--checkbox-radius` | Box corner radius (default `4px`). |
+| `--checkbox-gap` | Space between the box and the label. |
+| `--checkbox-bg` | Unchecked box background. Defaults to the `--bg-1` role. |
+| `--checkbox-border`<br />`--checkbox-border-hover`<br />`--checkbox-border-active` | Unchecked box outline across rest / hover / active. |
+| `--checkbox-fill`<br />`--checkbox-fill-hover`<br />`--checkbox-fill-active` | Filled (checked / indeterminate) background across rest / hover / active. Retinted by `tone="neutral"`. |
+| `--checkbox-icon` | Check / minus glyph color (default white). |
+| `--checkbox-icon-disabled` | Glyph color when disabled. |
+| `--checkbox-bg-disabled`<br />`--checkbox-border-disabled` | Box fill / outline when disabled. |
+| `--checkbox-focus` | Keyboard focus ring color. |
+| `--checkbox-label-color`<br />`--checkbox-label-color-disabled` | Label text color (rest / disabled). |
+
+</Disclosure>

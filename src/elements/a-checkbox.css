@@ -1,0 +1,207 @@
+@layer anta {
+  /* Light-DOM element (see a-checkbox.ts): state lives on ElementInternals, so
+     styling keys off :state(checked) / :state(indeterminate), not attributes. Box
+     is ::before, glyph is ::after, label is the children. */
+
+  a-checkbox {
+    --checkbox-size: 18px;
+    --checkbox-radius: 4px;
+    --checkbox-gap: 8px;
+    --checkbox-label-size: 15px;
+    --checkbox-label-line: 20px;
+
+    --checkbox-bg: var(--bg-1);
+    --checkbox-border: #d4ced4;
+    --checkbox-border-hover: #c1b9c1;
+    --checkbox-border-active: #9f99a1;
+
+    --checkbox-fill: #7460d7;
+    --checkbox-fill-hover: #5f4bc3;
+    --checkbox-fill-active: #503cb4;
+
+    --checkbox-icon: #ffffff;
+    --checkbox-icon-disabled: #c1b9c1;
+    --checkbox-bg-disabled: color-mix(in oklch, #44374b 10%, transparent);
+    --checkbox-border-disabled: color-mix(in oklch, #44374b 15%, transparent);
+    --checkbox-focus: #503cb4;
+
+    --checkbox-label-color: var(--text-2);
+    --checkbox-label-color-disabled: var(--text-4);
+
+    --checkbox-timing-in: 75ms ease-in;
+    --checkbox-timing-active: 50ms linear;
+    --checkbox-timing-out: 150ms ease-out;
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--checkbox-gap);
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-drag: none;
+    outline: none;
+
+    color: var(--checkbox-label-color);
+    font-family: var(--sans-serif);
+    font-size: var(--checkbox-label-size);
+    line-height: var(--checkbox-label-line);
+    font-feature-settings: "ss02", "ss05";
+  }
+
+  /* The box. */
+  a-checkbox::before {
+    content: "";
+    flex: none;
+    box-sizing: border-box;
+    inline-size: var(--checkbox-size);
+    block-size: var(--checkbox-size);
+    border-radius: var(--checkbox-radius);
+    background: var(--checkbox-bg);
+    border: 1px solid var(--checkbox-border);
+    transition:
+      background-color var(--checkbox-timing-out),
+      border-color var(--checkbox-timing-out);
+  }
+
+  /* The glyph, overlaid on the box. Transparent until a filled state masks +
+     colours it (an unmasked ::after would paint a solid square). */
+  a-checkbox::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    inline-size: var(--checkbox-size);
+    block-size: var(--checkbox-size);
+    background-color: transparent;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: calc(var(--checkbox-size) - 4px);
+    mask-size: calc(var(--checkbox-size) - 4px);
+  }
+
+  /* Hover / active only on an enabled box. */
+  @media (hover: hover) and (pointer: fine) {
+    a-checkbox:not(:disabled):hover::before {
+      border-color: var(--checkbox-border-hover);
+      transition:
+        background-color var(--checkbox-timing-in),
+        border-color var(--checkbox-timing-in);
+    }
+  }
+  a-checkbox:not(:disabled):active::before {
+    border-color: var(--checkbox-border-active);
+    transition:
+      background-color var(--checkbox-timing-active),
+      border-color var(--checkbox-timing-active);
+  }
+
+  /* Filled — checked OR indeterminate. */
+  a-checkbox:is(:state(checked), :state(indeterminate))::before {
+    background: var(--checkbox-fill);
+    border-color: var(--checkbox-fill);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    a-checkbox:not(:disabled):hover:is(:state(checked), :state(indeterminate))::before {
+      background: var(--checkbox-fill-hover);
+      border-color: var(--checkbox-fill-hover);
+    }
+  }
+  a-checkbox:not(:disabled):active:is(:state(checked), :state(indeterminate))::before {
+    background: var(--checkbox-fill-active);
+    border-color: var(--checkbox-fill-active);
+  }
+
+  a-checkbox:is(:state(checked), :state(indeterminate))::after {
+    background-color: var(--checkbox-icon);
+  }
+  a-checkbox:state(checked)::after {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  }
+  a-checkbox:state(indeterminate)::after {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+  }
+
+  a-checkbox:focus-visible::before {
+    outline: 2px solid var(--checkbox-focus);
+    outline-offset: 2px;
+  }
+
+  /* Disabled. `:disabled` matches the host attribute and an ancestor
+     `<fieldset disabled>` (the element is form-associated). */
+  a-checkbox:disabled {
+    cursor: not-allowed;
+    color: var(--checkbox-label-color-disabled);
+  }
+  a-checkbox:disabled::before {
+    background: var(--checkbox-bg-disabled);
+    border-color: var(--checkbox-border-disabled);
+    transition: none;
+  }
+  a-checkbox:disabled:is(:state(checked), :state(indeterminate))::after {
+    background-color: var(--checkbox-icon-disabled);
+  }
+
+  a-checkbox[tone="neutral"] {
+    --checkbox-fill: #776e77;
+    --checkbox-fill-hover: #635b65;
+    --checkbox-fill-active: #534c57;
+  }
+  a-checkbox[tone]:not([tone=""], [tone="brand"], [tone="neutral"]) {
+    --checkbox-tone-source: attr(tone type(<color>), transparent);
+
+    --_tone-l-rest: 0.55;
+    --_tone-l-hover: 0.48;
+    --_tone-l-active: 0.43;
+
+    --checkbox-fill:        oklch(from var(--checkbox-tone-source) var(--_tone-l-rest) c h);
+    --checkbox-fill-hover:  oklch(from var(--checkbox-tone-source) var(--_tone-l-hover) c h);
+    --checkbox-fill-active: oklch(from var(--checkbox-tone-source) var(--_tone-l-active) c h);
+    /* Focus ring stays brand (the base `--checkbox-focus`) across every tone,
+       like `<a-button>` — only the fill is retinted. */
+  }
+
+  /* Dark. */
+  .dark a-checkbox {
+    --checkbox-border: #49424c;
+    --checkbox-border-hover: #635b65;
+    --checkbox-border-active: #776e77;
+
+    --checkbox-fill: #7460d7;
+    --checkbox-fill-hover: #8270db;
+    --checkbox-fill-active: #9081df;
+
+    --checkbox-icon-disabled: #635b65;
+    --checkbox-bg-disabled: color-mix(in oklch, #e4d1ef 10%, transparent);
+    --checkbox-border-disabled: color-mix(in oklch, #e4d1ef 15%, transparent);
+    --checkbox-focus: #a897fc;
+  }
+  .dark a-checkbox[tone="neutral"] {
+    --checkbox-fill: #776e77;
+    --checkbox-fill-hover: #878089;
+    --checkbox-fill-active: #938d96;
+  }
+  /* Custom tone, dark — same formulas, lighter curve to read against a dark page. */
+  .dark a-checkbox[tone]:not([tone=""], [tone="brand"], [tone="neutral"]) {
+    --_tone-l-rest: 0.55;
+    --_tone-l-hover: 0.60;
+    --_tone-l-active: 0.64;
+  }
+
+  a-checkbox[size="small"] {
+    --checkbox-size: 16px;
+    --checkbox-gap: 6px;
+    --checkbox-label-size: 13px;
+    --checkbox-label-line: 16px;
+  }
+  a-checkbox[size="large"] {
+    --checkbox-size: 20px;
+    --checkbox-label-size: 17px;
+    --checkbox-label-line: 24px;
+  }
+}
