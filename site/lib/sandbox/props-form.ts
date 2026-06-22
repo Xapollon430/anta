@@ -386,14 +386,26 @@ function controlFor(p: any): PropEntry | null {
       return false
     })
     if (hasOpenString && literals.length > 0) {
-      // `tone` gets a richer control: named-tone tabs + a "Custom" tab with a
+      // `tone` gets a richer control: named-tone tabs + a "custom" tab with a
       // color input. Any other open-string union stays a plain text input.
       if (name === 'tone') {
+        // typedoc/TS doesn't reliably preserve the source order of a literal
+        // union (identical tone unions get a shared canonical internal order,
+        // so e.g. Tag's source order isn't what lands in api.json). Present
+        // the tones in one fixed order across every component's playground.
+        const TONE_ORDER = ['neutral', 'brand', 'critical', 'info', 'success', 'warning']
+        const rank = (t: string) => {
+          const i = TONE_ORDER.indexOf(t)
+          return i < 0 ? TONE_ORDER.length : i
+        }
+        const options = literals
+          .map((x: any) => String(x.value))
+          .sort((a: string, b: string) => rank(a) - rank(b))
         return wrap(
           {
             kind: 'tone',
             name,
-            options: literals.map((x: any) => String(x.value)),
+            options,
             defaultValue: readDefaultValueTag(p.comment),
             description,
           },

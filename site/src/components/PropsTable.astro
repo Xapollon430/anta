@@ -218,12 +218,26 @@ const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeComp
             <td>
               {p.type === '—' ? <span class="empty">—</span> : (
                 <span class="type-list">
-                  {p.type.split(' | ').map((t: string) => {
-                    const v = t.trim()
-                    return isLiteralValue(v)
-                      ? <code>{v.replace(/^'|'$/g, '')}</code>
-                      : <span class="type-name">{v}</span>
-                  })}
+                  {(() => {
+                    let parts = p.type.split(' | ').map((t: string) => t.trim())
+                    // `tone` unions land in api.json in TS's canonical internal
+                    // order, not source order (see props-form.ts). Present the
+                    // tones in one fixed order so the table matches the
+                    // playground tabs; non-tone members (`string`) sort last.
+                    if (p.name === 'tone') {
+                      const TONE_ORDER = ['neutral', 'brand', 'critical', 'info', 'success', 'warning']
+                      const rank = (t: string) => {
+                        const i = TONE_ORDER.indexOf(t.replace(/^'|'$/g, ''))
+                        return i < 0 ? TONE_ORDER.length : i
+                      }
+                      parts = [...parts].sort((a: string, b: string) => rank(a) - rank(b))
+                    }
+                    return parts.map((v: string) =>
+                      isLiteralValue(v)
+                        ? <code>{v.replace(/^'|'$/g, '')}</code>
+                        : <span class="type-name">{v}</span>
+                    )
+                  })()}
                 </span>
               )}
             </td>
@@ -304,12 +318,26 @@ const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeComp
               <td>
               {p.type === '—' ? <span class="empty">—</span> : (
                 <span class="type-list">
-                  {p.type.split(' | ').map((t: string) => {
-                    const v = t.trim()
-                    return isLiteralValue(v)
-                      ? <code>{v.replace(/^'|'$/g, '')}</code>
-                      : <span class="type-name">{v}</span>
-                  })}
+                  {(() => {
+                    let parts = p.type.split(' | ').map((t: string) => t.trim())
+                    // `tone` unions land in api.json in TS's canonical internal
+                    // order, not source order (see props-form.ts). Present the
+                    // tones in one fixed order so the table matches the
+                    // playground tabs; non-tone members (`string`) sort last.
+                    if (p.name === 'tone') {
+                      const TONE_ORDER = ['neutral', 'brand', 'critical', 'info', 'success', 'warning']
+                      const rank = (t: string) => {
+                        const i = TONE_ORDER.indexOf(t.replace(/^'|'$/g, ''))
+                        return i < 0 ? TONE_ORDER.length : i
+                      }
+                      parts = [...parts].sort((a: string, b: string) => rank(a) - rank(b))
+                    }
+                    return parts.map((v: string) =>
+                      isLiteralValue(v)
+                        ? <code>{v.replace(/^'|'$/g, '')}</code>
+                        : <span class="type-name">{v}</span>
+                    )
+                  })()}
                 </span>
               )}
             </td>
