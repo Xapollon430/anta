@@ -1,6 +1,27 @@
 import type { BaseProps } from '../general_types'
 import { Button } from './Button'
 
+/** Convenience snapshot passed as the 2nd argument to `onAnyChange`. */
+export interface InputChangeAttrs {
+  /** Current value. */
+  value: string
+  /** The field's `name` — handy for keyed updates: `s => ({ ...s, [name]: value })`. */
+  name?: string
+  /** The field's `id`. */
+  id?: string
+  /** `'text'` (or the set single-line `type`); `'textarea'` when multiline. */
+  type: string
+  /** The field's class name. */
+  className?: string
+  /** `true` when the value is empty. */
+  empty: boolean
+  /** Whether the field currently passes validation (native + `error`). `undefined`
+   *  where `ElementInternals` is unsupported. */
+  valid?: boolean
+  /** Current validation message (`''` when valid). */
+  validationMessage: string
+}
+
 export interface InputProps extends Omit<BaseProps, 'children'> {
   /** Field label, shown above the control. A string is rendered with the
    *  label type scale; pass a node for full control. Associated with the
@@ -69,15 +90,49 @@ export interface InputProps extends Omit<BaseProps, 'children'> {
   onInput?: (e: any) => void
   /** Fires on commit (blur / Enter). Read `e.target.value`. */
   onChange?: (e: any) => void
+  /** Unified value-change handler — the easy path for state. Fires on `input`
+   *  *and* `change` (and on clear), with the native `event` plus a convenience
+   *  `attrs` snapshot (`value`, `name`, `id`, `type`, `className`, `empty`,
+   *  `valid`, `validationMessage`) so you can do `setForm(s => ({ ...s,
+   *  [attrs.name]: attrs.value }))` without digging into the event. Use
+   *  `event.type` to tell a live edit (`input`) from a commit (`change`). */
+  onAnyChange?: (event: any, attrs: InputChangeAttrs) => void
   /** Fires when the built-in clear button (`clearable`) is activated. The field
    *  is cleared first — so `onInput` / `onChange` fire too — making this useful
    *  for reacting specifically to a clear. Backed by the element's bubbling
    *  `clearinput` event. */
   onClearInput?: (e: CustomEvent) => void
+  /** Fires when the field gains focus. */
+  onFocus?: (e: any) => void
+  /** Fires when the field loses focus. */
+  onBlur?: (e: any) => void
+  /** Any other DOM event handler (`onKeyDown`, `onKeyUp`, `onPaste`, `onClick`,
+   *  …) is forwarded to the field. Standard events bubble/compose to the host
+   *  (and focus/blur reach it via `delegatesFocus`), so they fire as expected.
+   *  (Variadic to admit multi-arg handlers like `onAnyChange`.) */
+  [event: `on${string}`]: ((...args: any[]) => void) | undefined
 }
 
 const presence = (on: boolean | undefined) => (on ? '' : undefined)
 const isStringish = (n: React.ReactNode) => typeof n === 'string' || typeof n === 'number'
+
+// Build the `onAnyChange` attrs snapshot from the event target (the <a-input>
+// host — events retarget to it, and id/name/value/class all live there).
+const attrsOf = (e: any): InputChangeAttrs => {
+  const el = e?.target ?? {}
+  const value = el.value ?? ''
+  const multiline = el.getAttribute?.('multiline') != null || el.getAttribute?.('rows') != null
+  return {
+    value,
+    name: el.getAttribute?.('name') ?? undefined,
+    id: el.id || undefined,
+    type: multiline ? 'textarea' : el.getAttribute?.('type') ?? 'text',
+    className: el.className || undefined,
+    empty: !value,
+    valid: el.validity ? el.validity.valid : undefined,
+    validationMessage: el.validationMessage ?? '',
+  }
+}
 
 // Autocomplete is derived from `type` (not a prop): the types that *are* valid
 // autocomplete tokens map to themselves; the rest (text/password/number) have
@@ -136,6 +191,7 @@ export const Input = ({
   step,
   onInput,
   onChange,
+  onAnyChange,
   onClearInput,
   className,
   style,
@@ -171,8 +227,8 @@ export const Input = ({
       max={max}
       step={step}
       aria-invalid={invalid ? 'true' : undefined}
-      oninput={onInput}
-      onchange={onChange}
+      oninput={onInput || onAnyChange ? (e: any) => { onInput?.(e); onAnyChange?.(e, attrsOf(e)) } : undefined}
+      onchange={onChange || onAnyChange ? (e: any) => { onChange?.(e); onAnyChange?.(e, attrsOf(e)) } : undefined}
       onclearinput={onClearInput}
       class={className}
       style={style}

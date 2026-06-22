@@ -30,7 +30,7 @@
   "copy": ["duplicate", "clone"],
   "trash": ["delete", "remove", "bin"],
   "edit": ["pencil", "modify", "rename"],
-  "view": ["eye", "show", "display", "preview"],
+  "view": ["show", "display", "preview"],
   "click": ["tap", "press", "touch"],
   "send": ["submit", "share", "deliver"],
   "play": ["start", "run", "execute"],

@@ -41,6 +41,11 @@ export interface BaseAttributes {
   onKeyDown?: (e: any) => void
   /** Click handler — used for mouse / tap activation. */
   onClick?: (e: any) => void
+  /** Any DOM event handler (`onFocus`, `onBlur`, `onPaste`, `onPointerDown`, …)
+   *  is accepted on the element. Standard events bubble/compose, so a handler
+   *  on the `<a-*>` host fires for interactions inside its shadow DOM. (Custom,
+   *  non-composed events use their own lowercase handlers, e.g. `oninput`.) */
+  [event: `on${string}`]: ((e: any) => void) | undefined
 }
 
 /**

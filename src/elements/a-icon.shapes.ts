@@ -37,6 +37,8 @@ export const ICON_SHAPES = [
   'edit',
   'education-disk',
   'external-link',
+  'eye-closed',
+  'eye',
   'file-down',
   'file',
   'filter',
@@ -130,7 +132,7 @@ export const ICON_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   'copy': ['duplicate', 'clone'],
   'trash': ['delete', 'remove', 'bin'],
   'edit': ['pencil', 'modify', 'rename'],
-  'view': ['eye', 'show', 'display', 'preview'],
+  'view': ['show', 'display', 'preview'],
   'click': ['tap', 'press', 'touch'],
   'send': ['submit', 'share', 'deliver'],
   'play': ['start', 'run', 'execute'],
@@ -224,6 +226,8 @@ declare module '@antadesign/anta' {
     'edit': true
     'education-disk': true
     'external-link': true
+    'eye-closed': true
+    'eye': true
     'file-down': true
     'file': true
     'filter': true

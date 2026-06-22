@@ -33,6 +33,7 @@
   a-input[disabled] {
     --a-input-text: var(--text-4);
     --a-input-label: var(--text-4);
+    --a-input-hint: var(--text-5);
     cursor: not-allowed;
   }
 

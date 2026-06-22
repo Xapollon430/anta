@@ -175,6 +175,10 @@ const SHADOW_STYLE = `
     flex-shrink: 0;
   }
   .field.has-trailing slot[name="trailing"] { gap: 2px; }
+  /* Disabled: slotted leading/trailing content dims and stops taking input
+     (pointer-events is inherited, so it reaches the projected nodes). */
+  :host([disabled]) slot[name="leading"],
+  :host([disabled]) slot[name="trailing"] { opacity: 0.5; pointer-events: none; }
 
   /* Clear slot — rightmost, flush. The element owns its visibility (shown only
      when filled + editable) in shadow CSS, so it's bundled wherever the element
