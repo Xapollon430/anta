@@ -1,4 +1,5 @@
 {
+  "warning-diamond": ["error", "invalid", "alert", "danger"],
   "swatch-book": ["palette", "color", "swatch", "paint", "design"],
   "hat-glasses": ["accessibility", "vision", "disguise", "person"],
   "heart-handshake": ["credits", "thanks", "agreement", "deal", "partnership"],

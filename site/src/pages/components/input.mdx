@@ -131,6 +131,9 @@ cross the shadow boundary.
 to invalid — critical border, warning glyph, and the `:state(invalid)` hook. A
 message **replaces** the `hint`; a bare `error` (boolean) marks the border only.
 
+The glyph before the message is the `warning-diamond` icon — swap it with
+**`iconError`** (any icon shape), or `iconError={false}` to drop it.
+
 Invalid state also drives native validity through `ElementInternals`, so the
 field reports as invalid to a surrounding `<form>`.
 

@@ -94,6 +94,7 @@ export const ICON_SHAPES = [
   'trash',
   'trello-logo',
   'view',
+  'warning-diamond',
   'warning-triangle',
   'webhook',
   'workflow',
@@ -101,6 +102,7 @@ export const ICON_SHAPES = [
 ] as const
 
 export const ICON_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
+  'warning-diamond': ['error', 'invalid', 'alert', 'danger'],
   'swatch-book': ['palette', 'color', 'swatch', 'paint', 'design'],
   'hat-glasses': ['accessibility', 'vision', 'disguise', 'person'],
   'heart-handshake': ['credits', 'thanks', 'agreement', 'deal', 'partnership'],
@@ -283,6 +285,7 @@ declare module '@antadesign/anta' {
     'trash': true
     'trello-logo': true
     'view': true
+    'warning-diamond': true
     'warning-triangle': true
     'webhook': true
     'workflow': true

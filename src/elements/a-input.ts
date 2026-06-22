@@ -25,7 +25,7 @@ import './a-input.css'
  *     <slot name="leading" part="leading">
  *     <input|textarea part="input">                         ← created in JS per multiline/rows
  *     <slot name="trailing" part="trailing">
- *   <div class="hint" part="hint"><span class="warn"><slot name="hint">  ← warn glyph only when [invalid]
+ *   <div class="hint" part="hint"><slot name="hint">       ← message; wrapper slots an error <Icon> here too when [invalid]
  *
  * ## Value — controlled vs uncontrolled (mirrors a native input)
  *
@@ -59,11 +59,6 @@ const FORWARDED = [
 ] as const
 // Presence-based among the forwarded set (toggled, not value-copied).
 const BOOL_FORWARDED = new Set(['readonly', 'required'])
-
-// A filled diamond with a knocked-out "!" (evenodd), painted via mask +
-// currentColor so it tracks the critical text color. Shown only when invalid.
-const WARN_DIAMOND =
-  "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='%23000' fill-rule='evenodd' d='M7.4 1.06a.85.85 0 0 1 1.2 0l6.34 6.34a.85.85 0 0 1 0 1.2L8.6 14.94a.85.85 0 0 1-1.2 0L1.06 8.6a.85.85 0 0 1 0-1.2zM7.25 4h1.5v4.5h-1.5zM8 10.25a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'/%3e%3c/svg%3e\")"
 
 // Custom event the wrapper's clear button dispatches (via a-button's
 // `data-custom-event`); the element listens for it and clears. Works with no
@@ -213,24 +208,9 @@ const SHADOW_STYLE = `
     line-height: 20px;
   }
   .hint.has-hint { display: flex; }
+  /* Invalid recolors the whole hint row (message + the wrapper-rendered error
+     <Icon>, which paints with currentColor). */
   :host([invalid]) .hint { color: var(--a-input-error-text); }
-
-  .warn {
-    display: none;
-    flex-shrink: 0;
-    width: 16px;
-    height: 20px;
-    background-color: currentColor;
-    -webkit-mask-image: ${WARN_DIAMOND};
-            mask-image: ${WARN_DIAMOND};
-    -webkit-mask-size: 16px;
-            mask-size: 16px;
-    -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-            mask-position: center;
-  }
-  :host([invalid]) .warn { display: block; }
 `
 
 type Control = HTMLInputElement | HTMLTextAreaElement
@@ -312,15 +292,12 @@ export class AInputElement extends HTMLElementBase {
     this.hintBox = document.createElement('div')
     this.hintBox.className = 'hint'
     this.hintBox.setAttribute('part', 'hint')
-    const warn = document.createElement('span')
-    warn.className = 'warn'
-    warn.setAttribute('aria-hidden', 'true')
     const hintSlot = document.createElement('slot')
     hintSlot.name = 'hint'
     hintSlot.addEventListener('slotchange', () => {
       this.hintBox.classList.toggle('has-hint', hintSlot.assignedNodes().length > 0)
     })
-    this.hintBox.append(warn, hintSlot)
+    this.hintBox.append(hintSlot)
 
     shadow.append(style, this.labelBox, this.field, this.hintBox)
   }

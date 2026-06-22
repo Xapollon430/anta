@@ -1,5 +1,7 @@
 import type { BaseProps } from '../general_types'
+import type { IconShape } from '../elements/a-icon.shapes'
 import { Button } from './Button'
+import { Icon } from './Icon'
 
 /** Convenience snapshot passed as the 2nd argument to `onAnyChange`. */
 export interface InputChangeAttrs {
@@ -35,6 +37,10 @@ export interface InputProps extends Omit<BaseProps, 'children'> {
    *  glyph). A node/string is shown below in place of `hint`; `true` flags the
    *  border only. */
   error?: React.ReactNode | boolean
+  /** Icon shown before the error message. Defaults to `warning-diamond`; pass
+   *  another shape to swap it, or `false` to drop it.
+   *  @defaultValue warning-diamond */
+  iconError?: IconShape | false
   /** Size variant. small=24px, medium=28px, large=32px tall; the font stays
    *  15px at every size.
    *  @defaultValue medium */
@@ -167,6 +173,7 @@ export const Input = ({
   label,
   hint,
   error,
+  iconError = 'warning-diamond',
   size,
   value,
   defaultValue,
@@ -271,7 +278,14 @@ export const Input = ({
         </span>
       )}
 
-      {message != null && <span slot="hint">{message}</span>}
+      {message != null && (
+        <span slot="hint" style={{ display: 'contents' }}>
+          {invalid && iconError !== false && (
+            <Icon shape={iconError} aria-hidden="true" style={{ marginTop: '2px' }} />
+          )}
+          <span>{message}</span>
+        </span>
+      )}
     </a-input>
   )
 }
