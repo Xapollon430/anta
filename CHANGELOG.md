@@ -9,6 +9,7 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
 ## 0.2.3 — June 18, 2026
 
 ### Added
+- **`Tag` gains a `priority` axis** (`secondary` default / `primary` / `tertiary`), matching the Figma `component/tag/*` set and mirroring `Button` / `Expander`. `secondary` is the existing alpha-tint fill; `primary` is a solid fill with white text; `tertiary` is a transparent outline (a deeper-hue border, no fill). It composes with every tone — named or custom — and tracks dark mode. Each tone now declares three hue anchors the priority maps to: **`--tag-tint`** (secondary fill + secondary/primary border), **`--tag-fill`** (the solid primary fill), and **`--tag-edge`** (the tertiary outline, `= --text-2-{tone}`). Custom tones derive all three with pinned oklch lightness/chroma so any input reads as a sibling of the named tones (same approach as `<a-button>`).
 - **New `Expander` component** (`<Expander>` / `<a-expander>`) — a collapsible disclosure (a header that toggles a content region). Built on a real `<button>` summary + a grid content region (no native `<details>`), so it follows the WAI-ARIA disclosure pattern with full keyboard support; collapsed content is `inert`. Registered via the `@antadesign/anta/elements` barrel.
   - **State** — controlled (`open` + `onToggle`) or uncontrolled (`defaultOpen`).
   - **Title** — `title` takes a string or a node; `level` (1–6) applies the `<Title>` type scale to a string title, or pass a `<Title>` for real heading semantics.

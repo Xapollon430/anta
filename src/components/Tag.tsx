@@ -19,7 +19,13 @@ export interface TagProps extends BaseProps {
    *  way, with the text deepened to a readable foreground. `'neutral'` (the
    *  default) is the gray tag — the same as omitting `tone`.
    *  @defaultValue neutral */
-  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning' | (string & {})
+  /** Emphasis level. `secondary` (the default) is the subtle alpha-tint
+   *  fill; `primary` is a solid fill with white text; `tertiary` is a
+   *  transparent outline. Omitting it (or passing `'secondary'`) renders
+   *  the default and emits no DOM attribute.
+   *  @defaultValue secondary */
+  priority?: 'primary' | 'secondary' | 'tertiary'
   /** Size variant. `small` = 16px tall, `medium` = 20px, `large` = 24px
    *  (matching `Button`). Omit the attribute or pass `'medium'` for the
    *  default — both render identically and emit no DOM attribute.
@@ -63,6 +69,7 @@ export const Tag = ({
   label,
   value,
   tone,
+  priority,
   size,
   nocaps,
   className,
@@ -83,6 +90,8 @@ export const Tag = ({
   return (
     <a-tag
       tone={tone}
+      // 'secondary' (and unset) is the implicit default — emit no DOM attr.
+      priority={priority && priority !== 'secondary' ? priority : undefined}
       // 'medium' (and unset) is the implicit default — emit no DOM attr.
       size={size && size !== 'medium' ? size : undefined}
       // Boolean attribute: presence (empty string) on, omit off — the CSS
