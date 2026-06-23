@@ -14,7 +14,7 @@
        bump that keeps hue + chroma, so it works for every priority and tone, in
        light and dark, with no precomputed targets (lighten = higher L in both
        modes; a transparent surface keeps zero alpha). Tune the amount here. */
-    --expander-bg-hover-lift: 0.03;
+    --expander-bg-hover-lift: 0.01;
     --expander-bg-hover: oklch(from var(--expander-bg) calc(l + var(--expander-bg-hover-lift)) c h);
 
     /* The single gutter that the title inset, the body inset, AND the chevron
@@ -39,7 +39,7 @@
     color: var(--expander-text);
     background: var(--expander-bg);
     /* Smooth the closed-state hover/active surface change. */
-    transition: background-color 150ms ease;
+    transition: background-color 100ms ease;
   }
 
   a-expander-summary {
