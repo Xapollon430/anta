@@ -581,6 +581,25 @@ equivalent element composition because these docs render statically):
 `}</style>
 ```
 
+## Controlled vs Uncontrolled
+
+Open state follows Anta's shared **state contract**. Leave it *uncontrolled* and
+the expander owns open/close; pass the controlled prop and *you* own it. The two
+layers speak different idioms — the `<Expander>` wrapper takes booleans, the
+`<a-expander>` element takes a `state` string enum — and the wrapper maps between
+them:
+
+| | `<Expander>` (JSX) | `<a-expander>` (element) |
+|---|---|---|
+| **Uncontrolled** — element owns it | `defaultOpen` | `default-state="open" \| "closed"` |
+| **Controlled** — you own it | `open` + `onStateChange` | `state="open" \| "closed"` + `statechange` |
+| **Change event** | `onStateChange(event, { next, prev })` — `next` / `prev` are **booleans** | `statechange`, a `CustomEvent<{ next, prev }>` — `'open'` / `'closed'` |
+
+`statechange` is **cancelable** and fires *before* the element applies the
+change. Uncontrolled, call `event.preventDefault()` to veto a toggle (e.g.
+confirm before closing). Controlled, the element never self-applies — apply
+`detail.next` to `open` to accept, or do nothing to reject.
+
 <Disclosure title="Component props" open>
 
 <PropsTable component="Expander" />
