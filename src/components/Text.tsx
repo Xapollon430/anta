@@ -7,7 +7,7 @@ export interface TextProps extends BaseProps {
    *  @defaultValue secondary */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
-  tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
+  tone?: 'brand' | 'info' | 'success' | 'warning' | 'critical'
   /** Type scale. `small` = 13/16, `medium` = 15/20, `large` = 17/24.
    *  @defaultValue medium */
   size?: 'small' | 'medium' | 'large'

@@ -199,6 +199,19 @@ details[open] > summary:not(.summary)::before {
 p, ul, ol, blockquote, dl { margin: 0 0 1em; }
 pre, figure, hr, .expressive-code { margin: 0 0 1.5em; }
 
+/* Proximity: a paragraph that introduces a <Preview> hugs it (caption-to-
+   figure), so the prose groups with the example it describes rather than the
+   block above — the symmetric complement to the Preview→code fusing below. */
+.content p:has(+ .preview) {
+  margin-bottom: 8px;
+}
+/* …and when a <Columns> example block is followed by such an intro paragraph
+   (a fresh example, not a code sample), separate it like other example
+   boundaries so the paragraph clearly belongs to its own preview below. */
+.content .columns:has(+ p) {
+  margin-block-end: 24px;
+}
+
 /* Code blocks in the main content use the `bg-pane` fill (a static
    background — no hover change). Overrides the `--code-background` var the
    EC `pre` reads (specificity-proof vs EC's own rule), and scoped to

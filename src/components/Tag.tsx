@@ -13,12 +13,19 @@ export interface TagProps extends BaseProps {
    *  label; the color + weight contrast does the separating. */
   value?: string
   /** Semantic tone, or any literal CSS color (`'#ff1493'`, `'rebeccapurple'`)
-   *  for a one-off custom tone. Named tones map to the `--text-2-{tone}` /
-   *  `--bg-4-{tone}` palette; a custom color keeps its hue while lightness
-   *  and chroma are pinned. `'neutral'` (the default) is the gray tag —
-   *  the same as omitting `tone`.
+   *  for a one-off custom tone. Each tone renders the secondary tag style:
+   *  `--text-3-{tone}` text over an alpha tint of the tone's hue (fill + a
+   *  slightly stronger hairline border). A custom color is tinted the same
+   *  way, with the text deepened to a readable foreground. `'neutral'` (the
+   *  default) is the gray tag — the same as omitting `tone`.
    *  @defaultValue neutral */
   tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Emphasis level. `secondary` (the default) is the subtle alpha-tint
+   *  fill; `primary` is a solid fill with white text; `tertiary` is a
+   *  transparent outline. Omitting it (or passing `'secondary'`) renders
+   *  the default and emits no DOM attribute.
+   *  @defaultValue secondary */
+  priority?: 'primary' | 'secondary' | 'tertiary'
   /** Size variant. `small` = 16px tall, `medium` = 20px, `large` = 24px
    *  (matching `Button`). Omit the attribute or pass `'medium'` for the
    *  default — both render identically and emit no DOM attribute.
@@ -62,6 +69,7 @@ export const Tag = ({
   label,
   value,
   tone,
+  priority,
   size,
   nocaps,
   className,
@@ -82,6 +90,8 @@ export const Tag = ({
   return (
     <a-tag
       tone={tone}
+      // 'secondary' (and unset) is the implicit default — emit no DOM attr.
+      priority={priority && priority !== 'secondary' ? priority : undefined}
       // 'medium' (and unset) is the implicit default — emit no DOM attr.
       size={size && size !== 'medium' ? size : undefined}
       // Boolean attribute: presence (empty string) on, omit off — the CSS

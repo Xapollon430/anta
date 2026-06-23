@@ -14,11 +14,14 @@ interface Props {
   cols?: number
   /** Gap between previewed items. Any CSS length; defaults to 12px. */
   gap?: string
+  /** Panel background. Any CSS color; defaults to `--bg-canvas`. */
+  background?: string
 }
-const { cols, gap } = Astro.props
+const { cols, gap, background } = Astro.props
 const style = [
   cols ? `--preview-cols: ${cols}` : '',
   gap ? `gap: ${gap}` : '',
+  background ? `background: ${background}` : '',
 ].filter(Boolean).join('; ') || undefined
 ---
 <div class="preview" data-cols={cols} style={style}>

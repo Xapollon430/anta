@@ -386,9 +386,14 @@ function controlFor(p: any): PropEntry | null {
       return false
     })
     if (hasOpenString && literals.length > 0) {
-      // `tone` gets a richer control: named-tone tabs + a "Custom" tab with a
+      // `tone` gets a richer control: named-tone tabs + a "custom" tab with a
       // color input. Any other open-string union stays a plain text input.
       if (name === 'tone') {
+        // Tone order follows the source declaration. TS canonicalizes union
+        // members into an arbitrary internal order, so the `union-source-order`
+        // typedoc plugin reorders them in api.json back to how they're written
+        // in the type — meaning these literals already arrive in source order
+        // and need no sorting here.
         return wrap(
           {
             kind: 'tone',
