@@ -8,17 +8,14 @@
     --expander-bg-primary: var(--bg-4);
     --expander-border-primary: var(--border-4);
 
-    /* Closed-only hover lightens the surface by 50/50-mixing the current bg with
-       its next-lighter neutral neighbour. The bg scale inverts in dark mode
-       (bg-1 is darkest there), so the lift targets are overridden under `.dark`;
-       toned variants lift within their own hue via oklch (see below). */
-    --expander-bg-secondary-lift: var(--bg-1);
-    --expander-bg-primary-lift: var(--bg-3);
-
     --expander-bg: var(--expander-bg-secondary);
     --expander-border: var(--expander-border-secondary);
-    --expander-bg-lift: var(--expander-bg-secondary-lift);
-    --expander-bg-hover: color-mix(in oklch, var(--expander-bg) 50%, var(--expander-bg-lift));
+    /* Closed-only hover lightens the current surface in place: an oklch lightness
+       bump that keeps hue + chroma, so it works for every priority and tone, in
+       light and dark, with no precomputed targets (lighten = higher L in both
+       modes; a transparent surface keeps zero alpha). Tune the amount here. */
+    --expander-bg-hover-lift: 0.03;
+    --expander-bg-hover: oklch(from var(--expander-bg) calc(l + var(--expander-bg-hover-lift)) c h);
 
     /* The single gutter that the title inset, the body inset, AND the chevron
        position all derive from (see a-expander.ts). The chevron sits absolutely
@@ -75,30 +72,21 @@
   a-expander[priority="primary"] {
     --expander-bg: var(--expander-bg-primary);
     --expander-border: var(--expander-border-primary);
-    --expander-bg-lift: var(--expander-bg-primary-lift);
   }
   a-expander[priority="tertiary"] {
     --expander-bg: transparent;
     --expander-border: transparent;
-    /* Transparent surface → no hover fill (the bare disclosure). */
-    --expander-bg-lift: transparent;
   }
 
   /* Closed + enabled: lighten on hover, then snap back to the base surface while
      pressed so the background is already correct as the region expands. Gated on
-     `:not(:state(open))` so an open expander has no surface hover. */
+     `:not(:state(open))` so an open expander has no surface hover. (A transparent
+     tertiary surface stays transparent — the oklch bump preserves zero alpha.) */
   a-expander:not([disabled]):not(:state(open)):hover {
     background: var(--expander-bg-hover);
   }
   a-expander:not([disabled]):not(:state(open)):active {
     background: var(--expander-bg);
-  }
-
-  /* Dark mode neutral: the bg scale inverts (bg-1 is darkest), so the
-     next-lighter neighbour is the higher index. */
-  .dark a-expander {
-    --expander-bg-secondary-lift: var(--bg-3);
-    --expander-bg-primary-lift: var(--bg-5);
   }
 
   /* Outdent: zero the gutter so the title + body go flush with the surrounding
@@ -184,15 +172,6 @@
     --expander-border-secondary: oklch(from var(--expander-tone-source) 0.22 0.05 h);
     --expander-bg-primary:       oklch(from var(--expander-tone-source) 0.19 0.04 h);
     --expander-border-primary:   oklch(from var(--expander-tone-source) 0.26 0.07 h);
-  }
-
-  /* Toned variants have no neutral-white neighbour (and `--bg-1-{tone}` doesn't
-     exist), so they lift within their own hue: a small oklch lightness bump of
-     the resolved surface, the same in light and dark. Higher specificity than
-     the priority lift above, so it wins for both secondary and primary tones
-     (transparent surfaces stay transparent — the bump preserves zero alpha). */
-  a-expander[tone]:not([tone="neutral"]) {
-    --expander-bg-lift: oklch(from var(--expander-bg) calc(l + 0.02) c h);
   }
 
   a-expander[disabled],
