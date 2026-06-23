@@ -126,7 +126,7 @@ Radix's `checked?: boolean | 'indeterminate'`.)
 `onStateChange` is uniform on purpose — not `onToggle` / `onChange` / `onOpenChange`.
 A single name pairs with the `state`/`statechange`/`:state()` vocabulary, and it
 deliberately avoids reusing native `onChange` (whose handler reads `e.target.checked`,
-a different shape from our `{ state, previous }` — same name, wrong contract).
+a different shape from our `{ next, prev }` — same name, wrong contract).
 
 - The wrapper emits `state` only when the controlled prop is defined, and
   `default-state` only in the uncontrolled case — never both, so the DOM never
