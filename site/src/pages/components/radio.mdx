@@ -13,10 +13,7 @@ import { RadioGroup, Radio, Icon } from '@antadesign/anta'
 
 # Radio
 
-A single option within a [`RadioGroup`](/components/radio-group/). `Radio` renders
-an `<a-radio>` web component — the circle plus a label. It's presentational: the
-enclosing `RadioGroup` owns selection, keyboard navigation, and the form value,
-so a `Radio` is only interactive inside one.
+A single option within a [`RadioGroup`](/components/radio-group/). The group owns selection, keyboard navigation, and the form value—a `Radio` is only interactive when placed in one.
 
 <Disclosure title="Playground" anchor={false} brand>
 
@@ -60,9 +57,7 @@ so a `Radio` is only interactive inside one.
 </Col>
 <Col>
 
-The label is `children` — plain text, or any nodes. The Figma slot allows extra
-elements alongside the text (e.g. an info `Icon` with a `Tooltip`), so the label
-isn't limited to a string.
+The label is `children`—text or any nodes. Use the slot for rich content like an icon or tooltip alongside the label.
 
 </Col>
 </Columns>
@@ -91,9 +86,7 @@ isn't limited to a string.
 </Col>
 <Col>
 
-`tone` and `size` default to whatever the `RadioGroup` sets (or `brand` /
-`medium`). Set them on an individual `Radio` to override just that option — handy
-for calling out one choice.
+Inherit the group's `tone` and `size`, or override on a single radio to call out a choice.
 
 </Col>
 </Columns>
@@ -117,9 +110,7 @@ for calling out one choice.
 </Col>
 <Col>
 
-`disabled` on a `Radio` greys out that single option and removes it from keyboard
-navigation. To disable the whole set, put `disabled` on the
-[`RadioGroup`](/components/radio-group/) instead.
+Disable a single radio, or put `disabled` on the [`RadioGroup`](/components/radio-group/) to disable the whole set.
 
 </Col>
 </Columns>
@@ -149,14 +140,7 @@ a-radio[selected]       { font-weight: 600; }  /* vanilla-HTML fallback */
 </Col>
 <Col>
 
-The selected look is keyed off an `ElementInternals` custom state, exposed to
-CSS as `:state(selected)` — so external rules can hang any styling off it
-(weight changes, decorations, custom borders, animations). The `[selected]`
-attribute selector matches the same thing for hand-authored `<a-radio selected>`
-markup, where the group hasn't set the internal state.
-
-The `.selected-bold` class here is just to scope the rule to this demo — in
-your own code, you'd swap it for whatever selector you want.
+Style the selected state with `:state(selected)` or `[selected]`. Use any CSS (weight, colors, animations, etc.).
 
 </Col>
 </Columns>
@@ -169,8 +153,7 @@ your own code, you'd swap it for whatever selector you want.
 
 <Disclosure title="Component tokens" open>
 
-Override any of these on a single `<a-radio>` instance
-(`style={{ '--radio-control-size': '22px' }}`) or on a selector wrapping it.
+Override via inline style or CSS selector.
 
 | Token | Description |
 |---|---|

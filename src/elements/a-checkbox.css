@@ -17,9 +17,9 @@
     --checkbox-border-hover: #c1b9c1;
     --checkbox-border-active: #9f99a1;
 
-    --checkbox-fill: #7460d7;
-    --checkbox-fill-hover: #5f4bc3;
-    --checkbox-fill-active: #503cb4;
+    --checkbox-fill: #5f4bc3;
+    --checkbox-fill-hover: #503cb4;
+    --checkbox-fill-active: #483493;
 
     --checkbox-icon: #ffffff;
     --checkbox-icon-disabled: #c1b9c1;
@@ -178,36 +178,37 @@
     background-color: var(--checkbox-icon-disabled);
   }
 
-  a-checkbox[tone="neutral"] {
-    --checkbox-fill: #776e77;
-    --checkbox-fill-hover: #635b65;
-    --checkbox-fill-active: #534c57;
+  a-checkbox[tone="brand"] {
+    --checkbox-fill: #5f4bc3;
+    --checkbox-fill-hover: #503cb4;
+    --checkbox-fill-active: #483493;
   }
 
-  /* Named semantic tones — point the fill at the theme-aware role tokens
-     (`--text-2-{tone}` / `--text-1-{tone}`), so dark mode comes for free via
-     `tokens.css` (no `.dark a-checkbox[tone=...]` block needed, same trick
-     `a-tag` uses). Active matches hover here: a third visual step would need a
-     bespoke palette per tone — the role tokens give two. */
+  a-checkbox[tone="neutral"] {
+    --checkbox-fill: #635b65;
+    --checkbox-fill-hover: #534c57;
+    --checkbox-fill-active: #49424c;
+  }
+
   a-checkbox[tone="info"] {
-    --checkbox-fill: var(--text-2-info);
-    --checkbox-fill-hover: var(--text-1-info);
-    --checkbox-fill-active: var(--text-1-info);
+    --checkbox-fill: #1f6eb2;
+    --checkbox-fill-hover: #1a5b93;
+    --checkbox-fill-active: #175082;
   }
   a-checkbox[tone="success"] {
-    --checkbox-fill: var(--text-2-success);
-    --checkbox-fill-hover: var(--text-1-success);
-    --checkbox-fill-active: var(--text-1-success);
+    --checkbox-fill: #2a7e43;
+    --checkbox-fill-hover: #226737;
+    --checkbox-fill-active: #1f5c31;
   }
   a-checkbox[tone="warning"] {
-    --checkbox-fill: var(--text-2-warning);
-    --checkbox-fill-hover: var(--text-1-warning);
-    --checkbox-fill-active: var(--text-1-warning);
+    --checkbox-fill: #c37416;
+    --checkbox-fill-hover: #ae6613;
+    --checkbox-fill-active: #995200;
   }
   a-checkbox[tone="critical"] {
-    --checkbox-fill: var(--text-2-critical);
-    --checkbox-fill-hover: var(--text-1-critical);
-    --checkbox-fill-active: var(--text-1-critical);
+    --checkbox-fill: #c9302c;
+    --checkbox-fill-hover: #b02120;
+    --checkbox-fill-active: #a01c1c;
   }
 
   /* Custom tone — any non-named tone is treated as a literal CSS color and the
@@ -226,9 +227,9 @@
     ) {
     --checkbox-tone-source: attr(tone type(<color>), transparent);
 
-    --_tone-l-rest: 0.55;
-    --_tone-l-hover: 0.48;
-    --_tone-l-active: 0.43;
+    --_tone-l-rest: 0.5;
+    --_tone-l-hover: 0.45;
+    --_tone-l-active: 0.4;
 
     --checkbox-fill:        oklch(from var(--checkbox-tone-source) var(--_tone-l-rest) c h);
     --checkbox-fill-hover:  oklch(from var(--checkbox-tone-source) var(--_tone-l-hover) c h);
@@ -243,19 +244,44 @@
     --checkbox-border-hover: #635b65;
     --checkbox-border-active: #776e77;
 
-    --checkbox-fill: #7460d7;
-    --checkbox-fill-hover: #8270db;
-    --checkbox-fill-active: #9081df;
+    --checkbox-fill: #503cb4;
+    --checkbox-fill-hover: #5f4bc3;
+    --checkbox-fill-active: #7460d7;
 
     --checkbox-icon-disabled: #635b65;
     --checkbox-bg-disabled: color-mix(in oklch, #e4d1ef 10%, transparent);
     --checkbox-border-disabled: color-mix(in oklch, #e4d1ef 15%, transparent);
     --checkbox-focus: #a897fc;
   }
+  .dark a-checkbox[tone="brand"] {
+    --checkbox-fill: #503cb4;
+    --checkbox-fill-hover: #5f4bc3;
+    --checkbox-fill-active: #7460d7;
+  }
   .dark a-checkbox[tone="neutral"] {
-    --checkbox-fill: #776e77;
-    --checkbox-fill-hover: #878089;
+    --checkbox-fill: #534c57;
+    --checkbox-fill-hover: #635b65;
     --checkbox-fill-active: #938d96;
+  }
+  .dark a-checkbox[tone="info"] {
+    --checkbox-fill: #1a5b93;
+    --checkbox-fill-hover: #1f6eb2;
+    --checkbox-fill-active: #2686d9;
+  }
+  .dark a-checkbox[tone="success"] {
+    --checkbox-fill: #226737;
+    --checkbox-fill-hover: #2a7e43;
+    --checkbox-fill-active: #329550;
+  }
+  .dark a-checkbox[tone="warning"] {
+    --checkbox-fill: #7f410b;
+    --checkbox-fill-hover: #995200;
+    --checkbox-fill-active: #ae6613;
+  }
+  .dark a-checkbox[tone="critical"] {
+    --checkbox-fill: #b02120;
+    --checkbox-fill-hover: #c9302c;
+    --checkbox-fill-active: #de4545;
   }
   /* Custom tone, dark — same formulas, lighter curve to read against a dark page. */
   .dark a-checkbox[tone]:not(
@@ -267,17 +293,14 @@
       [tone="warning"],
       [tone="critical"]
     ) {
-    --_tone-l-rest: 0.55;
-    --_tone-l-hover: 0.60;
-    --_tone-l-active: 0.64;
+    --_tone-l-rest: 0.45;
+    --_tone-l-hover: 0.5;
+    --_tone-l-active: 0.57;
   }
 
-  /* Size variants — dimensional, so they stay as literal values (per the
-     trimmed token policy). The box and glyph track together. */
+  /* Size variants — only the box and gap resize; label stays constant. */
   a-checkbox[size="small"] {
     --checkbox-gap: 6px;
-    font-size: 13px;
-    line-height: 16px;
   }
   a-checkbox[size="small"]::before,
   a-checkbox[size="small"]::after {
@@ -286,10 +309,6 @@
   }
   a-checkbox[size="small"]::after { -webkit-mask-size: 12px; mask-size: 12px; }
 
-  a-checkbox[size="large"] {
-    font-size: 17px;
-    line-height: 24px;
-  }
   a-checkbox[size="large"]::before,
   a-checkbox[size="large"]::after {
     inline-size: 20px;
