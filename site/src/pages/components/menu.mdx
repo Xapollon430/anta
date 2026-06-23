@@ -423,6 +423,25 @@ While open, the menu keeps Tab focus contained. Open the trigger with `Enter` /
 - **Tab / Shift+Tab** — cycle through the focusables *inside* the menu — items **and** any nested controls (a slider, an input, a button) — wrapping at the ends so focus stays in the open menu. Arrow keys hand off to a nested control once it's focused
 - **Esc** — close the topmost menu and return focus to its parent item or trigger
 
+## Controlled vs Uncontrolled
+
+Open state follows Anta's shared **state contract**. By default the menu is
+*uncontrolled* — its triggers (click / right-click / `.open()`) own open/close,
+so there's no prop to set. Pass `open` to *control* it: visibility follows the
+prop, and a user dismiss only *requests* a change. The `<Menu>` wrapper takes a
+boolean; the `<a-menu>` element takes a `state` string enum:
+
+| | `<Menu>` (JSX) | `<a-menu>` (element) |
+|---|---|---|
+| **Uncontrolled** (default) — triggers own it | *(no prop)* | *(no `state` attribute)* |
+| **Controlled** — you own it | `open` + `onStateChange` | `state="open" \| "closed"` + `statechange` |
+| **Change event** | `onStateChange(event, { next, prev })` — `next` / `prev` are **booleans** | `statechange`, a `CustomEvent<{ next, prev }>` — `'open'` / `'closed'` (plus `coord` / `originEvent`) |
+
+`statechange` is **cancelable** and fires *before* the menu moves. Uncontrolled,
+call `event.preventDefault()` to keep the menu as-is (e.g. block a dismiss).
+Controlled, the menu never self-moves — apply `detail.next` to `open` to accept,
+or do nothing to reject. (Submenus are always uncontrolled, regardless of `open`.)
+
 <Disclosure title="Menu props">
 
 <PropsTable component="Menu" />
