@@ -389,23 +389,16 @@ function controlFor(p: any): PropEntry | null {
       // `tone` gets a richer control: named-tone tabs + a "custom" tab with a
       // color input. Any other open-string union stays a plain text input.
       if (name === 'tone') {
-        // typedoc/TS doesn't reliably preserve the source order of a literal
-        // union (identical tone unions get a shared canonical internal order,
-        // so e.g. Tag's source order isn't what lands in api.json). Present
-        // the tones in one fixed order across every component's playground.
-        const TONE_ORDER = ['neutral', 'brand', 'critical', 'info', 'success', 'warning']
-        const rank = (t: string) => {
-          const i = TONE_ORDER.indexOf(t)
-          return i < 0 ? TONE_ORDER.length : i
-        }
-        const options = literals
-          .map((x: any) => String(x.value))
-          .sort((a: string, b: string) => rank(a) - rank(b))
+        // Tone order follows the source declaration. TS canonicalizes union
+        // members into an arbitrary internal order, so the `union-source-order`
+        // typedoc plugin reorders them in api.json back to how they're written
+        // in the type — meaning these literals already arrive in source order
+        // and need no sorting here.
         return wrap(
           {
             kind: 'tone',
             name,
-            options,
+            options: literals.map((x: any) => String(x.value)),
             defaultValue: readDefaultValueTag(p.comment),
             description,
           },

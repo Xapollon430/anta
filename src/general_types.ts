@@ -78,7 +78,7 @@ export interface ATextAttributes extends BaseAttributes {
   /** Visual priority. Maps to text-1..text-5. */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
-  tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
+  tone?: 'brand' | 'info' | 'success' | 'warning' | 'critical'
   /** Type scale. `small` = 13/16, `medium` (default) = 15/20, `large` = 17/24. */
   size?: 'small' | 'medium' | 'large'
   /** Render as inline-block instead of the default block. */
@@ -108,7 +108,7 @@ export interface ATitleAttributes extends BaseAttributes {
   /** Visual priority. Maps to text-1..text-5. */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
-  tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
+  tone?: 'brand' | 'info' | 'success' | 'warning' | 'critical'
   /** ARIA role — the JSX wrapper sets this to `'heading'`. */
   role?: string
   /** ARIA heading level — the JSX wrapper sets this to match `level`. */
@@ -126,7 +126,7 @@ export interface ATagAttributes extends BaseAttributes {
    *  Tones tint a per-tone hue; a custom color keeps its hue with
    *  lightness/chroma pinned. `'neutral'` is the default gray (same as
    *  omitting it). */
-  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning' | (string & {})
+  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Emphasis level. `secondary` (default) is the subtle alpha-tint fill;
    *  `primary` is a solid fill with white text; `tertiary` is a transparent
    *  outline. */
@@ -247,10 +247,10 @@ export interface AButtonAttributes extends BaseAttributes {
   tone?:
     | 'neutral'
     | 'brand'
-    | 'critical'
     | 'info'
     | 'success'
     | 'warning'
+    | 'critical'
     | (string & {})
   /** Underline style. Only renders on `priority="tertiary" | "quaternary"`. */
   underline?: 'solid' | 'dashed' | 'dotted'

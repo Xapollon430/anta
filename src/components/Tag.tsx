@@ -19,7 +19,7 @@ export interface TagProps extends BaseProps {
    *  way, with the text deepened to a readable foreground. `'neutral'` (the
    *  default) is the gray tag — the same as omitting `tone`.
    *  @defaultValue neutral */
-  tone?: 'neutral' | 'brand' | 'critical' | 'info' | 'success' | 'warning' | (string & {})
+  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Emphasis level. `secondary` (the default) is the subtle alpha-tint
    *  fill; `primary` is a solid fill with white text; `tertiary` is a
    *  transparent outline. Omitting it (or passing `'secondary'`) renders

@@ -10,7 +10,7 @@ export interface TitleProps extends BaseProps {
    *  @defaultValue primary */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
-  tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
+  tone?: 'brand' | 'info' | 'success' | 'warning' | 'critical'
 }
 
 /**
