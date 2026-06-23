@@ -70,7 +70,7 @@ Pass the label as `children` or the `label` prop. Add a `hint` for a secondary l
   <Checkbox label="Email notifications" hint="Weekly digest, never marketing." />
 </Preview>
 
-```tsx
+```tsx folded
 <Checkbox label="Email notifications" hint="Weekly digest, never marketing." />
 <Checkbox aria-label="Select all rows" />
 ```
@@ -116,7 +116,7 @@ Use tones for semantic meaning: `brand` (default), `neutral`, `info`, `success`,
 
 Uncontrolled by default: pass `defaultChecked` and read the value from `onStateChange` or at form-submit. Make it controlled with `checked` and `onStateChange` to drive it from your store.
 
-```tsx
+```tsx folded
 const [agreed, setAgreed] = useState(false)
 
 <Checkbox
@@ -137,7 +137,7 @@ Set `checked="indeterminate"` to show the "mixed" state (minus glyph). Common fo
   <SelectAllDemo client:visible />
 </Preview>
 
-```tsx
+```tsx folded
 function ParentChild() {
   const [on, setOn] = useState([true, false])
   return (
