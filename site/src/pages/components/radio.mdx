@@ -1,0 +1,189 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Radio
+---
+import Playground from '../../components/Playground'
+import Preview from '../../components/Preview.astro'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
+import Columns from '../../components/Columns.astro'
+import Col from '../../components/Col.astro'
+import radioDemoCode from './radio.demo.ts'
+import { RadioGroup, Radio, Icon } from '@antadesign/anta'
+
+# Radio
+
+A single option within a [`RadioGroup`](/components/radio-group/). `Radio` renders
+an `<a-radio>` web component — the circle plus a label. It's presentational: the
+enclosing `RadioGroup` owns selection, keyboard navigation, and the form value,
+so a `Radio` is only interactive inside one.
+
+<Disclosure title="Playground" anchor={false} brand>
+
+<Playground
+  client:visible
+  component="Radio"
+  layout="side"
+  panelHeight={400}
+  initialCode={radioDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: center; justify-content: center; }`}
+/>
+
+</Disclosure>
+
+## Label
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup name="label-demo" defaultValue="text">
+    <Radio value="text">Plain text label</Radio>
+    <Radio value="rich">
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        With an icon <Icon shape="info" size={15} />
+      </span>
+    </Radio>
+  </RadioGroup>
+</Preview>
+
+```tsx folded
+<Radio value="text">Plain text label</Radio>
+<Radio value="rich">
+  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+    With an icon <Icon shape="info" size={15} />
+  </span>
+</Radio>
+```
+
+</Col>
+<Col>
+
+The label is `children` — plain text, or any nodes. The Figma slot allows extra
+elements alongside the text (e.g. an info `Icon` with a `Tooltip`), so the label
+isn't limited to a string.
+
+</Col>
+</Columns>
+
+## Per-option tone & size
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup name="override" defaultValue="a">
+    <Radio value="a">Inherits the group</Radio>
+    <Radio value="b" tone="neutral">Overrides to neutral</Radio>
+    <Radio value="c" size="large">Overrides to large</Radio>
+  </RadioGroup>
+</Preview>
+
+```tsx folded
+<RadioGroup defaultValue="a">             {/* brand, medium */}
+  <Radio value="a">Inherits the group</Radio>
+  <Radio value="b" tone="neutral">Overrides to neutral</Radio>
+  <Radio value="c" size="large">Overrides to large</Radio>
+</RadioGroup>
+```
+
+</Col>
+<Col>
+
+`tone` and `size` default to whatever the `RadioGroup` sets (or `brand` /
+`medium`). Set them on an individual `Radio` to override just that option — handy
+for calling out one choice.
+
+</Col>
+</Columns>
+
+## Disabled
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup name="dis-one" defaultValue="a">
+    <Radio value="a">Available</Radio>
+    <Radio value="b" disabled>Unavailable</Radio>
+  </RadioGroup>
+</Preview>
+
+```tsx folded
+<Radio value="b" disabled>Unavailable</Radio>
+```
+
+</Col>
+<Col>
+
+`disabled` on a `Radio` greys out that single option and removes it from keyboard
+navigation. To disable the whole set, put `disabled` on the
+[`RadioGroup`](/components/radio-group/) instead.
+
+</Col>
+</Columns>
+
+## Targeting the selected state
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup name="state-demo" defaultValue="b">
+    <Radio value="a" className="selected-bold">First option</Radio>
+    <Radio value="b" className="selected-bold">Second option</Radio>
+    <Radio value="c" className="selected-bold">Third option</Radio>
+  </RadioGroup>
+  <style is:inline>{`
+    a-radio.selected-bold:state(selected) { font-weight: 600; }
+    a-radio.selected-bold[selected]      { font-weight: 600; }
+  `}</style>
+</Preview>
+
+```css
+a-radio:state(selected) { font-weight: 600; }
+a-radio[selected]       { font-weight: 600; }  /* vanilla-HTML fallback */
+```
+
+</Col>
+<Col>
+
+The selected look is keyed off an `ElementInternals` custom state, exposed to
+CSS as `:state(selected)` — so external rules can hang any styling off it
+(weight changes, decorations, custom borders, animations). The `[selected]`
+attribute selector matches the same thing for hand-authored `<a-radio selected>`
+markup, where the group hasn't set the internal state.
+
+The `.selected-bold` class here is just to scope the rule to this demo — in
+your own code, you'd swap it for whatever selector you want.
+
+</Col>
+</Columns>
+
+<Disclosure title="Component props" open>
+
+<PropsTable component="Radio" />
+
+</Disclosure>
+
+<Disclosure title="Component tokens" open>
+
+Override any of these on a single `<a-radio>` instance
+(`style={{ '--radio-control-size': '22px' }}`) or on a selector wrapping it.
+
+| Token | Description |
+|---|---|
+| `--radio-control-size` | Diameter of the circle (16 / 18 / 20px per `size`). |
+| `--radio-dot-size` | Diameter of the selected centre dot. |
+| `--radio-gap` | Space between the circle and the label. |
+| `--radio-border-width` | Ring thickness. |
+| `--radio-bg` | Unselected fill. |
+| `--radio-border`<br />`--radio-border-hover`<br />`--radio-border-active` | Ring colour, per interaction state. |
+| `--radio-bg-checked`<br />`--radio-bg-checked-hover`<br />`--radio-bg-checked-active` | Selected fill, per interaction state (re-pointed by `tone`). |
+| `--radio-selected-border-hover`<br />`--radio-selected-border-active` | Ring colour while selected. |
+| `--radio-dot` | Centre-dot colour. |
+| `--radio-focus` | Focus-ring colour. |
+| `--radio-bg-disabled`<br />`--radio-border-disabled`<br />`--radio-fg-disabled` | Disabled palette. |
+
+</Disclosure>

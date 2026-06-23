@@ -6,6 +6,16 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## Unreleased
+
+### Added
+- **New `Radio` / `RadioGroup` components** (`<a-radio>` / `<a-radio-group>`) — a single-select radio control, anta's first form-associated element. `RadioGroup` coordinates a set of `Radio` options: exactly one selected at a time, with arrow-key navigation and roving tabindex. Registered via the `@antadesign/anta/elements` barrel.
+  - **State** — controlled (`value` + `onChange`) or uncontrolled (`defaultValue`), mirroring `Expander`. All selection state lives in `<a-radio-group>`, so the wrappers stay stateless and the elements work in plain HTML / any framework.
+  - **Forms** — `<a-radio-group>` is a form-associated custom element: give it a `name` and the selected option's `value` submits with a wrapping `<form>` like a native radio group.
+  - **Variants** — `tone` (`brand` default / `neutral`) and `size` (`small` / `medium` default / `large`) set on the group cascade to every option (a `Radio` can override its own); `orientation` (`vertical` default / `horizontal`) sets the layout + arrow-key axis; `disabled` on a `Radio` or the whole `RadioGroup`.
+  - **Styling hooks** — `--radio-*` tokens (control size, ring/fill colours per state, focus, disabled palette) and the selected look exposed via the `:state(selected)` custom state and `::part(control)`.
+  - **Note** — ARIA roles (`role="radio"` / `aria-checked`) are not yet wired; keyboard operation and form submission already work. A later pass adds ARIA.
+
 ## 0.2.3 — June 18, 2026
 
 ### Added
