@@ -1033,7 +1033,7 @@ function FieldControl({
               onClick={() => onChange(isCustom ? (v as string) : '#ff1493')}
               disabled={disabled}
             >
-              Custom
+              custom
             </button>
           </div>
           {isCustom && (
