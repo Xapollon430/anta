@@ -19,6 +19,10 @@ export { AIconElement, register_a_icon } from './a-icon'
 export { AButtonElement, register_a_button } from './a-button'
 export { AExpanderElement, register_a_expander } from './a-expander'
 export { ATooltipElement, register_a_tooltip } from './a-tooltip'
+export { AMenuElement, register_a_menu } from './a-menu'
+export { AMenuItemElement, register_a_menu_item } from './a-menu-item'
+export { AMenuSeparatorElement, register_a_menu_separator } from './a-menu-separator'
+export { AMenuGroupElement, register_a_menu_group } from './a-menu-group'
 
 // `a-title` and `a-tag` are CSS-only styled tags (no JS / no element
 // module), so their styles can't ride along on a module import — load

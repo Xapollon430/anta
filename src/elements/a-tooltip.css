@@ -1,20 +1,8 @@
 @layer anta {
-  /* Before the custom element upgrades on the client, <a-tooltip> is an
-     unknown inline element and its content would flash *inside the anchor*.
-     Hide it until defined; once defined this stops matching and the shadow
-     `:host { display: contents }` governs (content renders only in the
-     popover via the slot). */
   a-tooltip:not(:defined) {
     display: none;
   }
 
-  /* On touch devices, an anchor that owns a tooltip suppresses the long-press
-     text-selection and the iOS callout, so press-and-hold cleanly reveals the
-     bubble (see the long-press handling in a-tooltip.ts) instead of selecting
-     text or popping the system menu. Scoped to coarse/no-hover pointers, so
-     fine-pointer devices keep normal text selection. The anchor is always
-     <a-tooltip>'s direct parent (set in connectedCallback), so `:has(> …)`
-     targets exactly it; `:where()` keeps specificity at 0 for easy override. */
   @media (hover: none) and (pointer: coarse) {
     :where(:has(> a-tooltip)) {
       -webkit-touch-callout: none;
@@ -22,37 +10,19 @@
     }
   }
 
-  /* Tooltip exposes only the box "chrome" that lives inside the shadow
-     popover and is therefore impossible to reach with plain consumer CSS.
-     The bubble's content is slotted light DOM, so its font / colour / size
-     are already styleable from the page — those are intentionally NOT
-     tokens. These custom properties inherit across the shadow boundary
-     into the popover container (see a-tooltip.ts). The host itself draws
-     nothing and stays out of layout (`:host { display: contents }` in the
-     shadow style). */
   a-tooltip {
-    /* Frosted translucent surface (matches the legacy look): a mostly-
-       opaque white that, paired with the container's `backdrop-filter:
-       blur(8px)`, reads as a frosted bubble over the page. --bg-1 is
-       #ffffff in light / #000000 in dark, so this flips to a dark frost
-       automatically (alpha is dialed down in the .dark override). */
     --tooltip-bg: color-mix(in oklch, var(--bg-1) 80%, transparent);
     --tooltip-shadow:
       0 1px 8px color-mix(in oklch, var(--text-1) 15%, transparent),
       0 0 1px color-mix(in oklch, var(--text-1) 50%, transparent);
     --tooltip-radius: 3px;
     --tooltip-max-width: min(calc(100vw - 20px), 80ch);
-    /* No real border by default — the hairline edge comes from --tooltip-shadow.
-       Set e.g. `1px solid var(--border-5)` for an actual border. */
+
     --tooltip-border: none;
-    /* The frost. Set to `none` (with --tooltip-bg: transparent) for a fully
-       see-through bubble. */
+
     --tooltip-backdrop-filter: blur(8px);
   }
 
-  /* Dark: a slightly more transparent black frost. A solid black cast shadow
-     for lift, plus an inset 1px white ring so the bubble's edge stays crisp
-     against dark page content. */
   .dark a-tooltip {
     --tooltip-bg: color-mix(in oklch, var(--bg-1) 70%, transparent);
     --tooltip-shadow:

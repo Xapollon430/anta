@@ -203,3 +203,17 @@ To use the Antithesis fonts, register your own `@font-face` declarations and ove
   --monospace: "Antithesis mono", monospace;
 }
 ```
+
+## Browser support
+
+Anta targets evergreen browsers and ships **no polyfills and no feature detection** for its baseline. The floor is set by the [Popover API](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API) (used by `<a-menu>` and `<a-tooltip>` for top-layer rendering):
+
+| Browser | Minimum version |
+| --- | --- |
+| Chrome / Edge | 114 (May 2023) |
+| Safari | 17 (Sep 2023) |
+| Firefox | 125 (Apr 2024) |
+
+This corresponds roughly to [Baseline 2024](https://web.dev/baseline). Within that floor, anta freely relies on: `popover` / `showPopover()` / `:popover-open`, `color-mix(in oklch, …)` and relative `oklch(from …)` colors, `:has()`, `dvh` units, CSS cascade layers, and constructable shadow DOM. On an older browser these fail hard (e.g. `showPopover()` throws) — there is no degraded mode by design; gate anta usage on your own support matrix instead.
+
+Two features are used as **progressive enhancement** with explicit fallbacks: `checkVisibility()` (falls back to `getClientRects()`), and CSS typed `attr()` for `<a-icon size>` (Chrome 133+ / Safari 18.2+; elsewhere use the `<Icon size>` wrapper or the `--icon-size` variable, see the `a-icon` docs).

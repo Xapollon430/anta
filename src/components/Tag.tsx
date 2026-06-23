@@ -56,6 +56,32 @@ export interface TagProps extends BaseProps {
  * Requires `@antadesign/anta/elements` to be imported (client-side only)
  * so the CSS ships with the page.
  *
+ * Styling notes (`a-tag.css` ships comment-free):
+ * - Sizing is intrinsic — no fixed height, like `<a-button>`: height falls
+ *   out of `line-height` + `padding-block` + the 0.5px border (the base
+ *   1.5px block padding compensates the half-pixel border to keep the pill
+ *   at 20px), so text is never clipped and the padding tokens can be
+ *   retuned freely. An edge icon trims ~2px off its side's padding
+ *   (optical), and icons scale to `--tag-icon-size`.
+ * - Color comes from the theme-aware semantic tokens, so named tones need
+ *   no `.dark` rules; the hairline border and the segment divider both
+ *   derive from `--tag-text`, so every tone gets a matching edge. A lone
+ *   `label` is dropped into `<a-tag-value>` by this wrapper so it keeps the
+ *   default weight; `<a-tag-label>` only renders as the bold key before a
+ *   value (weight contrast does the separating — no divider).
+ * - Segmented children: raw children (not the structured label/value/icon
+ *   elements) get a hairline left border per segment after the first; the
+ *   flex `gap` sits left of the border and `padding-left` balances it.
+ * - Custom tones (any non-named `tone`) keep the source hue with
+ *   lightness/chroma pinned via oklch relative color; the `--_tag-*` knobs
+ *   are the only numbers to tune and the `.dark` block re-tunes them. The
+ *   wrapper writes `--tag-tone-source` inline; a typed `attr()` fallback
+ *   picks up raw `<a-tag tone="…">` on Chrome 133+/Safari 18.2+.
+ * - `nocaps` drops the uppercase transform and tightens tracking to the
+ *   body-text 0.02ch (uppercase needs 0.08ch); tabular figures + `ss05`
+ *   stay on. Large + nocaps bumps to 13px, keeping the same +1px
+ *   over-uppercase relationship medium has, with height unchanged.
+ *
  * @example Basic usage
  * ```tsx
  * <Tag tone="success" label="Running" />
