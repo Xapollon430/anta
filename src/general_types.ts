@@ -254,15 +254,19 @@ export interface AMenuAttributes extends BaseAttributes {
   hover?: boolean | ''
   /** Gap in pixels between the trigger and the menu. Defaults to 4. */
   offset?: number | string
-  /** Controlled open state. Omit for uncontrolled; `'opened'` / `'closed'`
-   *  makes visibility follow this value (string, to avoid a `"false"` footgun).
-   *  The element never writes it — the consumer owns it. Listen to the
-   *  `openchange` event to keep it in sync. */
-  state?: 'opened' | 'closed'
-  /** Open-state change event. All-lowercase so React/Preact bind it to the
-   *  element's `openchange` CustomEvent. The `Menu` wrapper exposes this as the
-   *  `onOpenChange` prop. */
-  onopenchange?: (e: CustomEvent<{ open: boolean }>) => void
+  /** Controlled open state (`'open'` / `'closed'`). Omit for uncontrolled;
+   *  present → visibility follows this value, and the element never writes it
+   *  (the consumer owns it). Listen to `statechange` to keep it in sync. See
+   *  STATEFUL-COMPONENTS.md. */
+  state?: 'open' | 'closed'
+  /** State-change event — `cancelable`, fired before applying, with
+   *  `detail: { next, prev }` in the `'open'|'closed'` vocabulary (plus optional
+   *  `coord` / `originEvent`). All-lowercase so React/Preact bind it to the
+   *  element's `statechange` CustomEvent. The `Menu` wrapper exposes this as the
+   *  `onStateChange` prop. */
+  onstatechange?: (
+    e: CustomEvent<{ next: 'open' | 'closed'; prev: 'open' | 'closed' }>,
+  ) => void
   /** ARIA role — the JSX wrapper sets this to `'menu'`. */
   role?: string
   'aria-orientation'?: 'vertical' | 'horizontal'

@@ -14,12 +14,16 @@ const TYPEAHEAD_RESET = 500
 
 type Placement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
 
-/** `openchange` event detail. `open` is the NEW state (boolean); `previousState`
- *  is the OLD state in the same `opened`/`closed` vocabulary as the `state`
- *  attribute, so a handler reads: `setState(e.detail.open ? 'opened' : 'closed')`. */
-type OpenChangeDetail = {
-  open: boolean
-  previousState: 'opened' | 'closed'
+/** `statechange` event detail (see STATEFUL-COMPONENTS.md). `next` is the
+ *  requested state, `prev` the current one — both in the `'open'|'closed'`
+ *  vocabulary of the `state` attribute, so a controlled handler reads
+ *  `setState(e.detail.next)`. `coord` (computed context placement) and
+ *  `originEvent` (what triggered it) are derived results the caller can't
+ *  recompute, so they belong in the payload. */
+type MenuState = 'open' | 'closed'
+type StateChangeDetail = {
+  next: MenuState
+  prev: MenuState
   coord?: [number, number]
   originEvent?: Event
 }
@@ -115,24 +119,26 @@ function onDocKeyDown(e: KeyboardEvent) {
 }
 
 /** Dismiss the open system (outside-click / scroll / resize). Routed through
- *  the root's `requestClose`, so it emits `openchange` and respects a
+ *  the root's `requestClose`, so it emits `statechange` and respects a
  *  controlled root (which stays open until the consumer flips `state`). */
 function dismiss(originEvent?: Event) {
   openStack[0]?.requestClose(originEvent)
 }
 
-/** Force-close the whole stack, top-down, emitting `openchange` for each menu
+/** Force-close the whole stack, top-down, emitting `statechange` for each menu
  *  that was open. Used when a fresh root menu takes over (a hard replace) —
  *  the backstop for the "at most one menu system on screen" invariant. A
  *  controlled menu is force-hidden too: its polite, controlled-respecting
  *  dismissal already happened via the outside-pointerdown path (see
- *  `_dismissNotified`, which keeps it from receiving `openchange` twice). A
- *  consumer who ignores `openchange` ends with `state="opened"` but a hidden
- *  menu — the same misuse class as ignoring `onChange` on a controlled input. */
+ *  `_dismissNotified`, which keeps it from receiving `statechange` twice). A
+ *  consumer who ignores `statechange` ends with `state="open"` but a hidden
+ *  menu — the same misuse class as ignoring `onChange` on a controlled input.
+ *  This is a force-close backstop, so the emit is notify-only (the veto result
+ *  is ignored). */
 function closeAll() {
   for (let i = openStack.length - 1; i >= 0; i--) {
     const m = openStack[i]
-    if (m.isOpen && !m._dismissNotified) m.emitChange(false)
+    if (m.isOpen && !m._dismissNotified) m.emitChange('closed')
     m._doHide()
   }
   openStack.length = 0
@@ -191,7 +197,7 @@ export class AMenuElement extends HTMLElementBase {
   private _shown = false
   private teardown?: () => void
 
-  /** A controlled menu was told to dismiss (it emitted `openchange(false)`)
+  /** A controlled menu was told to dismiss (it emitted `statechange→'closed'`)
    *  but stays visible until the consumer flips `state`. The flag lets the
    *  `closeAll` backstop skip a duplicate emit. Cleared on every show. */
   _dismissNotified = false
@@ -280,14 +286,14 @@ export class AMenuElement extends HTMLElementBase {
       anchorToMenu.set(anchor, this)
       lazyObserver?.observe(anchor)
     }
-    // Apply an initial controlled state (e.g. <a-menu state="opened">) once
+    // Apply an initial controlled state (e.g. <a-menu state="open">) once
     // connected — attributeChangedCallback may have fired before this during
     // upgrade, when the anchor / layout weren't ready yet.
     if (this.hasAttribute('state')) requestAnimationFrame(() => this.syncState())
   }
 
   disconnectedCallback() {
-    // Silent teardown — don't emit `openchange` for an element being removed.
+    // Silent teardown — don't emit `statechange` for an element being removed.
     this.hide()
     this.teardownListeners()
     this.cancelOpenTimer()
@@ -301,7 +307,7 @@ export class AMenuElement extends HTMLElementBase {
 
   attributeChangedCallback(name: string) {
     // `state` is the controlled lever: reflect it into visibility, SILENTLY
-    // (no `openchange` — the consumer set it, so re-emitting would just echo
+    // (no `statechange` — the consumer set it, so re-emitting would just echo
     // back into their own handler; that silence is what prevents a loop).
     if (name === 'state') {
       this.syncState()
@@ -319,7 +325,7 @@ export class AMenuElement extends HTMLElementBase {
   private syncState() {
     if (!this.isConnected) return // initial state is applied from connectedCallback
     const v = this.getAttribute('state')
-    if (v === 'opened' && !this._shown) this.show()
+    if (v === 'open' && !this._shown) this.show()
     else if (v === 'closed' && this._shown) this.hide()
   }
 
@@ -415,7 +421,7 @@ export class AMenuElement extends HTMLElementBase {
   /* ============================ open / close ============================ */
 
   /** Public imperative API. Routes through the same intent path as the
-   *  triggers, so it emits `openchange` and respects controlled mode. */
+   *  triggers, so it emits `statechange` and respects controlled mode. */
   open(opts?: { coord?: [number, number]; viaKeyboard?: boolean; originEvent?: Event }) {
     this.requestOpen(opts)
   }
@@ -427,13 +433,16 @@ export class AMenuElement extends HTMLElementBase {
     else this.requestOpen(opts)
   }
 
-  /** Dispatch the single `openchange` event (new state + old state). */
-  emitChange(next: boolean, opts?: { coord?: [number, number]; originEvent?: Event }) {
-    this.dispatchEvent(
-      new CustomEvent<OpenChangeDetail>('openchange', {
+  /** Dispatch the single `statechange` event (requested + previous state),
+   *  `cancelable` and *before* applying. Returns `false` if a handler vetoed it
+   *  via `preventDefault()` — the uncontrolled veto (see requestOpen/Close). */
+  emitChange(next: MenuState, opts?: { coord?: [number, number]; originEvent?: Event }): boolean {
+    return this.dispatchEvent(
+      new CustomEvent<StateChangeDetail>('statechange', {
+        cancelable: true,
         detail: {
-          open: next,
-          previousState: this._shown ? 'opened' : 'closed',
+          next,
+          prev: this._shown ? 'open' : 'closed',
           coord: opts?.coord,
           originEvent: opts?.originEvent,
         },
@@ -441,24 +450,29 @@ export class AMenuElement extends HTMLElementBase {
     )
   }
 
-  /** Intent to open (trigger / method / keyboard). Emits `openchange`; applies
-   *  the visibility itself ONLY when uncontrolled — a controlled menu waits for
-   *  the consumer to flip `state` (strict). */
+  /** Intent to open (trigger / method / keyboard). Emits the cancelable
+   *  `statechange`; applies the visibility itself ONLY when uncontrolled and
+   *  not vetoed — a controlled menu waits for the consumer to flip `state`. */
   requestOpen(opts?: { coord?: [number, number]; viaKeyboard?: boolean; originEvent?: Event }) {
     if (this._shown) {
       this.show(opts?.coord, opts?.viaKeyboard, opts?.originEvent) // reposition
       return
     }
-    this.emitChange(true, opts)
-    if (!this.isControlled) this.show(opts?.coord, opts?.viaKeyboard, opts?.originEvent)
+    const ok = this.emitChange('open', opts)
+    if (this.isControlled) return
+    if (ok) this.show(opts?.coord, opts?.viaKeyboard, opts?.originEvent)
   }
 
-  /** Intent to close. Emits `openchange`; hides itself only when uncontrolled. */
+  /** Intent to close. Emits the cancelable `statechange`; hides itself only when
+   *  uncontrolled and not vetoed. */
   requestClose(originEvent?: Event) {
     if (!this._shown) return
-    this.emitChange(false, { originEvent })
-    if (!this.isControlled) this.hide()
-    else this._dismissNotified = true
+    const ok = this.emitChange('closed', { originEvent })
+    if (this.isControlled) {
+      this._dismissNotified = true
+      return
+    }
+    if (ok) this.hide()
   }
 
   /** Apply OPEN to the DOM (no event) — used by uncontrolled intent and by the

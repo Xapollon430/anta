@@ -23,33 +23,45 @@ export interface MenuProps extends BaseProps {
    *  @defaultValue 4 */
   offset?: number
   /** Controlled open state. Omit for the default **uncontrolled** menu (it
-   *  opens/closes itself). Pass `'opened'` / `'closed'` to **control** it: the
-   *  menu's visibility follows this value, and user dismiss (Esc, outside-click,
-   *  select) fires `openchange` *without* self-closing — you update `state` in
-   *  response. A string (not a boolean) so there's no `"false"`-as-truthy
-   *  footgun. Submenus are always uncontrolled regardless of this. */
-  state?: 'opened' | 'closed'
-  /** Fired whenever the open state changes — on open, and on every dismiss
-   *  (Esc, outside-click, scroll, selecting an item). `open` is the new state.
-   *  This is the declarative way to observe a menu, and the handler you pair
-   *  with `state` to drive a controlled menu (flip `state` in response). */
-  onOpenChange?: (open: boolean) => void
+   *  opens/closes itself via its triggers). Pass a boolean to **control** it:
+   *  the menu's visibility follows `open`, and user dismiss (Esc, outside-click,
+   *  select) fires `onStateChange` *without* self-closing — you update `open`
+   *  in response. Submenus are always uncontrolled regardless of this. See
+   *  STATEFUL-COMPONENTS.md. */
+  open?: boolean
+  /** Fired before the open state changes — on open, and on every dismiss (Esc,
+   *  outside-click, scroll, selecting an item). `event` is the cancelable
+   *  `statechange`; `detail.next`/`detail.prev` are the requested/previous open
+   *  state (booleans). It's the declarative way to observe a menu, and the
+   *  handler you pair with `open` to drive a controlled menu (apply
+   *  `detail.next` to `open`). Uncontrolled, `event.preventDefault()` vetoes the
+   *  transition (e.g. keep the menu open). */
+  onStateChange?: (
+    event: CustomEvent,
+    detail: { next: boolean; prev: boolean },
+  ) => void
   /** The menu's contents: `MenuItem`, `MenuSeparator`, `MenuGroup`, or any
    *  custom element. */
   children?: React.ReactNode
 }
 
-/** The element's `openchange` event payload. */
-type OpenChangeEvent = CustomEvent<{ open: boolean }>
+/** The element's `statechange` payload, in the `'open'|'closed'` vocabulary. */
+type StateChangeDetail = { next: 'open' | 'closed'; prev: 'open' | 'closed' }
+type StateChangeEvent =
+  | CustomEvent<StateChangeDetail>
+  | { nativeEvent: CustomEvent<StateChangeDetail> }
 
-/** Pull the new open state out of the element's `openchange` event, across
- *  renderers: a raw `CustomEvent` carries `detail` directly; a synthetic
- *  wrapper carries it on `nativeEvent.detail`. */
-function openChanged(e: OpenChangeEvent | { nativeEvent: OpenChangeEvent }): boolean {
-  const detail =
-    ('nativeEvent' in e ? e.nativeEvent?.detail : undefined) ??
-    ('detail' in e ? e.detail : undefined)
-  return !!detail?.open
+/** Resolve the *native* `statechange` event across renderers: it's `e` directly
+ *  (vanilla / React 19 / Preact bind a native listener for custom events) or
+ *  `e.nativeEvent` behind a synthetic wrapper. Returning the native event is
+ *  what lets a consumer's `preventDefault()` reach the element's `dispatchEvent`
+ *  return and actually veto the transition. */
+function nativeStateChange(e: StateChangeEvent): {
+  event: CustomEvent<StateChangeDetail>
+  detail?: StateChangeDetail
+} {
+  const event = ('nativeEvent' in e ? e.nativeEvent : e) as CustomEvent<StateChangeDetail>
+  return { event, detail: event?.detail }
 }
 
 /**
@@ -58,9 +70,9 @@ function openChanged(e: OpenChangeEvent | { nativeEvent: OpenChangeEvent }): boo
  * say); it opens on click by default. For a whole-area right-click menu, put
  * it after the region and pass `context`.
  *
- * Open state is uncontrolled by default — listen for the `openchange` event
- * (`detail: { open, previousState }`) to observe it, or pass `state` to control
- * it. You can also grab a `ref` and call `.open()` / `.close()` / `.toggle()`.
+ * Open state is uncontrolled by default — listen for `onStateChange`
+ * (`detail: { next, prev }`) to observe it, or pass `open` to control it. You
+ * can also grab a `ref` and call `.open()` / `.close()` / `.toggle()`.
  * Selecting a `MenuItem` closes the menu;
  * arbitrary injected content does not. Add `data-menu-open` to any item /
  * container to keep it open, or `data-menu-close` to a custom element to let it
@@ -85,8 +97,8 @@ export const Menu = ({
   submenu,
   hover,
   offset,
-  state,
-  onOpenChange,
+  open,
+  onStateChange,
   className,
   children,
   ...rest
@@ -100,12 +112,23 @@ export const Menu = ({
       submenu={submenu ? '' : undefined}
       hover={hover ? '' : undefined}
       offset={offset != null ? String(offset) : undefined}
-      // Controlled lever — string ('opened'/'closed'); omit ⇒ uncontrolled.
-      state={state}
-      // All-lowercase `onopenchange` is the one event-prop spelling both React
+      // Controlled lever — boolean prop → 'open'/'closed' enum; omit ⇒ uncontrolled.
+      state={open === undefined ? undefined : open ? 'open' : 'closed'}
+      // All-lowercase `onstatechange` is the one event-prop spelling both React
       // and Preact bind to a custom element's custom event (they lowercase
-      // whatever follows `on`, so `onOpenChange` would listen for "OpenChange").
-      onopenchange={onOpenChange ? (e: OpenChangeEvent) => onOpenChange(openChanged(e)) : undefined}
+      // whatever follows `on`, so `onStateChange` would listen for "StateChange").
+      onstatechange={
+        onStateChange
+          ? (e: StateChangeEvent) => {
+              const { event, detail } = nativeStateChange(e)
+              if (detail)
+                onStateChange(event, {
+                  next: detail.next === 'open',
+                  prev: detail.prev === 'open',
+                })
+            }
+          : undefined
+      }
       role="menu"
       aria-orientation="vertical"
       class={className}
