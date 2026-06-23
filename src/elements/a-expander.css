@@ -10,6 +10,12 @@
 
     --expander-bg: var(--expander-bg-secondary);
     --expander-border: var(--expander-border-secondary);
+    /* Closed-only hover lightens the current surface in place: an oklch lightness
+       bump that keeps hue + chroma, so it works for every priority and tone, in
+       light and dark, with no precomputed targets (lighten = higher L in both
+       modes; a transparent surface keeps zero alpha). Tune the amount here. */
+    --expander-bg-hover-lift: 0.01;
+    --expander-bg-hover: oklch(from var(--expander-bg) calc(l + var(--expander-bg-hover-lift)) c h);
 
     /* The single gutter that the title inset, the body inset, AND the chevron
        position all derive from (see a-expander.ts). The chevron sits absolutely
@@ -32,6 +38,8 @@
 
     color: var(--expander-text);
     background: var(--expander-bg);
+    /* Smooth the closed-state hover/active surface change. */
+    transition: background-color 100ms ease;
   }
 
   a-expander-summary {
@@ -68,6 +76,17 @@
   a-expander[priority="tertiary"] {
     --expander-bg: transparent;
     --expander-border: transparent;
+  }
+
+  /* Closed + enabled: lighten on hover, then snap back to the base surface while
+     pressed so the background is already correct as the region expands. Gated on
+     `:not(:state(open))` so an open expander has no surface hover. (A transparent
+     tertiary surface stays transparent — the oklch bump preserves zero alpha.) */
+  a-expander:not([disabled]):not(:state(open)):hover {
+    background: var(--expander-bg-hover);
+  }
+  a-expander:not([disabled]):not(:state(open)):active {
+    background: var(--expander-bg);
   }
 
   /* Outdent: zero the gutter so the title + body go flush with the surrounding

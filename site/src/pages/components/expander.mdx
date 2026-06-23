@@ -212,7 +212,7 @@ string. The node owns its own type scale, so set the level on it, not on
 them in the header:
 
 <Preview direction="column" gap="8px">
-  <a-expander class="heading-title" defaultopen>
+  <a-expander class="heading-title" default-state="open">
     <Title slot="title" level={2}>Title level 2 example</Title>
     <a-expander-details><Text>A level-2 <code>{'<Title>'}</code> as the header — a real heading node in the page outline.</Text></a-expander-details>
   </a-expander>
@@ -350,19 +350,29 @@ state stays as-is — disabling an open expander keeps it open. Header
 
 Leave it uncontrolled and pass `defaultOpen` for the initial state — the
 element owns open/close from there. To drive it yourself, pass `open`
-and handle `onToggle(open)` (controlled): the expander then only follows
-the prop, and clicking the summary just *requests* a change through
-`onToggle` — apply it to your state to accept, or ignore it to reject
-(e.g. a section that needs confirmation before closing). If you pass
+and handle `onStateChange` (controlled): the expander then only follows
+the prop, and clicking the summary just *requests* a change — apply
+`detail.next` to your state to accept, or ignore it to reject. If you pass
 `open`, you own it.
+
+`onStateChange` is event-first: `(event, { next, prev })`, where `next`/`prev`
+are booleans (the requested / previous open state). `statechange` fires
+**before** the element applies anything and is **cancelable**, so even
+uncontrolled you can veto a toggle synchronously with `event.preventDefault()`
+(e.g. a section that confirms before closing) — no need to lift state.
 
 ```tsx
 // uncontrolled
 <Expander title="Details" defaultOpen>…</Expander>
 
+// uncontrolled, with a veto
+<Expander title="Details" onStateChange={(e, { next }) => {
+  if (!next && unsaved) e.preventDefault()   // refuse to close
+}}>…</Expander>
+
 // controlled
 const [open, setOpen] = useState(false)
-<Expander title="Details" open={open} onToggle={setOpen}>…</Expander>
+<Expander title="Details" open={open} onStateChange={(e, { next }) => setOpen(next)}>…</Expander>
 ```
 
 ## Styling the chevron & header
@@ -439,7 +449,7 @@ mode alike) — no JS. Two worked examples:
 **Custom expandable code block**
 
 <Preview direction="column" gap="8px">
-  <a-expander class="code-like" defaultopen>
+  <a-expander class="code-like" default-state="open">
     <a-expander-summary slot="title">Example.tsx</a-expander-summary>
     <Button priority="tertiary" slot="actions"><Icon shape="copy" /></Button>
     <a-expander-details>
@@ -537,7 +547,7 @@ still toggles; the indicator only reflects state, rotating via
 equivalent element composition because these docs render statically):
 
 <Preview direction="column" gap="8px">
-  <a-expander class="indicator" defaultopen>
+  <a-expander class="indicator" default-state="open">
     <a-expander-summary slot="title">Build log</a-expander-summary>
     <Icon slot="actions" shape="chevron-down" />
     <a-expander-details><Text>The header is the trigger; the actions chevron is an indicator only.</Text></a-expander-details>
@@ -570,6 +580,25 @@ equivalent element composition because these docs render statically):
   a-expander.indicator:state(open) [slot="actions"] { transform: rotate(180deg); }  /* points down → up */
 `}</style>
 ```
+
+## Controlled vs Uncontrolled
+
+Open state follows Anta's shared **state contract**. Leave it *uncontrolled* and
+the expander owns open/close; pass the controlled prop and *you* own it. The two
+layers speak different idioms — the `<Expander>` wrapper takes booleans, the
+`<a-expander>` element takes a `state` string enum — and the wrapper maps between
+them:
+
+| | `<Expander>` (JSX) | `<a-expander>` (element) |
+|---|---|---|
+| **Uncontrolled** — element owns it | `defaultOpen` | `default-state="open" \| "closed"` |
+| **Controlled** — you own it | `open` + `onStateChange` | `state="open" \| "closed"` + `statechange` |
+| **Change event** | `onStateChange(event, { next, prev })` — `next` / `prev` are **booleans** | `statechange`, a `CustomEvent<{ next, prev }>` — `'open'` / `'closed'` |
+
+`statechange` is **cancelable** and fires *before* the element applies the
+change. Uncontrolled, call `event.preventDefault()` to veto a toggle (e.g.
+confirm before closing). Controlled, the element never self-applies — apply
+`detail.next` to `open` to accept, or do nothing to reject.
 
 <Disclosure title="Component props" open>
 
