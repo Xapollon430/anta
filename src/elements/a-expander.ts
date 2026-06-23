@@ -40,19 +40,23 @@ import './a-expander.css'
  *                              clips while animating; it projects the body
  *                              directly, no wrapper div
  *
- * ## Open state — controlled vs. uncontrolled
+ * ## Open state — the `state` contract (see STATEFUL-COMPONENTS.md)
  *
- * - **Uncontrolled** (no `open` attribute): the element owns its state.
- *   Clicking the summary toggles it; `defaultopen` (presence) sets the
- *   initial state. This is the hand-authored-HTML mode.
- * - **Controlled** (`open` attribute present — `""`/`"true"` open,
- *   `"false"` closed): the attribute is the single source of truth.
- *   Clicks do NOT self-toggle; they only dispatch the `toggle` event
- *   (`detail.open` = the *requested* state) and the consumer answers by
- *   updating the attribute. This gives real controlled semantics — a
- *   consumer can reject a toggle by simply not updating. If you set
- *   `open`, you own it. The attribute is value-based (like ARIA), not
- *   presence-based, because absence must keep meaning "uncontrolled".
+ * - **Uncontrolled** (no `state` attribute): the element owns its state.
+ *   Clicking the summary toggles it; `default-state="open"` seeds the
+ *   initial state (read once at connect). This is the hand-authored mode.
+ * - **Controlled** (`state="open"`/`"closed"` present): the attribute is the
+ *   single source of truth. Clicks do NOT self-toggle; they only dispatch the
+ *   cancelable `statechange` event and the consumer answers by updating
+ *   `state`. A consumer can reject by simply not updating. If you set `state`,
+ *   you own it; absence keeps meaning "uncontrolled".
+ *
+ * Either way the element fires **`statechange`** — `cancelable`, *before* it
+ * applies anything — with `detail: { next, prev }` in the `'open'|'closed'`
+ * vocabulary. Uncontrolled, a handler can veto the transition synchronously
+ * with `preventDefault()` (the element gates its own apply on the dispatch
+ * result); controlled, `preventDefault()` is moot (the element never
+ * self-applies) and not-updating-`state` is the reject.
  *
  * The internal open state lives in the shadow: `aria-expanded` on the
  * button (BOTH the a11y signal and the CSS state hook — no extra class)
@@ -319,8 +323,11 @@ const SHADOW_STYLE = `
   }
 `
 
+type ExpanderState = 'open' | 'closed'
+const parseState = (v: string | null): ExpanderState => (v === 'open' ? 'open' : 'closed')
+
 export class AExpanderElement extends HTMLElementBase {
-  static observedAttributes = ['open', 'disabled']
+  static observedAttributes = ['state', 'disabled']
 
   private summary: HTMLButtonElement
   private region: HTMLDivElement
@@ -379,41 +386,41 @@ export class AExpanderElement extends HTMLElementBase {
     shadow.append(style, header, this.region)
   }
 
-  /** Controlled mode: the `open` attribute is present and owns the state. */
+  /** Controlled mode: the `state` attribute is present and owns the state. */
   private get controlled(): boolean {
-    return this.hasAttribute('open')
+    return this.hasAttribute('state')
   }
 
-  private get isOpen(): boolean {
-    return this.summary.getAttribute('aria-expanded') === 'true'
+  /** The currently *applied* state (read from the shadow, the source of truth
+   *  for what's painted). */
+  private get current(): ExpanderState {
+    return this.summary.getAttribute('aria-expanded') === 'true' ? 'open' : 'closed'
   }
 
   connectedCallback() {
     this.syncDisabled()
-    if (this.controlled) this.syncFromAttribute()
-    else this.setOpen(this.hasAttribute('defaultopen'))
+    // Controlled → reflect `state`; uncontrolled → seed once from `default-state`.
+    this.applyState(parseState(this.getAttribute(this.controlled ? 'state' : 'default-state')))
   }
 
   attributeChangedCallback(name: string) {
     if (name === 'disabled') this.syncDisabled()
-    // When `open` is removed (controlled → uncontrolled hand-off) the
-    // current state is kept, not reset.
-    else if (this.controlled) this.syncFromAttribute()
-  }
-
-  private syncFromAttribute() {
-    this.setOpen(this.getAttribute('open') !== 'false')
+    // `state` is the controlled lever — reflect changes. When it's *removed*
+    // (controlled → uncontrolled hand-off) `controlled` is false, so we skip and
+    // the current applied state is kept, not reset.
+    else if (name === 'state' && this.controlled) this.applyState(parseState(this.getAttribute('state')))
   }
 
   private syncDisabled() {
     this.summary.disabled = this.hasAttribute('disabled')
   }
 
-  /** Apply open state to the shadow internals (idempotent; reads the host,
-   *  writes only the shadow). `aria-expanded` is both the a11y signal and
-   *  the CSS state hook; `inert` keeps collapsed content out of the tab
-   *  order and the accessibility tree. */
-  private setOpen(open: boolean) {
+  /** Apply state to the shadow internals (idempotent; reads the host, writes
+   *  only the shadow). `aria-expanded` is both the a11y signal and the CSS
+   *  state hook; `inert` keeps collapsed content out of the tab order and the
+   *  accessibility tree. */
+  private applyState(state: ExpanderState) {
+    const open = state === 'open'
     this.summary.setAttribute('aria-expanded', open ? 'true' : 'false')
     this.region.inert = !open
     // Mirror to the `:state(open)` custom state for external CSS hooks.
@@ -423,12 +430,18 @@ export class AExpanderElement extends HTMLElementBase {
     } catch {}
   }
 
-  /** Uncontrolled: toggle, then announce. Controlled: only announce the
-   *  requested state — the consumer answers via the `open` attribute. */
+  /** Compute the requested next state, announce it (cancelable, *before*
+   *  applying), then — uncontrolled only, and only if not vetoed — apply it.
+   *  Controlled: never self-apply; the consumer answers via the `state`
+   *  attribute. See STATEFUL-COMPONENTS.md. */
   private onSummaryClick = () => {
-    const requested = !this.isOpen
-    if (!this.controlled) this.setOpen(requested)
-    this.dispatchEvent(new CustomEvent('toggle', { detail: { open: requested } }))
+    const prev = this.current
+    const next: ExpanderState = prev === 'open' ? 'closed' : 'open'
+    const ok = this.dispatchEvent(
+      new CustomEvent('statechange', { cancelable: true, detail: { next, prev } }),
+    )
+    if (this.controlled) return
+    if (ok) this.applyState(next)
   }
 }
 

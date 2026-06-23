@@ -131,6 +131,33 @@ const lazyObserver: IntersectionObserver | null =
     ? new IntersectionObserver(handleIntersection, { root: null, rootMargin: '0px', threshold: 0 })
     : null
 
+/**
+ * `<a-tooltip>` — floating bubble placed as a child of the element it
+ * describes.
+ *
+ * Styling notes (`a-tooltip.css` ships comment-free):
+ * - `a-tooltip:not(:defined)` is hidden — before upgrade the host is an
+ *   unknown inline element and its content would flash *inside the anchor*.
+ *   Once defined, the shadow `:host { display: contents }` governs and
+ *   content renders only in the popover via the slot.
+ * - Only the bubble "chrome" is tokenized (`--tooltip-*`): it lives inside
+ *   the shadow popover, unreachable from plain consumer CSS; the custom
+ *   properties inherit across the shadow boundary. The content is slotted
+ *   light DOM — its font/color/size are already styleable from the page and
+ *   are intentionally NOT tokens.
+ * - The frost: `--tooltip-bg` is a mostly-opaque mix of `--bg-1` that, with
+ *   the container's backdrop blur, reads as a frosted bubble. `--bg-1` is
+ *   white in light / black in dark, so dark mode flips automatically (the
+ *   `.dark` override just lowers the alpha and adds an inset white ring so
+ *   the edge stays crisp on dark content). There's no real border by
+ *   default — the hairline edge comes from `--tooltip-shadow`; set
+ *   `--tooltip-border` for an actual one.
+ * - On coarse/no-hover pointers, an anchor that owns a tooltip
+ *   (`:where(:has(> a-tooltip))`, specificity 0 for easy override)
+ *   suppresses long-press text selection and the iOS callout so
+ *   press-and-hold cleanly reveals the bubble (see the long-press handling
+ *   below) instead of selecting text or popping the system menu.
+ */
 export class ATooltipElement extends HTMLElementBase {
   // Observe `delay` so changing it at runtime — e.g. the docs playground
   // patches the attribute on the live element — rebuilds the show debounce
@@ -188,6 +215,22 @@ export class ATooltipElement extends HTMLElementBase {
     // inherited property, so `display:block` on the slot does NOT leak onto the
     // slotted children — they keep their own layout.
     const style = document.createElement('style')
+    // Shadow bubble CSS (kept comment-free — this string ships into every
+    // consumer document). Non-obvious bits:
+    // - The container establishes its own text baseline (font axes, spacing,
+    //   transform all restated) so inheritable text properties from the
+    //   anchor — a Button's condensed "wdth" 88, its letter-spacing, an
+    //   uppercase transform — don't bleed into the slotted content. The
+    //   content inherits from this container, the single choke point;
+    //   consumers customize one tooltip by classing their own content.
+    // - The fade uses transition + `allow-discrete`, which keeps the bubble
+    //   rendered through its fade-out after hidePopover(), and
+    //   `@starting-style` gives every open a from-opacity:0 — the first
+    //   paint at a not-yet-computed transform is invisible, and reappearing
+    //   is always clean.
+    // - `pointer-events` is off by default (click-through bubble); the
+    //   `[interactive]` host opts the container in so links/buttons inside
+    //   are clickable.
     style.textContent = `
       :host { display: contents; }
 
@@ -319,18 +362,6 @@ export class ATooltipElement extends HTMLElementBase {
     this.debouncedShow = debounce((e?: MouseEvent) => this.show(e), this.delay)
   }
 
-  /** The element's OWN window / document. The class may be defined in a
-   *  different realm than the element lives in (e.g. the docs playground
-   *  renders into an iframe but reuses the parent page's element class), so
-   *  the module-global `window`/`document` can point at the wrong frame.
-   *  Everything viewport- or document-scoped (clamping, scroll/key/move
-   *  listeners) must go through these so it's correct in any frame. */
-  private get view(): (Window & typeof globalThis) {
-    return (this.ownerDocument?.defaultView as Window & typeof globalThis) ?? window
-  }
-  private get doc(): Document {
-    return this.ownerDocument ?? document
-  }
 
   private get isInteractive(): boolean {
     return this.hasAttribute('interactive')

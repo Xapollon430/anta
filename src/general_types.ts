@@ -83,7 +83,7 @@ export interface ATextAttributes extends BaseAttributes {
   /** Visual priority. Maps to text-1..text-5. */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
-  tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
+  tone?: 'brand' | 'info' | 'success' | 'warning' | 'critical'
   /** Type scale. `small` = 13/16, `medium` (default) = 15/20, `large` = 17/24. */
   size?: 'small' | 'medium' | 'large'
   /** Render as inline-block instead of the default block. */
@@ -113,7 +113,7 @@ export interface ATitleAttributes extends BaseAttributes {
   /** Visual priority. Maps to text-1..text-5. */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
-  tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
+  tone?: 'brand' | 'info' | 'success' | 'warning' | 'critical'
   /** ARIA role — the JSX wrapper sets this to `'heading'`. */
   role?: string
   /** ARIA heading level — the JSX wrapper sets this to match `level`. */
@@ -128,10 +128,14 @@ export interface ATitleAttributes extends BaseAttributes {
  */
 export interface ATagAttributes extends BaseAttributes {
   /** Semantic tone, or any literal CSS color for a one-off custom tone.
-   *  Named tones map to the `--text-2-{tone}` / `--bg-4-{tone}` palette;
-   *  a custom color keeps its hue with lightness/chroma pinned.
-   *  `'neutral'` is the default gray (same as omitting it). */
+   *  Tones tint a per-tone hue; a custom color keeps its hue with
+   *  lightness/chroma pinned. `'neutral'` is the default gray (same as
+   *  omitting it). */
   tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Emphasis level. `secondary` (default) is the subtle alpha-tint fill;
+   *  `primary` is a solid fill with white text; `tertiary` is a transparent
+   *  outline. */
+  priority?: 'primary' | 'secondary' | 'tertiary'
   /** Size variant. `small` = 16px tall, `medium` (default) = 20px,
    *  `large` = 24px. */
   size?: 'small' | 'medium' | 'large'
@@ -151,16 +155,14 @@ export interface ATagAttributes extends BaseAttributes {
  * use `Expander` from `@antadesign/anta`.
  */
 export interface AExpanderAttributes extends BaseAttributes {
-  /** Controlled open state — value-based, like ARIA, because absence
-   *  must keep meaning "uncontrolled". When present, the attribute is
-   *  the source of truth (`''`/`'true'` open, `'false'` closed): clicks
-   *  only dispatch `toggle` with the requested state, and the consumer
-   *  answers by updating the attribute. Omit it (use `defaultopen`) for
-   *  the self-toggling uncontrolled mode. */
-  open?: '' | 'true' | 'false'
-  /** Initial open state for the uncontrolled mode. Presence-based
-   *  (`''`/bare = initially open); read once when the element connects. */
-  defaultopen?: boolean | ''
+  /** Controlled open state (`'open'` / `'closed'`). Present → controlled: the
+   *  attribute is the source of truth, clicks only dispatch the cancelable
+   *  `statechange` event, and the consumer answers by updating it. Absent →
+   *  uncontrolled (use `default-state`). See STATEFUL-COMPONENTS.md. */
+  state?: 'open' | 'closed'
+  /** Initial open state for the uncontrolled mode (`'open'` / `'closed'`);
+   *  read once when the element connects. */
+  'default-state'?: 'open' | 'closed'
   /** Surface emphasis. `secondary` (default) is a subtle fill; `primary`
    *  is a stronger raised fill; `tertiary` is transparent. */
   priority?: 'primary' | 'secondary' | 'tertiary'
@@ -180,13 +182,16 @@ export interface AExpanderAttributes extends BaseAttributes {
   /** Heading type scale for the summary, `'1'`–`'6'` (mirrors `<a-title>`
    *  levels). Default (omitted) ≈ level 5. */
   level?: '1' | '2' | '3' | '4' | '5' | '6'
-  /** Fires when the summary is toggled. The element dispatches a `toggle`
-   *  `CustomEvent` whose `detail.open` carries the requested state. The
-   *  all-lowercase spelling is deliberate — it's the one form both
-   *  renderers bind to the `toggle` event (React 19 keeps the case of
-   *  whatever follows `on`, so `onToggle` would listen for "Toggle";
-   *  Preact lowercases). */
-  ontoggle?: (e: CustomEvent<{ open: boolean }>) => void
+  /** Fires before the open state changes — the element dispatches a
+   *  `cancelable` `statechange` `CustomEvent` whose `detail` is
+   *  `{ next, prev }` in the `'open'|'closed'` vocabulary. Uncontrolled,
+   *  `preventDefault()` vetoes the transition. The all-lowercase spelling is
+   *  deliberate — it's the one form both renderers bind to the `statechange`
+   *  event (React 19 keeps the case after `on`, so `onStateChange` would
+   *  listen for "StateChange"; Preact lowercases). */
+  onstatechange?: (
+    e: CustomEvent<{ next: 'open' | 'closed'; prev: 'open' | 'closed' }>,
+  ) => void
 }
 
 /**
@@ -301,6 +306,84 @@ export interface AInputAttributes extends BaseAttributes {
 }
 
 /**
+ * Attributes for the `<a-menu>` custom element. Placed immediately after the
+ * trigger it anchors to (root menu), or nested inside an `<a-menu-item>`
+ * (submenu). For the typed JSX wrapper use `Menu` from `@antadesign/anta`.
+ */
+export interface AMenuAttributes extends BaseAttributes {
+  /** Preferred placement relative to the trigger; auto-flips / clamps.
+   *  Defaults to `'bottom-start'`. */
+  placement?: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
+  /** Open on right-click of the trigger region, positioned at the pointer.
+   *  Presence-based (`''` on, omit off). */
+  context?: boolean | ''
+  /** Open at the pointer coordinates instead of aligned to the trigger box.
+   *  Presence-based (`''` on, omit off). */
+  coord?: boolean | ''
+  /** Marks this menu as a submenu of the enclosing `<a-menu-item>`.
+   *  Presence-based (`''` on, omit off). */
+  submenu?: boolean | ''
+  /** For a submenu: also open on hover. Presence-based (`''` on, omit off). */
+  hover?: boolean | ''
+  /** Gap in pixels between the trigger and the menu. Defaults to 4. */
+  offset?: number | string
+  /** Controlled open state (`'open'` / `'closed'`). Omit for uncontrolled;
+   *  present → visibility follows this value, and the element never writes it
+   *  (the consumer owns it). Listen to `statechange` to keep it in sync. See
+   *  STATEFUL-COMPONENTS.md. */
+  state?: 'open' | 'closed'
+  /** State-change event — `cancelable`, fired before applying, with
+   *  `detail: { next, prev }` in the `'open'|'closed'` vocabulary (plus optional
+   *  `coord` / `originEvent`). All-lowercase so React/Preact bind it to the
+   *  element's `statechange` CustomEvent. The `Menu` wrapper exposes this as the
+   *  `onStateChange` prop. */
+  onstatechange?: (
+    e: CustomEvent<{ next: 'open' | 'closed'; prev: 'open' | 'closed' }>,
+  ) => void
+  /** ARIA role — the JSX wrapper sets this to `'menu'`. */
+  role?: string
+  'aria-orientation'?: 'vertical' | 'horizontal'
+}
+
+/**
+ * Attributes for the `<a-menu-item>` custom element. For the typed JSX
+ * wrapper use `MenuItem` from `@antadesign/anta`.
+ */
+export interface AMenuItemAttributes extends BaseAttributes {
+  /** Disabled state. Presence-based (`''` on, omit off). */
+  disabled?: boolean | ''
+  /** Semantic tone. Colors the label, icon, and hover tint. `'neutral'`
+   *  (the default) is the same as omitting it. */
+  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
+  /** Keep the menu open after this item is chosen (toggles / multi-select),
+   *  instead of the default close-on-select. Presence-based (`''` on, omit
+   *  off). The universal form is `data-menu-open` (works on any element). */
+  'data-menu-open'?: boolean | ''
+  /** Marks this item as a submenu parent (renders a chevron, opens a nested
+   *  `<a-menu submenu>`). Presence-based (`''` on, omit off). */
+  submenu?: boolean | ''
+  /** ARIA role — `'menuitem'`. */
+  role?: string
+  'aria-haspopup'?: 'menu' | 'true' | 'false' | boolean
+  /** Submenu-parent expanded state. Render `'false'` as the resting baseline;
+   *  the nested `<a-menu submenu>` element reflects the live open state. */
+  'aria-expanded'?: 'true' | 'false' | boolean
+  'aria-disabled'?: 'true' | 'false' | boolean
+}
+
+/**
+ * Attributes for the `<a-menu-group>` styled element. For the typed JSX
+ * wrapper use `MenuGroup` from `@antadesign/anta`.
+ */
+export interface AMenuGroupAttributes extends BaseAttributes {
+  /** Keep the menu open after any item in this group is chosen. Presence-based
+   *  (`''` on, omit off). The universal form is `data-menu-open`. */
+  'data-menu-open'?: boolean | ''
+  role?: string
+  'aria-label'?: string
+}
+
+/**
  * Attributes for the `<a-button>` custom element. For the typed JSX
  * wrapper use `Button` from `@antadesign/anta`.
  */
@@ -311,10 +394,10 @@ export interface AButtonAttributes extends BaseAttributes {
   tone?:
     | 'neutral'
     | 'brand'
-    | 'critical'
     | 'info'
     | 'success'
     | 'warning'
+    | 'critical'
     | (string & {})
   /** Underline style. Only renders on `priority="tertiary" | "quaternary"`. */
   underline?: 'solid' | 'dashed' | 'dotted'

@@ -34,6 +34,25 @@ from `icon`, `label`, `value`, and `iconTrailing` props, the same way
 
 </Disclosure>
 
+## Priority
+
+`priority` sets the emphasis. `secondary` (the default) is the subtle
+alpha-tint fill; `primary` is a solid fill with white text; `tertiary` is
+a transparent outline. It composes with every tone — named or custom —
+and tracks dark mode.
+
+<Preview gap="4px">
+  <Tag priority="primary" tone="brand" label="Primary" />
+  <Tag label="Secondary" tone="brand" />
+  <Tag priority="tertiary" tone="brand" label="Tertiary" />
+</Preview>
+
+```tsx folded
+<Tag priority="primary" tone="brand" label="Primary" />
+<Tag tone="brand" label="Secondary" />
+<Tag priority="tertiary" tone="brand" label="Tertiary" />
+```
+
 ## Tones
 
 <Columns>
@@ -81,6 +100,39 @@ kept while lightness and chroma are pinned to the named-tone curve.
 
 </Col>
 </Columns>
+
+Every tone — named or custom — paints its fill and border as
+semi-transparent alpha tints rather than solid colors, so a tag picks up
+whatever surface sits behind it. Here the same tags sit on a `--bg-4`
+panel instead of the page canvas.
+
+<Preview gap="4px" background="var(--bg-4)">
+  <Tag label="Neutral" />
+  <Tag tone="brand" label="Brand" />
+  <Tag tone="success" label="Success" />
+  <Tag tone="critical" label="Critical" />
+  <Tag tone="#ff1493" label="Magenta" />
+  <Tag tone="#0d9488" label="Teal" />
+</Preview>
+
+## Size
+
+Three sizes — `small` (16px), `medium` (20px, the default — emits no
+attribute), and `large` (24px) — matching `Button`. Height is intrinsic
+(line-height + padding rather than a fixed value), so the text is never
+clipped.
+
+<Preview>
+  <Tag tone="info" size="small" label="Small" />
+  <Tag tone="info" label="Medium" />
+  <Tag tone="info" size="large" label="Large" />
+</Preview>
+
+```tsx folded
+<Tag tone="info" size="small" label="Small" />
+<Tag tone="info" label="Medium" />
+<Tag tone="info" size="large" label="Large" />
+```
 
 ## Icon, label & value
 
@@ -146,25 +198,6 @@ pairing is the exception; everything else segments like this.
 </Tag>
 ```
 
-## Size
-
-Three sizes — `small` (16px), `medium` (20px, the default — emits no
-attribute), and `large` (24px) — matching `Button`. Height is intrinsic
-(line-height + padding rather than a fixed value), so the text is never
-clipped.
-
-<Preview>
-  <Tag tone="info" size="small" label="Small" />
-  <Tag tone="info" label="Medium" />
-  <Tag tone="info" size="large" label="Large" />
-</Preview>
-
-```tsx folded
-<Tag tone="info" size="small" label="Small" />
-<Tag tone="info" label="Medium" />
-<Tag tone="info" size="large" label="Large" />
-```
-
 ## Case
 
 Tags are uppercase by default: a tag is a concise marker, not prose, so
@@ -194,16 +227,20 @@ keeps it as `GitHub`.
 <Disclosure title="Component tokens" open>
 
 Override any of these on a single instance
-(`style={{ '--tag-bg': 'var(--bg-5)' }}`) or on a selector wrapping the
-tag. The named tones set `--tag-text` / `--tag-bg` from the theme
-palette; the border derives from `--tag-text`, so a custom `--tag-text`
-retints it automatically.
+(`style={{ '--tag-tint': 'crimson' }}`) or on a selector wrapping the
+tag. Each tone re-points three hue anchors — `--tag-tint` (the
+secondary fill + border tint), `--tag-fill` (the solid `primary` fill),
+and `--tag-edge` (the `tertiary` outline) — plus `--tag-text` (the
+theme-aware `--text-3-{tone}`). The priority then picks which apply.
 
 | Token | Description |
 |---|---|
-| `--tag-text` | Primary text (`value`) and icon color. The hairline border derives from this. |
-| `--tag-bg` | Background fill. |
-| `--tag-border` | Outer hairline. Defaults to `--tag-text` at 9% alpha. |
+| `--tag-text` | Primary text (`value`) and icon color (white for `primary`). |
+| `--tag-tint` | Hue the `secondary` fill + the `secondary` / `primary` border are tinted from. |
+| `--tag-fill` | Solid fill for `priority="primary"`. |
+| `--tag-edge` | Hue of the `priority="tertiary"` outline. |
+| `--tag-bg` | Resolved background fill (a `--tag-tint` tint, the solid `--tag-fill`, or transparent — per priority). |
+| `--tag-border` | Outer hairline. `secondary` / `primary` tint `--tag-tint` (15–25%); `tertiary` tints `--tag-edge` (20–30%). |
 | `--tag-separator` | Divider between segmented children. Defaults to `--tag-text` at 30% alpha. |
 | `--tag-padding-block`<br />`--tag-padding-inline` | Inner spacing. Drives the intrinsic height (small overrides both). |
 | `--tag-gap` | Space between icon / label / value (default `0.6ch`). |
