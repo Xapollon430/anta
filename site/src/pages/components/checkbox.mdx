@@ -34,7 +34,7 @@ The `Checkbox` wrapper renders an `<a-checkbox>` element that manages its own st
 
 ## States
 
-Checkboxes are unchecked, checked, or indeterminate (for partial selection in groups). The `disabled` attribute dims the box and removes it from the tab order.
+Checkboxes are unchecked, checked, or indeterminate (for partial selection in groups).
 
 <Preview gap="16px">
   <Checkbox defaultChecked label="Checked" />
@@ -46,6 +46,22 @@ Checkboxes are unchecked, checked, or indeterminate (for partial selection in gr
 <Checkbox defaultChecked label="Checked" />
 <Checkbox label="Unchecked" />
 <Checkbox defaultChecked="indeterminate" label="Indeterminate" />
+```
+
+## Disabled
+
+The `disabled` attribute dims the checkbox and removes it from the tab order.
+
+<Preview gap="16px">
+  <Checkbox disabled label="Disabled" />
+  <Checkbox disabled defaultChecked label="Disabled checked" />
+  <Checkbox disabled defaultChecked="indeterminate" label="Disabled indeterminate" />
+</Preview>
+
+```tsx folded
+<Checkbox disabled label="Disabled" />
+<Checkbox disabled defaultChecked label="Disabled checked" />
+<Checkbox disabled defaultChecked="indeterminate" label="Disabled indeterminate" />
 ```
 
 ## Label & hint
