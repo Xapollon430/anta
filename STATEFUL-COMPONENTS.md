@@ -41,12 +41,15 @@ CustomEvent<{ next: State; prev: State }>   // cancelable: true; State = the att
   wrapper does this for you — see Wrapper props). `next` is the *requested* state;
   `prev` is what it's leaving. (Not `new` — that's a reserved word and can't be
   destructured cleanly.)
-- **`detail` carries the transition, not DOM facts.** Just `{ next, prev }` — plus
-  genuinely *derived* results where a component has them (a menu's selected value,
-  a form control's submitted value). Do **not** snapshot `id` / `className` /
-  attributes / `textContent` into it: they already live on `event.target` (read
-  live, no per-event cost, no second source of truth), and stuffing them makes the
-  payload an unbounded, loosely-typed grab-bag.
+- **`detail` carries what the *component* decided, never what the *caller* already
+  has.** Just `{ next, prev }`, plus genuinely *derived* results the caller can't
+  recompute — a menu's selected value, its computed placement `coord`, the
+  originating event. Do **not** echo back the caller's own inputs (`id`,
+  `className`, attributes, `textContent`): the caller set them, so they're in its
+  render scope already (and live on `event.target` for vanilla — even if a ref is
+  awkward to reach off-thread, there's still nothing to echo, because the caller
+  knew them upfront). Echoing only adds per-event cost, a second source of truth,
+  and an unbounded, loosely-typed payload.
 - `preventDefault()` vetoes the transition (see the control model). The element
   gates its own application on `dispatchEvent(evt)` returning `true`.
 - No booleans in the payload — never make a handler translate `true` into `"open"`.
