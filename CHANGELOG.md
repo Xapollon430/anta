@@ -6,6 +6,14 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## Unreleased
+
+### Breaking
+- **`Expander` open-state API moved to the shared `state` contract** (see `STATEFUL-COMPONENTS.md`). The controlled/uncontrolled behaviour is unchanged; the attribute, event, and one callback are renamed.
+  - **Element** — the `open` / `defaultopen` attributes become `state` / `default-state`, a string enum (`"open"` / `"closed"`) rather than value-based booleans. The `toggle` event becomes **`statechange`** — now `cancelable` and fired *before* the state is applied — with `detail: { next, prev }` (the `'open'|'closed'` vocabulary) replacing `detail.open`.
+  - **Wrapper (`<Expander>`)** — the `open` and `defaultOpen` props are unchanged. The `onToggle?: (open: boolean) => void` callback becomes **`onStateChange?: (event, { next, prev }) => void`** (event-first; `next`/`prev` are booleans). Migration: `onToggle={setOpen}` → `onStateChange={(e, { next }) => setOpen(next)}`.
+  - **New capability** — because `statechange` is cancelable and fires before applying, an *uncontrolled* expander can now veto a toggle synchronously via `event.preventDefault()` (e.g. confirm-before-close) without switching to controlled mode.
+
 ## 0.2.3 — June 18, 2026
 
 ### Added

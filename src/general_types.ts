@@ -146,16 +146,14 @@ export interface ATagAttributes extends BaseAttributes {
  * use `Expander` from `@antadesign/anta`.
  */
 export interface AExpanderAttributes extends BaseAttributes {
-  /** Controlled open state — value-based, like ARIA, because absence
-   *  must keep meaning "uncontrolled". When present, the attribute is
-   *  the source of truth (`''`/`'true'` open, `'false'` closed): clicks
-   *  only dispatch `toggle` with the requested state, and the consumer
-   *  answers by updating the attribute. Omit it (use `defaultopen`) for
-   *  the self-toggling uncontrolled mode. */
-  open?: '' | 'true' | 'false'
-  /** Initial open state for the uncontrolled mode. Presence-based
-   *  (`''`/bare = initially open); read once when the element connects. */
-  defaultopen?: boolean | ''
+  /** Controlled open state (`'open'` / `'closed'`). Present → controlled: the
+   *  attribute is the source of truth, clicks only dispatch the cancelable
+   *  `statechange` event, and the consumer answers by updating it. Absent →
+   *  uncontrolled (use `default-state`). See STATEFUL-COMPONENTS.md. */
+  state?: 'open' | 'closed'
+  /** Initial open state for the uncontrolled mode (`'open'` / `'closed'`);
+   *  read once when the element connects. */
+  'default-state'?: 'open' | 'closed'
   /** Surface emphasis. `secondary` (default) is a subtle fill; `primary`
    *  is a stronger raised fill; `tertiary` is transparent. */
   priority?: 'primary' | 'secondary' | 'tertiary'
@@ -175,13 +173,16 @@ export interface AExpanderAttributes extends BaseAttributes {
   /** Heading type scale for the summary, `'1'`–`'6'` (mirrors `<a-title>`
    *  levels). Default (omitted) ≈ level 5. */
   level?: '1' | '2' | '3' | '4' | '5' | '6'
-  /** Fires when the summary is toggled. The element dispatches a `toggle`
-   *  `CustomEvent` whose `detail.open` carries the requested state. The
-   *  all-lowercase spelling is deliberate — it's the one form both
-   *  renderers bind to the `toggle` event (React 19 keeps the case of
-   *  whatever follows `on`, so `onToggle` would listen for "Toggle";
-   *  Preact lowercases). */
-  ontoggle?: (e: CustomEvent<{ open: boolean }>) => void
+  /** Fires before the open state changes — the element dispatches a
+   *  `cancelable` `statechange` `CustomEvent` whose `detail` is
+   *  `{ next, prev }` in the `'open'|'closed'` vocabulary. Uncontrolled,
+   *  `preventDefault()` vetoes the transition. The all-lowercase spelling is
+   *  deliberate — it's the one form both renderers bind to the `statechange`
+   *  event (React 19 keeps the case after `on`, so `onStateChange` would
+   *  listen for "StateChange"; Preact lowercases). */
+  onstatechange?: (
+    e: CustomEvent<{ next: 'open' | 'closed'; prev: 'open' | 'closed' }>,
+  ) => void
 }
 
 /**
