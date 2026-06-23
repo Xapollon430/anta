@@ -33,12 +33,14 @@ Each component fires a single `statechange` event, **before** it applies any
 change, and it is **cancelable**:
 
 ```ts
-CustomEvent<{ state: NextState; previous: PrevState }>   // cancelable: true; same enum as the attribute
+CustomEvent<{ next: State; previous: State }>   // cancelable: true; State = the attribute's enum
 ```
 
 - The payload speaks the **same vocabulary as the attribute**, so a controlled
-  handler answers literally with `el.setAttribute('state', e.detail.state)` (the
-  wrapper does this for you — see Wrapper props).
+  handler answers literally with `el.setAttribute('state', e.detail.next)` (the
+  wrapper does this for you — see Wrapper props). `next` is the *requested* state;
+  `previous` is what it's leaving. (Not `new` — that's a reserved word and can't be
+  destructured cleanly.)
 - `preventDefault()` vetoes the transition (see the control model). The element
   gates its own application on `dispatchEvent(evt)` returning `true`.
 - No booleans in the payload — never make a handler translate `true` into `"open"`.
@@ -79,7 +81,7 @@ element runs:
 onInteraction(next) {
   const evt = new CustomEvent('statechange', {
     cancelable: true,
-    detail: { state: next, previous: this.current },
+    detail: { next, previous: this.current },
   })
   const ok = this.dispatchEvent(evt)   // false if a handler synchronously preventDefault()'d
   if (this.controlled) return          // controlled: never self-apply — wait for the new attribute value
@@ -123,12 +125,14 @@ a different shape from our `{ state, previous }` — same name, wrong contract).
 - The wrapper emits `state` only when the controlled prop is defined, and
   `default-state` only in the uncontrolled case — never both, so the DOM never
   carries a stale state attribute.
-- **The callback forwards the event, not just the value**, so a handler can veto:
-  `onStateChange?: (value: boolean | 'indeterminate', e: CustomEvent) => void` —
-  `value` is the component's natural type (boolean for binary, the union for
-  checkbox). Most callers use only the first arg; `e.preventDefault()` is the
-  synchronous uncontrolled veto. (Extracting just the value — a `(value) => …`
-  shape — silently removes the ability to cancel.)
+- **The callback is event-first, detail second:**
+  `onStateChange?: (event: CustomEvent, detail: { next: V; previous: V }) => void`,
+  where `V` is the component's value type (boolean for binary, `boolean |
+  'indeterminate'` for checkbox). Event first so `event.preventDefault()` — the
+  synchronous uncontrolled veto — is front and center; `detail` is the wrapper's
+  *normalized* `e.detail`, so consumers never touch the renderer-specific path
+  (raw `e.detail` vs `e.nativeEvent.detail`). Typical use:
+  `onStateChange={(e, { next }) => next ? setOpen(true) : e.preventDefault()}`.
 - Internally the wrapper binds the all-lowercase `onstatechange` so both React 19
   (which keeps the case after `on`) and Preact attach a native listener to our
   custom event — that native-listener path is what lets `preventDefault()` reach
