@@ -102,26 +102,33 @@ borrowed from Radix's `data-state`.
 
 ## Wrapper props (React / Preact)
 
-The element speaks the string enum; the wrapper is the impedance match to React
-idiom — boolean for a binary state, a string union only where there's a third
-state. (This is the same translation the wrapper already does for `disabled:
-boolean` → `disabled=""`, and it mirrors Radix's `checked?: boolean |
-'indeterminate'`.)
+One vocabulary all the way up: `state` attribute → `statechange` event →
+**`onStateChange`** prop → `:state()` hook. The element speaks the string enum;
+the wrapper is the impedance match to React idiom — boolean for a binary state,
+a string union only where there's a third state. (This is the same translation
+the wrapper already does for `disabled: boolean` → `disabled=""`, and it mirrors
+Radix's `checked?: boolean | 'indeterminate'`.)
 
 | element attribute / event | wrapper prop(s) |
 |---|---|
 | `state` (controlled) | `open?: boolean` · `checked?: boolean \| 'indeterminate'` — boolean when arity 2, union when arity > 2 |
 | `default-state` (uncontrolled) | `defaultOpen?: boolean` · `defaultChecked?: boolean \| 'indeterminate'` |
-| `statechange` event | `onToggle` / `onChange` (component-idiomatic) |
+| `statechange` event | **`onStateChange`** — the one name on every component |
+
+`onStateChange` is uniform on purpose — not `onToggle` / `onChange` / `onOpenChange`.
+A single name pairs with the `state`/`statechange`/`:state()` vocabulary, and it
+deliberately avoids reusing native `onChange` (whose handler reads `e.target.checked`,
+a different shape from our `{ state, previous }` — same name, wrong contract).
 
 - The wrapper emits `state` only when the controlled prop is defined, and
   `default-state` only in the uncontrolled case — never both, so the DOM never
   carries a stale state attribute.
 - **The callback forwards the event, not just the value**, so a handler can veto:
-  `onToggle?: (open: boolean, e: CustomEvent) => void`. Most callers use only the
-  first arg; `e.preventDefault()` is the synchronous uncontrolled veto. (Extracting
-  just the value — the old `(open) => …` shape — silently removes the ability to
-  cancel.)
+  `onStateChange?: (value: boolean | 'indeterminate', e: CustomEvent) => void` —
+  `value` is the component's natural type (boolean for binary, the union for
+  checkbox). Most callers use only the first arg; `e.preventDefault()` is the
+  synchronous uncontrolled veto. (Extracting just the value — a `(value) => …`
+  shape — silently removes the ability to cancel.)
 - Internally the wrapper binds the all-lowercase `onstatechange` so both React 19
   (which keeps the case after `on`) and Preact attach a native listener to our
   custom event — that native-listener path is what lets `preventDefault()` reach
