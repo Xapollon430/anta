@@ -75,5 +75,7 @@ export interface AntaIntrinsicElements {
   'a-button': AButtonAttributes
   'a-button-label': BaseAttributes
   'a-checkbox': ACheckboxAttributes
+  'a-checkbox-label': BaseAttributes
+  'a-checkbox-hint': BaseAttributes
   'a-tooltip': ATooltipAttributes
 }

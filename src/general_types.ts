@@ -244,8 +244,9 @@ export interface ATooltipAttributes extends BaseAttributes {
  */
 export interface ACheckboxAttributes extends BaseAttributes {
   /** Colour variant, or any literal CSS color for a one-off custom tone.
-   *  `'brand'` is the default (same as omitting it). */
-  tone?: 'brand' | 'neutral' | (string & {})
+   *  Named tones track light/dark mode automatically via the theme-aware role
+   *  tokens. `'brand'` is the default (same as omitting it). */
+  tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size variant. `small` = 16px, `medium` (default) = 18px, `large` = 20px box. */
   size?: 'small' | 'medium' | 'large'
   /** Controlled state — the element reflects changes to this attribute. Use this
@@ -261,6 +262,15 @@ export interface ACheckboxAttributes extends BaseAttributes {
   name?: string
   /** Value submitted when checked. Defaults to `"on"`. */
   value?: string
+  /** Fires before the element applies any change. The element dispatches a
+   *  cancelable `statechange` `CustomEvent` whose `detail` carries
+   *  `{ next, prev }` (the same string enum as `state`); a synchronous
+   *  `preventDefault()` vetoes the transition. The all-lowercase spelling is
+   *  deliberate — it's the one form both renderers bind to a custom event
+   *  (React 19 keeps the case of whatever follows `on`; Preact lowercases). */
+  onstatechange?: (
+    e: CustomEvent<{ next: 'checked' | 'unchecked' | 'indeterminate'; prev: 'checked' | 'unchecked' | 'indeterminate' }>,
+  ) => void
   /** ARIA — set by the consumer / the `Checkbox` wrapper (the element never
    *  touches these itself). */
   'aria-checked'?: 'true' | 'false' | 'mixed'

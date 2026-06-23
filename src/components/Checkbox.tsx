@@ -1,27 +1,55 @@
 import type { BaseProps } from "../general_types"
 
-/** The three visual states of a checkbox. */
-export type CheckboxState = 'checked' | 'unchecked' | 'indeterminate'
+/** The wrapper-level checked value: a boolean for the binary axis, the string
+ *  `'indeterminate'` for the third state. Mirrors Radix's `Checkbox.Root`. */
+export type CheckboxValue = boolean | 'indeterminate'
 
-const readState = (el: any): CheckboxState =>
-  el?.matches?.(':state(indeterminate)') ? 'indeterminate'
-    : el?.matches?.(':state(checked)') ? 'checked'
-    : 'unchecked'
+/** The element-level state enum (the string vocabulary on `<a-checkbox>`'s
+ *  `state` / `default-state` attributes and its `statechange` event detail). */
+type CheckboxState = 'checked' | 'unchecked' | 'indeterminate'
+
+const valueToState = (v: CheckboxValue): CheckboxState =>
+  v === 'indeterminate' ? 'indeterminate' : v ? 'checked' : 'unchecked'
+
+const stateToValue = (s: CheckboxState): CheckboxValue =>
+  s === 'indeterminate' ? 'indeterminate' : s === 'checked'
+
+const ariaForValue = (v: CheckboxValue): 'true' | 'false' | 'mixed' =>
+  v === 'indeterminate' ? 'mixed' : v ? 'true' : 'false'
+
+/** The element's `statechange` event payload. */
+type StateDetail = { next: CheckboxState; prev: CheckboxState }
+type StateChangeEvent = CustomEvent<StateDetail>
+
+/** Pull the `{ next, prev }` payload out of the element's `statechange` event,
+ *  across renderers: a raw `CustomEvent` carries `detail` directly; React's
+ *  synthetic wrapper carries the original on `nativeEvent`. */
+function readDetail(
+  e: StateChangeEvent | { nativeEvent: StateChangeEvent },
+): StateDetail | undefined {
+  return 'nativeEvent' in e ? e.nativeEvent?.detail : e.detail
+}
 
 export interface CheckboxProps extends BaseProps {
-  /** Label text — a convenience for the common single-string case. Renders before
-   *  `children`; for richer content (markup, a link, an info icon) use `children`.
-   *  Both show when supplied, like `Button`. */
+  /** Visible label — the *value* of the checkbox (clicked along with the box).
+   *  Convenience for the common single-string case; for richer content (markup,
+   *  a link, an info icon) use `children`. When both are supplied, `label`
+   *  renders first. Required unless `children` or `aria-label` is provided
+   *  (a `role="checkbox"` takes its name from the author, not the markup). */
   label?: string
-  /** Controlled state. When provided the checkbox is controlled — it renders
-   *  exactly this and you update it from `onChange`. Omit for an uncontrolled
-   *  checkbox (use `defaultState`). `indeterminate` shows the minus glyph and
-   *  takes visual precedence; clicking it resolves to `checked`. */
-  state?: CheckboxState
-  /** Initial state for an uncontrolled checkbox (when `state` is not provided).
-   *  The element then manages its own state; this value is read once.
-   *  @defaultValue unchecked */
-  defaultState?: CheckboxState
+  /** Secondary text rendered under the label — explanatory copy, like
+   *  Input's hint. Not part of the accessible name. */
+  hint?: React.ReactNode
+  /** Controlled checked state. When provided the checkbox is controlled — it
+   *  renders exactly this and never self-applies; `onStateChange` is a *request*
+   *  the consumer accepts by updating this prop. Use `defaultChecked` for an
+   *  uncontrolled checkbox. `'indeterminate'` shows the minus glyph and takes
+   *  visual precedence; clicking it requests `true`. */
+  checked?: CheckboxValue
+  /** Initial checked state for an uncontrolled checkbox. Read once; later
+   *  changes ignored (the element then owns the state).
+   *  @defaultValue false */
+  defaultChecked?: CheckboxValue
   /** Disable the checkbox (no interaction, dropped from the tab order). */
   disabled?: boolean
   /** Form field name. Inside a `<form>` the checkbox submits under this name,
@@ -31,91 +59,129 @@ export interface CheckboxProps extends BaseProps {
    *  @defaultValue "on" */
   value?: string
   /** Colour variant, or any literal CSS color (`'#ff1493'`, `'rebeccapurple'`)
-   *  for a one-off custom tone. `brand` is purple, `neutral` a quieter gray; a
-   *  custom colour keeps its hue + chroma and pins lightness to the brand fill
-   *  curve so it stays legible in light and dark.
-   *  @defaultValue brand */
-  tone?: 'brand' | 'neutral' | (string & {})
+   *  for a one-off custom tone. Named tones track light/dark mode automatically
+   *  via the theme-aware role tokens; a custom colour keeps its hue + chroma
+   *  and pins lightness to the brand fill curve.
+   *  @defaultValue 'brand' */
+  tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size variant. small=16px, medium=18px, large=20px box.
-   *  @defaultValue medium */
+   *  @defaultValue 'medium' */
   size?: 'small' | 'medium' | 'large'
-  /** Fires on click / Space with the new state, in both controlled and
-   *  uncontrolled mode. (A controlled checkbox with no `onChange` is read-only —
-   *  it reflects `state` and ignores clicks.) */
-  onChange?: (state: CheckboxState, e: any) => void
+  /** Fired on click / Space *before* the element applies any change. Event-first
+   *  so `event.preventDefault()` is the synchronous veto (uncontrolled mode);
+   *  `detail` carries `{ next, prev }`. In controlled mode the element never
+   *  self-applies — answer by updating `checked`, reject by doing nothing. */
+  onStateChange?: (
+    event: StateChangeEvent,
+    detail: { next: CheckboxValue; prev: CheckboxValue },
+  ) => void
 }
 
+const NAMED_TONES = new Set(['brand', 'neutral', 'info', 'success', 'warning', 'critical'])
+
 /**
- * Checkbox. Renders an `<a-checkbox>` web component that owns its state —
- * controlled via `state` + `onChange`, or uncontrolled via `defaultState`. Label
- * is `children` (or the `label` prop); omit both for a box-only checkbox with an
- * `aria-label`. Requires `@antadesign/anta/elements`.
+ * Checkbox. Renders an `<a-checkbox>` web component that owns the visual
+ * state; controlled via `checked` + `onStateChange`, or uncontrolled via
+ * `defaultChecked`. Label is `label` (or `children`); `hint` adds secondary
+ * text under the label. Requires `@antadesign/anta/elements`.
  *
  * ```tsx
- * <Checkbox state={agreed} onChange={setAgreed}>I agree</Checkbox> // controlled
- * <Checkbox defaultState="checked">Remember me</Checkbox>          // uncontrolled
+ * <Checkbox checked={agreed} onStateChange={(e, { next }) => setAgreed(next)}>
+ *   I agree
+ * </Checkbox>
+ * <Checkbox defaultChecked label="Remember me" hint="On this device" />
  * ```
  */
 export const Checkbox = ({
-  state,
-  defaultState,
+  checked,
+  defaultChecked,
   disabled,
   tone,
   size,
-  onChange,
+  onStateChange,
   label,
+  hint,
   className,
   style,
   children,
   tabIndex,
   ...rest
 }: CheckboxProps) => {
-  const isControlled = state !== undefined
+  // The wrapper is stateless on purpose (matches every other Anta wrapper;
+  // keeps `configure()` portability). `aria-checked` is the live value for
+  // controlled, the seed for uncontrolled — which then goes stale on
+  // self-toggles; prefer controlled when a screen reader must track every
+  // toggle.
+  const liveValue: CheckboxValue = checked ?? defaultChecked ?? false
 
   // A non-named tone is a custom CSS color — hand it to the element via
   // `--checkbox-tone-source` inline; the CSS resolver derives the fill curve.
-  const toneAttr = tone && tone !== 'brand' ? tone : undefined
-  const isCustomTone = toneAttr != null && toneAttr !== 'neutral'
+  const isCustomTone = tone != null && !NAMED_TONES.has(tone)
   const computedStyle = isCustomTone
-    ? { ...style, ['--checkbox-tone-source']: toneAttr }
+    ? { ...style, ['--checkbox-tone-source']: tone }
     : style
 
-  // The element self-toggles before this delegated handler runs, so just report
-  // its resulting :state() — same path for controlled and uncontrolled. (Keyboard
-  // routes through .click() too.)
-  const onClick = (e: any) => {
-    if (disabled || !onChange) return
-    if (e.currentTarget?.matches?.(':disabled')) return
-    onChange(readState(e.currentTarget), e)
-  }
+  // The accessible name is wrapper-derived (matches `Input` and the "ARIA lives
+  // in the wrapper" rule): a string label / children becomes the box's
+  // `aria-label` automatically, so consumers don't hand-write it. An explicit
+  // `aria-label` in `...rest` still wins.
+  const explicitAriaLabel = rest['aria-label']
+  const ariaLabel =
+    (typeof explicitAriaLabel === 'string' ? explicitAriaLabel : undefined) ??
+    label ??
+    (typeof children === 'string' ? children : undefined)
 
-  // ARIA lives in the wrapper, not the element (Anta convention). `aria-checked`
-  // is derived from the state the wrapper knows — live for controlled; the seed
-  // for uncontrolled (it can't see later self-toggles, so prefer controlled when
-  // a screen reader must track the value). A consumer's own role / aria-* via
-  // `...rest` wins (spread first).
-  const ariaState = state ?? defaultState ?? 'unchecked'
+  const onstatechange = onStateChange
+    ? (e: StateChangeEvent) => {
+        const detail = readDetail(e)
+        if (!detail) return
+        onStateChange(e, {
+          next: stateToValue(detail.next),
+          prev: stateToValue(detail.prev),
+        })
+      }
+    : undefined
+
+  // Emit `state` or `default-state`, never both — the DOM never carries a
+  // stale state attribute, and TS narrows `checked` / `defaultChecked` to
+  // non-undefined inside each branch (no casts needed).
+  const stateAttr = checked !== undefined ? valueToState(checked) : undefined
+  const defaultStateAttr =
+    checked === undefined && defaultChecked !== undefined
+      ? valueToState(defaultChecked)
+      : undefined
+
+  const hasLabel = label != null || children != null
 
   return (
     <a-checkbox
       role="checkbox"
-      aria-checked={ariaState === 'indeterminate' ? 'mixed' : ariaState === 'checked' ? 'true' : 'false'}
+      aria-checked={ariaForValue(liveValue)}
       aria-disabled={disabled ? 'true' : undefined}
+      aria-label={ariaLabel}
       {...rest}
-      // Controlled → drive `state` (the element reflects it); uncontrolled →
-      // seed once via `default-state`.
-      state={state}
-      default-state={isControlled ? undefined : defaultState}
+      state={stateAttr}
+      default-state={defaultStateAttr}
       disabled={disabled ? '' : undefined}
-      tone={toneAttr}
+      tone={tone && tone !== 'brand' ? tone : undefined}
       size={size && size !== 'medium' ? size : undefined}
       tabIndex={disabled ? -1 : (tabIndex ?? 0)}
-      onClick={onClick}
+      // All-lowercase `onstatechange` is the one event-prop spelling both
+      // renderers bind to our custom `statechange` event: React 19 keeps the
+      // case of whatever follows `on`, Preact lowercases. The native-listener
+      // path is what lets `event.preventDefault()` reach the element's
+      // `dispatchEvent()` return.
+      onstatechange={onstatechange}
       class={className}
       style={computedStyle}
     >
-      {label}
-      {children}
+      {hasLabel && (
+        <a-checkbox-label>
+          {label}
+          {children}
+        </a-checkbox-label>
+      )}
+      {hint != null && <a-checkbox-hint>{hint}</a-checkbox-hint>}
     </a-checkbox>
   )
 }

@@ -1,14 +1,16 @@
 @layer anta {
   /* Light-DOM element (see a-checkbox.ts): state lives on ElementInternals, so
      styling keys off :state(checked) / :state(indeterminate), not attributes. Box
-     is ::before, glyph is ::after, label is the children. */
+     is ::before, glyph is ::after, label is the children.
+
+     Public component-token surface (per CLAUDE.md component-token policy and the
+     "trim to colors + the convenient layout knobs" review on PR #63): only the
+     color tokens and `--checkbox-gap` are documented overrides. Dimensions
+     (box size, radius, label size/line) and motion timings live as literals
+     here — bake-in defaults, not API. */
 
   a-checkbox {
-    --checkbox-size: 18px;
-    --checkbox-radius: 4px;
     --checkbox-gap: 8px;
-    --checkbox-label-size: 15px;
-    --checkbox-label-line: 20px;
 
     --checkbox-bg: var(--bg-1);
     --checkbox-border: #d4ced4;
@@ -27,15 +29,18 @@
 
     --checkbox-label-color: var(--text-2);
     --checkbox-label-color-disabled: var(--text-4);
+    --checkbox-hint-color: var(--text-4);
 
-    --checkbox-timing-in: 75ms ease-in;
-    --checkbox-timing-active: 50ms linear;
-    --checkbox-timing-out: 150ms ease-out;
-
-    position: relative;
-    display: inline-flex;
+    /* Inline-grid so the box sits in column 1 and the label/hint stack in
+       column 2 — `<a-checkbox-label>` on the first row, `<a-checkbox-hint>`
+       (when present) on a second row beneath it. The box (::before) and the
+       glyph (::after) are both grid items placed in column 1, rows 1/-1, so
+       the box stays vertically centred against the label column whether or
+       not a hint adds a second row. */
+    display: inline-grid;
+    grid-template-columns: auto auto;
     align-items: center;
-    gap: var(--checkbox-gap);
+    column-gap: var(--checkbox-gap);
     vertical-align: middle;
     cursor: pointer;
     user-select: none;
@@ -44,43 +49,67 @@
 
     color: var(--checkbox-label-color);
     font-family: var(--sans-serif);
-    font-size: var(--checkbox-label-size);
-    line-height: var(--checkbox-label-line);
+    font-size: 15px;
+    line-height: 20px;
     font-feature-settings: "ss02", "ss05";
   }
 
   /* The box. */
   a-checkbox::before {
     content: "";
-    flex: none;
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: center;
     box-sizing: border-box;
-    inline-size: var(--checkbox-size);
-    block-size: var(--checkbox-size);
-    border-radius: var(--checkbox-radius);
+    inline-size: 18px;
+    block-size: 18px;
+    border-radius: 4px;
     background: var(--checkbox-bg);
     border: 1px solid var(--checkbox-border);
     transition:
-      background-color var(--checkbox-timing-out),
-      border-color var(--checkbox-timing-out);
+      background-color 150ms ease-out,
+      border-color 150ms ease-out;
   }
 
-  /* The glyph, overlaid on the box. Transparent until a filled state masks +
-     colours it (an unmasked ::after would paint a solid square). */
+  /* The glyph, overlaid on the box. Same grid cell as ::before, same
+     alignment, so it stacks on top (paint order = source order). Transparent
+     until a filled state masks + colours it (an unmasked ::after would paint
+     a solid square). */
   a-checkbox::after {
     content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    inline-size: var(--checkbox-size);
-    block-size: var(--checkbox-size);
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: center;
+    inline-size: 18px;
+    block-size: 18px;
     background-color: transparent;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
     mask-position: center;
-    -webkit-mask-size: calc(var(--checkbox-size) - 4px);
-    mask-size: calc(var(--checkbox-size) - 4px);
+    -webkit-mask-size: 14px;
+    mask-size: 14px;
+  }
+
+  /* Label column — light-DOM styled tags (CSS-only, like a-progress-label /
+     a-tag-label). The label is what `role="checkbox"` reads as its visible
+     content; the hint is secondary, smaller, dimmer. Both `display: block`
+     so they stack vertically inside column 2. `min-width: 0` lets a consumer
+     `text-overflow: ellipsis` either line by constraining the host's width. */
+  a-checkbox-label,
+  a-checkbox-hint {
+    display: block;
+    grid-column: 2;
+    min-width: 0;
+  }
+  a-checkbox-hint {
+    color: var(--checkbox-hint-color);
+    font-size: 13px;
+    line-height: 16px;
+    margin-block-start: 2px;
+  }
+  a-checkbox:disabled a-checkbox-hint {
+    color: var(--checkbox-label-color-disabled);
   }
 
   /* Hover / active only on an enabled box. */
@@ -88,15 +117,15 @@
     a-checkbox:not(:disabled):hover::before {
       border-color: var(--checkbox-border-hover);
       transition:
-        background-color var(--checkbox-timing-in),
-        border-color var(--checkbox-timing-in);
+        background-color 75ms ease-in,
+        border-color 75ms ease-in;
     }
   }
   a-checkbox:not(:disabled):active::before {
     border-color: var(--checkbox-border-active);
     transition:
-      background-color var(--checkbox-timing-active),
-      border-color var(--checkbox-timing-active);
+      background-color 50ms linear,
+      border-color 50ms linear;
   }
 
   /* Filled — checked OR indeterminate. */
@@ -127,9 +156,11 @@
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
   }
 
+  /* Hairline focus ring a hair off the box — matches the rest of Anta's
+     keyboard-focus weight. */
   a-checkbox:focus-visible::before {
-    outline: 2px solid var(--checkbox-focus);
-    outline-offset: 2px;
+    outline: 1px solid var(--checkbox-focus);
+    outline-offset: 1px;
   }
 
   /* Disabled. `:disabled` matches the host attribute and an ancestor
@@ -152,7 +183,47 @@
     --checkbox-fill-hover: #635b65;
     --checkbox-fill-active: #534c57;
   }
-  a-checkbox[tone]:not([tone=""], [tone="brand"], [tone="neutral"]) {
+
+  /* Named semantic tones — point the fill at the theme-aware role tokens
+     (`--text-2-{tone}` / `--text-1-{tone}`), so dark mode comes for free via
+     `tokens.css` (no `.dark a-checkbox[tone=...]` block needed, same trick
+     `a-tag` uses). Active matches hover here: a third visual step would need a
+     bespoke palette per tone — the role tokens give two. */
+  a-checkbox[tone="info"] {
+    --checkbox-fill: var(--text-2-info);
+    --checkbox-fill-hover: var(--text-1-info);
+    --checkbox-fill-active: var(--text-1-info);
+  }
+  a-checkbox[tone="success"] {
+    --checkbox-fill: var(--text-2-success);
+    --checkbox-fill-hover: var(--text-1-success);
+    --checkbox-fill-active: var(--text-1-success);
+  }
+  a-checkbox[tone="warning"] {
+    --checkbox-fill: var(--text-2-warning);
+    --checkbox-fill-hover: var(--text-1-warning);
+    --checkbox-fill-active: var(--text-1-warning);
+  }
+  a-checkbox[tone="critical"] {
+    --checkbox-fill: var(--text-2-critical);
+    --checkbox-fill-hover: var(--text-1-critical);
+    --checkbox-fill-active: var(--text-1-critical);
+  }
+
+  /* Custom tone — any non-named tone is treated as a literal CSS color and the
+     fill curve is derived in oklch (hue/chroma preserved, lightness pinned).
+     Listing every named value in the `:not()` is required: without it `info` /
+     `success` / etc would also hit this rule and `attr(tone type(<color>))`
+     would fail to parse them as colors, silently rendering transparent. */
+  a-checkbox[tone]:not(
+      [tone=""],
+      [tone="brand"],
+      [tone="neutral"],
+      [tone="info"],
+      [tone="success"],
+      [tone="warning"],
+      [tone="critical"]
+    ) {
     --checkbox-tone-source: attr(tone type(<color>), transparent);
 
     --_tone-l-rest: 0.55;
@@ -187,21 +258,42 @@
     --checkbox-fill-active: #938d96;
   }
   /* Custom tone, dark — same formulas, lighter curve to read against a dark page. */
-  .dark a-checkbox[tone]:not([tone=""], [tone="brand"], [tone="neutral"]) {
+  .dark a-checkbox[tone]:not(
+      [tone=""],
+      [tone="brand"],
+      [tone="neutral"],
+      [tone="info"],
+      [tone="success"],
+      [tone="warning"],
+      [tone="critical"]
+    ) {
     --_tone-l-rest: 0.55;
     --_tone-l-hover: 0.60;
     --_tone-l-active: 0.64;
   }
 
+  /* Size variants — dimensional, so they stay as literal values (per the
+     trimmed token policy). The box and glyph track together. */
   a-checkbox[size="small"] {
-    --checkbox-size: 16px;
     --checkbox-gap: 6px;
-    --checkbox-label-size: 13px;
-    --checkbox-label-line: 16px;
+    font-size: 13px;
+    line-height: 16px;
   }
+  a-checkbox[size="small"]::before,
+  a-checkbox[size="small"]::after {
+    inline-size: 16px;
+    block-size: 16px;
+  }
+  a-checkbox[size="small"]::after { -webkit-mask-size: 12px; mask-size: 12px; }
+
   a-checkbox[size="large"] {
-    --checkbox-size: 20px;
-    --checkbox-label-size: 17px;
-    --checkbox-label-line: 24px;
+    font-size: 17px;
+    line-height: 24px;
   }
+  a-checkbox[size="large"]::before,
+  a-checkbox[size="large"]::after {
+    inline-size: 20px;
+    block-size: 20px;
+  }
+  a-checkbox[size="large"]::after { -webkit-mask-size: 16px; mask-size: 16px; }
 }

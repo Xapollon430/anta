@@ -22,10 +22,11 @@ of on/off switches. For a single option that takes effect immediately, a switch
 reads more clearly than a lone checkbox.
 
 The `Checkbox` wrapper renders an `<a-checkbox>` web component — a small
-interactive element that owns its state (and its `role="checkbox"` accessibility)
-internally, so it works both **controlled** and **uncontrolled**. State is a
-single `state` prop — `'checked'`, `'unchecked'`, or `'indeterminate'`. The label
-is its `children`; `tone` and `size` are plain attributes.
+interactive element that owns its visual state internally, so it works both
+**controlled** and **uncontrolled**. The wrapper API is `checked` /
+`defaultChecked` (a boolean for the binary axis, `'indeterminate'` for the
+third state) and `onStateChange` for change requests. The label is its
+`children` (or the `label` prop); `tone` and `size` are plain attributes.
 
 <Disclosure title="Playground" anchor={false}>
 
@@ -43,51 +44,58 @@ is its `children`; `tone` and `size` are plain attributes.
 
 ## Basic checkboxes
 
-A checkbox is `unchecked`, `checked`, or `indeterminate` — the last is the
-"mixed" state for a parent whose children are partly selected. Indeterminate
-renders a minus and takes visual precedence over `checked`; clicking it resolves
-to checked. `disabled` fades the box and drops it from the tab order; it works in
+A checkbox is unchecked, checked, or indeterminate — the last is the "mixed"
+state for a parent whose children are partly selected. Indeterminate renders a
+minus and takes visual precedence over checked; clicking it resolves to
+checked. `disabled` fades the box and drops it from the tab order; it works in
 every state.
 
 <Preview gap="16px">
-  <Checkbox defaultState="checked" />
-  <Checkbox />
-  <Checkbox defaultState="indeterminate" />
-  <Checkbox disabled />
-  <Checkbox disabled defaultState="checked" />
+  <Checkbox defaultChecked label="Checked" />
+  <Checkbox label="Unchecked" />
+  <Checkbox defaultChecked="indeterminate" label="Indeterminate" />
+  <Checkbox disabled label="Disabled" />
+  <Checkbox disabled defaultChecked label="Disabled checked" />
 </Preview>
 
 ```tsx folded
-<Checkbox defaultState="checked" />
-<Checkbox />
-<Checkbox defaultState="indeterminate" />
-<Checkbox disabled />
-<Checkbox disabled defaultState="checked" />
+<Checkbox defaultChecked label="Checked" />
+<Checkbox label="Unchecked" />
+<Checkbox defaultChecked="indeterminate" label="Indeterminate" />
+<Checkbox disabled label="Disabled" />
+<Checkbox disabled defaultChecked label="Disabled checked" />
 ```
 
-## Label
+## Label & hint
 
 Pass the label as `children` (or the `label` prop for the common single-string
 case) and the whole control — box plus text — becomes one clickable, focusable
-target. Or omit it for a box-only checkbox — useful in a table header "select
-all" or a row whose neighbouring columns already give it context. Either way,
-give the checkbox an accessible name with `aria-label` (a `role="checkbox"` isn't
-named by its visible text — see [Accessibility](#accessibility)).
+target. Add a `hint` for a secondary line under the label, like Input's hint
+text. The label is what `role="checkbox"` takes as its accessible name (no need
+to pass `aria-label` yourself — see [Accessibility](#accessibility)).
 
 <Preview>
   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
-    <Checkbox defaultState="checked">Label</Checkbox>
+    <Checkbox defaultChecked>Label</Checkbox>
     <Checkbox>Remember me</Checkbox>
+    <Checkbox label="Email notifications" hint="Weekly digest, never marketing." />
     <Checkbox disabled>Disabled</Checkbox>
-    <Checkbox aria-label="Select all" />
   </div>
 </Preview>
 
 ```tsx folded
-<Checkbox defaultState="checked">Label</Checkbox>
+<Checkbox defaultChecked>Label</Checkbox>
 <Checkbox>Remember me</Checkbox>
+<Checkbox label="Email notifications" hint="Weekly digest, never marketing." />
 <Checkbox disabled>Disabled</Checkbox>
-<Checkbox aria-label="Select all" />  {/* box-only — give it an accessible name */}
+```
+
+A label-less, box-only checkbox is supported but is an explicit opt-in: when
+the label is genuinely external (e.g. a table-header "select all" with column
+context), pass an `aria-label` so the control still has an accessible name.
+
+```tsx
+<Checkbox aria-label="Select all rows" />
 ```
 
 ## Size
@@ -97,15 +105,15 @@ and `large` (20px). The label's type scale tracks the box (13/16, 15/20, 17/24),
 matching `Text`.
 
 <Preview gap="16px">
-  <Checkbox defaultState="checked" size="small">Small</Checkbox>
-  <Checkbox defaultState="checked">Medium</Checkbox>
-  <Checkbox defaultState="checked" size="large">Large</Checkbox>
+  <Checkbox defaultChecked size="small">Small</Checkbox>
+  <Checkbox defaultChecked>Medium</Checkbox>
+  <Checkbox defaultChecked size="large">Large</Checkbox>
 </Preview>
 
 ```tsx folded
-<Checkbox defaultState="checked" size="small">Small</Checkbox>
-<Checkbox defaultState="checked">Medium</Checkbox>
-<Checkbox defaultState="checked" size="large">Large</Checkbox>
+<Checkbox defaultChecked size="small">Small</Checkbox>
+<Checkbox defaultChecked>Medium</Checkbox>
+<Checkbox defaultChecked size="large">Large</Checkbox>
 ```
 
 ## Color
@@ -113,26 +121,35 @@ matching `Text`.
 <Columns>
 <Col>
 
-`tone="brand"` (the default purple) for primary selections, `tone="neutral"` for
-quieter contexts where a coloured box would feel too prominent. Both track light
-and dark mode automatically.
+The standard tone set — `brand` (the default purple) for primary selections,
+`neutral` for quieter contexts, plus `info` / `success` / `warning` /
+`critical` for semantic meaning. All track light and dark mode automatically
+through Anta's role tokens.
 
-In addition, a custom `tone` is possible: pass **any literal CSS color** and the
-box adapts to it — it keeps the colour's hue and chroma but pins lightness to the
-brand fill curve.
+A custom `tone` is also possible: pass **any literal CSS color** and the box
+adapts to it — keeping the hue and chroma but pinning lightness to the brand
+fill curve.
 
 <Preview gap="16px">
-  <Checkbox defaultState="checked">Brand</Checkbox>
-  <Checkbox defaultState="checked" tone="neutral">Neutral</Checkbox>
-  <Checkbox defaultState="checked" tone="#e0457b">Pink</Checkbox>
-  <Checkbox defaultState="checked" tone="teal">Teal</Checkbox>
+  <Checkbox defaultChecked>Brand</Checkbox>
+  <Checkbox defaultChecked tone="neutral">Neutral</Checkbox>
+  <Checkbox defaultChecked tone="info">Info</Checkbox>
+  <Checkbox defaultChecked tone="success">Success</Checkbox>
+  <Checkbox defaultChecked tone="warning">Warning</Checkbox>
+  <Checkbox defaultChecked tone="critical">Critical</Checkbox>
+  <Checkbox defaultChecked tone="#e0457b">Pink</Checkbox>
+  <Checkbox defaultChecked tone="teal">Teal</Checkbox>
 </Preview>
 
 ```tsx folded
-<Checkbox defaultState="checked">Brand</Checkbox>
-<Checkbox defaultState="checked" tone="neutral">Neutral</Checkbox>
-<Checkbox defaultState="checked" tone="#e0457b">Pink</Checkbox>
-<Checkbox defaultState="checked" tone="teal">Teal</Checkbox>
+<Checkbox defaultChecked>Brand</Checkbox>
+<Checkbox defaultChecked tone="neutral">Neutral</Checkbox>
+<Checkbox defaultChecked tone="info">Info</Checkbox>
+<Checkbox defaultChecked tone="success">Success</Checkbox>
+<Checkbox defaultChecked tone="warning">Warning</Checkbox>
+<Checkbox defaultChecked tone="critical">Critical</Checkbox>
+<Checkbox defaultChecked tone="#e0457b">Pink</Checkbox>
+<Checkbox defaultChecked tone="teal">Teal</Checkbox>
 ```
 
 </Col>
@@ -142,15 +159,17 @@ The tone only colours the filled (checked / indeterminate) box — an unchecked
 box is the same neutral outline regardless of tone.
 
 <Preview gap="16px">
-  <Checkbox defaultState="indeterminate">Brand</Checkbox>
-  <Checkbox defaultState="indeterminate" tone="neutral">Neutral</Checkbox>
-  <Checkbox defaultState="indeterminate" tone="#e0457b">Pink</Checkbox>
+  <Checkbox defaultChecked="indeterminate">Brand</Checkbox>
+  <Checkbox defaultChecked="indeterminate" tone="neutral">Neutral</Checkbox>
+  <Checkbox defaultChecked="indeterminate" tone="critical">Critical</Checkbox>
+  <Checkbox defaultChecked="indeterminate" tone="#e0457b">Pink</Checkbox>
 </Preview>
 
 ```tsx folded
-<Checkbox defaultState="indeterminate">Brand</Checkbox>
-<Checkbox defaultState="indeterminate" tone="neutral">Neutral</Checkbox>
-<Checkbox defaultState="indeterminate" tone="#e0457b">Pink</Checkbox>
+<Checkbox defaultChecked="indeterminate">Brand</Checkbox>
+<Checkbox defaultChecked="indeterminate" tone="neutral">Neutral</Checkbox>
+<Checkbox defaultChecked="indeterminate" tone="critical">Critical</Checkbox>
+<Checkbox defaultChecked="indeterminate" tone="#e0457b">Pink</Checkbox>
 ```
 
 </Col>
@@ -158,31 +177,43 @@ box is the same neutral outline regardless of tone.
 
 ## Controlled
 
-By default a checkbox is **uncontrolled** — pass `defaultState` (or nothing) and
-it flips itself on click; read the value from `onChange` or at form-submit time.
-To drive it from your own store, make it **controlled** with `state` and
-`onChange`: it renders exactly the `state` you pass, and `onChange` hands you the
-new state to store.
+By default a checkbox is **uncontrolled** — pass `defaultChecked` (or nothing)
+and it flips itself on click; read the value from `onStateChange` or at
+form-submit time. To drive it from your own store, make it **controlled** with
+`checked` and `onStateChange`: it renders exactly the `checked` you pass, and
+`onStateChange` hands you the new state to store.
 
 ```tsx
-const [state, setState] = useState('unchecked')
+const [agreed, setAgreed] = useState(false)
 
-<Checkbox state={state} onChange={setState}>I agree</Checkbox>
+<Checkbox
+  checked={agreed}
+  onStateChange={(_e, { next }) => setAgreed(next as boolean)}
+>
+  I agree
+</Checkbox>
 ```
 
-> A controlled checkbox with no `onChange` is effectively read-only — it reflects
-> `state` and ignores clicks. If a box "won't toggle", it's almost always a
-> `state` with no `onChange` updating it.
+`onStateChange` is **event-first, detail-second** — `(event, { next, prev })` —
+because the event arrives *before* the element applies. A controlled consumer
+accepts the change by updating `checked`; a synchronous `event.preventDefault()`
+vetoes it in uncontrolled mode (e.g. "confirm before unchecking" without
+lifting state).
+
+> A controlled checkbox with no `onStateChange` is effectively read-only — it
+> reflects `checked` and ignores clicks (the element never self-applies in
+> controlled mode). If a box "won't toggle", it's almost always `checked` with
+> no `onStateChange` updating it.
 
 ## Indeterminate
 
 A checkbox input only has two states in a form — checked or unchecked — but
-*visually* it has three. `state="indeterminate"` shows the minus glyph and takes
-visual precedence; the underlying checked-ness then only affects what a form
-submits (an indeterminate box submits nothing, like a native one).
+*visually* it has three. `checked="indeterminate"` shows the minus glyph and
+takes visual precedence; the underlying checked-ness then only affects what a
+form submits (an indeterminate box submits nothing, like a native one).
 
 The canonical use is a parent whose state is **derived** from its children:
-`'checked'` when both are on, `'indeterminate'` when they differ. Click the
+`true` when both are on, `'indeterminate'` when they differ. Click the
 children and watch the parent resolve between the three states.
 
 <Preview>
@@ -192,20 +223,25 @@ children and watch the parent resolve between the three states.
 ```tsx
 function ParentChild() {
   const [on, setOn] = useState([true, false])
-  const checked = (b) => (b ? 'checked' : 'unchecked')
   return (
     <>
       <Checkbox
-        state={on[0] && on[1] ? 'checked' : on[0] || on[1] ? 'indeterminate' : 'unchecked'}
-        onChange={(next) => setOn([next === 'checked', next === 'checked'])}
+        checked={on[0] && on[1] ? true : on[0] || on[1] ? 'indeterminate' : false}
+        onStateChange={(_e, { next }) => setOn([next === true, next === true])}
       >
         Parent
       </Checkbox>
       <div style={{ marginInlineStart: 24 }}>
-        <Checkbox state={checked(on[0])} onChange={(next) => setOn([next === 'checked', on[1]])}>
+        <Checkbox
+          checked={on[0]}
+          onStateChange={(_e, { next }) => setOn([next === true, on[1]])}
+        >
           Child 1
         </Checkbox>
-        <Checkbox state={checked(on[1])} onChange={(next) => setOn([on[0], next === 'checked'])}>
+        <Checkbox
+          checked={on[1]}
+          onStateChange={(_e, { next }) => setOn([on[0], next === true])}
+        >
           Child 2
         </Checkbox>
       </div>
@@ -229,15 +265,20 @@ function ParentChild() {
 The `Checkbox` wrapper applies `role="checkbox"` and `aria-checked` (`"true"` /
 `"false"` / `"mixed"`) from the state it's given — live for a controlled
 checkbox, the initial seed for an uncontrolled one (prefer controlled when a
-screen reader must track later toggles). The web component itself sets no ARIA;
-on a raw `<a-checkbox>` you wire it yourself. It's keyboard-operable:
-<kbd>Space</kbd> toggles it (funnelled through the click path).
+screen reader must track every toggle). The wrapper also derives the
+accessible name from `label` (or a string `children`) and sets it as
+`aria-label` on the element automatically — consumers don't pass `aria-label`
+by hand for the labelled cases.
 
-A `role="checkbox"` takes its name from the author, not its contents, so give
-each one an accessible name with `aria-label` (or `aria-labelledby`):
+The web component itself sets no ARIA; on a raw `<a-checkbox>` you wire it
+yourself. It's keyboard-operable: <kbd>Space</kbd> toggles it (funnelled
+through the click path).
+
+For a genuinely label-less box (e.g. a table-header "select all" whose meaning
+comes from the column), pass an explicit `aria-label`:
 
 ```tsx
-<Checkbox aria-label="Accept terms" />
+<Checkbox aria-label="Select all rows" />
 ```
 
 Follows the [WAI-ARIA checkbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/).
@@ -253,16 +294,16 @@ Follows the [WAI-ARIA checkbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns
 Override any of these on a single instance via `style`, or on a selector wrapping
 the checkbox. The box background is the themed `--bg-1` role; the fills, borders,
 disabled overlays, and focus ring are per-tone values with a matching dark-mode
-block.
+block. Dimensional values (box size, radius, label type scale) are baked-in
+literals — not tokens — so override them with a plain CSS rule rather than a
+variable.
 
 | Token | Description |
 |---|---|
-| `--checkbox-size` | Box edge length (`18px` medium, `16px` small, `20px` large). |
-| `--checkbox-radius` | Box corner radius (default `4px`). |
 | `--checkbox-gap` | Space between the box and the label. |
 | `--checkbox-bg` | Unchecked box background. Defaults to the `--bg-1` role. |
 | `--checkbox-border`<br />`--checkbox-border-hover`<br />`--checkbox-border-active` | Unchecked box outline across rest / hover / active. |
-| `--checkbox-fill`<br />`--checkbox-fill-hover`<br />`--checkbox-fill-active` | Filled (checked / indeterminate) background across rest / hover / active. Retinted by `tone="neutral"`. |
+| `--checkbox-fill`<br />`--checkbox-fill-hover`<br />`--checkbox-fill-active` | Filled (checked / indeterminate) background across rest / hover / active. Re-pointed per `tone`. |
 | `--checkbox-icon` | Check / minus glyph color (default white). |
 | `--checkbox-icon-disabled` | Glyph color when disabled. |
 | `--checkbox-bg-disabled`<br />`--checkbox-border-disabled` | Box fill / outline when disabled. |

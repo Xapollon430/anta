@@ -16,10 +16,14 @@ const parseState = (v: string | null): CheckboxState =>
  * One ternary state — `checked` / `unchecked` / `indeterminate` — carried by two
  * attributes: `state` is the **controlled** live value (the element reflects
  * changes to it), `default-state` is the **uncontrolled** seed (read once at
- * connect / form-reset, later changes ignored). The element always self-toggles
- * on click and fires `change`; controlled callers re-assert `state` from their
- * own store on the next render. No "controlled" flag — the attribute name carries
- * the intent.
+ * connect / form-reset, later changes ignored). No "controlled" flag — the
+ * attribute name carries the intent (`controlled ≡ hasAttribute('state')`).
+ *
+ * Follows the shared state contract (see `STATEFUL-COMPONENTS.md`): on
+ * interaction the element fires a cancelable `statechange` *before* applying.
+ * Controlled callers re-assert `state` from their store; uncontrolled callers
+ * can veto a transition synchronously with `event.preventDefault()`. No
+ * optimistic self-paint.
  */
 export class ACheckboxElement extends HTMLElementBase {
   static formAssociated = true
@@ -30,7 +34,7 @@ export class ACheckboxElement extends HTMLElementBase {
 
   constructor() {
     super()
-    this.addEventListener('click', () => this.#toggle())
+    this.addEventListener('click', (e: MouseEvent) => this.#toggle(e))
     this.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === ' ') { e.preventDefault(); this.click() }
     })
@@ -48,18 +52,30 @@ export class ACheckboxElement extends HTMLElementBase {
 
   // Matches the host `disabled` attribute and an ancestor `<fieldset disabled>`.
   get #disabled() { return this.matches(':disabled') }
+  // Controlled mode: the `state` attribute is present and owns the live value.
+  get #controlled() { return this.hasAttribute('state') }
 
   #seed() {
     this.#state = parseState(this.getAttribute('state') ?? this.getAttribute('default-state'))
   }
 
-  #toggle() {
+  #toggle(_e: Event) {
     if (this.#disabled) return
+    const prev = this.#state
     // Indeterminate resolves to checked; otherwise flip (native convention).
-    const next: CheckboxState = this.#state === 'checked' ? 'unchecked' : 'checked'
-    this.#state = next
-    this.#paint()
-    this.dispatchEvent(new CustomEvent('change', { bubbles: true, composed: true, detail: { state: next } }))
+    const next: CheckboxState = prev === 'checked' ? 'unchecked' : 'checked'
+    const ok = this.dispatchEvent(
+      new CustomEvent('statechange', {
+        cancelable: true,
+        bubbles: true,
+        composed: true,
+        detail: { next, prev },
+      }),
+    )
+    // Controlled: never self-apply — wait for the consumer to update `state`.
+    // Uncontrolled: apply unless a listener synchronously preventDefault()'d.
+    if (this.#controlled) return
+    if (ok) { this.#state = next; this.#paint() }
   }
 
   #paint() {
