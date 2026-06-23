@@ -1,0 +1,46 @@
+@layer anta {
+  /* Group-level size cascade onto children that don't set their own. */
+  a-radio-group[size="small"] a-radio:not([size]) {
+    --radio-control-size: 16px;
+    --radio-dot-size: 6px;
+    --radio-gap: 6px;
+  }
+  a-radio-group[size="large"] a-radio:not([size]) {
+    --radio-control-size: 20px;
+    --radio-dot-size: 8px;
+  }
+
+  /* Group-level tone cascade onto children that don't set their own. */
+  a-radio-group[tone="neutral"] a-radio:not([tone]) {
+    --radio-bg-checked: #776e77;
+    --radio-bg-checked-hover: #635b65;
+    --radio-bg-checked-active: #534c57;
+    --radio-selected-border-hover: #635b65;
+    --radio-selected-border-active: #534c57;
+  }
+  .dark a-radio-group[tone="neutral"] a-radio:not([tone]) {
+    --radio-bg-checked: #776e77;
+    --radio-bg-checked-hover: #878089;
+    --radio-bg-checked-active: #938d96;
+    --radio-selected-border-hover: #878089;
+    --radio-selected-border-active: #938d96;
+  }
+
+  /* Group-level disabled — cascade the disabled palette down. */
+  a-radio-group[disabled] a-radio {
+    cursor: default;
+    pointer-events: none;
+    color: var(--radio-fg-disabled);
+
+    --radio-border: var(--radio-border-disabled);
+    --radio-border-hover: var(--radio-border-disabled);
+    --radio-border-active: var(--radio-border-disabled);
+    --radio-bg: var(--radio-bg-disabled);
+    --radio-bg-checked: var(--radio-bg-disabled);
+    --radio-bg-checked-hover: var(--radio-bg-disabled);
+    --radio-bg-checked-active: var(--radio-bg-disabled);
+    --radio-selected-border-hover: var(--radio-border-disabled);
+    --radio-selected-border-active: var(--radio-border-disabled);
+    --radio-dot: var(--radio-fg-disabled);
+  }
+}

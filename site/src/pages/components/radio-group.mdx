@@ -1,0 +1,259 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: RadioGroup
+---
+import Playground from '../../components/Playground'
+import Preview from '../../components/Preview.astro'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
+import Columns from '../../components/Columns.astro'
+import Col from '../../components/Col.astro'
+import radioGroupDemoCode from './radio-group.demo.ts'
+import { RadioGroup, Radio } from '@antadesign/anta'
+
+# RadioGroup
+
+The single-select container. `RadioGroup` renders an `<a-radio-group>` web
+component that coordinates a set of [`Radio`](/components/radio/) options: exactly
+one is selected at a time, arrow keys move the selection, and the group is a
+form-associated element, so a wrapping `<form>` submits one `name=value`.
+
+All the state lives in the element, so the behaviour is identical whether you use
+the wrapper or author the `<a-radio-group>` tag by hand.
+
+<Disclosure title="Playground" anchor={false} brand>
+
+<Playground
+  client:visible
+  component="RadioGroup"
+  layout="side"
+  panelHeight={400}
+  initialCode={radioGroupDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: center; justify-content: center; }`}
+/>
+
+</Disclosure>
+
+## Label & hint
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup name="lh" label="Select an option" hint="Choose how we should reach you." defaultValue="email">
+    <Radio value="email">Email</Radio>
+    <Radio value="sms">SMS</Radio>
+    <Radio value="push">Push notification</Radio>
+  </RadioGroup>
+</Preview>
+
+```tsx folded
+<RadioGroup
+  label="Select an option"
+  hint="Choose how we should reach you."
+  defaultValue="email"
+>
+  <Radio value="email">Email</Radio>
+  <Radio value="sms">SMS</Radio>
+  <Radio value="push">Push notification</Radio>
+</RadioGroup>
+```
+
+</Col>
+<Col>
+
+`label` prints above the options; `hint` prints below — both plain text passed
+as attributes. The element renders them through named `<a-radio-label>` and
+`<a-radio-hint>` sub-elements inside its shadow, so hand-authored HTML uses the
+same attributes:
+
+```html folded
+<a-radio-group name="contact" label="Select an option"
+               hint="Choose how we should reach you.">
+  <a-radio value="email">Email</a-radio>
+  <a-radio value="sms">SMS</a-radio>
+</a-radio-group>
+```
+
+</Col>
+</Columns>
+
+## Controlled vs. uncontrolled
+
+<Columns>
+<Col>
+
+Like the rest of anta's stateful elements, the group works either way.
+**Uncontrolled** — pass `defaultValue` and let the group own selection:
+
+```tsx folded
+<RadioGroup name="plan" defaultValue="pro">
+  <Radio value="free">Free</Radio>
+  <Radio value="pro">Pro</Radio>
+  <Radio value="team">Team</Radio>
+</RadioGroup>
+```
+
+</Col>
+<Col>
+
+**Controlled** — pass `value` + `onChange` and own it yourself. The group then
+only *requests* a change, so you can reject one by not updating `value`:
+
+```tsx folded
+const [plan, setPlan] = useState('pro')
+
+<RadioGroup name="plan" value={plan} onChange={setPlan}>
+  <Radio value="free">Free</Radio>
+  <Radio value="pro">Pro</Radio>
+  <Radio value="team">Team</Radio>
+</RadioGroup>
+```
+
+</Col>
+</Columns>
+
+## Tones
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup name="tone-brand" defaultValue="a" orientation="horizontal">
+    <Radio value="a">Brand</Radio>
+    <Radio value="b">Brand</Radio>
+  </RadioGroup>
+  <RadioGroup name="tone-neutral" tone="neutral" defaultValue="a" orientation="horizontal">
+    <Radio value="a">Neutral</Radio>
+    <Radio value="b">Neutral</Radio>
+  </RadioGroup>
+</Preview>
+
+```tsx folded
+<RadioGroup defaultValue="a">…</RadioGroup>            {/* brand (default) */}
+<RadioGroup tone="neutral" defaultValue="a">…</RadioGroup>
+```
+
+</Col>
+<Col>
+
+Two tones: `brand` (purple, the default) and `neutral` for quieter contexts.
+Set it on the `RadioGroup` to apply to every option, or on a single
+[`Radio`](/components/radio/) to override just that one.
+
+</Col>
+</Columns>
+
+## Sizes
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup name="size-s" size="small" defaultValue="a"><Radio value="a">Small</Radio></RadioGroup>
+  <RadioGroup name="size-m" defaultValue="a"><Radio value="a">Medium</Radio></RadioGroup>
+  <RadioGroup name="size-l" size="large" defaultValue="a"><Radio value="a">Large</Radio></RadioGroup>
+</Preview>
+
+```tsx folded
+<RadioGroup size="small"  …>
+<RadioGroup …>            {/* medium (default) */}
+<RadioGroup size="large"  …>
+```
+
+</Col>
+<Col>
+
+Three sizes set the control circle: `small` (16px), `medium` (18px, the
+default), and `large` (20px). The label keeps its own text size.
+
+</Col>
+</Columns>
+
+## Orientation
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup name="orient" orientation="horizontal" defaultValue="yes">
+    <Radio value="yes">Yes</Radio>
+    <Radio value="no">No</Radio>
+    <Radio value="maybe">Maybe</Radio>
+  </RadioGroup>
+</Preview>
+
+```tsx folded
+<RadioGroup orientation="horizontal" defaultValue="yes">
+  <Radio value="yes">Yes</Radio>
+  <Radio value="no">No</Radio>
+  <Radio value="maybe">Maybe</Radio>
+</RadioGroup>
+```
+
+</Col>
+<Col>
+
+`vertical` (the default) stacks the options; `horizontal` lays them in a row.
+Arrow keys move the selection along the group either way.
+
+</Col>
+</Columns>
+
+## Disabled
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup name="dis-all" defaultValue="a" disabled>
+    <Radio value="a">Whole group off</Radio>
+    <Radio value="b">Whole group off</Radio>
+  </RadioGroup>
+</Preview>
+
+```tsx folded
+<RadioGroup disabled …>…</RadioGroup>   {/* the whole group */}
+```
+
+</Col>
+<Col>
+
+Disable the entire set with `disabled` on the `RadioGroup`. To disable a single
+option instead, put `disabled` on the [`Radio`](/components/radio/). Disabled
+options are skipped by keyboard navigation.
+
+</Col>
+</Columns>
+
+## Keyboard & accessibility
+
+The group is one tab stop: `Tab` moves into the selected option (or the first
+one), and the arrow keys (`↑`/`↓`/`←`/`→`) move the selection between enabled
+options, wrapping at the ends. `Space` selects the focused option.
+
+> **Note:** ARIA roles (`role="radiogroup"` / `role="radio"` / `aria-checked`)
+> are not wired yet — they land in a later accessibility pass. Keyboard
+> operation and form submission already work.
+
+## Forms
+
+`<a-radio-group>` is a form-associated custom element. Give it a `name` and the
+selected option's `value` is submitted with the form like a native radio group:
+
+```tsx folded
+<form>
+  <RadioGroup name="contact" defaultValue="email">
+    <Radio value="email">Email</Radio>
+    <Radio value="sms">SMS</Radio>
+  </RadioGroup>
+</form>
+// FormData → contact=email
+```
+
+<Disclosure title="Component props" open>
+
+<PropsTable component="RadioGroup" />
+
+</Disclosure>

@@ -270,3 +270,57 @@ export interface AButtonAttributes extends BaseAttributes {
   'aria-disabled'?: 'true' | 'false' | boolean
   'aria-busy'?: 'true' | 'false' | boolean
 }
+
+/**
+ * Attributes for the `<a-radio>` custom element — one option in a radio set.
+ * Presentational: a parent `<a-radio-group>` owns selection, keyboard, and form
+ * value. For the typed JSX wrapper use `Radio` from `@antadesign/anta`.
+ */
+export interface ARadioAttributes extends BaseAttributes {
+  /** This option's identity / submitted value. */
+  value?: string
+  /** Semantic tone. `'brand'` is the default (same as omitting it). */
+  tone?: 'brand' | 'neutral'
+  /** Size variant. small=16px, medium=18px, large=20px control. */
+  size?: 'small' | 'medium' | 'large'
+  /** Disabled state. Presence-based (`''` on, omit off). */
+  disabled?: boolean | ''
+  /** Selected state — standalone render fallback. In a group the selected look
+   *  comes from the element's `:state(selected)` (set by the group), not this
+   *  attribute. Presence-based. */
+  selected?: boolean | ''
+}
+
+/**
+ * Attributes for the `<a-radio-group>` custom element — the single-select
+ * coordinator. It is the form-associated element (submits one `name=value`).
+ * For the typed JSX wrapper use `RadioGroup` from `@antadesign/anta`.
+ */
+export interface ARadioGroupAttributes extends BaseAttributes {
+  /** Controlled selected value — value-based, like ARIA, because absence must
+   *  keep meaning "uncontrolled". When present, it's the source of truth: picks
+   *  only dispatch `change` and the consumer answers by updating it. Omit it
+   *  (use `defaultvalue`) for the self-managing uncontrolled mode. */
+  value?: string
+  /** Initial selected value for the uncontrolled mode; read once on connect. */
+  defaultvalue?: string
+  /** Form field name — the group submits `name=value`. */
+  name?: string
+  /** Tone cascaded to children that don't set their own. */
+  tone?: 'brand' | 'neutral'
+  /** Size cascaded to children that don't set their own. */
+  size?: 'small' | 'medium' | 'large'
+  /** Disable the whole group. Presence-based. */
+  disabled?: boolean | ''
+  /** Plain-text label rendered above the radios via a shadow `<a-radio-label>` child. */
+  label?: string
+  /** Plain-text hint rendered below the radios via a shadow `<a-radio-hint>` child. */
+  hint?: string
+  /** Layout + arrow-key axis. `'vertical'` is the default. */
+  orientation?: 'vertical' | 'horizontal'
+  /** Fires when the user picks an option. The element dispatches a `change`
+   *  `CustomEvent` whose `detail.value` carries the requested value. The
+   *  all-lowercase spelling is the one form both renderers bind (like
+   *  `<a-expander>`'s `ontoggle`). */
+  onchange?: (e: CustomEvent<{ value: string }>) => void
+}
