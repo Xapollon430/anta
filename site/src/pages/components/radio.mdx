@@ -178,21 +178,19 @@ a-radio-group a-radio-list { display: grid; grid-template-columns: 1fr 1fr; gap:
 <Columns>
 <Col>
 
-<Preview gap="16px">
-  <RadioGroup name="dis-one" defaultValue="a">
-    <Radio value="a">Available</Radio>
-    <Radio value="b" disabled>Unavailable</Radio>
-  </RadioGroup>
-  <RadioGroup name="dis-all" defaultValue="a" disabled>
-    <Radio value="a">Whole group off</Radio>
-    <Radio value="b">Whole group off</Radio>
+<Preview>
+  <RadioGroup name="dis-all" defaultValue="checked" disabled>
+    <Radio value="checked">Checked</Radio>
+    <Radio value="unchecked">Unchecked</Radio>
   </RadioGroup>
 </Preview>
 
 ```tsx folded
-<Radio value="b" disabled>Unavailable</Radio>          {/* one option */}
-
-<RadioGroup disabled defaultValue="a">…</RadioGroup>   {/* the whole set */}
+{/* the whole group off — selected and unselected both dim */}
+<RadioGroup disabled defaultValue="checked">
+  <Radio value="checked">Checked</Radio>
+  <Radio value="unchecked">Unchecked</Radio>
+</RadioGroup>
 ```
 
 </Col>
