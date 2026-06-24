@@ -1,17 +1,23 @@
+import { useId } from "react"
 import type { BaseProps } from "../general_types"
+
+/** The element's `statechange` event payload — the requested and prior values. */
+type StateDetail = { next: string; prev: string | null }
+type StateChangeEvent = CustomEvent<StateDetail>
 
 /** Public props for `<RadioGroup>` — the single-select container. */
 export interface RadioGroupProps extends Omit<BaseProps, "onChange"> {
   /** Controlled selected value. When provided, the consumer owns selection:
-   *  the group follows this prop, and a click/key only requests a change via
-   *  `onChange` (so it can be rejected by not updating). Leave undefined for
-   *  uncontrolled. */
+   *  the group follows this prop and a pick only *requests* a change via
+   *  `onStateChange` (reject by not updating). Leave undefined for uncontrolled. */
   value?: string
   /** Initial selected value for the uncontrolled case. */
   defaultValue?: string
-  /** Fired with the requested value whenever the user picks an option (in
-   *  controlled mode, apply it to `value` to accept). */
-  onChange?: (value: string) => void
+  /** Fired on a pick *before* the group applies it. Event-first so
+   *  `event.preventDefault()` is the synchronous veto (uncontrolled mode);
+   *  `detail` carries `{ next, prev }` values. In controlled mode the group never
+   *  self-applies — answer by updating `value`, reject by doing nothing. */
+  onStateChange?: (event: StateChangeEvent, detail: StateDetail) => void
   /** Form field name — the group submits one `name=value` (it's the
    *  form-associated element). */
   name?: string
@@ -19,9 +25,12 @@ export interface RadioGroupProps extends Omit<BaseProps, "onChange"> {
   label?: string
   /** Plain-text hint rendered below the radios — typically helper or instructional copy. */
   hint?: string
-  /** Tone applied to every option (a `<Radio>` can override its own).
+  /** Tone applied to every option (a `<Radio>` can override its own), or any
+   *  literal CSS color (`'#ff1493'`, `'rebeccapurple'`) for a one-off custom
+   *  tone. Named tones track light/dark mode; a custom colour pins lightness
+   *  to the brand fill curve.
    *  @defaultValue 'brand' */
-  tone?: "brand" | "neutral"
+  tone?: "brand" | "neutral" | "info" | "success" | "warning" | "critical" | (string & {})
   /** Size applied to every option (a `<Radio>` can override its own).
    *  @defaultValue 'medium' */
   size?: "small" | "medium" | "large"
@@ -34,23 +43,21 @@ export interface RadioGroupProps extends Omit<BaseProps, "onChange"> {
   children: React.ReactNode
 }
 
-/** The element's `change` event payload. */
-type ChangeEvent = CustomEvent<{ value: string }>
-
-/** Pull the requested value out of the element's `change` event, across
- *  renderers: a raw `CustomEvent` carries `detail` directly; a synthetic
- *  wrapper carries it on `nativeEvent.detail`. */
-function changedValue(e: ChangeEvent | { nativeEvent: ChangeEvent }): string {
-  const detail =
-    ("nativeEvent" in e ? e.nativeEvent?.detail : undefined) ??
-    ("detail" in e ? e.detail : undefined)
-  return detail?.value ?? ""
+/** Pull the `{ next, prev }` payload out of the element's `statechange` event,
+ *  across renderers: a raw `CustomEvent` carries `detail` directly; React's
+ *  synthetic wrapper carries the original on `nativeEvent`. */
+function readDetail(
+  e: StateChangeEvent | { nativeEvent: StateChangeEvent },
+): StateDetail | undefined {
+  return "nativeEvent" in e ? e.nativeEvent?.detail : e.detail
 }
+
+const NAMED_TONES = new Set(["brand", "neutral", "info", "success", "warning", "critical"])
 
 export const RadioGroup = ({
   value,
   defaultValue,
-  onChange,
+  onStateChange,
   name,
   label,
   hint,
@@ -65,23 +72,48 @@ export const RadioGroup = ({
 }: RadioGroupProps) => {
   const controlled = value !== undefined
 
+  // aria-labelledby points the radiogroup's accessible name at the visible
+  // label element, so there's no duplicated string for a screen reader.
+  const labelId = useId()
+
+  const onstatechange = onStateChange
+    ? (e: StateChangeEvent) => {
+        const detail = readDetail(e)
+        if (!detail) return
+        onStateChange(e, detail)
+      }
+    : undefined
+
+  // A non-named tone is a custom CSS color — hand it to the element via
+  // `--radio-tone-source` inline; CSS inheritance carries it onto each child
+  // <a-radio> so the same derivation rule fires per option without per-radio
+  // plumbing. (A child <Radio tone="..."> override wins because its rule sets
+  // --radio-tone-source on its own host.)
+  const isCustomTone = tone != null && !NAMED_TONES.has(tone)
+  const computedStyle = isCustomTone
+    ? { ...style, ["--radio-tone-source"]: tone }
+    : style
+
   return (
     <a-radio-group
-      value={controlled ? value : undefined}
-      defaultvalue={!controlled ? defaultValue : undefined}
+      role="radiogroup"
+      aria-disabled={disabled ? "true" : undefined}
+      aria-labelledby={label ? labelId : undefined}
+      {...rest}
+      state={controlled ? value : undefined}
+      default-state={!controlled ? defaultValue : undefined}
       name={name}
-      label={label}
-      hint={hint}
       tone={tone && tone !== "brand" ? tone : undefined}
       size={size && size !== "medium" ? size : undefined}
       disabled={disabled ? "" : undefined}
       orientation={orientation && orientation !== "vertical" ? orientation : undefined}
-      onchange={onChange ? (e: ChangeEvent) => onChange(changedValue(e)) : undefined}
+      onstatechange={onstatechange}
       class={className}
-      style={style}
-      {...rest}
+      style={computedStyle}
     >
+      {label && <a-radio-label slot="label" id={labelId}>{label}</a-radio-label>}
       {children}
+      {hint && <a-radio-hint slot="hint">{hint}</a-radio-hint>}
     </a-radio-group>
   )
 }

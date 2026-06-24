@@ -1,27 +1,34 @@
 @layer anta {
+  /* Light-DOM element (a-radio.ts): selection lives on ElementInternals, set by
+     the enclosing <a-radio-group>, so styling keys off :state(selected) — not an
+     attribute. Ring is ::before, dot is ::after, label is the children. Only the
+     color tokens and a few layout knobs (--radio-control-size, --radio-dot-size,
+     --radio-gap, --radio-border-width) are documented overrides; the rest are
+     baked-in literals, mirroring <a-checkbox>. */
+
   a-radio {
     --radio-control-size: 18px;
     --radio-border-width: 1.5px;
     --radio-dot-size: 7px;
     --radio-gap: 8px;
 
-    --radio-focus: #503cb4;
-    --radio-dot: #ffffff;
-
-    --radio-bg: #ffffff;
+    --radio-bg: var(--bg-1);
     --radio-border: #d4ced4;
-    --radio-border-hover: #afa9b1;
-    --radio-border-active: #938d96;
+    --radio-border-hover: #c1b9c1;
+    --radio-border-active: #9f99a1;
 
-    --radio-bg-checked: #7460d7;
-    --radio-bg-checked-hover: #5f4bc3;
-    --radio-bg-checked-active: #503cb4;
-    --radio-selected-border-hover: #503cb4;
-    --radio-selected-border-active: #483493;
+    --radio-fill: #5f4bc3;
+    --radio-fill-hover: #503cb4;
+    --radio-fill-active: #483493;
 
+    --radio-dot: #ffffff;
+    --radio-dot-disabled: #c1b9c1;
     --radio-bg-disabled: color-mix(in oklch, #44374b 10%, transparent);
     --radio-border-disabled: color-mix(in oklch, #44374b 15%, transparent);
-    --radio-fg-disabled: #afa9b1;
+    --radio-focus: #503cb4;
+
+    --radio-label-color: var(--text-2);
+    --radio-label-color-disabled: var(--text-4);
 
     position: relative;
     display: inline-flex;
@@ -29,110 +36,223 @@
     gap: var(--radio-gap);
     cursor: pointer;
     user-select: none;
+    -webkit-user-drag: none;
     vertical-align: middle;
+    outline: none;
+
+    color: var(--radio-label-color);
+    font-family: var(--sans-serif);
+    font-size: 15px;
+    line-height: 20px;
+    font-feature-settings: "ss02", "ss05";
+
+    &::before {
+      content: "";
+      flex-shrink: 0;
+      box-sizing: border-box;
+      inline-size: var(--radio-control-size);
+      block-size: var(--radio-control-size);
+      border-radius: 50%;
+      background: var(--radio-bg);
+      border: var(--radio-border-width) solid var(--radio-border);
+      transition:
+        background-color 150ms ease-out,
+        border-color 150ms ease-out;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset-inline-start: calc((var(--radio-control-size) - var(--radio-dot-size)) / 2);
+      inset-block-start: 50%;
+      margin-block-start: calc(var(--radio-dot-size) / -2);
+      inline-size: var(--radio-dot-size);
+      block-size: var(--radio-dot-size);
+      border-radius: 50%;
+      background: var(--radio-dot);
+      transform: scale(0);
+      transition: transform 120ms ease-out;
+      pointer-events: none;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:not([disabled]):hover::before {
+        border-color: var(--radio-border-hover);
+        transition:
+          background-color 75ms ease-in,
+          border-color 75ms ease-in;
+      }
+      &:not([disabled]):hover:state(selected)::before {
+        background: var(--radio-fill-hover);
+        border-color: var(--radio-fill-hover);
+      }
+    }
+    &:not([disabled]):active::before {
+      border-color: var(--radio-border-active);
+      transition:
+        background-color 50ms linear,
+        border-color 50ms linear;
+    }
+    &:not([disabled]):active:state(selected)::before {
+      background: var(--radio-fill-active);
+      border-color: var(--radio-fill-active);
+    }
+
+    &:state(selected) {
+      &::before {
+        background: var(--radio-fill);
+        border-color: var(--radio-fill);
+      }
+      &::after { transform: scale(1); }
+    }
+
+    &:focus-visible::before {
+      outline: 1px solid var(--radio-focus);
+      outline-offset: 1px;
+    }
+
+    &[disabled] {
+      cursor: not-allowed;
+      color: var(--radio-label-color-disabled);
+      &::before {
+        background: var(--radio-bg-disabled);
+        border-color: var(--radio-border-disabled);
+        transition: none;
+      }
+      &:state(selected)::after { background: var(--radio-dot-disabled); }
+    }
+
+    &[size="small"] {
+      --radio-control-size: 16px;
+      --radio-dot-size: 6px;
+      --radio-gap: 6px;
+    }
+    &[size="large"] {
+      --radio-control-size: 20px;
+      --radio-dot-size: 8px;
+    }
   }
 
-  a-radio::before {
-    content: "";
-    flex-shrink: 0;
-    inline-size: var(--radio-control-size);
-    block-size: var(--radio-control-size);
-    border-radius: 50%;
-    border: var(--radio-border-width) solid var(--radio-border);
-    background: var(--radio-bg);
-    transition: border-color 120ms ease, background-color 120ms ease;
+  /* Each tone is shared by a standalone <a-radio tone> and a group-cascaded
+     child (group sets the tone; a child without its own tone inherits it). */
+  a-radio[tone="brand"],
+  a-radio-group[tone="brand"] a-radio:not([tone]) {
+    --radio-fill: #5f4bc3;
+    --radio-fill-hover: #503cb4;
+    --radio-fill-active: #483493;
+  }
+  a-radio[tone="neutral"],
+  a-radio-group[tone="neutral"] a-radio:not([tone]) {
+    --radio-fill: #635b65;
+    --radio-fill-hover: #534c57;
+    --radio-fill-active: #49424c;
+  }
+  a-radio[tone="info"],
+  a-radio-group[tone="info"] a-radio:not([tone]) {
+    --radio-fill: #1f6eb2;
+    --radio-fill-hover: #1a5b93;
+    --radio-fill-active: #175082;
+  }
+  a-radio[tone="success"],
+  a-radio-group[tone="success"] a-radio:not([tone]) {
+    --radio-fill: #2a7e43;
+    --radio-fill-hover: #226737;
+    --radio-fill-active: #1f5c31;
+  }
+  a-radio[tone="warning"],
+  a-radio-group[tone="warning"] a-radio:not([tone]) {
+    --radio-fill: #c37416;
+    --radio-fill-hover: #ae6613;
+    --radio-fill-active: #995200;
+  }
+  a-radio[tone="critical"],
+  a-radio-group[tone="critical"] a-radio:not([tone]) {
+    --radio-fill: #c9302c;
+    --radio-fill-hover: #b02120;
+    --radio-fill-active: #a01c1c;
   }
 
-  a-radio::after {
-    content: "";
-    position: absolute;
-    inset-inline-start: calc((var(--radio-control-size) - var(--radio-dot-size)) / 2);
-    inset-block-start: 50%;
-    margin-block-start: calc(var(--radio-dot-size) / -2);
-    inline-size: var(--radio-dot-size);
-    block-size: var(--radio-dot-size);
-    border-radius: 50%;
-    background: var(--radio-dot);
-    transform: scale(0);
-    transition: transform 120ms ease;
-    pointer-events: none;
+  /* Custom tone — a non-named tone is a literal CSS color; the fill curve is
+     derived in oklch. Every named value must be listed in the :not(), or
+     attr(tone type(<color>)) would parse `info` / `success` / etc as colors and
+     render transparent. A standalone radio reads its own attr(tone); a
+     group-cascaded child inherits --radio-tone-source from the group (the
+     wrapper sets it inline). Focus ring stays brand across every tone. */
+  a-radio[tone]:not(
+      [tone=""], [tone="brand"], [tone="neutral"], [tone="info"],
+      [tone="success"], [tone="warning"], [tone="critical"]) {
+    --radio-tone-source: attr(tone type(<color>), transparent);
   }
+  a-radio[tone]:not(
+      [tone=""], [tone="brand"], [tone="neutral"], [tone="info"],
+      [tone="success"], [tone="warning"], [tone="critical"]),
+  a-radio-group[tone]:not(
+      [tone=""], [tone="brand"], [tone="neutral"], [tone="info"],
+      [tone="success"], [tone="warning"], [tone="critical"]) a-radio:not([tone]) {
+    --_tone-l-rest: 0.5;
+    --_tone-l-hover: 0.45;
+    --_tone-l-active: 0.4;
 
-  a-radio:hover:not([disabled])::before { border-color: var(--radio-border-hover); }
-  a-radio:active:not([disabled])::before { border-color: var(--radio-border-active); }
+    --radio-fill:        oklch(from var(--radio-tone-source) var(--_tone-l-rest) c h);
+    --radio-fill-hover:  oklch(from var(--radio-tone-source) var(--_tone-l-hover) c h);
+    --radio-fill-active: oklch(from var(--radio-tone-source) var(--_tone-l-active) c h);
 
-  a-radio:state(selected)::before,
-  a-radio[selected]::before {
-    border-color: var(--radio-bg-checked);
-    background: var(--radio-bg-checked);
-  }
-  a-radio:state(selected)::after,
-  a-radio[selected]::after { transform: scale(1); }
-
-  a-radio:state(selected):hover:not([disabled])::before,
-  a-radio[selected]:hover:not([disabled])::before {
-    border-color: var(--radio-selected-border-hover);
-    background: var(--radio-bg-checked-hover);
-  }
-  a-radio:state(selected):active:not([disabled])::before,
-  a-radio[selected]:active:not([disabled])::before {
-    border-color: var(--radio-selected-border-active);
-    background: var(--radio-bg-checked-active);
-  }
-
-  a-radio[disabled] { cursor: default; color: var(--radio-fg-disabled); }
-  a-radio[disabled]::before {
-    border-color: var(--radio-border-disabled);
-    background: var(--radio-bg-disabled);
-  }
-  a-radio[disabled]::after { background: var(--radio-fg-disabled); }
-
-  a-radio:focus-visible { outline: none; }
-  a-radio:focus-visible::before {
-    outline: 2px solid var(--radio-focus);
-    outline-offset: 2px;
-  }
-
-  a-radio[size="small"] {
-    --radio-control-size: 16px;
-    --radio-dot-size: 6px;
-    --radio-gap: 6px;
-  }
-  a-radio[size="large"] {
-    --radio-control-size: 20px;
-    --radio-dot-size: 8px;
-  }
-
-  a-radio[tone="neutral"] {
-    --radio-bg-checked: #776e77;
-    --radio-bg-checked-hover: #635b65;
-    --radio-bg-checked-active: #534c57;
-    --radio-selected-border-hover: #635b65;
-    --radio-selected-border-active: #534c57;
+    /* Dark — same formulas, lighter curve to read against a dark page. */
+    .dark & {
+      --_tone-l-rest: 0.45;
+      --_tone-l-hover: 0.5;
+      --_tone-l-active: 0.57;
+    }
   }
 
   .dark a-radio {
-    --radio-focus: #a897fc;
-
-    --radio-bg: #1a171b;
     --radio-border: #49424c;
     --radio-border-hover: #635b65;
     --radio-border-active: #776e77;
 
-    --radio-bg-checked-hover: #8270db;
-    --radio-bg-checked-active: #9081df;
-    --radio-selected-border-hover: #9081df;
-    --radio-selected-border-active: #ada0ee;
+    --radio-fill: #503cb4;
+    --radio-fill-hover: #5f4bc3;
+    --radio-fill-active: #7460d7;
 
+    --radio-dot-disabled: #635b65;
     --radio-bg-disabled: color-mix(in oklch, #e4d1ef 10%, transparent);
     --radio-border-disabled: color-mix(in oklch, #e4d1ef 15%, transparent);
-    --radio-fg-disabled: #635b65;
+    --radio-focus: #a897fc;
   }
-
-  .dark a-radio[tone="neutral"] {
-    --radio-bg-checked-hover: #878089;
-    --radio-bg-checked-active: #938d96;
-    --radio-selected-border-hover: #878089;
-    --radio-selected-border-active: #938d96;
+  .dark a-radio[tone="brand"],
+  .dark a-radio-group[tone="brand"] a-radio:not([tone]) {
+    --radio-fill: #503cb4;
+    --radio-fill-hover: #5f4bc3;
+    --radio-fill-active: #7460d7;
+  }
+  .dark a-radio[tone="neutral"],
+  .dark a-radio-group[tone="neutral"] a-radio:not([tone]) {
+    --radio-fill: #534c57;
+    --radio-fill-hover: #635b65;
+    --radio-fill-active: #938d96;
+  }
+  .dark a-radio[tone="info"],
+  .dark a-radio-group[tone="info"] a-radio:not([tone]) {
+    --radio-fill: #1a5b93;
+    --radio-fill-hover: #1f6eb2;
+    --radio-fill-active: #2686d9;
+  }
+  .dark a-radio[tone="success"],
+  .dark a-radio-group[tone="success"] a-radio:not([tone]) {
+    --radio-fill: #226737;
+    --radio-fill-hover: #2a7e43;
+    --radio-fill-active: #329550;
+  }
+  .dark a-radio[tone="warning"],
+  .dark a-radio-group[tone="warning"] a-radio:not([tone]) {
+    --radio-fill: #7f410b;
+    --radio-fill-hover: #995200;
+    --radio-fill-active: #ae6613;
+  }
+  .dark a-radio[tone="critical"],
+  .dark a-radio-group[tone="critical"] a-radio:not([tone]) {
+    --radio-fill: #b02120;
+    --radio-fill-hover: #c9302c;
+    --radio-fill-active: #de4545;
   }
 }

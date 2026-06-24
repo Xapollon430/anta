@@ -2,35 +2,10 @@ import { HTMLElementBase } from "../anta_helpers";
 import { ARadioElement } from "./a-radio";
 import "./a-radio-group.css";
 
-// Shadow contains two named sub-elements <a-radio-label> / <a-radio-hint> that
-// the group fills from its `label` / `hint` attributes, plus a wrapping
-// [part="radios"] div around the default slot. The sub-tags are anta-named for
-// devtools clarity and styled by tag name in the shadow <style>.
 const SHADOW_STYLE = `
-  :host {
-    display: flex;
-    flex-direction: column;
-  }
-  a-radio-label, a-radio-hint { display: none; }
-  :host([label]) a-radio-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-1);
-    margin-block-end: 4px;
-  }
-  :host([hint]) a-radio-hint {
-    display: block;
-    font-size: 12px;
-    color: var(--text-3);
-    margin-block-start: 4px;
-  }
-  [part="radios"] {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  :host([orientation="horizontal"]) [part="radios"] {
+  :host { display: flex; flex-direction: column; }
+  slot:not([name]) { display: flex; flex-direction: column; gap: 8px; }
+  :host([orientation="horizontal"]) slot:not([name]) {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 16px;
@@ -39,52 +14,42 @@ const SHADOW_STYLE = `
 
 export class ARadioGroupElement extends HTMLElementBase {
   static formAssociated = true;
-  static observedAttributes = ["value", "disabled", "label", "hint"];
+  static observedAttributes = ["state", "disabled"];
 
   private internals?: ElementInternals;
   private uncontrolledValue: string | null = null;
-  private mo?: MutationObserver;
-  private labelEl!: HTMLElement;
-  private hintEl!: HTMLElement;
+  private radioSlot: HTMLSlotElement;
 
   constructor() {
     super();
     this.internals = this.attachInternals?.();
-
     const shadow = this.attachShadow({ mode: "open" });
+
     const style = document.createElement("style");
     style.textContent = SHADOW_STYLE;
 
-    this.labelEl = document.createElement("a-radio-label");
-    this.labelEl.setAttribute("part", "label");
+    const labelSlot = document.createElement("slot");
+    labelSlot.name = "label";
+    // Default (nameless) slot — radios project here; its slotchange tracks them.
+    this.radioSlot = document.createElement("slot");
+    const hintSlot = document.createElement("slot");
+    hintSlot.name = "hint";
 
-    const radiosEl = document.createElement("div");
-    radiosEl.setAttribute("part", "radios");
-    radiosEl.append(document.createElement("slot"));
-
-    this.hintEl = document.createElement("a-radio-hint");
-    this.hintEl.setAttribute("part", "hint");
-
-    shadow.append(style, this.labelEl, radiosEl, this.hintEl);
+    shadow.append(style, labelSlot, this.radioSlot, hintSlot);
   }
 
   connectedCallback() {
-    this.uncontrolledValue = this.getAttribute("defaultvalue");
+    this.uncontrolledValue = this.getAttribute("default-state");
     this.addEventListener("click", this.onClick);
     this.addEventListener("keydown", this.onKeyDown);
-    this.mo ??= new MutationObserver(this.sync);
-    this.mo.observe(this, { childList: true });
-    this.syncLabelHint();
+    // slotchange fires when the radio set changes (add/remove/reorder). Stable
+    // arrow refs make these addEventListener calls idempotent across reconnects.
+    this.radioSlot.addEventListener("slotchange", this.sync);
     this.sync();
   }
 
-  disconnectedCallback() {
-    this.mo?.disconnect();
-  }
-
-  attributeChangedCallback(name: string) {
-    if (name === "label" || name === "hint") this.syncLabelHint();
-    else this.sync();
+  attributeChangedCallback() {
+    this.sync();
   }
 
   formDisabledCallback(disabled: boolean) {
@@ -93,14 +58,19 @@ export class ARadioGroupElement extends HTMLElementBase {
     this.sync();
   }
 
-  private syncLabelHint() {
-    this.labelEl.textContent = this.getAttribute("label") || "";
-    this.hintEl.textContent = this.getAttribute("hint") || "";
+  formResetCallback() {
+    this.uncontrolledValue = this.getAttribute("default-state");
+    this.sync();
+  }
+
+  formStateRestoreCallback(state: string) {
+    this.uncontrolledValue = state;
+    this.sync();
   }
 
   private get currentValue() {
-    return this.hasAttribute("value")
-      ? this.getAttribute("value")
+    return this.hasAttribute("state")
+      ? this.getAttribute("state")
       : this.uncontrolledValue;
   }
 
@@ -117,7 +87,7 @@ export class ARadioGroupElement extends HTMLElementBase {
 
   private sync = () => {
     const value = this.currentValue;
-    this.internals?.setFormValue(value);
+    this.internals?.setFormValue(value, value);
 
     const radios = this.radios;
     const enabled = radios.filter((r) => !r.hasAttribute("disabled"));
@@ -126,20 +96,34 @@ export class ARadioGroupElement extends HTMLElementBase {
     const tabStop =
       selectedEl && !selectedEl.hasAttribute("disabled")
         ? selectedEl
-        : enabled[0] ?? null;
+        : (enabled[0] ?? null);
 
+    // The group sets only two things per radio: `selected` (a property — the
+    // radio reflects it into :state(selected) + aria-checked itself) and the
+    // roving `tabIndex` (group-level concern — it alone knows the tab stop).
     for (const r of radios) {
       r.selected = r === selectedEl;
       r.tabIndex = r === tabStop && !this.isDisabled ? 0 : -1;
     }
   };
 
-  private requestSelect(value: string) {
-    if (!this.hasAttribute("value")) {
-      this.uncontrolledValue = value;
+  // The shared state algorithm: fire the cancelable `statechange` *before*
+  // applying. Controlled never self-applies; uncontrolled applies unless vetoed.
+  private requestSelect(next: string) {
+    const prev = this.currentValue;
+    const ok = this.dispatchEvent(
+      new CustomEvent("statechange", {
+        cancelable: true,
+        bubbles: true,
+        composed: true,
+        detail: { next, prev },
+      }),
+    );
+    if (this.hasAttribute("state")) return;
+    if (ok) {
+      this.uncontrolledValue = next;
       this.sync();
     }
-    this.dispatchEvent(new CustomEvent("change", { detail: { value } }));
   }
 
   private onClick = (e: MouseEvent) => {

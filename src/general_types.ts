@@ -24,6 +24,8 @@ export interface BaseProps {
 export interface BaseAttributes {
   /** React/Preact reconciliation key when rendered inside a list. */
   key?: string | number | null
+  /** HTML `id` attribute. */
+  id?: string
   /** HTML `class` attribute (standard DOM). */
   class?: string
   /** React/Preact-style class name. Alias for `class`. */
@@ -320,53 +322,69 @@ export interface AButtonAttributes extends BaseAttributes {
 /**
  * Attributes for the `<a-radio>` custom element — one option in a radio set.
  * Presentational: a parent `<a-radio-group>` owns selection, keyboard, and form
- * value. For the typed JSX wrapper use `Radio` from `@antadesign/anta`.
+ * value. The selected look comes from the element's `:state(selected)` (set by
+ * the group), not a host attribute. For the typed JSX wrapper use `Radio` from
+ * `@antadesign/anta`.
  */
 export interface ARadioAttributes extends BaseAttributes {
   /** This option's identity / submitted value. */
   value?: string
-  /** Semantic tone. `'brand'` is the default (same as omitting it). */
-  tone?: 'brand' | 'neutral'
+  /** Colour variant, or any literal CSS color for a one-off custom tone.
+   *  Named tones track light/dark mode automatically via the theme-aware role
+   *  tokens. `'brand'` is the default (same as omitting it). */
+  tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size variant. small=16px, medium=18px, large=20px control. */
   size?: 'small' | 'medium' | 'large'
   /** Disabled state. Presence-based (`''` on, omit off). */
   disabled?: boolean | ''
-  /** Selected state — standalone render fallback. In a group the selected look
-   *  comes from the element's `:state(selected)` (set by the group), not this
-   *  attribute. Presence-based. */
+  /** Selected state — connect-time seed for the standalone render path (no
+   *  group). In a group, the group drives `:state(selected)` directly and this
+   *  attribute is ignored. Presence-based. */
   selected?: boolean | ''
+  /** ARIA — `role="radio"` is set by the `Radio` wrapper. `aria-checked` is
+   *  published by the element through `ElementInternals` (off the DOM), driven
+   *  by the `selected` property the group sets — not a DOM attribute. */
+  role?: 'radio'
+  'aria-disabled'?: 'true' | 'false'
 }
 
 /**
  * Attributes for the `<a-radio-group>` custom element — the single-select
  * coordinator. It is the form-associated element (submits one `name=value`).
- * For the typed JSX wrapper use `RadioGroup` from `@antadesign/anta`.
+ * It uses a minimal shadow root with three slots: an optional `<a-radio-label
+ * slot="label">`, the `<a-radio>` options (default slot), and an optional
+ * `<a-radio-hint slot="hint">`. The default slot's `slotchange` is how the group
+ * tracks its option set. The `RadioGroup` wrapper composes these from `label` /
+ * `hint`; hand-authors write the slotted children directly. For the typed JSX
+ * wrapper use `RadioGroup` from `@antadesign/anta`.
  */
 export interface ARadioGroupAttributes extends BaseAttributes {
-  /** Controlled selected value — value-based, like ARIA, because absence must
-   *  keep meaning "uncontrolled". When present, it's the source of truth: picks
-   *  only dispatch `change` and the consumer answers by updating it. Omit it
-   *  (use `defaultvalue`) for the self-managing uncontrolled mode. */
-  value?: string
-  /** Initial selected value for the uncontrolled mode; read once on connect. */
-  defaultvalue?: string
+  /** Controlled selected value (the chosen radio's `value`). Present → controlled:
+   *  the element reflects changes to this attribute and a pick only dispatches
+   *  `statechange`. Absent → uncontrolled (seed with `default-state`). */
+  state?: string
+  /** Uncontrolled initial selected value — read once on connect / form-reset. */
+  'default-state'?: string
   /** Form field name — the group submits `name=value`. */
   name?: string
-  /** Tone cascaded to children that don't set their own. */
-  tone?: 'brand' | 'neutral'
+  /** Tone cascaded to children that don't set their own, or any literal CSS
+   *  color for a one-off custom tone. Inherits through CSS so every child
+   *  `<a-radio>` picks up the same fill curve. */
+  tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size cascaded to children that don't set their own. */
   size?: 'small' | 'medium' | 'large'
   /** Disable the whole group. Presence-based. */
   disabled?: boolean | ''
-  /** Plain-text label rendered above the radios via a shadow `<a-radio-label>` child. */
-  label?: string
-  /** Plain-text hint rendered below the radios via a shadow `<a-radio-hint>` child. */
-  hint?: string
   /** Layout + arrow-key axis. `'vertical'` is the default. */
   orientation?: 'vertical' | 'horizontal'
-  /** Fires when the user picks an option. The element dispatches a `change`
-   *  `CustomEvent` whose `detail.value` carries the requested value. The
-   *  all-lowercase spelling is the one form both renderers bind (like
-   *  `<a-expander>`'s `ontoggle`). */
-  onchange?: (e: CustomEvent<{ value: string }>) => void
+  /** Fires on a pick *before* the group applies it. Cancelable `statechange`
+   *  `CustomEvent` whose `detail` carries `{ next, prev }` (selected values); a
+   *  synchronous `preventDefault()` vetoes the transition (uncontrolled mode).
+   *  All-lowercase to bind across both renderers (like `<a-checkbox>`). */
+  onstatechange?: (e: CustomEvent<{ next: string; prev: string | null }>) => void
+  /** ARIA — set by the `RadioGroup` wrapper (the element never touches these). */
+  role?: 'radiogroup'
+  'aria-disabled'?: 'true' | 'false'
+  'aria-label'?: string
+  'aria-labelledby'?: string
 }

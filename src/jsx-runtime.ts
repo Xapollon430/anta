@@ -80,4 +80,6 @@ export interface AntaIntrinsicElements {
   'a-tooltip': ATooltipAttributes
   'a-radio': ARadioAttributes
   'a-radio-group': ARadioGroupAttributes
+  'a-radio-label': BaseAttributes
+  'a-radio-hint': BaseAttributes
 }

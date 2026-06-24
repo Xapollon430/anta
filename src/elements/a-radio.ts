@@ -19,9 +19,7 @@ export class ARadioElement extends HTMLElementBase {
   }
 
   get selected(): boolean {
-    return (
-      this.internals?.states.has("selected") ?? this.hasAttribute("selected")
-    );
+    return this.internals?.states.has("selected") ?? this.hasAttribute("selected");
   }
   set selected(on: boolean) {
     this.applyState(!!on);
@@ -31,9 +29,16 @@ export class ARadioElement extends HTMLElementBase {
     return this.getAttribute("value") ?? "";
   }
 
+  // `selected` is the single source: it drives the visual `:state(selected)` and
+  // publishes `aria-checked` through ElementInternals (the accessibility tree,
+  // not a DOM attribute). The group only sets `r.selected`; the radio owns how it
+  // reflects that. role="radio" comes from the wrapper, which gives ariaChecked
+  // something to attach to.
   private applyState(on: boolean) {
-    if (on) this.internals?.states.add("selected");
-    else this.internals?.states.delete("selected");
+    if (!this.internals) return;
+    if (on) this.internals.states.add("selected");
+    else this.internals.states.delete("selected");
+    this.internals.ariaChecked = on ? "true" : "false";
   }
 }
 

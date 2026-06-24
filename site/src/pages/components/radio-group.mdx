@@ -18,9 +18,6 @@ component that coordinates a set of [`Radio`](/components/radio/) options: exact
 one is selected at a time, arrow keys move the selection, and the group is a
 form-associated element, so a wrapping `<form>` submits one `name=value`.
 
-All the state lives in the element, so the behaviour is identical whether you use
-the wrapper or author the `<a-radio-group>` tag by hand.
-
 <Disclosure title="Playground" anchor={false} brand>
 
 <Playground
@@ -37,8 +34,7 @@ the wrapper or author the `<a-radio-group>` tag by hand.
 
 ## Label & hint
 
-<Columns>
-<Col>
+`label` prints above the options; `hint` prints below.
 
 <Preview>
   <RadioGroup name="lh" label="Select an option" hint="Choose how we should reach you." defaultValue="email">
@@ -60,25 +56,6 @@ the wrapper or author the `<a-radio-group>` tag by hand.
 </RadioGroup>
 ```
 
-</Col>
-<Col>
-
-`label` prints above the options; `hint` prints below — both plain text passed
-as attributes. The element renders them through named `<a-radio-label>` and
-`<a-radio-hint>` sub-elements inside its shadow, so hand-authored HTML uses the
-same attributes:
-
-```html folded
-<a-radio-group name="contact" label="Select an option"
-               hint="Choose how we should reach you.">
-  <a-radio value="email">Email</a-radio>
-  <a-radio value="sms">SMS</a-radio>
-</a-radio-group>
-```
-
-</Col>
-</Columns>
-
 ## Controlled vs. uncontrolled
 
 <Columns>
@@ -98,13 +75,14 @@ Like the rest of anta's stateful elements, the group works either way.
 </Col>
 <Col>
 
-**Controlled** — pass `value` + `onChange` and own it yourself. The group then
-only *requests* a change, so you can reject one by not updating `value`:
+**Controlled** — pass `value` + `onStateChange` and own it yourself. The group
+fires *before* applying, so you accept by updating `value` and reject by doing
+nothing (or `event.preventDefault()` in the uncontrolled case):
 
 ```tsx folded
 const [plan, setPlan] = useState('pro')
 
-<RadioGroup name="plan" value={plan} onChange={setPlan}>
+<RadioGroup name="plan" value={plan} onStateChange={(e, { next }) => setPlan(next)}>
   <Radio value="free">Free</Radio>
   <Radio value="pro">Pro</Radio>
   <Radio value="team">Team</Radio>
@@ -119,27 +97,36 @@ const [plan, setPlan] = useState('pro')
 <Columns>
 <Col>
 
-<Preview>
-  <RadioGroup name="tone-brand" defaultValue="a" orientation="horizontal">
-    <Radio value="a">Brand</Radio>
-    <Radio value="b">Brand</Radio>
-  </RadioGroup>
-  <RadioGroup name="tone-neutral" tone="neutral" defaultValue="a" orientation="horizontal">
-    <Radio value="a">Neutral</Radio>
-    <Radio value="b">Neutral</Radio>
-  </RadioGroup>
+<Preview gap="12px">
+  <RadioGroup name="tone-brand" defaultValue="a" orientation="horizontal"><Radio value="a">Brand</Radio></RadioGroup>
+  <RadioGroup name="tone-neutral" tone="neutral" defaultValue="a" orientation="horizontal"><Radio value="a">Neutral</Radio></RadioGroup>
+  <RadioGroup name="tone-info" tone="info" defaultValue="a" orientation="horizontal"><Radio value="a">Info</Radio></RadioGroup>
+  <RadioGroup name="tone-success" tone="success" defaultValue="a" orientation="horizontal"><Radio value="a">Success</Radio></RadioGroup>
+  <RadioGroup name="tone-warning" tone="warning" defaultValue="a" orientation="horizontal"><Radio value="a">Warning</Radio></RadioGroup>
+  <RadioGroup name="tone-critical" tone="critical" defaultValue="a" orientation="horizontal"><Radio value="a">Critical</Radio></RadioGroup>
+  <RadioGroup name="tone-custom" tone="#e0457b" defaultValue="a" orientation="horizontal"><Radio value="a">Custom</Radio></RadioGroup>
 </Preview>
 
 ```tsx folded
-<RadioGroup defaultValue="a">…</RadioGroup>            {/* brand (default) */}
-<RadioGroup tone="neutral" defaultValue="a">…</RadioGroup>
+{/* brand (default), or set tone on the group */}
+<RadioGroup tone="critical" defaultValue="a">
+  <Radio value="a">Critical</Radio>
+  <Radio value="b">Another option</Radio>
+</RadioGroup>
+
+<RadioGroup tone="#e0457b" defaultValue="a">
+  <Radio value="a">Custom colour</Radio>
+  <Radio value="b">Another option</Radio>
+</RadioGroup>
 ```
 
 </Col>
 <Col>
 
-Two tones: `brand` (purple, the default) and `neutral` for quieter contexts.
-Set it on the `RadioGroup` to apply to every option, or on a single
+Six named tones — `brand` (default), `neutral`, `info`, `success`, `warning`,
+`critical`. Omitting `tone` resolves to `brand`. In addition, a custom tone is
+possible: pass any literal CSS colour and the group will adapt to it. Set it on
+the `RadioGroup` to apply to every option, or on a single
 [`Radio`](/components/radio/) to override just that one.
 
 </Col>
@@ -157,16 +144,25 @@ Set it on the `RadioGroup` to apply to every option, or on a single
 </Preview>
 
 ```tsx folded
-<RadioGroup size="small"  …>
-<RadioGroup …>            {/* medium (default) */}
-<RadioGroup size="large"  …>
+<RadioGroup size="small" defaultValue="a">
+  <Radio value="a">Small</Radio>
+</RadioGroup>
+
+{/* medium (default) */}
+<RadioGroup defaultValue="a">
+  <Radio value="a">Medium</Radio>
+</RadioGroup>
+
+<RadioGroup size="large" defaultValue="a">
+  <Radio value="a">Large</Radio>
+</RadioGroup>
 ```
 
 </Col>
 <Col>
 
 Three sizes set the control circle: `small` (16px), `medium` (18px, the
-default), and `large` (20px). The label keeps its own text size.
+default), and `large` (20px).
 
 </Col>
 </Columns>
@@ -214,7 +210,11 @@ Arrow keys move the selection along the group either way.
 </Preview>
 
 ```tsx folded
-<RadioGroup disabled …>…</RadioGroup>   {/* the whole group */}
+{/* the whole group */}
+<RadioGroup name="dis-all" defaultValue="a" disabled>
+  <Radio value="a">Whole group off</Radio>
+  <Radio value="b">Whole group off</Radio>
+</RadioGroup>
 ```
 
 </Col>
@@ -233,9 +233,11 @@ The group is one tab stop: `Tab` moves into the selected option (or the first
 one), and the arrow keys (`↑`/`↓`/`←`/`→`) move the selection between enabled
 options, wrapping at the ends. `Space` selects the focused option.
 
-> **Note:** ARIA roles (`role="radiogroup"` / `role="radio"` / `aria-checked`)
-> are not wired yet — they land in a later accessibility pass. Keyboard
-> operation and form submission already work.
+The `RadioGroup` wrapper sets `role="radiogroup"` on the group and `role="radio"`
+on every option; the group then stamps `aria-checked` (`"true"` / `"false"`)
+on each radio to mirror the live selection — including arrow-key navigation
+in uncontrolled mode. Follows the
+[WAI-ARIA radio-group pattern](https://www.w3.org/WAI/ARIA/apg/patterns/radio/).
 
 ## Forms
 

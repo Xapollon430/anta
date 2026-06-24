@@ -1,10 +1,10 @@
-import { HTMLElementBase } from '../anta_helpers'
-import './a-checkbox.css'
+import { HTMLElementBase } from "../anta_helpers";
+import "./a-checkbox.css";
 
-type CheckboxState = 'checked' | 'unchecked' | 'indeterminate'
+type CheckboxState = "checked" | "unchecked" | "indeterminate";
 
 const parseState = (v: string | null): CheckboxState =>
-  v === 'checked' || v === 'indeterminate' ? v : 'unchecked'
+  v === "checked" || v === "indeterminate" ? v : "unchecked";
 
 /**
  * `<a-checkbox>` — interactive light-DOM checkbox. Visual state lives on
@@ -26,82 +26,106 @@ const parseState = (v: string | null): CheckboxState =>
  * optimistic self-paint.
  */
 export class ACheckboxElement extends HTMLElementBase {
-  static formAssociated = true
-  static observedAttributes = ['state', 'value']
+  static formAssociated = true;
+  static observedAttributes = ["state", "value"];
 
-  #internals = this.attachInternals?.()
-  #state: CheckboxState = 'unchecked'
+  #internals = this.attachInternals?.();
+  #state: CheckboxState = "unchecked";
 
   constructor() {
-    super()
-    this.addEventListener('click', (e: MouseEvent) => this.#toggle(e))
-    this.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key === ' ') { e.preventDefault(); this.click() }
-    })
+    super();
+    this.addEventListener("click", (e: MouseEvent) => this.#toggle(e));
+    this.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (e.key === " ") {
+        e.preventDefault();
+        this.click();
+      }
+    });
   }
 
-  connectedCallback() { this.#seed(); this.#paint() }
+  connectedCallback() {
+    this.#seed();
+    this.#paint();
+  }
 
   attributeChangedCallback(name: string) {
     // `state` is the controlled channel — reflect changes. (`default-state` is the
     // uncontrolled seed, handled once in #seed; later changes are ignored.
     // `value` only re-syncs the submitted form entry.)
-    if (name === 'state') this.#state = parseState(this.getAttribute('state'))
-    this.#paint()
+    if (name === "state") this.#state = parseState(this.getAttribute("state"));
+    this.#paint();
   }
 
   // Matches the host `disabled` attribute and an ancestor `<fieldset disabled>`.
-  get #disabled() { return this.matches(':disabled') }
+  get #disabled() {
+    return this.matches(":disabled");
+  }
   // Controlled mode: the `state` attribute is present and owns the live value.
-  get #controlled() { return this.hasAttribute('state') }
+  get #controlled() {
+    return this.hasAttribute("state");
+  }
 
   #seed() {
-    this.#state = parseState(this.getAttribute('state') ?? this.getAttribute('default-state'))
+    this.#state = parseState(
+      this.getAttribute("state") ?? this.getAttribute("default-state"),
+    );
   }
 
   #toggle(_e: Event) {
-    if (this.#disabled) return
-    const prev = this.#state
+    if (this.#disabled) return;
+    const prev = this.#state;
     // Indeterminate resolves to checked; otherwise flip (native convention).
-    const next: CheckboxState = prev === 'checked' ? 'unchecked' : 'checked'
+    const next: CheckboxState = prev === "checked" ? "unchecked" : "checked";
     const ok = this.dispatchEvent(
-      new CustomEvent('statechange', {
+      new CustomEvent("statechange", {
         cancelable: true,
         bubbles: true,
         composed: true,
         detail: { next, prev },
       }),
-    )
+    );
     // Controlled: never self-apply — wait for the consumer to update `state`.
     // Uncontrolled: apply unless a listener synchronously preventDefault()'d.
-    if (this.#controlled) return
-    if (ok) { this.#state = next; this.#paint() }
+    if (this.#controlled) return;
+    if (ok) {
+      this.#state = next;
+      this.#paint();
+    }
   }
 
   #paint() {
-    const i = this.#internals
-    if (!i) return
-    i.states.delete('checked')
-    i.states.delete('indeterminate')
-    if (this.#state === 'indeterminate') i.states.add('indeterminate')
-    else if (this.#state === 'checked') i.states.add('checked')
+    const i = this.#internals;
+    if (!i) return;
+    i.states.delete("checked");
+    i.states.delete("indeterminate");
+    if (this.#state === "indeterminate") i.states.add("indeterminate");
+    else if (this.#state === "checked") i.states.add("checked");
     // Submit value/"on" when checked, nothing otherwise; 2nd arg is the bfcache state.
-    i.setFormValue?.(this.#state === 'checked' ? (this.getAttribute('value') ?? 'on') : null, this.#state)
+    i.setFormValue?.(
+      this.#state === "checked" ? (this.getAttribute("value") ?? "on") : null,
+      this.#state,
+    );
   }
 
-  formResetCallback() { this.#seed(); this.#paint() }
+  formResetCallback() {
+    this.#seed();
+    this.#paint();
+  }
 
   formStateRestoreCallback(state: string) {
-    this.#state = parseState(state)
-    this.#paint()
+    this.#state = parseState(state);
+    this.#paint();
   }
 
-  formDisabledCallback() { this.#paint() }
+  formDisabledCallback() {
+    this.#paint();
+  }
 }
 
 export function register_a_checkbox() {
-  if (typeof customElements === 'undefined') return
-  if (!customElements.get('a-checkbox')) customElements.define('a-checkbox', ACheckboxElement)
+  if (typeof customElements === "undefined") return;
+  if (!customElements.get("a-checkbox"))
+    customElements.define("a-checkbox", ACheckboxElement);
 }
 
-register_a_checkbox()
+register_a_checkbox();

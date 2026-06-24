@@ -62,31 +62,68 @@ The label is `children`—text or any nodes. Use the slot for rich content like 
 </Col>
 </Columns>
 
-## Per-option tone & size
+## Tones
+
+<Columns>
+<Col>
+
+<Preview gap="12px">
+  <RadioGroup name="r-tone-brand" defaultValue="a" orientation="horizontal"><Radio value="a">Brand</Radio></RadioGroup>
+  <RadioGroup name="r-tone-neutral" defaultValue="a" orientation="horizontal"><Radio value="a" tone="neutral">Neutral</Radio></RadioGroup>
+  <RadioGroup name="r-tone-info" defaultValue="a" orientation="horizontal"><Radio value="a" tone="info">Info</Radio></RadioGroup>
+  <RadioGroup name="r-tone-success" defaultValue="a" orientation="horizontal"><Radio value="a" tone="success">Success</Radio></RadioGroup>
+  <RadioGroup name="r-tone-warning" defaultValue="a" orientation="horizontal"><Radio value="a" tone="warning">Warning</Radio></RadioGroup>
+  <RadioGroup name="r-tone-critical" defaultValue="a" orientation="horizontal"><Radio value="a" tone="critical">Critical</Radio></RadioGroup>
+  <RadioGroup name="r-tone-custom" defaultValue="a" orientation="horizontal"><Radio value="a" tone="#e0457b">Custom</Radio></RadioGroup>
+</Preview>
+
+```tsx folded
+<Radio value="a">Brand</Radio>              {/* brand is the default */}
+<Radio value="a" tone="neutral">Neutral</Radio>
+<Radio value="a" tone="info">Info</Radio>
+<Radio value="a" tone="success">Success</Radio>
+<Radio value="a" tone="warning">Warning</Radio>
+<Radio value="a" tone="critical">Critical</Radio>
+<Radio value="a" tone="#e0457b">Custom</Radio>
+```
+
+</Col>
+<Col>
+
+Six named tones — `brand` (default), `neutral`, `info`, `success`, `warning`,
+`critical`. A `Radio` with no `tone` inherits its group's (`brand` by default);
+set `tone` to override just that option. In addition, a custom tone is possible:
+pass any literal CSS colour and the radio will adapt to it.
+
+</Col>
+</Columns>
+
+## Size
 
 <Columns>
 <Col>
 
 <Preview>
-  <RadioGroup name="override" defaultValue="a">
-    <Radio value="a">Inherits the group</Radio>
-    <Radio value="b" tone="neutral">Overrides to neutral</Radio>
-    <Radio value="c" size="large">Overrides to large</Radio>
+  <RadioGroup name="radio-size" defaultValue="apple">
+    <Radio value="apple" size="small">Apple</Radio>
+    <Radio value="banana">Banana</Radio>
+    <Radio value="cherry" size="large">Cherry</Radio>
   </RadioGroup>
 </Preview>
 
 ```tsx folded
-<RadioGroup defaultValue="a">             {/* brand, medium */}
-  <Radio value="a">Inherits the group</Radio>
-  <Radio value="b" tone="neutral">Overrides to neutral</Radio>
-  <Radio value="c" size="large">Overrides to large</Radio>
+<RadioGroup defaultValue="apple">
+  <Radio value="apple" size="small">Apple</Radio>
+  <Radio value="banana">Banana</Radio>          {/* medium (default) */}
+  <Radio value="cherry" size="large">Cherry</Radio>
 </RadioGroup>
 ```
 
 </Col>
 <Col>
 
-Inherit the group's `tone` and `size`, or override on a single radio to call out a choice.
+A `Radio` inherits the group's `size`, or sets its own to override just that
+option.
 
 </Col>
 </Columns>
@@ -115,36 +152,6 @@ Disable a single radio, or put `disabled` on the [`RadioGroup`](/components/radi
 </Col>
 </Columns>
 
-## Targeting the selected state
-
-<Columns>
-<Col>
-
-<Preview>
-  <RadioGroup name="state-demo" defaultValue="b">
-    <Radio value="a" className="selected-bold">First option</Radio>
-    <Radio value="b" className="selected-bold">Second option</Radio>
-    <Radio value="c" className="selected-bold">Third option</Radio>
-  </RadioGroup>
-  <style is:inline>{`
-    a-radio.selected-bold:state(selected) { font-weight: 600; }
-    a-radio.selected-bold[selected]      { font-weight: 600; }
-  `}</style>
-</Preview>
-
-```css folded
-a-radio:state(selected) { font-weight: 600; }
-a-radio[selected]       { font-weight: 600; }  /* vanilla-HTML fallback */
-```
-
-</Col>
-<Col>
-
-Style the selected state with `:state(selected)` or `[selected]`. Use any CSS (weight, colors, animations, etc.).
-
-</Col>
-</Columns>
-
 <Disclosure title="Component props" open>
 
 <PropsTable component="Radio" />
@@ -153,20 +160,24 @@ Style the selected state with `:state(selected)` or `[selected]`. Use any CSS (w
 
 <Disclosure title="Component tokens" open>
 
-Override via inline style or CSS selector.
+Override any of these on a single instance via `style`, or on a selector
+wrapping the radio. The ring background is the themed `--bg-1` role; the fills,
+borders, disabled overlays, and focus ring are per-tone values with a matching
+dark-mode block. Dimensional values (control size, dot size, ring thickness,
+label type scale) are exposed as their own tokens.
 
 | Token | Description |
 |---|---|
-| `--radio-control-size` | Diameter of the circle (16 / 18 / 20px per `size`). |
+| `--radio-control-size` | Diameter of the ring (16 / 18 / 20px per `size`). |
 | `--radio-dot-size` | Diameter of the selected centre dot. |
-| `--radio-gap` | Space between the circle and the label. |
+| `--radio-gap` | Space between the ring and the label. |
 | `--radio-border-width` | Ring thickness. |
-| `--radio-bg` | Unselected fill. |
-| `--radio-border`<br />`--radio-border-hover`<br />`--radio-border-active` | Ring colour, per interaction state. |
-| `--radio-bg-checked`<br />`--radio-bg-checked-hover`<br />`--radio-bg-checked-active` | Selected fill, per interaction state (re-pointed by `tone`). |
-| `--radio-selected-border-hover`<br />`--radio-selected-border-active` | Ring colour while selected. |
-| `--radio-dot` | Centre-dot colour. |
-| `--radio-focus` | Focus-ring colour. |
-| `--radio-bg-disabled`<br />`--radio-border-disabled`<br />`--radio-fg-disabled` | Disabled palette. |
+| `--radio-bg` | Unselected ring background. Defaults to the `--bg-1` role. |
+| `--radio-border`<br />`--radio-border-hover`<br />`--radio-border-active` | Unselected ring outline across rest / hover / active. |
+| `--radio-fill`<br />`--radio-fill-hover`<br />`--radio-fill-active` | Selected (ring + fill) across rest / hover / active. Re-pointed per `tone`. |
+| `--radio-dot` | Centre-dot colour (default white). |
+| `--radio-dot-disabled` | Centre-dot colour when disabled. |
+| `--radio-bg-disabled`<br />`--radio-border-disabled` | Ring fill / outline when disabled. |
+| `--radio-focus` | Keyboard focus-ring colour. |
 
 </Disclosure>

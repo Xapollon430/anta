@@ -1,5 +1,23 @@
 @layer anta {
-  /* Group-level size cascade onto children that don't set their own. */
+  /* Host layout + the radio-list/orientation live in the shadow <style> (see
+     a-radio-group.ts). label / hint are light-DOM children (named slots), so
+     they're styled here by tag like the rest of Anta's light-DOM sub-tags. */
+  a-radio-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-1);
+    margin-block-end: 4px;
+  }
+
+  a-radio-hint {
+    display: block;
+    font-size: 12px;
+    color: var(--text-3);
+    margin-block-start: 4px;
+  }
+
+  /* Size cascades onto children that don't set their own. */
   a-radio-group[size="small"] a-radio:not([size]) {
     --radio-control-size: 16px;
     --radio-dot-size: 6px;
@@ -10,37 +28,20 @@
     --radio-dot-size: 8px;
   }
 
-  /* Group-level tone cascade onto children that don't set their own. */
-  a-radio-group[tone="neutral"] a-radio:not([tone]) {
-    --radio-bg-checked: #776e77;
-    --radio-bg-checked-hover: #635b65;
-    --radio-bg-checked-active: #534c57;
-    --radio-selected-border-hover: #635b65;
-    --radio-selected-border-active: #534c57;
-  }
-  .dark a-radio-group[tone="neutral"] a-radio:not([tone]) {
-    --radio-bg-checked: #776e77;
-    --radio-bg-checked-hover: #878089;
-    --radio-bg-checked-active: #938d96;
-    --radio-selected-border-hover: #878089;
-    --radio-selected-border-active: #938d96;
-  }
-
-  /* Group-level disabled — cascade the disabled palette down. */
+  /* Group disabled — grey every child's palette (children don't carry their own
+     [disabled], so the element's own disabled rule doesn't fire here). */
   a-radio-group[disabled] a-radio {
-    cursor: default;
+    cursor: not-allowed;
     pointer-events: none;
-    color: var(--radio-fg-disabled);
+    color: var(--radio-label-color-disabled);
 
+    --radio-bg: var(--radio-bg-disabled);
     --radio-border: var(--radio-border-disabled);
     --radio-border-hover: var(--radio-border-disabled);
     --radio-border-active: var(--radio-border-disabled);
-    --radio-bg: var(--radio-bg-disabled);
-    --radio-bg-checked: var(--radio-bg-disabled);
-    --radio-bg-checked-hover: var(--radio-bg-disabled);
-    --radio-bg-checked-active: var(--radio-bg-disabled);
-    --radio-selected-border-hover: var(--radio-border-disabled);
-    --radio-selected-border-active: var(--radio-border-disabled);
-    --radio-dot: var(--radio-fg-disabled);
+    --radio-fill: var(--radio-bg-disabled);
+    --radio-fill-hover: var(--radio-bg-disabled);
+    --radio-fill-active: var(--radio-bg-disabled);
+    --radio-dot: var(--radio-dot-disabled);
   }
 }
