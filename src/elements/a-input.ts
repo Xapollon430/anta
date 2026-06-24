@@ -75,6 +75,15 @@ const CLEAR_TRIGGER = 'clearrequest'
 const CLEAR_CLICK_EVENT = 'clearclick'
 const CLEAR_INPUT_EVENT = 'clearinput'
 
+// `field-sizing: content` drives textarea autogrow declaratively where it's
+// supported (Chrome/Edge, Safari ≥ 26.2). Detected once at module load. Where
+// it's absent (Firefox, older Safari) the element falls back to a JS autogrow on
+// every value change (see `syncAutoHeight`), so a multiline field still grows
+// from one line instead of staying a single row. The CSS `max-height` cap
+// applies in both paths, so `maxrows` is honored regardless.
+const SUPPORTS_FIELD_SIZING =
+  typeof CSS !== 'undefined' && !!CSS.supports?.('field-sizing', 'content')
+
 const SHADOW_STYLE = `
   /* Suppress any UA focus outline on the host — with delegatesFocus some
      browsers ring the host too; the field's own ring is the single indicator.
@@ -448,10 +457,12 @@ export class AInputElement extends HTMLElementBase {
     this.internals?.setFormValue(value)
     this.updateValidity()
     this.updateFilled()
+    this.syncAutoHeight() // size to the initial value (JS-fallback browsers)
   }
 
-  /** Autogrow (no `rows`) via `field-sizing: content`, capped by `maxrows`;
-   *  a fixed `rows` count switches it off for a constant-height box. */
+  /** Autogrow (no `rows`) via `field-sizing: content` — or the JS fallback where
+   *  that's unsupported — capped by `maxrows`; a fixed `rows` count switches it
+   *  off for a constant-height box. */
   private configureTextarea(ta: HTMLTextAreaElement) {
     const rows = this.getAttribute('rows')
     const maxrows = this.getAttribute('maxrows')
@@ -459,14 +470,32 @@ export class AInputElement extends HTMLElementBase {
       ta.rows = Math.max(1, parseInt(rows, 10) || 1)
       ta.style.setProperty('field-sizing', 'fixed')
       ta.style.removeProperty('--_maxrows')
+      ta.style.removeProperty('height') // drop any height the JS fallback set
     } else {
       ta.rows = 1
-      ta.style.setProperty('field-sizing', 'content')
-      // The cap itself lives in CSS (max-height off --_lh + --_pad-block); JS
-      // only feeds it the row count, which CSS can't read from the attribute.
+      // Native autogrow where supported; the JS fallback (syncAutoHeight) grows
+      // it on every value change everywhere else. The cap lives in CSS
+      // (max-height off --_lh + --_pad-block) and applies in both paths; JS only
+      // feeds it the row count, which CSS can't read from the attribute.
+      if (SUPPORTS_FIELD_SIZING) ta.style.setProperty('field-sizing', 'content')
+      else ta.style.removeProperty('field-sizing')
       if (maxrows != null) ta.style.setProperty('--_maxrows', String(parseInt(maxrows, 10) || 1))
       else ta.style.removeProperty('--_maxrows')
+      this.syncAutoHeight()
     }
+  }
+
+  /** Autogrow fallback for browsers without `field-sizing: content` (Firefox,
+   *  Safari < 26.2). Grows the shadow textarea to fit its content; the CSS
+   *  `max-height` cap (when `maxrows` is set) still clamps it and scrolls past.
+   *  A no-op where `field-sizing` is supported, or when the field isn't
+   *  autogrowing (fixed `rows`, or not a textarea) — those size via CSS. */
+  private syncAutoHeight = () => {
+    if (SUPPORTS_FIELD_SIZING) return
+    const ta = this.control
+    if (!(ta instanceof HTMLTextAreaElement) || this.getAttribute('rows') != null) return
+    ta.style.height = 'auto'
+    ta.style.height = `${ta.scrollHeight}px`
   }
 
   private forward(name: string, value: string | null) {
@@ -487,6 +516,7 @@ export class AInputElement extends HTMLElementBase {
     this.internals?.setFormValue(v)
     this.updateValidity()
     this.updateFilled()
+    this.syncAutoHeight()
     // `input` is composed — it reaches the host (and consumers) on its own.
   }
 
@@ -545,6 +575,7 @@ export class AInputElement extends HTMLElementBase {
     this.internals?.setFormValue(v)
     this.updateValidity()
     this.updateFilled()
+    this.syncAutoHeight()
   }
 
   /** Clear the field and refocus it — fired by the wrapper's clear button.
@@ -555,6 +586,7 @@ export class AInputElement extends HTMLElementBase {
     this.internals?.setFormValue('')
     this.updateValidity()
     this.updateFilled()
+    this.syncAutoHeight()
     this.dispatchEvent(new Event('input', { bubbles: true }))
     this.dispatchEvent(new Event('change', { bubbles: true }))
     this.dispatchEvent(new CustomEvent(CLEAR_INPUT_EVENT, { bubbles: true }))

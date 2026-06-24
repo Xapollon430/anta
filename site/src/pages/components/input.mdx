@@ -356,8 +356,9 @@ Firefox. So Anta keeps the native field.
 `maxRows` if you set one (omit for unbounded growth), then it scrolls. Pass a
 fixed **`rows`** count for a constant-height box instead.
 
-Autogrow needs `field-sizing` (Chromium & Safari; Firefox is catching up) —
-where it's unsupported the field degrades to a normal scrolling textarea.
+Autogrow uses CSS `field-sizing` where supported (Chromium, Safari ≥ 26.2) and a
+built-in JS resize everywhere else (Firefox, older Safari), so it grows in every
+browser.
 
 </Col>
 </Columns>
