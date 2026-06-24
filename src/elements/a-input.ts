@@ -170,9 +170,21 @@ const SHADOW_STYLE = `
             appearance: none;
   }
   textarea {
+    /* Single source of truth for the vertical padding: both the box padding and
+       the autogrow max-height cap (below) read it, so the cap can't drift. */
+    --_pad-block: 4px;
+
     resize: none;
-    padding-block: 4px;
+    padding-block: var(--_pad-block);
     overflow-y: auto;
+  }
+  /* Autogrow cap: stop after \`maxrows\` text lines, then scroll. Computed from the
+     size-aware line-height plus the padding above (not a literal), so it tracks
+     small/medium/large automatically; JS injects only \`--_maxrows\` (the integer
+     row count, which CSS can't read off the attribute). A fixed \`rows\` turns the
+     autogrow off, so the cap doesn't apply there. */
+  :host([maxrows]:not([rows])) textarea {
+    max-height: calc(var(--_lh) * var(--_maxrows) + var(--_pad-block) * 2);
   }
   input::placeholder, textarea::placeholder { color: var(--input-placeholder); opacity: 1; }
   input:disabled, textarea:disabled { cursor: not-allowed; }
@@ -446,12 +458,14 @@ export class AInputElement extends HTMLElementBase {
     if (rows != null) {
       ta.rows = Math.max(1, parseInt(rows, 10) || 1)
       ta.style.setProperty('field-sizing', 'fixed')
-      ta.style.maxHeight = ''
+      ta.style.removeProperty('--_maxrows')
     } else {
       ta.rows = 1
       ta.style.setProperty('field-sizing', 'content')
-      // line * maxrows + block padding (4+4) + borders (~1)
-      ta.style.maxHeight = maxrows != null ? `calc(${parseInt(maxrows, 10) || 1} * 20px + 10px)` : ''
+      // The cap itself lives in CSS (max-height off --_lh + --_pad-block); JS
+      // only feeds it the row count, which CSS can't read from the attribute.
+      if (maxrows != null) ta.style.setProperty('--_maxrows', String(parseInt(maxrows, 10) || 1))
+      else ta.style.removeProperty('--_maxrows')
     }
   }
 
