@@ -2,55 +2,40 @@ import { HTMLElementBase } from "../anta_helpers";
 import { ARadioElement } from "./a-radio";
 import "./a-radio-group.css";
 
-const SHADOW_STYLE = `
-  :host { display: flex; flex-direction: column; }
-  slot:not([name]) { display: flex; flex-direction: column; gap: 8px; }
-  :host([orientation="horizontal"]) slot:not([name]) {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-`;
-
+// Light-DOM group (no shadow): the label, the <a-radio-list> of options, and the
+// hint are plain light-DOM children laid out by a-radio-group.css — so a consumer
+// can restyle the radios' arrangement with ordinary CSS (`a-radio-group
+// a-radio-list { … }`), nothing hidden in a shadow root. The group syncs roving
+// tabindex + selection on connect, attribute change, and each pick. A child
+// <a-radio> added later calls requestSync() on connect so it still gets wired up
+// (add-only — a removed option is reconciled on the next sync); no
+// MutationObserver / shadow slotchange.
 export class ARadioGroupElement extends HTMLElementBase {
   static formAssociated = true;
   static observedAttributes = ["state", "disabled"];
 
   private internals?: ElementInternals;
   private uncontrolledValue: string | null = null;
-  private radioSlot: HTMLSlotElement;
 
   constructor() {
     super();
     this.internals = this.attachInternals?.();
-    const shadow = this.attachShadow({ mode: "open" });
-
-    const style = document.createElement("style");
-    style.textContent = SHADOW_STYLE;
-
-    const labelSlot = document.createElement("slot");
-    labelSlot.name = "label";
-    // Default (nameless) slot — radios project here; its slotchange tracks them.
-    this.radioSlot = document.createElement("slot");
-    const hintSlot = document.createElement("slot");
-    hintSlot.name = "hint";
-
-    shadow.append(style, labelSlot, this.radioSlot, hintSlot);
   }
 
   connectedCallback() {
     this.uncontrolledValue = this.getAttribute("default-state");
     this.addEventListener("click", this.onClick);
     this.addEventListener("keydown", this.onKeyDown);
-    // slotchange fires when the radio set changes (add/remove/reorder). Stable
-    // arrow refs make these addEventListener calls idempotent across reconnects.
-    this.radioSlot.addEventListener("slotchange", this.sync);
     this.sync();
   }
 
   attributeChangedCallback() {
     this.sync();
   }
+
+  /** A child <a-radio> calls this on connect so an option added after mount
+   *  still gets its roving tabindex + selection. */
+  requestSync = () => this.sync();
 
   formDisabledCallback(disabled: boolean) {
     if (disabled) this.internals?.states.add("disabled");

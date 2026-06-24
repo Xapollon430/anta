@@ -1,4 +1,7 @@
 import { HTMLElementBase } from "../anta_helpers";
+// Type-only (erased at build — no runtime circular import) so `closest` returns
+// the typed group and we can call `requestSync` without a cast.
+import type { ARadioGroupElement } from "./a-radio-group";
 import "./a-radio.css";
 
 export class ARadioElement extends HTMLElementBase {
@@ -12,6 +15,9 @@ export class ARadioElement extends HTMLElementBase {
 
   connectedCallback() {
     this.applyState(this.hasAttribute("selected"));
+    // Tell the group an option appeared so it re-syncs roving tabindex +
+    // selection (add-only — removals reconcile on the group's next sync).
+    this.closest<ARadioGroupElement>("a-radio-group")?.requestSync();
   }
 
   attributeChangedCallback(name: string) {

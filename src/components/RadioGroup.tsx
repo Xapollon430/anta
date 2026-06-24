@@ -111,9 +111,9 @@ export const RadioGroup = ({
       class={className}
       style={computedStyle}
     >
-      {label && <a-radio-label slot="label" id={labelId}>{label}</a-radio-label>}
-      {children}
-      {hint && <a-radio-hint slot="hint">{hint}</a-radio-hint>}
+      {label && <a-radio-label id={labelId}>{label}</a-radio-label>}
+      <a-radio-list>{children}</a-radio-list>
+      {hint && <a-radio-hint>{hint}</a-radio-hint>}
     </a-radio-group>
   )
 }

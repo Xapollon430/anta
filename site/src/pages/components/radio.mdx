@@ -8,56 +8,63 @@ import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
-import radioDemoCode from './radio.demo.ts'
+import radioGroupDemoCode from './radio-group.demo.ts'
 import { RadioGroup, Radio, Icon } from '@antadesign/anta'
 
 # Radio
 
-A single option within a [`RadioGroup`](/components/radio-group/). The group owns selection, keyboard navigation, and the form value—a `Radio` is only interactive when placed in one.
+A single-select control. `RadioGroup` is the container — it owns selection,
+keyboard navigation, and the form value; each `Radio` is one option. A `Radio`
+is only interactive inside a `RadioGroup`, so the two are almost always written
+together.
 
 <Disclosure title="Playground" anchor={false} brand>
 
 <Playground
   client:visible
-  component="Radio"
+  component="RadioGroup"
   layout="side"
   panelHeight={400}
-  initialCode={radioDemoCode}
+  initialCode={radioGroupDemoCode}
   initialCss={`html, body { height: 100%; }
 .preview { min-height: 100%; align-items: center; justify-content: center; }`}
 />
 
 </Disclosure>
 
-## Label
+## Label & hint
 
 <Columns>
 <Col>
 
 <Preview>
-  <RadioGroup name="label-demo" defaultValue="text">
-    <Radio value="text">Plain text label</Radio>
-    <Radio value="rich">
+  <RadioGroup name="lh" label="Select an option" hint="Choose how we should reach you." defaultValue="email">
+    <Radio value="email">Email</Radio>
+    <Radio value="sms">SMS</Radio>
+    <Radio value="push">
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-        With an icon <Icon shape="info" size={15} />
+        Push <Icon shape="info" size={15} />
       </span>
     </Radio>
   </RadioGroup>
 </Preview>
 
 ```tsx folded
-<Radio value="text">Plain text label</Radio>
-<Radio value="rich">
-  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-    With an icon <Icon shape="info" size={15} />
-  </span>
-</Radio>
+<RadioGroup label="Select an option" hint="Choose how we should reach you." defaultValue="email">
+  <Radio value="email">Email</Radio>
+  <Radio value="sms">SMS</Radio>
+  <Radio value="push">
+    Push <Icon shape="info" size={15} />   {/* a Radio's label is its children */}
+  </Radio>
+</RadioGroup>
 ```
 
 </Col>
 <Col>
 
-The label is `children`—text or any nodes. Use the slot for rich content like an icon or tooltip alongside the label.
+The group's `label` prints above the options; `hint` prints below. Each option's
+label is the `Radio`'s `children` — plain text, or any nodes (an icon, a
+tooltip) for richer content.
 
 </Col>
 </Columns>
@@ -67,33 +74,32 @@ The label is `children`—text or any nodes. Use the slot for rich content like 
 <Columns>
 <Col>
 
-<Preview gap="12px">
-  <RadioGroup name="r-tone-brand" defaultValue="a" orientation="horizontal"><Radio value="a">Brand</Radio></RadioGroup>
-  <RadioGroup name="r-tone-neutral" defaultValue="a" orientation="horizontal"><Radio value="a" tone="neutral">Neutral</Radio></RadioGroup>
-  <RadioGroup name="r-tone-info" defaultValue="a" orientation="horizontal"><Radio value="a" tone="info">Info</Radio></RadioGroup>
-  <RadioGroup name="r-tone-success" defaultValue="a" orientation="horizontal"><Radio value="a" tone="success">Success</Radio></RadioGroup>
-  <RadioGroup name="r-tone-warning" defaultValue="a" orientation="horizontal"><Radio value="a" tone="warning">Warning</Radio></RadioGroup>
-  <RadioGroup name="r-tone-critical" defaultValue="a" orientation="horizontal"><Radio value="a" tone="critical">Critical</Radio></RadioGroup>
-  <RadioGroup name="r-tone-custom" defaultValue="a" orientation="horizontal"><Radio value="a" tone="#e0457b">Custom</Radio></RadioGroup>
+<Preview>
+  <RadioGroup name="tones" orientation="horizontal" defaultValue="brand">
+    <Radio value="brand" tone="brand">Brand</Radio>
+    <Radio value="neutral" tone="neutral">Neutral</Radio>
+    <Radio value="info" tone="info">Info</Radio>
+    <Radio value="success" tone="success">Success</Radio>
+    <Radio value="warning" tone="warning">Warning</Radio>
+    <Radio value="critical" tone="critical">Critical</Radio>
+  </RadioGroup>
 </Preview>
 
 ```tsx folded
-<Radio value="a">Brand</Radio>              {/* brand is the default */}
-<Radio value="a" tone="neutral">Neutral</Radio>
-<Radio value="a" tone="info">Info</Radio>
-<Radio value="a" tone="success">Success</Radio>
-<Radio value="a" tone="warning">Warning</Radio>
-<Radio value="a" tone="critical">Critical</Radio>
-<Radio value="a" tone="#e0457b">Custom</Radio>
+{/* Usually one tone for the whole group: */}
+<RadioGroup tone="info" defaultValue="a">
+  <Radio value="a">Option A</Radio>
+  <Radio value="b">Option B</Radio>
+</RadioGroup>
 ```
 
 </Col>
 <Col>
 
 Six named tones — `brand` (default), `neutral`, `info`, `success`, `warning`,
-`critical`. A `Radio` with no `tone` inherits its group's (`brand` by default);
-set `tone` to override just that option. In addition, a custom tone is possible:
-pass any literal CSS colour and the radio will adapt to it.
+`critical`. Set `tone` on the `RadioGroup` to colour every option, or on a single
+`Radio` to override just that one. Any literal CSS colour works too, for a
+one-off custom tone.
 
 </Col>
 </Columns>
@@ -104,26 +110,65 @@ pass any literal CSS colour and the radio will adapt to it.
 <Col>
 
 <Preview>
-  <RadioGroup name="radio-size" defaultValue="apple">
-    <Radio value="apple" size="small">Apple</Radio>
-    <Radio value="banana">Banana</Radio>
-    <Radio value="cherry" size="large">Cherry</Radio>
+  <RadioGroup name="sizes" orientation="horizontal" defaultValue="medium">
+    <Radio value="small" size="small">Small</Radio>
+    <Radio value="medium" size="medium">Medium</Radio>
+    <Radio value="large" size="large">Large</Radio>
   </RadioGroup>
 </Preview>
 
 ```tsx folded
-<RadioGroup defaultValue="apple">
-  <Radio value="apple" size="small">Apple</Radio>
-  <Radio value="banana">Banana</Radio>          {/* medium (default) */}
-  <Radio value="cherry" size="large">Cherry</Radio>
+{/* Usually one size for the whole group: */}
+<RadioGroup size="small" defaultValue="a">
+  <Radio value="a">Option A</Radio>
+  <Radio value="b">Option B</Radio>
 </RadioGroup>
 ```
 
 </Col>
 <Col>
 
-A `Radio` inherits the group's `size`, or sets its own to override just that
-option.
+Three sizes set the control circle: `small` (16px), `medium` (18px, the
+default), and `large` (20px). Set it on the `RadioGroup`, or on a single `Radio`
+to override one option.
+
+</Col>
+</Columns>
+
+## Orientation & layout
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup name="orient" orientation="horizontal" defaultValue="yes">
+    <Radio value="yes">Yes</Radio>
+    <Radio value="no">No</Radio>
+    <Radio value="maybe">Maybe</Radio>
+  </RadioGroup>
+</Preview>
+
+```tsx folded
+<RadioGroup orientation="horizontal" defaultValue="yes">
+  <Radio value="yes">Yes</Radio>
+  <Radio value="no">No</Radio>
+  <Radio value="maybe">Maybe</Radio>
+</RadioGroup>
+```
+
+</Col>
+<Col>
+
+`vertical` (the default) stacks the options; `horizontal` lays them in a row.
+Arrow keys move the selection either way.
+
+For anything beyond that, the options live in a plain light-DOM `<a-radio-list>`,
+so you can restyle their arrangement with ordinary CSS — no shadow parts:
+
+```css folded
+/* e.g. a two-column grid */
+a-radio-group a-radio-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+```
 
 </Col>
 </Columns>
@@ -133,51 +178,111 @@ option.
 <Columns>
 <Col>
 
-<Preview>
+<Preview gap="16px">
   <RadioGroup name="dis-one" defaultValue="a">
     <Radio value="a">Available</Radio>
     <Radio value="b" disabled>Unavailable</Radio>
   </RadioGroup>
+  <RadioGroup name="dis-all" defaultValue="a" disabled>
+    <Radio value="a">Whole group off</Radio>
+    <Radio value="b">Whole group off</Radio>
+  </RadioGroup>
 </Preview>
 
 ```tsx folded
-<Radio value="b" disabled>Unavailable</Radio>
+<Radio value="b" disabled>Unavailable</Radio>          {/* one option */}
+
+<RadioGroup disabled defaultValue="a">…</RadioGroup>   {/* the whole set */}
 ```
 
 </Col>
 <Col>
 
-Disable a single radio, or put `disabled` on the [`RadioGroup`](/components/radio-group/) to disable the whole set.
+Put `disabled` on a single `Radio` to disable one option, or on the `RadioGroup`
+to disable the whole set. Disabled options are skipped by keyboard navigation.
 
 </Col>
 </Columns>
 
-<Disclosure title="Component props" open>
+## Keyboard & accessibility
+
+The group is one tab stop: `Tab` moves into the selected option (or the first
+one), and the arrow keys (`↑`/`↓`/`←`/`→`) move the selection between enabled
+options, wrapping at the ends. `Space` selects the focused option.
+
+The `RadioGroup` wrapper sets `role="radiogroup"` on the group and `role="radio"`
+on every option; each `<a-radio>` publishes its own `aria-checked` through
+`ElementInternals`, kept live as the selection moves. Follows the
+[WAI-ARIA radio-group pattern](https://www.w3.org/WAI/ARIA/apg/patterns/radio/).
+
+## Forms
+
+`<a-radio-group>` is a form-associated custom element. Give it a `name` and the
+selected option's `value` is submitted with the form like a native radio group;
+form reset restores the `defaultValue` selection.
+
+```tsx folded
+<form>
+  <RadioGroup name="contact" defaultValue="email">
+    <Radio value="email">Email</Radio>
+    <Radio value="sms">SMS</Radio>
+  </RadioGroup>
+</form>
+// FormData → contact=email
+```
+
+## Controlled vs. uncontrolled
+
+<Columns>
+<Col>
+
+**Uncontrolled** — pass `defaultValue` and let the group own selection:
+
+```tsx folded
+<RadioGroup name="plan" defaultValue="pro">
+  <Radio value="free">Free</Radio>
+  <Radio value="pro">Pro</Radio>
+  <Radio value="team">Team</Radio>
+</RadioGroup>
+```
+
+</Col>
+<Col>
+
+**Controlled** — pass `value` + `onStateChange` and own it yourself. The group
+fires *before* applying, so you accept by updating `value` and reject by doing
+nothing (or `event.preventDefault()` to veto in uncontrolled mode):
+
+```tsx folded
+const [plan, setPlan] = useState('pro')
+
+<RadioGroup name="plan" value={plan} onStateChange={(e, { next }) => setPlan(next)}>
+  <Radio value="free">Free</Radio>
+  <Radio value="pro">Pro</Radio>
+  <Radio value="team">Team</Radio>
+</RadioGroup>
+```
+
+</Col>
+</Columns>
+
+<Disclosure title="RadioGroup props" open>
+
+<PropsTable component="RadioGroup" />
+
+</Disclosure>
+
+<Disclosure title="Radio props" open>
 
 <PropsTable component="Radio" />
 
 </Disclosure>
 
-<Disclosure title="Component tokens" open>
+<Disclosure title="Styling" open>
 
-Override any of these on a single instance via `style`, or on a selector
-wrapping the radio. The ring background is the themed `--bg-1` role; the fills,
-borders, disabled overlays, and focus ring are per-tone values with a matching
-dark-mode block. Dimensional values (control size, dot size, ring thickness,
-label type scale) are exposed as their own tokens.
-
-| Token | Description |
-|---|---|
-| `--radio-control-size` | Diameter of the ring (16 / 18 / 20px per `size`). |
-| `--radio-dot-size` | Diameter of the selected centre dot. |
-| `--radio-gap` | Space between the ring and the label. |
-| `--radio-border-width` | Ring thickness. |
-| `--radio-bg` | Unselected ring background. Defaults to the `--bg-1` role. |
-| `--radio-border`<br />`--radio-border-hover`<br />`--radio-border-active` | Unselected ring outline across rest / hover / active. |
-| `--radio-fill`<br />`--radio-fill-hover`<br />`--radio-fill-active` | Selected (ring + fill) across rest / hover / active. Re-pointed per `tone`. |
-| `--radio-dot` | Centre-dot colour (default white). |
-| `--radio-dot-disabled` | Centre-dot colour when disabled. |
-| `--radio-bg-disabled`<br />`--radio-border-disabled` | Ring fill / outline when disabled. |
-| `--radio-focus` | Keyboard focus-ring colour. |
+Colour comes from the `tone` prop (and tracks light/dark automatically); size
+from `size`. For anything beyond that, target the element with plain CSS — the
+options live in a light-DOM `<a-radio-list>`, and the internal `--radio-*` custom
+properties are available if you need to re-point a specific colour.
 
 </Disclosure>

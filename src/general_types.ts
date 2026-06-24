@@ -434,12 +434,15 @@ export interface ARadioAttributes extends BaseAttributes {
 /**
  * Attributes for the `<a-radio-group>` custom element — the single-select
  * coordinator. It is the form-associated element (submits one `name=value`).
- * It uses a minimal shadow root with three slots: an optional `<a-radio-label
- * slot="label">`, the `<a-radio>` options (default slot), and an optional
- * `<a-radio-hint slot="hint">`. The default slot's `slotchange` is how the group
- * tracks its option set. The `RadioGroup` wrapper composes these from `label` /
- * `hint`; hand-authors write the slotted children directly. For the typed JSX
- * wrapper use `RadioGroup` from `@antadesign/anta`.
+ * No shadow DOM: an optional `<a-radio-label>`, an `<a-radio-list>` wrapping the
+ * `<a-radio>` options, and an optional `<a-radio-hint>` are plain light-DOM
+ * children, laid out by `a-radio-group.css` — so the radios' arrangement is
+ * restylable with ordinary CSS (`a-radio-group a-radio-list { … }`). The option
+ * set is declared up front; the group syncs roving tabindex + selection on
+ * connect, attribute change, and each pick — no `MutationObserver`. The
+ * `RadioGroup` wrapper composes the label/list/hint from `label` / `hint`;
+ * hand-authors write them directly.
+ * For the typed JSX wrapper use `RadioGroup` from `@antadesign/anta`.
  */
 export interface ARadioGroupAttributes extends BaseAttributes {
   /** Controlled selected value (the chosen radio's `value`). Present → controlled:
