@@ -354,9 +354,9 @@ export interface ATooltipAttributes extends BaseAttributes {
 export interface ACheckboxAttributes extends BaseAttributes {
   /** Colour variant, or any literal CSS color for a one-off custom tone.
    *  Named tones track light/dark mode automatically via the theme-aware role
-   *  tokens. `'brand'` is the default (same as omitting it). */
+   *  tokens. `'neutral'` is the default (same as omitting it). */
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
-  /** Size variant. `small` = 16px, `medium` (default) = 18px, `large` = 20px box. */
+  /** Size variant. `small` = 14px, `medium` (default) = 16px, `large` = 18px box. */
   size?: 'small' | 'medium' | 'large'
   /** Controlled state — the element reflects changes to this attribute. Use this
    *  (driven from your store) for a controlled checkbox; use `default-state` for
@@ -573,19 +573,20 @@ export interface AButtonAttributes extends BaseAttributes {
 
 /**
  * Attributes for the `<a-radio>` custom element — one option in a radio set.
- * Presentational: a parent `<a-radio-group>` owns selection, keyboard, and form
- * value. The selected look comes from the element's `:state(selected)` (set by
- * the group), not a host attribute. For the typed JSX wrapper use `Radio` from
- * `@antadesign/anta`.
+ * Presentational: the parent `<a-radio-group>` owns selection, keyboard, and form
+ * value. The selected look comes from the element's `:state(selected)` (set by the
+ * group via the `selected` property), not a host attribute. There is no `Radio`
+ * JSX wrapper — `RadioGroup` renders these from its `options`, and hand-authors
+ * write `<a-radio>` directly inside an `<a-radio-group>`.
  */
 export interface ARadioAttributes extends BaseAttributes {
   /** This option's identity / submitted value. */
   value?: string
   /** Colour variant, or any literal CSS color for a one-off custom tone.
    *  Named tones track light/dark mode automatically via the theme-aware role
-   *  tokens. `'brand'` is the default (same as omitting it). */
+   *  tokens. `'neutral'` is the default (same as omitting it). */
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
-  /** Size variant. small=16px, medium=18px, large=20px control. */
+  /** Size variant. small=14px, medium=16px, large=18px control. */
   size?: 'small' | 'medium' | 'large'
   /** Disabled state. Presence-based (`''` on, omit off). */
   disabled?: boolean | ''
@@ -593,9 +594,11 @@ export interface ARadioAttributes extends BaseAttributes {
    *  group). In a group, the group drives `:state(selected)` directly and this
    *  attribute is ignored. Presence-based. */
   selected?: boolean | ''
-  /** ARIA — `role="radio"` is set by the `Radio` wrapper. `aria-checked` is
-   *  published by the element through `ElementInternals` (off the DOM), driven
-   *  by the `selected` property the group sets — not a DOM attribute. */
+  /** ARIA — `role="radio"` is set by the consumer (`RadioGroup` on each option,
+   *  or a hand-author). `aria-checked` is published by the element through
+   *  `ElementInternals` (off the DOM), driven by the `selected` property the group
+   *  sets — not a DOM attribute. Roving `tabindex` (inherited from `BaseAttributes`)
+   *  is likewise set by `RadioGroup`, not the element. */
   role?: 'radio'
   'aria-disabled'?: 'true' | 'false'
 }
@@ -603,14 +606,17 @@ export interface ARadioAttributes extends BaseAttributes {
 /**
  * Attributes for the `<a-radio-group>` custom element — the single-select
  * coordinator. It is the form-associated element (submits one `name=value`).
- * No shadow DOM: an optional `<a-radio-label>`, an `<a-radio-list>` wrapping the
- * `<a-radio>` options, and an optional `<a-radio-hint>` are plain light-DOM
- * children, laid out by `a-radio-group.css` — so the radios' arrangement is
- * restylable with ordinary CSS (`a-radio-group a-radio-list { … }`). The option
- * set is declared up front; the group syncs roving tabindex + selection on
- * connect, attribute change, and each pick — no `MutationObserver`. The
- * `RadioGroup` wrapper composes the label/list/hint from `label` / `hint`;
- * hand-authors write them directly.
+ * No shadow DOM: an optional group header (`<a-radio-group-label>` + an optional
+ * `<a-radio-group-hint>` description) sits above an `<a-radio-list>` wrapping the
+ * `<a-radio>` options — each option wraps its text in `<a-radio-label>` and an
+ * optional `<a-radio-hint>`. All plain light-DOM children, laid out by
+ * `a-radio-group.css`, so the arrangement is restylable with ordinary CSS
+ * (`a-radio-group a-radio-list { … }`). The group
+ * coordinates **off-DOM only** — it never writes the DOM: selection via each
+ * radio's `selected` property, focus via `internals.ariaActiveDescendantElement`,
+ * the form value via `setFormValue`. Roving `tabindex` (the JSX path) is rendered
+ * by the `RadioGroup` wrapper, not the element. The `RadioGroup` wrapper composes
+ * the label/list/hint from `label` / `hint`; hand-authors write them directly.
  * For the typed JSX wrapper use `RadioGroup` from `@antadesign/anta`.
  */
 export interface ARadioGroupAttributes extends BaseAttributes {
@@ -628,6 +634,9 @@ export interface ARadioGroupAttributes extends BaseAttributes {
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size cascaded to children that don't set their own. */
   size?: 'small' | 'medium' | 'large'
+  /** Validation/feedback tone for the group hint — same set as `<a-input>`'s
+   *  `status`. Recolours `<a-radio-group-hint>`; omit for the neutral default. */
+  status?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
   /** Disable the whole group. Presence-based. */
   disabled?: boolean | ''
   /** Layout + arrow-key axis. `'vertical'` is the default. */

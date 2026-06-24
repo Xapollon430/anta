@@ -77,7 +77,7 @@ Pass the label as `children` or the `label` prop. Add a `hint` for a secondary l
 
 ## Size
 
-Three sizes: `small` (16px), `medium` (18px, default), `large` (20px).
+Three sizes: `small` (14px), `medium` (16px, default), `large` (18px).
 
 <Preview gap="16px">
   <Checkbox defaultChecked size="small">Small</Checkbox>
@@ -93,7 +93,10 @@ Three sizes: `small` (16px), `medium` (18px, default), `large` (20px).
 
 ## Tone
 
-Pass any CSS color for custom tones.
+`tone` tints the whole control — the fill, the label, the hint, and, for a tinted
+tone, the unselected box border (which becomes the fill colour; `neutral` keeps a
+grey border). Six named tones (`neutral` default), or pass any CSS color for a
+custom tone.
 
 <Preview gap="16px">
   <Checkbox defaultChecked>Brand</Checkbox>

@@ -81,8 +81,10 @@ export interface AntaIntrinsicElements {
   'a-input': AInputAttributes
   'a-radio': ARadioAttributes
   'a-radio-group': ARadioGroupAttributes
-  'a-radio-label': BaseAttributes
+  'a-radio-group-label': BaseAttributes
+  'a-radio-group-hint': BaseAttributes
   'a-radio-list': BaseAttributes
+  'a-radio-label': BaseAttributes
   'a-radio-hint': BaseAttributes
   'a-menu': AMenuAttributes
   'a-menu-item': AMenuItemAttributes

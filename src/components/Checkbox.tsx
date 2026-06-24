@@ -59,12 +59,13 @@ export interface CheckboxProps extends BaseProps {
    *  @defaultValue "on" */
   value?: string
   /** Colour variant, or any literal CSS color (`'#ff1493'`, `'rebeccapurple'`)
-   *  for a one-off custom tone. Named tones track light/dark mode automatically
-   *  via the theme-aware role tokens; a custom colour keeps its hue + chroma
-   *  and pins lightness to the brand fill curve.
-   *  @defaultValue 'brand' */
+   *  for a one-off custom tone. Tints fill, label, hint, and the unselected box
+   *  border. Named tones track light/dark mode automatically via the theme-aware
+   *  role tokens; a custom colour keeps its hue + chroma and pins lightness to the
+   *  fill curve.
+   *  @defaultValue 'neutral' */
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
-  /** Size variant. small=16px, medium=18px, large=20px box.
+  /** Size variant. small=14px, medium=16px, large=18px box.
    *  @defaultValue 'medium' */
   size?: 'small' | 'medium' | 'large'
   /** Fired on click / Space *before* the element applies any change. Event-first
@@ -163,7 +164,7 @@ export const Checkbox = ({
       state={stateAttr}
       default-state={defaultStateAttr}
       disabled={disabled ? '' : undefined}
-      tone={tone && tone !== 'brand' ? tone : undefined}
+      tone={tone && tone !== 'neutral' ? tone : undefined}
       size={size && size !== 'medium' ? size : undefined}
       tabIndex={disabled ? -1 : (tabIndex ?? 0)}
       // All-lowercase `onstatechange` is the one event-prop spelling both

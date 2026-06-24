@@ -9,14 +9,14 @@ import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import radioGroupDemoCode from './radio-group.demo.ts'
-import { RadioGroup, Radio, Icon } from '@antadesign/anta'
+import { RadioGroup } from '@antadesign/anta'
 
 # Radio
 
-A single-select control. `RadioGroup` is the container — it owns selection,
-keyboard navigation, and the form value; each `Radio` is one option. A `Radio`
-is only interactive inside a `RadioGroup`, so the two are almost always written
-together.
+A single-select control. `RadioGroup` is the whole component — you pass it an
+`options` array and it renders one radio per entry, owning selection, keyboard
+navigation, and the form value. There's no separate `Radio` component: options
+are data, not markup.
 
 <Disclosure title="Playground" anchor={false} brand>
 
@@ -32,39 +32,47 @@ together.
 
 </Disclosure>
 
-## Label & hint
+## Options, label & hint
 
 <Columns>
 <Col>
 
 <Preview>
-  <RadioGroup name="lh" label="Select an option" hint="Choose how we should reach you." defaultValue="email">
-    <Radio value="email">Email</Radio>
-    <Radio value="sms">SMS</Radio>
-    <Radio value="push">
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-        Push <Icon shape="info" size={15} />
-      </span>
-    </Radio>
-  </RadioGroup>
+  <RadioGroup
+    name="lh"
+    label="How should we reach you?"
+    hint="We'll only use this for account alerts."
+    defaultValue="email"
+    options={[
+      { value: 'email', label: 'Email', hint: 'A confirmation link goes to your inbox.' },
+      { value: 'sms', label: 'SMS', hint: 'Standard message rates apply.' },
+      { value: 'push', label: 'Push notification' },
+    ]}
+  />
 </Preview>
 
 ```tsx folded
-<RadioGroup label="Select an option" hint="Choose how we should reach you." defaultValue="email">
-  <Radio value="email">Email</Radio>
-  <Radio value="sms">SMS</Radio>
-  <Radio value="push">
-    Push <Icon shape="info" size={15} />   {/* a Radio's label is its children */}
-  </Radio>
-</RadioGroup>
+<RadioGroup
+  label="How should we reach you?"
+  hint="We'll only use this for account alerts."
+  defaultValue="email"
+  options={[
+    { value: 'email', label: 'Email', hint: 'A confirmation link goes to your inbox.' },
+    { value: 'sms', label: 'SMS', hint: 'Standard message rates apply.' },
+    { value: 'push', label: 'Push notification' },
+  ]}
+/>
 ```
 
 </Col>
 <Col>
 
-The group's `label` prints above the options; `hint` prints below. Each option's
-label is the `Radio`'s `children` — plain text, or any nodes (an icon, a
-tooltip) for richer content.
+Each entry needs a unique `value` (its identity and submitted value) and a
+`label`, plus an optional `hint` — secondary copy rendered under that option,
+styled like `Input`'s hint.
+
+The group's own `label` and `hint` form a header **above** the options: the
+`label` first, the `hint` (an instruction for the whole set) directly under it.
 
 </Col>
 </Columns>
@@ -75,31 +83,41 @@ tooltip) for richer content.
 <Col>
 
 <Preview>
-  <RadioGroup name="tones" orientation="horizontal" defaultValue="brand">
-    <Radio value="brand" tone="brand">Brand</Radio>
-    <Radio value="neutral" tone="neutral">Neutral</Radio>
-    <Radio value="info" tone="info">Info</Radio>
-    <Radio value="success" tone="success">Success</Radio>
-    <Radio value="warning" tone="warning">Warning</Radio>
-    <Radio value="critical" tone="critical">Critical</Radio>
-  </RadioGroup>
+  <RadioGroup
+    name="tones"
+    orientation="horizontal"
+    defaultValue="brand"
+    options={[
+      { value: 'brand', label: 'Brand', tone: 'brand' },
+      { value: 'neutral', label: 'Neutral', tone: 'neutral' },
+      { value: 'info', label: 'Info', tone: 'info' },
+      { value: 'success', label: 'Success', tone: 'success' },
+      { value: 'warning', label: 'Warning', tone: 'warning' },
+      { value: 'critical', label: 'Critical', tone: 'critical' },
+    ]}
+  />
 </Preview>
 
 ```tsx folded
 {/* Usually one tone for the whole group: */}
-<RadioGroup tone="info" defaultValue="a">
-  <Radio value="a">Option A</Radio>
-  <Radio value="b">Option B</Radio>
-</RadioGroup>
+<RadioGroup
+  tone="info"
+  defaultValue="a"
+  options={[
+    { value: 'a', label: 'Option A' },
+    { value: 'b', label: 'Option B' },
+  ]}
+/>
 ```
 
 </Col>
 <Col>
 
-Six named tones — `brand` (default), `neutral`, `info`, `success`, `warning`,
-`critical`. Set `tone` on the `RadioGroup` to colour every option, or on a single
-`Radio` to override just that one. Any literal CSS colour works too, for a
-one-off custom tone.
+Six named tones — `neutral` (default), `brand`, `info`, `success`, `warning`,
+`critical`. `tone` tints the **whole option** — the fill, the label, the hint, and
+(for a tinted tone) the unselected ring border; `neutral` keeps a grey ring. Set it on the `RadioGroup` to
+colour every option, or on a single option to override just that one. Any literal
+CSS colour works too, for a one-off custom tone.
 
 </Col>
 </Columns>
@@ -110,27 +128,37 @@ one-off custom tone.
 <Col>
 
 <Preview>
-  <RadioGroup name="sizes" orientation="horizontal" defaultValue="medium">
-    <Radio value="small" size="small">Small</Radio>
-    <Radio value="medium" size="medium">Medium</Radio>
-    <Radio value="large" size="large">Large</Radio>
-  </RadioGroup>
+  <RadioGroup
+    name="sizes"
+    orientation="horizontal"
+    defaultValue="medium"
+    options={[
+      { value: 'small', label: 'Small', size: 'small' },
+      { value: 'medium', label: 'Medium', size: 'medium' },
+      { value: 'large', label: 'Large', size: 'large' },
+    ]}
+  />
 </Preview>
 
 ```tsx folded
 {/* Usually one size for the whole group: */}
-<RadioGroup size="small" defaultValue="a">
-  <Radio value="a">Option A</Radio>
-  <Radio value="b">Option B</Radio>
-</RadioGroup>
+<RadioGroup
+  size="small"
+  defaultValue="a"
+  options={[
+    { value: 'a', label: 'Option A' },
+    { value: 'b', label: 'Option B' },
+  ]}
+/>
 ```
 
 </Col>
 <Col>
 
-Three sizes set the control circle: `small` (16px), `medium` (18px, the
-default), and `large` (20px). Set it on the `RadioGroup`, or on a single `Radio`
-to override one option.
+Three sizes scale the control circle **and** the label + hint type together:
+`small` (14px ring / 13px label), `medium` (16px / 15px, the default), and
+`large` (18px / 17px). Set it on the `RadioGroup`, or on a single option to
+override one.
 
 </Col>
 </Columns>
@@ -141,19 +169,28 @@ to override one option.
 <Col>
 
 <Preview>
-  <RadioGroup name="orient" orientation="horizontal" defaultValue="yes">
-    <Radio value="yes">Yes</Radio>
-    <Radio value="no">No</Radio>
-    <Radio value="maybe">Maybe</Radio>
-  </RadioGroup>
+  <RadioGroup
+    name="orient"
+    orientation="horizontal"
+    defaultValue="yes"
+    options={[
+      { value: 'yes', label: 'Yes' },
+      { value: 'no', label: 'No' },
+      { value: 'maybe', label: 'Maybe' },
+    ]}
+  />
 </Preview>
 
 ```tsx folded
-<RadioGroup orientation="horizontal" defaultValue="yes">
-  <Radio value="yes">Yes</Radio>
-  <Radio value="no">No</Radio>
-  <Radio value="maybe">Maybe</Radio>
-</RadioGroup>
+<RadioGroup
+  orientation="horizontal"
+  defaultValue="yes"
+  options={[
+    { value: 'yes', label: 'Yes' },
+    { value: 'no', label: 'No' },
+    { value: 'maybe', label: 'Maybe' },
+  ]}
+/>
 ```
 
 </Col>
@@ -179,39 +216,96 @@ a-radio-group a-radio-list { display: grid; grid-template-columns: 1fr 1fr; gap:
 <Col>
 
 <Preview>
-  <RadioGroup name="dis-all" defaultValue="checked" disabled>
-    <Radio value="checked">Checked</Radio>
-    <Radio value="unchecked">Unchecked</Radio>
-  </RadioGroup>
+  <RadioGroup
+    name="dis-all"
+    defaultValue="checked"
+    disabled
+    options={[
+      { value: 'checked', label: 'Checked' },
+      { value: 'unchecked', label: 'Unchecked' },
+    ]}
+  />
 </Preview>
 
 ```tsx folded
-{/* the whole group off — selected and unselected both dim */}
-<RadioGroup disabled defaultValue="checked">
-  <Radio value="checked">Checked</Radio>
-  <Radio value="unchecked">Unchecked</Radio>
-</RadioGroup>
+{/* `disabled` on one option, or on the group to disable the whole set */}
+<RadioGroup
+  defaultValue="checked"
+  options={[
+    { value: 'checked', label: 'Checked' },
+    { value: 'unchecked', label: 'Unchecked', disabled: true },
+  ]}
+/>
 ```
 
 </Col>
 <Col>
 
-Put `disabled` on a single `Radio` to disable one option, or on the `RadioGroup`
-to disable the whole set. Disabled options are skipped by keyboard navigation.
+Set `disabled` on a single option to disable just that one, or on the
+`RadioGroup` to disable the whole set. Disabled options are skipped by keyboard
+navigation and dropped from the tab order.
+
+</Col>
+</Columns>
+
+## Validation
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup
+    name="val"
+    label="Pick a plan"
+    hint="Please choose a plan to continue."
+    status="critical"
+    options={[
+      { value: 'free', label: 'Free' },
+      { value: 'pro', label: 'Pro' },
+    ]}
+  />
+</Preview>
+
+```tsx folded
+<RadioGroup
+  label="Pick a plan"
+  hint="Please choose a plan to continue."
+  status="critical"
+  options={[
+    { value: 'free', label: 'Free' },
+    { value: 'pro', label: 'Pro' },
+  ]}
+/>
+```
+
+</Col>
+<Col>
+
+`status` recolours the group `hint` for feedback — the same tone set as
+[`Input`](/components/input/): `critical`, `warning`, `success`, `info`, `brand`
+(omit for neutral). It styles the message only; drive it from your own validation.
 
 </Col>
 </Columns>
 
 ## Keyboard & accessibility
 
-The group is one tab stop: `Tab` moves into the selected option (or the first
-one), and the arrow keys (`↑`/`↓`/`←`/`→`) move the selection between enabled
-options, wrapping at the ends. `Space` selects the focused option.
+The group is one Tab stop: `Tab` moves into the selected option (or the first
+enabled one), the arrow keys (`↑`/`↓`/`←`/`→`) move the selection between enabled
+options (wrapping at the ends), and `Space` / `Enter` select the focused option.
+Follows the [WAI-ARIA radio-group pattern](https://www.w3.org/WAI/ARIA/apg/patterns/radio/).
 
-The `RadioGroup` wrapper sets `role="radiogroup"` on the group and `role="radio"`
-on every option; each `<a-radio>` publishes its own `aria-checked` through
-`ElementInternals`, kept live as the selection moves. Follows the
-[WAI-ARIA radio-group pattern](https://www.w3.org/WAI/ARIA/apg/patterns/radio/).
+Under the hood the split is deliberate. The `<a-radio-group>` web component
+**never mutates the DOM** — it coordinates entirely off-DOM: selection is set as a
+property on each `<a-radio>` (which reflects it into `:state(selected)` +
+`aria-checked` via its own `ElementInternals`), the form value goes through
+`ElementInternals`, and focus is tracked with `aria-activedescendant`. The
+**roving `tabindex`** — which option Tab lands on — is the one piece rendered
+declaratively, by the `RadioGroup` wrapper, from the current value. That's why
+selection is owned by the element but the wrapper holds the value: it needs it to
+place the tab stop. (Hand-assembling raw `<a-radio-group>` / `<a-radio>` works
+too; make the group the tab stop with `tabindex="0"` and it falls back to
+`aria-activedescendant` for keyboard nav.)
 
 ## Forms
 
@@ -221,10 +315,10 @@ form reset restores the `defaultValue` selection.
 
 ```tsx folded
 <form>
-  <RadioGroup name="contact" defaultValue="email">
-    <Radio value="email">Email</Radio>
-    <Radio value="sms">SMS</Radio>
-  </RadioGroup>
+  <RadioGroup name="contact" defaultValue="email" options={[
+    { value: 'email', label: 'Email' },
+    { value: 'sms', label: 'SMS' },
+  ]} />
 </form>
 // FormData → contact=email
 ```
@@ -237,11 +331,11 @@ form reset restores the `defaultValue` selection.
 **Uncontrolled** — pass `defaultValue` and let the group own selection:
 
 ```tsx folded
-<RadioGroup name="plan" defaultValue="pro">
-  <Radio value="free">Free</Radio>
-  <Radio value="pro">Pro</Radio>
-  <Radio value="team">Team</Radio>
-</RadioGroup>
+<RadioGroup name="plan" defaultValue="pro" options={[
+  { value: 'free', label: 'Free' },
+  { value: 'pro', label: 'Pro' },
+  { value: 'team', label: 'Team' },
+]} />
 ```
 
 </Col>
@@ -254,11 +348,16 @@ nothing (or `event.preventDefault()` to veto in uncontrolled mode):
 ```tsx folded
 const [plan, setPlan] = useState('pro')
 
-<RadioGroup name="plan" value={plan} onStateChange={(e, { next }) => setPlan(next)}>
-  <Radio value="free">Free</Radio>
-  <Radio value="pro">Pro</Radio>
-  <Radio value="team">Team</Radio>
-</RadioGroup>
+<RadioGroup
+  name="plan"
+  value={plan}
+  onStateChange={(e, { next }) => setPlan(next)}
+  options={[
+    { value: 'free', label: 'Free' },
+    { value: 'pro', label: 'Pro' },
+    { value: 'team', label: 'Team' },
+  ]}
+/>
 ```
 
 </Col>
@@ -267,12 +366,6 @@ const [plan, setPlan] = useState('pro')
 <Disclosure title="RadioGroup props" open>
 
 <PropsTable component="RadioGroup" />
-
-</Disclosure>
-
-<Disclosure title="Radio props" open>
-
-<PropsTable component="Radio" />
 
 </Disclosure>
 

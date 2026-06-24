@@ -7,19 +7,25 @@
      baked-in literals, mirroring <a-checkbox>. */
 
   a-radio {
-    --radio-control-size: 18px;
+    --radio-control-size: 16px;
     --radio-border-width: 1.5px;
-    --radio-dot-size: 7px;
+    --radio-dot-size: 6px;
     --radio-gap: 8px;
 
     --radio-bg: var(--bg-1);
-    --radio-border: #d4ced4;
+
+    /* Default tone is neutral — `brand` (and the rest) are explicit opt-ins. */
+    --radio-fill: #635b65;
+    --radio-fill-hover: #534c57;
+    --radio-fill-active: #49424c;
+
+    /* Unselected ring border: neutral grey by default. Tinted tones (rule after
+       the tones) mix the fill toward this grey so the ring sits a bit lighter than
+       the fill, nearer neutral. The mix anchor is theme-aware. */
+    --radio-border-neutral: #d4ced4;
+    --radio-border: var(--radio-border-neutral);
     --radio-border-hover: #c1b9c1;
     --radio-border-active: #9f99a1;
-
-    --radio-fill: #5f4bc3;
-    --radio-fill-hover: #503cb4;
-    --radio-fill-active: #483493;
 
     --radio-dot: #ffffff;
     --radio-dot-disabled: #c1b9c1;
@@ -29,11 +35,28 @@
 
     --radio-label-color: var(--text-2);
     --radio-label-color-disabled: var(--text-4);
+    --radio-hint-color: var(--text-3);
 
-    position: relative;
-    display: inline-flex;
+    /* Type scales with `size` (like <a-input>): label tracks input's fs/lh, hint a
+       step down. Tokens so the size variants + group cascade set them in one place. */
+    --radio-label-fs: 15px;
+    --radio-label-lh: 20px;
+    --radio-hint-fs: 14px;
+    --radio-hint-lh: 17px;
+
+    /* Inline-grid (mirrors a-checkbox): ring + dot in column 1, label + optional
+       hint stacked in column 2. The ring (::before) and dot (::after) share
+       column 1 / rows 1/-1, centred — so the control sits centred against the
+       label column whether or not a hint adds a second row.
+       Column 2 is `1fr` (not `auto`): when the radio is stretched (it's a flex
+       item in <a-radio-list>), all slack goes to the label column, keeping the
+       ring column content-sized — otherwise two `auto` tracks split the slack and
+       short-label rows get a wider ring column (a visible indent). 1fr also gives
+       the label a bounded width to wrap within. */
+    display: inline-grid;
+    grid-template-columns: auto 1fr;
     align-items: center;
-    gap: var(--radio-gap);
+    column-gap: var(--radio-gap);
     cursor: pointer;
     user-select: none;
     -webkit-user-drag: none;
@@ -42,13 +65,15 @@
 
     color: var(--radio-label-color);
     font-family: var(--sans-serif);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--radio-label-fs);
+    line-height: var(--radio-label-lh);
     font-feature-settings: "ss02", "ss05";
 
     &::before {
       content: "";
-      flex-shrink: 0;
+      grid-column: 1;
+      grid-row: 1 / -1;
+      align-self: center;
       box-sizing: border-box;
       inline-size: var(--radio-control-size);
       block-size: var(--radio-control-size);
@@ -62,10 +87,10 @@
 
     &::after {
       content: "";
-      position: absolute;
-      inset-inline-start: calc((var(--radio-control-size) - var(--radio-dot-size)) / 2);
-      inset-block-start: 50%;
-      margin-block-start: calc(var(--radio-dot-size) / -2);
+      grid-column: 1;
+      grid-row: 1 / -1;
+      align-self: center;
+      justify-self: center;
       inline-size: var(--radio-dot-size);
       block-size: var(--radio-dot-size);
       border-radius: 50%;
@@ -106,6 +131,8 @@
       &::after { transform: scale(1); }
     }
 
+    /* Focus ring, roving-tabindex mode (the JSX wrapper path): real focus lands
+       on the radio itself. See a-radio-group.ts for the two focus models. */
     &:focus-visible::before {
       outline: 1px solid var(--radio-focus);
       outline-offset: 1px;
@@ -120,23 +147,66 @@
         transition: none;
       }
       &:state(selected)::after { background: var(--radio-dot-disabled); }
+      /* Direct child override (not the --radio-hint-color token) so a disabled
+         control still greys its hint even when a tone sets that token. */
+      a-radio-hint { color: var(--radio-label-color-disabled); }
     }
 
     &[size="small"] {
-      --radio-control-size: 16px;
-      --radio-dot-size: 6px;
+      --radio-control-size: 14px;
+      --radio-dot-size: 5px;
       --radio-gap: 6px;
+      --radio-label-fs: 13px;
+      --radio-label-lh: 16px;
+      --radio-hint-fs: 12px;
+      --radio-hint-lh: 14px;
     }
     &[size="large"] {
-      --radio-control-size: 20px;
-      --radio-dot-size: 8px;
+      --radio-control-size: 18px;
+      --radio-dot-size: 7px;
+      --radio-label-fs: 17px;
+      --radio-label-lh: 24px;
+      --radio-hint-fs: 16px;
+      --radio-hint-lh: 21px;
     }
   }
 
-  /* Each tone is shared by a standalone <a-radio tone> and a group-cascaded
-     child (group sets the tone; a child without its own tone inherits it). */
+  /* Label + hint — light-DOM styled tags, stacked in column 2 (see a-radio grid).
+     Both `display: block` so they stack; `min-width: 0` lets a consumer ellipsis
+     either line. The hint mirrors <a-input>'s hint (1px under the label text,
+     tighter line, --text-3) rather than carrying its own scale. */
+  a-radio-label,
+  a-radio-hint {
+    display: block;
+    grid-column: 2;
+    min-width: 0;
+  }
+  a-radio-hint {
+    color: var(--radio-hint-color);
+    font-size: var(--radio-hint-fs);
+    line-height: var(--radio-hint-lh);
+    margin-block-start: 2px;
+  }
+
+  /* Focus ring, aria-activedescendant mode (raw hand-assembly): focus is on the
+     GROUP, so the ring shows on the selected radio while the group is
+     focus-visible. (In the wrapper path the group is never focused, so this is
+     inert and the :focus-visible rule above applies instead.) */
+  a-radio-group:focus-visible a-radio:state(selected)::before {
+    outline: 1px solid var(--radio-focus);
+    outline-offset: 1px;
+  }
+
+  /* Each tone is shared by a standalone <a-radio tone> and a group-cascaded child
+     (group sets the tone; a child without its own tone inherits it). Tone drives
+     the WHOLE control — label + hint via the theme-aware --text-N role tokens (so
+     dark mode comes for free), and the ring border follows the fill (set in the
+     base). `neutral` keeps the base greys. The default (no [tone]) is untouched:
+     the wrapper omits tone="neutral", so plain controls stay neutral. */
   a-radio[tone="brand"],
   a-radio-group[tone="brand"] a-radio:not([tone]) {
+    --radio-label-color: var(--text-2-brand);
+    --radio-hint-color: var(--text-3-brand);
     --radio-fill: #5f4bc3;
     --radio-fill-hover: #503cb4;
     --radio-fill-active: #483493;
@@ -149,27 +219,45 @@
   }
   a-radio[tone="info"],
   a-radio-group[tone="info"] a-radio:not([tone]) {
+    --radio-label-color: var(--text-2-info);
+    --radio-hint-color: var(--text-3-info);
     --radio-fill: #1f6eb2;
     --radio-fill-hover: #1a5b93;
     --radio-fill-active: #175082;
   }
   a-radio[tone="success"],
   a-radio-group[tone="success"] a-radio:not([tone]) {
+    --radio-label-color: var(--text-2-success);
+    --radio-hint-color: var(--text-3-success);
     --radio-fill: #2a7e43;
     --radio-fill-hover: #226737;
     --radio-fill-active: #1f5c31;
   }
   a-radio[tone="warning"],
   a-radio-group[tone="warning"] a-radio:not([tone]) {
+    --radio-label-color: var(--text-2-warning);
+    --radio-hint-color: var(--text-3-warning);
     --radio-fill: #c37416;
     --radio-fill-hover: #ae6613;
     --radio-fill-active: #995200;
   }
   a-radio[tone="critical"],
   a-radio-group[tone="critical"] a-radio:not([tone]) {
+    --radio-label-color: var(--text-2-critical);
+    --radio-hint-color: var(--text-3-critical);
     --radio-fill: #c9302c;
     --radio-fill-hover: #b02120;
     --radio-fill-active: #a01c1c;
+  }
+
+  /* Tinted tones only: the unselected ring border becomes the fill colour (neutral
+     keeps the base grey). Covers standalone radios and group-cascaded children;
+     since it points at --radio-fill, it tracks light/dark automatically. */
+  a-radio[tone]:not([tone=""], [tone="neutral"]),
+  a-radio-group[tone]:not([tone=""], [tone="neutral"]) a-radio:not([tone]) {
+    --radio-border:        color-mix(in oklch, var(--radio-fill) 70%, var(--radio-border-neutral));
+    --radio-border-hover:  color-mix(in oklch, var(--radio-fill-hover) 70%, var(--radio-border-neutral));
+    --radio-border-active: color-mix(in oklch, var(--radio-fill-active) 70%, var(--radio-border-neutral));
   }
 
   /* Custom tone — a non-named tone is a literal CSS color; the fill curve is
@@ -197,22 +285,32 @@
     --radio-fill-hover:  oklch(from var(--radio-tone-source) var(--_tone-l-hover) c h);
     --radio-fill-active: oklch(from var(--radio-tone-source) var(--_tone-l-active) c h);
 
-    /* Dark — same formulas, lighter curve to read against a dark page. */
+    /* Label / hint derived from the same colour (the border follows the fill via
+       the base). Hint = label at 0.8 alpha. Lightness literals are tuning knobs. */
+    --radio-label-color:   oklch(from var(--radio-tone-source) 0.5 c h);
+    --radio-hint-color:    oklch(from var(--radio-tone-source) 0.5 c h / 0.8);
+
+    /* Dark — same formulas, lighter text to read on a dark page. */
     .dark & {
       --_tone-l-rest: 0.45;
       --_tone-l-hover: 0.5;
       --_tone-l-active: 0.57;
+
+      --radio-label-color:   oklch(from var(--radio-tone-source) 0.8 c h);
+      --radio-hint-color:    oklch(from var(--radio-tone-source) 0.8 c h / 0.8);
     }
   }
 
   .dark a-radio {
-    --radio-border: #49424c;
+    /* Neutral grey border (tinted tones mix the fill toward this). */
+    --radio-border-neutral: #49424c;
     --radio-border-hover: #635b65;
     --radio-border-active: #776e77;
 
-    --radio-fill: #503cb4;
-    --radio-fill-hover: #5f4bc3;
-    --radio-fill-active: #7460d7;
+    /* Neutral default — brand and the rest are explicit opt-ins. */
+    --radio-fill: #534c57;
+    --radio-fill-hover: #635b65;
+    --radio-fill-active: #938d96;
 
     --radio-dot-disabled: #635b65;
     --radio-bg-disabled: color-mix(in oklch, #e4d1ef 10%, transparent);

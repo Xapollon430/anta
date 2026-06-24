@@ -9,13 +9,19 @@
     --checkbox-gap: 8px;
 
     --checkbox-bg: var(--bg-1);
-    --checkbox-border: #d4ced4;
+
+    /* Default tone is neutral — `brand` (and the rest) are explicit opt-ins. */
+    --checkbox-fill: #635b65;
+    --checkbox-fill-hover: #534c57;
+    --checkbox-fill-active: #49424c;
+
+    /* Unselected box border: neutral grey by default. Tinted tones (rule after the
+       tones) mix the fill toward this grey so the border sits a bit lighter than the
+       fill, nearer neutral. The mix anchor is theme-aware. 1.5px width. */
+    --checkbox-border-neutral: #d4ced4;
+    --checkbox-border: var(--checkbox-border-neutral);
     --checkbox-border-hover: #c1b9c1;
     --checkbox-border-active: #9f99a1;
-
-    --checkbox-fill: #5f4bc3;
-    --checkbox-fill-hover: #503cb4;
-    --checkbox-fill-active: #483493;
 
     --checkbox-icon: #ffffff;
     --checkbox-icon-disabled: #c1b9c1;
@@ -29,9 +35,13 @@
 
     /* Inline-grid: box in column 1, label/hint stacked in column 2. The box
        (::before) and glyph (::after) span rows 1/-1 of column 1 so they stay
-       centred against the label column whether or not a hint adds a 2nd row. */
+       centred against the label column whether or not a hint adds a 2nd row.
+       Column 2 is `1fr` (not `auto`): when the checkbox is stretched (e.g. a flex
+       item in a column), all slack goes to the label column, keeping the box column
+       content-sized — two `auto` tracks would split the slack and shift the label
+       (a visible indent). 1fr also gives the label a bounded width to wrap in. */
     display: inline-grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: auto 1fr;
     align-items: center;
     column-gap: var(--checkbox-gap);
     vertical-align: middle;
@@ -52,11 +62,11 @@
       grid-row: 1 / -1;
       align-self: center;
       box-sizing: border-box;
-      inline-size: 18px;
-      block-size: 18px;
+      inline-size: 16px;
+      block-size: 16px;
       border-radius: 4px;
       background: var(--checkbox-bg);
-      border: 1px solid var(--checkbox-border);
+      border: 1.5px solid var(--checkbox-border);
       transition:
         background-color 150ms ease-out,
         border-color 150ms ease-out;
@@ -70,15 +80,15 @@
       grid-column: 1;
       grid-row: 1 / -1;
       align-self: center;
-      inline-size: 18px;
-      block-size: 18px;
+      inline-size: 16px;
+      block-size: 16px;
       background-color: transparent;
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
       -webkit-mask-position: center;
       mask-position: center;
-      -webkit-mask-size: 14px;
-      mask-size: 14px;
+      -webkit-mask-size: 12px;
+      mask-size: 12px;
     }
 
     @media (hover: hover) and (pointer: fine) {
@@ -143,13 +153,13 @@
     &[size="small"] {
       --checkbox-gap: 6px;
       &::before,
-      &::after { inline-size: 16px; block-size: 16px; }
-      &::after { -webkit-mask-size: 12px; mask-size: 12px; }
+      &::after { inline-size: 14px; block-size: 14px; }
+      &::after { -webkit-mask-size: 10px; mask-size: 10px; }
     }
     &[size="large"] {
       &::before,
-      &::after { inline-size: 20px; block-size: 20px; }
-      &::after { -webkit-mask-size: 16px; mask-size: 16px; }
+      &::after { inline-size: 18px; block-size: 18px; }
+      &::after { -webkit-mask-size: 14px; mask-size: 14px; }
     }
   }
 
@@ -168,7 +178,14 @@
     margin-block-start: 2px;
   }
 
+  /* Tone drives the WHOLE control — label, hint, and the unselected box border,
+     not just the fill — label + hint via the theme-aware --text-N role tokens
+     (dark mode free), and the border follows the fill (set in the base). The hint
+     keeps its --text-4 muting (so --text-4-{tone}). `neutral` keeps the base
+     greys. The default (no [tone]) is untouched — the wrapper omits tone="neutral". */
   a-checkbox[tone="brand"] {
+    --checkbox-label-color: var(--text-2-brand);
+    --checkbox-hint-color: var(--text-4-brand);
     --checkbox-fill: #5f4bc3;
     --checkbox-fill-hover: #503cb4;
     --checkbox-fill-active: #483493;
@@ -179,24 +196,40 @@
     --checkbox-fill-active: #49424c;
   }
   a-checkbox[tone="info"] {
+    --checkbox-label-color: var(--text-2-info);
+    --checkbox-hint-color: var(--text-4-info);
     --checkbox-fill: #1f6eb2;
     --checkbox-fill-hover: #1a5b93;
     --checkbox-fill-active: #175082;
   }
   a-checkbox[tone="success"] {
+    --checkbox-label-color: var(--text-2-success);
+    --checkbox-hint-color: var(--text-4-success);
     --checkbox-fill: #2a7e43;
     --checkbox-fill-hover: #226737;
     --checkbox-fill-active: #1f5c31;
   }
   a-checkbox[tone="warning"] {
+    --checkbox-label-color: var(--text-2-warning);
+    --checkbox-hint-color: var(--text-4-warning);
     --checkbox-fill: #c37416;
     --checkbox-fill-hover: #ae6613;
     --checkbox-fill-active: #995200;
   }
   a-checkbox[tone="critical"] {
+    --checkbox-label-color: var(--text-2-critical);
+    --checkbox-hint-color: var(--text-4-critical);
     --checkbox-fill: #c9302c;
     --checkbox-fill-hover: #b02120;
     --checkbox-fill-active: #a01c1c;
+  }
+
+  /* Tinted tones only: the unselected box border becomes the fill colour (neutral
+     keeps the base grey); tracks light/dark via --checkbox-fill. */
+  a-checkbox[tone]:not([tone=""], [tone="neutral"]) {
+    --checkbox-border:        color-mix(in oklch, var(--checkbox-fill) 70%, var(--checkbox-border-neutral));
+    --checkbox-border-hover:  color-mix(in oklch, var(--checkbox-fill-hover) 70%, var(--checkbox-border-neutral));
+    --checkbox-border-active: color-mix(in oklch, var(--checkbox-fill-active) 70%, var(--checkbox-border-neutral));
   }
 
   /* Custom tone — any non-named tone is treated as a literal CSS color and the
@@ -223,22 +256,32 @@
     --checkbox-fill-hover:  oklch(from var(--checkbox-tone-source) var(--_tone-l-hover) c h);
     --checkbox-fill-active: oklch(from var(--checkbox-tone-source) var(--_tone-l-active) c h);
 
-    /* Dark — same formulas, lighter curve to read against a dark page. */
+    /* Label / hint derived from the same colour (the border follows the fill via
+       the base). Lightness literals are tuning knobs. */
+    --checkbox-label-color: oklch(from var(--checkbox-tone-source) 0.5 c h);
+    --checkbox-hint-color:  oklch(from var(--checkbox-tone-source) 0.5 c h / 0.7);
+
+    /* Dark — same formulas, lighter text to read on a dark page. */
     .dark & {
       --_tone-l-rest: 0.45;
       --_tone-l-hover: 0.5;
       --_tone-l-active: 0.57;
+
+      --checkbox-label-color: oklch(from var(--checkbox-tone-source) 0.8 c h);
+      --checkbox-hint-color:  oklch(from var(--checkbox-tone-source) 0.8 c h / 0.7);
     }
   }
 
   .dark a-checkbox {
-    --checkbox-border: #49424c;
+    /* Neutral grey border (tinted tones mix the fill toward this). */
+    --checkbox-border-neutral: #49424c;
     --checkbox-border-hover: #635b65;
     --checkbox-border-active: #776e77;
 
-    --checkbox-fill: #503cb4;
-    --checkbox-fill-hover: #5f4bc3;
-    --checkbox-fill-active: #7460d7;
+    /* Neutral default. */
+    --checkbox-fill: #534c57;
+    --checkbox-fill-hover: #635b65;
+    --checkbox-fill-active: #938d96;
 
     --checkbox-icon-disabled: #635b65;
     --checkbox-bg-disabled: color-mix(in oklch, #e4d1ef 10%, transparent);

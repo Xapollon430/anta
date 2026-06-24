@@ -29,12 +29,13 @@ export class ACheckboxElement extends HTMLElementBase {
   static formAssociated = true;
   static observedAttributes = ["state", "value"];
 
-  #internals = this.attachInternals?.();
-  #state: CheckboxState = "unchecked";
+  private internals?: ElementInternals;
+  private currentState: CheckboxState = "unchecked";
 
   constructor() {
     super();
-    this.addEventListener("click", (e: MouseEvent) => this.#toggle(e));
+    this.internals = this.attachInternals?.();
+    this.addEventListener("click", (e: MouseEvent) => this.toggle(e));
     this.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key === " ") {
         e.preventDefault();
@@ -44,36 +45,36 @@ export class ACheckboxElement extends HTMLElementBase {
   }
 
   connectedCallback() {
-    this.#seed();
-    this.#paint();
+    this.seed();
+    this.paint();
   }
 
   attributeChangedCallback(name: string) {
     // `state` is the controlled channel — reflect changes. (`default-state` is the
-    // uncontrolled seed, handled once in #seed; later changes are ignored.
+    // uncontrolled seed, handled once in seed(); later changes are ignored.
     // `value` only re-syncs the submitted form entry.)
-    if (name === "state") this.#state = parseState(this.getAttribute("state"));
-    this.#paint();
+    if (name === "state") this.currentState = parseState(this.getAttribute("state"));
+    this.paint();
   }
 
   // Matches the host `disabled` attribute and an ancestor `<fieldset disabled>`.
-  get #disabled() {
+  private get isDisabled() {
     return this.matches(":disabled");
   }
   // Controlled mode: the `state` attribute is present and owns the live value.
-  get #controlled() {
+  private get isControlled() {
     return this.hasAttribute("state");
   }
 
-  #seed() {
-    this.#state = parseState(
+  private seed() {
+    this.currentState = parseState(
       this.getAttribute("state") ?? this.getAttribute("default-state"),
     );
   }
 
-  #toggle(_e: Event) {
-    if (this.#disabled) return;
-    const prev = this.#state;
+  private toggle(_e: Event) {
+    if (this.isDisabled) return;
+    const prev = this.currentState;
     // Indeterminate resolves to checked; otherwise flip (native convention).
     const next: CheckboxState = prev === "checked" ? "unchecked" : "checked";
     const ok = this.dispatchEvent(
@@ -86,39 +87,39 @@ export class ACheckboxElement extends HTMLElementBase {
     );
     // Controlled: never self-apply — wait for the consumer to update `state`.
     // Uncontrolled: apply unless a listener synchronously preventDefault()'d.
-    if (this.#controlled) return;
+    if (this.isControlled) return;
     if (ok) {
-      this.#state = next;
-      this.#paint();
+      this.currentState = next;
+      this.paint();
     }
   }
 
-  #paint() {
-    const i = this.#internals;
+  private paint() {
+    const i = this.internals;
     if (!i) return;
     i.states.delete("checked");
     i.states.delete("indeterminate");
-    if (this.#state === "indeterminate") i.states.add("indeterminate");
-    else if (this.#state === "checked") i.states.add("checked");
+    if (this.currentState === "indeterminate") i.states.add("indeterminate");
+    else if (this.currentState === "checked") i.states.add("checked");
     // Submit value/"on" when checked, nothing otherwise; 2nd arg is the bfcache state.
     i.setFormValue?.(
-      this.#state === "checked" ? (this.getAttribute("value") ?? "on") : null,
-      this.#state,
+      this.currentState === "checked" ? (this.getAttribute("value") ?? "on") : null,
+      this.currentState,
     );
   }
 
   formResetCallback() {
-    this.#seed();
-    this.#paint();
+    this.seed();
+    this.paint();
   }
 
   formStateRestoreCallback(state: string) {
-    this.#state = parseState(state);
-    this.#paint();
+    this.currentState = parseState(state);
+    this.paint();
   }
 
   formDisabledCallback() {
-    this.#paint();
+    this.paint();
   }
 }
 
