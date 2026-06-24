@@ -20,8 +20,114 @@ export interface BaseProps {
   [key: `aria-${string}`]: unknown
 }
 
+/**
+ * Standard DOM event handlers Anta forwards to the rendered element. These are
+ * **enumerated on purpose** — rather than an open `on${string}` index signature
+ * — so a typo like `onClik` is a type error instead of silently accepted. They
+ * stay `(e: any) => void` to remain React/Preact-agnostic (we don't commit to
+ * either framework's event types). Standard events bubble/compose, so a handler
+ * on an `<a-*>` host fires for interactions inside its shadow DOM. Component-
+ * specific events (e.g. `oninput`/`onclearclick` on `<a-input>`) are declared on
+ * that element's own attributes. This enumerates the full standard (bubble-phase)
+ * DOM event set; add a `…Capture` variant here if one is ever needed.
+ */
+export interface DOMEventHandlers {
+  // Mouse / pointer
+  onClick?: (e: any) => void
+  onDoubleClick?: (e: any) => void
+  onAuxClick?: (e: any) => void
+  onContextMenu?: (e: any) => void
+  onMouseDown?: (e: any) => void
+  onMouseUp?: (e: any) => void
+  onMouseEnter?: (e: any) => void
+  onMouseLeave?: (e: any) => void
+  onMouseMove?: (e: any) => void
+  onMouseOver?: (e: any) => void
+  onMouseOut?: (e: any) => void
+  onPointerDown?: (e: any) => void
+  onPointerUp?: (e: any) => void
+  onPointerMove?: (e: any) => void
+  onPointerEnter?: (e: any) => void
+  onPointerLeave?: (e: any) => void
+  onPointerOver?: (e: any) => void
+  onPointerOut?: (e: any) => void
+  onPointerCancel?: (e: any) => void
+  onGotPointerCapture?: (e: any) => void
+  onLostPointerCapture?: (e: any) => void
+  // Touch
+  onTouchStart?: (e: any) => void
+  onTouchEnd?: (e: any) => void
+  onTouchMove?: (e: any) => void
+  onTouchCancel?: (e: any) => void
+  // Keyboard
+  onKeyDown?: (e: any) => void
+  onKeyUp?: (e: any) => void
+  // Focus
+  onFocus?: (e: any) => void
+  onBlur?: (e: any) => void
+  // Form
+  onChange?: (e: any) => void
+  onInput?: (e: any) => void
+  onBeforeInput?: (e: any) => void
+  onInvalid?: (e: any) => void
+  onReset?: (e: any) => void
+  onSubmit?: (e: any) => void
+  onSelect?: (e: any) => void
+  // Clipboard
+  onCopy?: (e: any) => void
+  onCut?: (e: any) => void
+  onPaste?: (e: any) => void
+  // Composition (IME)
+  onCompositionStart?: (e: any) => void
+  onCompositionUpdate?: (e: any) => void
+  onCompositionEnd?: (e: any) => void
+  // Drag & drop
+  onDrag?: (e: any) => void
+  onDragStart?: (e: any) => void
+  onDragEnd?: (e: any) => void
+  onDragEnter?: (e: any) => void
+  onDragLeave?: (e: any) => void
+  onDragOver?: (e: any) => void
+  onDrop?: (e: any) => void
+  // Scroll / wheel
+  onScroll?: (e: any) => void
+  onWheel?: (e: any) => void
+  // Animation / transition
+  onAnimationStart?: (e: any) => void
+  onAnimationEnd?: (e: any) => void
+  onAnimationIteration?: (e: any) => void
+  onTransitionEnd?: (e: any) => void
+  // Resource / state
+  onLoad?: (e: any) => void
+  onError?: (e: any) => void
+  onAbort?: (e: any) => void
+  onToggle?: (e: any) => void
+  onBeforeToggle?: (e: any) => void
+  // Media
+  onCanPlay?: (e: any) => void
+  onCanPlayThrough?: (e: any) => void
+  onDurationChange?: (e: any) => void
+  onEmptied?: (e: any) => void
+  onEnded?: (e: any) => void
+  onLoadedData?: (e: any) => void
+  onLoadedMetadata?: (e: any) => void
+  onLoadStart?: (e: any) => void
+  onPause?: (e: any) => void
+  onPlay?: (e: any) => void
+  onPlaying?: (e: any) => void
+  onProgress?: (e: any) => void
+  onRateChange?: (e: any) => void
+  onSeeked?: (e: any) => void
+  onSeeking?: (e: any) => void
+  onStalled?: (e: any) => void
+  onSuspend?: (e: any) => void
+  onTimeUpdate?: (e: any) => void
+  onVolumeChange?: (e: any) => void
+  onWaiting?: (e: any) => void
+}
+
 /** Attributes for intrinsic custom elements (`<a-*>` tags) in JSX. */
-export interface BaseAttributes {
+export interface BaseAttributes extends DOMEventHandlers {
   /** React/Preact reconciliation key when rendered inside a list. */
   key?: string | number | null
   /** HTML `class` attribute (standard DOM). */
@@ -37,15 +143,6 @@ export interface BaseAttributes {
   tabIndex?: number
   /** ARIA role override. */
   role?: string
-  /** Keydown handler — used for keyboard-driven interactions. */
-  onKeyDown?: (e: any) => void
-  /** Click handler — used for mouse / tap activation. */
-  onClick?: (e: any) => void
-  /** Any DOM event handler (`onFocus`, `onBlur`, `onPaste`, `onPointerDown`, …)
-   *  is accepted on the element. Standard events bubble/compose, so a handler
-   *  on the `<a-*>` host fires for interactions inside its shadow DOM. (Custom,
-   *  non-composed events use their own lowercase handlers, e.g. `oninput`.) */
-  [event: `on${string}`]: ((e: any) => void) | undefined
 }
 
 /**

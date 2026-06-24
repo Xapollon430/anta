@@ -1,4 +1,4 @@
-import type { BaseProps } from '../general_types'
+import type { BaseProps, DOMEventHandlers } from '../general_types'
 import type { IconShape } from '../elements/a-icon.shapes'
 import { Button } from './Button'
 import { Icon } from './Icon'
@@ -20,7 +20,7 @@ export interface InputChangeAttrs {
   validationMessage: string
 }
 
-export interface InputProps extends BaseProps {
+export interface InputProps extends BaseProps, DOMEventHandlers {
   /** Extra content rendered directly under the field, above the hint/error (it
    *  pushes the message down). A no-box child like an Anta `<Tooltip>` takes no
    *  space and just anchors to the field — consistent with how tooltips attach
@@ -139,11 +139,9 @@ export interface InputProps extends BaseProps {
   onFocus?: (e: any) => void
   /** Fires when the field loses focus. */
   onBlur?: (e: any) => void
-  /** Any other DOM event handler (`onKeyDown`, `onKeyUp`, `onPaste`, `onClick`,
-   *  …) is forwarded to the field. Standard events bubble/compose to the host
-   *  (and focus/blur reach it via `delegatesFocus`), so they fire as expected.
-   *  (Variadic to admit multi-arg handlers like `onAnyChange`.) */
-  [event: `on${string}`]: ((...args: any[]) => void) | undefined
+  // Other standard DOM event handlers (onKeyDown, onPaste, onClick, …) come from
+  // `DOMEventHandlers` and are forwarded to the field via `...rest`. Standard
+  // events bubble/compose to the host (focus/blur reach it via delegatesFocus).
 }
 
 const presence = (on: boolean | undefined) => (on ? '' : undefined)
