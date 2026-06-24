@@ -83,6 +83,10 @@ export interface InputProps extends BaseProps {
   readOnly?: boolean
   /** Mark the field required (drives native validity). */
   required?: boolean
+  /** Dim the `leading` / `trailing` adornments at rest; they brighten to full
+   *  when the field is hovered or focused (a quiet-until-engaged affordance for
+   *  trailing actions). */
+  dimActions?: boolean
   /** Toggle native spell-checking. */
   spellCheck?: boolean
   /** Max input length. */
@@ -195,6 +199,7 @@ export const Input = ({
   disabled,
   readOnly,
   required,
+  dimActions,
   spellCheck,
   maxLength,
   minLength,
@@ -232,6 +237,7 @@ export const Input = ({
       disabled={presence(disabled)}
       readonly={presence(readOnly)}
       required={presence(required)}
+      dim-actions={presence(dimActions)}
       autocomplete={!multiline && rows == null && type ? AUTOCOMPLETE_BY_TYPE[type] : undefined}
       inputmode={!multiline && rows == null && type ? INPUTMODE_BY_TYPE[type] : undefined}
       spellcheck={spellCheck != null ? (spellCheck ? 'true' : 'false') : undefined}

@@ -187,7 +187,10 @@ const SHADOW_STYLE = `
   /* Edge slots stay hidden until they hold content (toggled via slotchange) so
      an empty slot reserves neither a box nor a phantom flex gap. They sit flush
      to the field edges. */
-  slot[name="leading"], slot[name="trailing"] { display: none; }
+  /* Leading/trailing content is muted by default (--input-adornment = --text-4):
+     icons and plain text inherit it (an <a-icon> paints with currentColor); a
+     slotted <a-button> (clear, reveal) sets its own color and is unaffected. */
+  slot[name="leading"], slot[name="trailing"] { display: none; color: var(--input-adornment); }
   .field.has-leading slot[name="leading"],
   .field.has-trailing slot[name="trailing"] {
     display: flex;
@@ -195,6 +198,23 @@ const SHADOW_STYLE = `
     flex-shrink: 0;
   }
   .field.has-trailing slot[name="trailing"] { gap: 2px; }
+
+  /* dim-actions: adornments rest quiet (0.6) and brighten to full when the field
+     is engaged — hovered or holding focus (which covers focusing/hovering a
+     trailing button, since it lives in the field). Opacity on the slot groups all
+     its content, wrapped or not. */
+  :host([dim-actions]) slot[name="leading"],
+  :host([dim-actions]) slot[name="trailing"] {
+    opacity: 0.6;
+    transition: opacity 120ms ease;
+  }
+  :host([dim-actions]) .field:hover slot[name="leading"],
+  :host([dim-actions]) .field:hover slot[name="trailing"],
+  :host([dim-actions]) .field:focus-within slot[name="leading"],
+  :host([dim-actions]) .field:focus-within slot[name="trailing"] {
+    opacity: 1;
+  }
+
   /* Disabled: slotted leading/trailing content dims and stops taking input
      (pointer-events is inherited, so it reaches the projected nodes). */
   :host([disabled]) slot[name="leading"],
@@ -228,8 +248,9 @@ const SHADOW_STYLE = `
     align-items: flex-start;
     color: var(--input-hint);
     font-family: var(--sans-serif);
-    font-size: var(--_fs);
-    line-height: var(--_lh);
+    /* Hint reads quieter than the field: 1px smaller, with a tighter line. */
+    font-size: calc(var(--_fs) - 1px);
+    line-height: calc(var(--_lh) - 2px);
   }
   .hint.has-hint { display: flex; }
   /* Invalid recolors the whole hint row (message + the wrapper-rendered error

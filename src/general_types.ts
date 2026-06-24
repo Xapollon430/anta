@@ -271,6 +271,9 @@ export interface AInputAttributes extends BaseAttributes {
   readonly?: boolean | ''
   /** Required — drives native validity. Presence-based. */
   required?: boolean | ''
+  /** Dim the leading/trailing adornments at rest (0.6); they brighten to full
+   *  when the field is hovered or focused. Presence-based. */
+  'dim-actions'?: boolean | ''
   /** Size variant. small=24px, medium (default)=28px, large=32px. */
   size?: 'small' | 'medium' | 'large'
   /** Single-line input type (ignored when multiline). `search` is intentionally
@@ -313,17 +316,16 @@ export interface AInputAttributes extends BaseAttributes {
 export interface AMenuAttributes extends BaseAttributes {
   /** Preferred placement relative to the trigger; auto-flips / clamps.
    *  Defaults to `'bottom-start'`. */
-  placement?: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
+  placement?: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'bottom' | 'top'
   /** Open on right-click of the trigger region, positioned at the pointer.
    *  Presence-based (`''` on, omit off). */
   context?: boolean | ''
   /** Open at the pointer coordinates instead of aligned to the trigger box.
    *  Presence-based (`''` on, omit off). */
   coord?: boolean | ''
-  /** Marks this menu as a submenu of the enclosing `<a-menu-item>`.
-   *  Presence-based (`''` on, omit off). */
-  submenu?: boolean | ''
-  /** For a submenu: also open on hover. Presence-based (`''` on, omit off). */
+  /** For a submenu (an `<a-menu>` nested inside an `<a-menu-item>` — detected
+   *  from that structure, no flag needed): also open on hover. Presence-based
+   *  (`''` on, omit off). */
   hover?: boolean | ''
   /** Gap in pixels between the trigger and the menu. Defaults to 4. */
   offset?: number | string
@@ -360,13 +362,13 @@ export interface AMenuItemAttributes extends BaseAttributes {
    *  off). The universal form is `data-menu-open` (works on any element). */
   'data-menu-open'?: boolean | ''
   /** Marks this item as a submenu parent (renders a chevron, opens a nested
-   *  `<a-menu submenu>`). Presence-based (`''` on, omit off). */
+   *  `<a-menu>`). Presence-based (`''` on, omit off). */
   submenu?: boolean | ''
   /** ARIA role — `'menuitem'`. */
   role?: string
   'aria-haspopup'?: 'menu' | 'true' | 'false' | boolean
   /** Submenu-parent expanded state. Render `'false'` as the resting baseline;
-   *  the nested `<a-menu submenu>` element reflects the live open state. */
+   *  the nested `<a-menu>` element reflects the live open state. */
   'aria-expanded'?: 'true' | 'false' | boolean
   'aria-disabled'?: 'true' | 'false' | boolean
 }

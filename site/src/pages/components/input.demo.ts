@@ -11,6 +11,7 @@ export default `import { Input, Icon } from '@antadesign/anta'
   hint="Press Enter to search."
   leading={<Icon shape="search" />}
   clearable
+  dimActions
   defaultValue="design tokens"
 />
 `

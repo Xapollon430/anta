@@ -2,10 +2,11 @@ import type { BaseProps } from '../general_types'
 
 export interface MenuProps extends BaseProps {
   /** Preferred placement relative to the trigger. The cross-axis suffix
-   *  (`-start` / `-end`) aligns the left / right edges; the menu auto-flips
-   *  vertically and clamps horizontally when there isn't room.
+   *  (`-start` / `-end`) aligns the left / right edges; no suffix (`bottom` /
+   *  `top`) centers the menu on the trigger. The menu auto-flips vertically and
+   *  clamps horizontally when there isn't room.
    *  @defaultValue bottom-start */
-  placement?: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
+  placement?: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'bottom' | 'top'
   /** Open on right-click (the `contextmenu` event) of the trigger region
    *  instead of a left click, positioned at the pointer. */
   context?: boolean
@@ -13,11 +14,8 @@ export interface MenuProps extends BaseProps {
    *  Pairs naturally with `context`; on its own it positions a left-click
    *  menu at the cursor. */
   coord?: boolean
-  /** Marks this menu as a submenu of the enclosing `MenuItem`. Set by passing
-   *  it as a `MenuItem`'s `submenu`; rarely written by hand. */
-  submenu?: boolean
-  /** For a submenu: also open it on hover (with intent timing), not only on
-   *  click. No effect on a root menu. */
+  /** For a submenu (a `<Menu>` nested inside a `MenuItem`): also open it on
+   *  hover (with intent timing), not only on click. No effect on a root menu. */
   hover?: boolean
   /** Gap in pixels between the trigger and the menu.
    *  @defaultValue 4 */
@@ -94,7 +92,6 @@ export const Menu = ({
   placement,
   context,
   coord,
-  submenu,
   hover,
   offset,
   open,
@@ -109,7 +106,6 @@ export const Menu = ({
       placement={placement && placement !== 'bottom-start' ? placement : undefined}
       context={context ? '' : undefined}
       coord={coord ? '' : undefined}
-      submenu={submenu ? '' : undefined}
       hover={hover ? '' : undefined}
       offset={offset != null ? String(offset) : undefined}
       // Controlled lever — boolean prop → 'open'/'closed' enum; omit ⇒ uncontrolled.

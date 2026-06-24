@@ -15,8 +15,9 @@
     --input-focus: var(--focus-ring);
 
     --input-text: var(--text-1);
-    --input-label: var(--text-1);
+    --input-label: var(--text-3);
     --input-placeholder: var(--text-4);
+    --input-adornment: var(--text-4);
     --input-hint: var(--text-3);
     --input-error-text: var(--text-2-critical);
 
@@ -47,6 +48,9 @@
   a-input[size="large"] a-icon { --icon-size: 18px; }
 
   .dark a-input {
+    /* Dimmer than the light default (--border-2 reads too bright on the dark
+       surface); hover still lifts to --border-1. */
+    --input-border: var(--border-3);
     --input-border-error: #de4545;
   }
 }

@@ -14,6 +14,13 @@ import InputPasswordDemo from '../../components/InputPasswordDemo'
 import InputValidationDemo from '../../components/InputValidationDemo'
 import { Input, Icon, Button, Tooltip } from '@antadesign/anta'
 
+{/* Inputs sit on bg-1, so lift every preview panel on this page to bg-2 so the
+    white field reads against the panel. Page-scoped; !important beats Preview's
+    scoped default (--bg-canvas). */}
+<style is:inline>{`
+  .preview { background: var(--bg-2) !important; }
+`}</style>
+
 # Input
 
 A text field. The `Input` wrapper renders an `<a-input>` web component whose
@@ -21,9 +28,6 @@ real `<input>` / `<textarea>` lives in **shadow DOM** — so the field is
 self-contained (you never pass a control in) yet fully native underneath:
 focus, IME, autofill, and form submission all work, and the control is reachable
 for styling through `::part(input)`.
-
-It's Anta's first **form-associated** element: it participates in native forms
-via `ElementInternals`, reporting its value under `name`.
 
 <Disclosure title="Playground" anchor={false} brand>
 
@@ -65,11 +69,15 @@ Three sizes (`medium` is the default). The field **height**, the **type scale**
 horizontal text padding stays constant. Each step matches Anta's text scale, so
 a field lines up with same-size `Text` / `Button`.
 
+<div style={{ fontSize: '13px' }}>
+
 | size | height | font / line | icon | padding-x |
 |---|---|---|---|---|
 | `small` | 24px | 13 / 16 | 14px | 7px |
 | `medium` | 28px | 15 / 20 | 16px | 7px |
 | `large` | 32px | 17 / 24 | 18px | 7px |
+
+</div>
 
 </Col>
 </Columns>
@@ -173,19 +181,21 @@ field reports as invalid to a surrounding `<form>`.
 <Col>
 
 <Preview>
-  <Input label="Search" placeholder="Search…" clearable defaultValue="design tokens" />
+  <Input label="Search" placeholder="Search…" clearable dimActions defaultValue="design tokens" />
 </Preview>
 
 ```tsx folded
 {/* clearable — the clear button shows once there's a value */}
-<Input label="Search" placeholder="Search…" clearable defaultValue="design tokens" />
+{/* dimActions — adornments rest quiet, brighten when the field is hovered/focused */}
+<Input label="Search" placeholder="Search…" clearable dimActions defaultValue="design tokens" />
 
 {/* leading / trailing take any node — see the live playground above */}
-<Input label="Search" leading={<Icon shape="search" />} clearable />
+<Input label="Search" leading={<Icon shape="search" />} clearable dimActions />
 <Input
   label="Date"
   leading={<Icon shape="calendar" />}
   trailing={<Button priority="quaternary" size="small" icon="eye" aria-label="Pick" />}
+  dimActions
 />
 ```
 
@@ -197,6 +207,10 @@ field reports as invalid to a surrounding `<form>`.
 left by the same `pad-x` as the text, so it lines up on the field's rhythm; the
 playground at the top of this page shows a live leading icon alongside the clear
 button.
+
+**`dimActions`** rests the adornments quiet (60% opacity) and brightens them to
+full when the field is hovered or focused — a "quiet until engaged" look for
+trailing actions. It dims the whole slot, so it covers icons and buttons alike.
 
 `clearable` adds a clear button at the right edge, shown once the field has a
 value. It's a real `<a-button>` in the `clear` slot — full button styling,
@@ -235,10 +249,9 @@ and a password reveal toggle.
 </Preview>
 
 ```tsx folded
-// A select-like field, composed today from <Input> + a trailing chevron
-// <Button> + a small menu. (A proper <Select> is coming later.)
+// A select-like field: <Input readOnly> + a <Menu> of options.
 const OPTIONS = ['Brand', 'Critical', 'Info', 'Success', 'Warning']
-const [open, setOpen] = useState(false)
+const [open, setOpen] = useState(false)   // only to rotate the chevron
 const [value, setValue] = useState('')
 
 <Input
@@ -246,40 +259,27 @@ const [value, setValue] = useState('')
   placeholder="Select a tone…"
   value={value}
   readOnly
-  trailing={
-    <Button
-      priority="tertiary"
-      icon="chevron-down"
-      aria-label="Toggle options"
-      aria-expanded={open}
-      onClick={() => setOpen(o => !o)}
-      className={open ? 'chevron open' : 'chevron'}  /* CSS rotates just the icon: .chevron.open a-icon { transform: rotate(180deg) } */
-    />
-  }
+  dimActions
+  trailing={<Icon shape="chevron-down" className={open ? 'chevron open' : 'chevron'} style={{ marginInlineEnd: '7px' }} />}
 />
-{open && (
-  <div role="listbox" /* …positioned below the field… */>
-    {OPTIONS.map(o => (
-      <Button key={o} priority="quaternary" label={o} selected={o === value}
-              style={{ width: '100%', justifyContent: 'flex-start' }}
-              onClick={() => { setValue(o); setOpen(false) }} />
-    ))}
-  </div>
-)}
+{/* Anchors to the field (its previous sibling), opens on click, closes on
+    select; it sets aria-expanded on the field itself. */}
+<Menu style={{ '--menu-min-width': '280px' }} onStateChange={(e, { next }) => setOpen(next)}>
+  {OPTIONS.map(o => <MenuItem key={o} label={o} onSelect={() => setValue(o)} />)}
+</Menu>
 ```
 
 </Col>
 <Col>
 
-Until there's a dedicated `<Select>`, a dropdown is a small composition: an
-`<Input>` that's **`readOnly`** and **not `clearable`**, a **`trailing`**
-chevron `<Button>` that toggles a menu, and a few option `<Button>`s that set
-the value and close. The chevron rotates on open, and the menu closes on outside
-click / `Escape`.
+A dropdown is a small composition: a **`readOnly`** (not `clearable`) `<Input>`
+showing the value, followed by a **`<Menu>`** of **`<MenuItem>`** options. The
+menu anchors to the field, opens on click, closes on select, and reflects
+`aria-expanded` on the field — so most of the wiring is free. The chevron rotates
+via the observed open state.
 
-This is illustrative; a real `<Select>` will own the popover positioning,
-keyboard navigation, and listbox ARIA. The point: the field already provides the
-slots and states such a pattern needs.
+A dedicated `<Select>` (full keyboard nav, type-ahead, listbox ARIA) is still
+coming; this shows the field already provides the trigger and the value display.
 
 </Col>
 </Columns>
@@ -302,6 +302,7 @@ const [reveal, setReveal] = useState(false)
   label="Password"
   type={reveal ? 'text' : 'password'}
   defaultValue="hunter2"
+  dimActions
   trailing={
     <Button
       priority="tertiary"
@@ -468,7 +469,7 @@ blocked while invalid — no extra wiring.
 </Col>
 </Columns>
 
-### Native validation as Anta errors
+### Native validation
 
 <Columns>
 <Col>
@@ -613,6 +614,39 @@ left-edge lines up. Each hint still tucks under its own field.
 `}</style>
 ```
 
+### Hint on the right
+
+Put the hint beside the field instead of under it — a short note, a counter, a
+unit. Two columns (field, then hint); the label spans the top, and the hint
+centers against the field.
+
+<Preview>
+  <Input className="hint-right" label="Username" hint="3–20 characters" placeholder="ada" style={{ width: '100%', maxWidth: '360px' }} />
+  <style is:inline>{`
+    a-input.hint-right {
+      grid-template-columns: minmax(0, 1fr) max-content;
+      column-gap: 10px;
+    }
+    a-input.hint-right::part(label) { grid-column: 1 / -1; }
+    a-input.hint-right::part(field) { grid-column: 1; grid-row: 2; }
+    a-input.hint-right::part(hint)  { grid-column: 2; grid-row: 2; align-self: center; padding-top: 0; }
+  `}</style>
+</Preview>
+
+```tsx folded
+<Input className="hint-right" label="Username" hint="3–20 characters" placeholder="ada" />
+
+<style>{`
+  a-input.hint-right {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    column-gap: 10px;
+  }
+  a-input.hint-right::part(label) { grid-column: 1 / -1; }
+  a-input.hint-right::part(field) { grid-column: 1; grid-row: 2; }
+  a-input.hint-right::part(hint)  { grid-column: 2; grid-row: 2; align-self: center; padding-top: 0; }
+`}</style>
+```
+
 ### Wrap by field width
 
 Leave the fields stacked and let an outer grid flow them into as many columns as
@@ -697,8 +731,9 @@ the input.
 | `--input-border-error` | Border color when `invalid`. |
 | `--input-focus` | Focus-ring color. |
 | `--input-text` | Value (typed text) color. Defaults to `--text-1`. |
-| `--input-label` | Label color. Defaults to `--text-1`. |
+| `--input-label` | Label color. Defaults to `--text-3`. |
 | `--input-placeholder` | Placeholder color. Defaults to `--text-4`. |
+| `--input-adornment` | Color of `leading` / `trailing` content — icons and plain text (a slotted `<Button>` keeps its own). Defaults to `--text-4`. |
 | `--input-hint` | Hint text color. Defaults to `--text-3`. |
 | `--input-error-text` | Error message + glyph color. Defaults to `--text-2-critical`. |
 

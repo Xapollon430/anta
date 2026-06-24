@@ -12,7 +12,7 @@ const SUBMENU_CLOSE_DELAY = 130
 /** Typeahead buffer reset window (ms). */
 const TYPEAHEAD_RESET = 500
 
-type Placement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
+type Placement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'bottom' | 'top'
 
 /** `statechange` event detail (see STATEFUL-COMPONENTS.md). `next` is the
  *  requested state, `prev` the current one — both in the `'open'|'closed'`
@@ -223,11 +223,16 @@ export class AMenuElement extends HTMLElementBase {
     //   closed state beats the UA `[popover]:not(:popover-open){display:none}`
     //   rule regardless of specificity, which would keep a CLOSED popover laid
     //   out in the top layer — invisible yet still hoverable/clickable. Closed
-    //   stays UA-governed, so a closed menu is truly gone.
-    // - The enter-fade is a keyframe, not a transition + `allow-discrete`
-    //   (which proved fragile: it could leave the surface stuck at
-    //   display:flex / opacity 0 after close). Starting at opacity 0 also
-    //   hides the first paint, before position() sets the transform.
+    //   stays UA-governed (plus the discrete `display` transition below), so a
+    //   closed menu is truly gone once the exit finishes.
+    // - Enter AND exit are a CSS transition (opacity + a vertical `translate`),
+    //   with `display`/`overlay` transitioned via `allow-discrete` so the menu
+    //   animates OUT before leaving the top layer, and `@starting-style` driving
+    //   the enter. (An earlier attempt got stuck at display:flex/opacity 0 after
+    //   close — including `overlay` in the transition is what fixes that.)
+    //   Resting at opacity 0 also hides the first paint, before position() sets
+    //   the transform. Where `allow-discrete`/`@starting-style` are unsupported
+    //   (older Safari/Firefox) it degrades to an instant open/close.
     style.textContent = `
       :host { display: contents; }
 
@@ -254,12 +259,28 @@ export class AMenuElement extends HTMLElementBase {
         -webkit-backdrop-filter: var(--menu-backdrop-filter, blur(20px));
         backdrop-filter: var(--menu-backdrop-filter, blur(20px));
         outline: none;
+
+        /* Closed / exit state — fade + a tiny vertical settle (no horizontal
+           shift). The same transition drives both directions; 'display' and
+           'overlay' are transitioned with 'allow-discrete' so the menu stays in
+           the top layer and visible while it animates OUT, then hides. */
+        opacity: 0;
+        translate: 0 -4px;
+        transition:
+          opacity 140ms ease-out,
+          translate 140ms ease-out,
+          display 140ms allow-discrete,
+          overlay 140ms allow-discrete;
       }
       .container:popover-open {
         display: flex;
-        animation: a-menu-enter 80ms ease-out;
+        opacity: 1;
+        translate: 0 0;
       }
-      @keyframes a-menu-enter { from { opacity: 0; } }
+      /* Enter: start from the closed state and transition in. */
+      @starting-style {
+        .container:popover-open { opacity: 0; translate: 0 -4px; }
+      }
     `
     this.surface = document.createElement('div')
     this.surface.className = 'container'
@@ -336,8 +357,10 @@ export class AMenuElement extends HTMLElementBase {
 
 
   /* --- config getters --- */
+  /** A submenu is an `<a-menu>` nested inside an `<a-menu-item>` — derived from
+   *  structure, no `submenu` attribute needed (the parent item is the anchor). */
   get isSubmenu(): boolean {
-    return this.hasAttribute('submenu')
+    return !!this.closest('a-menu-item')
   }
   private get isContext(): boolean {
     return this.hasAttribute('context')
@@ -354,15 +377,23 @@ export class AMenuElement extends HTMLElementBase {
   }
   private get placement(): Placement {
     const p = this.getAttribute('placement')
-    if (p === 'bottom-end' || p === 'top-start' || p === 'top-end') return p
+    if (
+      p === 'bottom-end' || p === 'top-start' || p === 'top-end' ||
+      p === 'bottom' || p === 'top'
+    )
+      return p
     return 'bottom-start'
   }
 
   /** Root menu: the previous element sibling is the trigger. Submenu: the
    *  enclosing menu item. One deterministic rule per case — no ambiguity. */
   get triggerAnchor(): HTMLElement | null {
-    if (this.isSubmenu) return this.closest('a-menu-item') as HTMLElement | null
-    return this.previousElementSibling as HTMLElement | null
+    // Nested in an item → submenu (anchor = that item); otherwise a root menu
+    // (anchor = its previous element sibling).
+    return (
+      (this.closest('a-menu-item') as HTMLElement | null) ??
+      (this.previousElementSibling as HTMLElement | null)
+    )
   }
 
   /** For a submenu: the menu that contains its anchor item. */
@@ -523,18 +554,19 @@ export class AMenuElement extends HTMLElementBase {
     if (openStack.length === 0) unbindDocListeners()
   }
 
-  /** Shadow-only show: open the popover and position it. `instant` skips the
-   *  enter-fade and positions synchronously, so a menu opening over an
-   *  already-visible one snaps in without a blink. Relies on the Popover API
-   *  without feature detection — see "Browser support" in README.md. */
+  /** Shadow-only show: open the popover and position it. `instant` positions
+   *  synchronously (no rAF), so a menu opening over an already-visible one is
+   *  placed before its first paint — it still fades in via the CSS transition.
+   *  Relies on the Popover API without feature detection — see "Browser
+   *  support" in README.md. */
   _doShow(coord?: [number, number], instant = false) {
     if (this.surface.isConnected && !this._shown) this.surface.showPopover()
     this._shown = true
     this._dismissNotified = false
     this.reflectExpanded(true)
-    // animation: none → no fade (opacity rests at 1); '' → restore the CSS
-    // enter-fade. Shadow-internal style only, so it's worker-safe.
-    this.surface.style.animation = instant ? 'none' : ''
+    // `instant` (opening over an already-open menu) only positions synchronously
+    // now — no fade-skip needed; the CSS transition + @starting-style handle the
+    // enter, and a brief fade-in over an existing menu reads fine.
     this.position(coord, instant)
   }
 
@@ -615,16 +647,15 @@ export class AMenuElement extends HTMLElementBase {
         surface.style.maxHeight = `${Math.max(MIN_HEIGHT, Math.floor(space))}px`
 
         const box = surface.getBoundingClientRect()
-        // Cross axis: -start aligns left edges, -end aligns right edges. Pull
-        // the menu OUT by its own border + padding on the aligned side so the
-        // first item's *content* — not the surface chrome — lines up with the
-        // trigger edge. Read live, so overriding `--menu-padding` keeps it true.
-        const cs = view.getComputedStyle(surface)
-        const insetStart = parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft)
-        const insetEnd = parseFloat(cs.borderRightWidth) + parseFloat(cs.paddingRight)
-        left = p.endsWith('end')
-          ? a.right - box.width + insetEnd
-          : a.left - insetStart
+        // Cross axis: align the surface's own edge to the trigger's — `-start`
+        // left-to-left, `-end` right-to-right, and no suffix (`bottom` / `top`)
+        // centers the menu on the trigger. The box edge meets the trigger edge
+        // (no padding compensation).
+        const align = p.endsWith('end') ? 'end' : p.endsWith('start') ? 'start' : 'center'
+        left =
+          align === 'center' ? a.left + a.width / 2 - box.width / 2
+          : align === 'end' ? a.right - box.width
+          : a.left
         if (left + box.width > vw - MARGIN) left = vw - box.width - MARGIN
         left = Math.max(MARGIN, left)
 

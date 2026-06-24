@@ -217,8 +217,8 @@ the trigger box.
 <Columns>
 <Col>
 
-Mark a `MenuItem` with `submenu` and nest a `<Menu submenu>` inside it to create
-a flyout. The parent item gets a chevron, `aria-haspopup="menu"`, and an
+Mark a `MenuItem` with `submenu` and nest a `<Menu>` inside it to create a
+flyout (the nested menu detects it's a submenu from being inside the item). The parent item gets a chevron, `aria-haspopup="menu"`, and an
 `aria-expanded` that tracks the flyout's open state (the menu also reflects
 `aria-expanded` onto a click trigger's element — add `aria-haspopup="menu"` to
 your trigger yourself); the submenu opens
@@ -270,17 +270,17 @@ const only = (c) => setOn(Object.fromEntries(COLUMNS.map((k) => [k, k === c])))
 <Menu>
   <MenuItem icon="edit" label="Rename" />
   <MenuItem label="Move to" submenu>
-    <Menu submenu hover>
+    <Menu hover>
       <MenuItem icon="folder-open" label="Projects" />
       <MenuItem icon="folder-open" label="Archive" />
     </Menu>
   </MenuItem>
   <MenuItem label="View" submenu>
-    <Menu submenu hover>
+    <Menu hover>
       <MenuItem label="Columns" submenu>
-        <Menu submenu hover>
+        <Menu hover>
           <MenuItem label="Visible columns" submenu>
-            <Menu submenu hover>
+            <Menu hover>
               {/* custom content — never auto-closes thanks to data-menu-open */}
               <label class="menu-check" data-menu-open>
                 <input type="checkbox" checked={allOn} onChange={() => setAll(!allOn)} />

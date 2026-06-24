@@ -6,8 +6,11 @@
   a-menu-item {
     --menu-item-color: var(--text-2);
     --menu-item-icon-color: var(--text-3);
-    --menu-item-hover: 6%;
-    --menu-item-active: 10%;
+    --menu-item-hover: 5%;
+    --menu-item-active: 9%;
+    /* Hover eases in quickly and eases out slower; active is instant. */
+    --menu-item-timing-in: 60ms ease-in-out;
+    --menu-item-timing-out: 280ms ease-out;
     --menu-item-padding-x: 8px;
     --menu-item-padding-y: 6px;
     --menu-item-focus: var(--focus-ring);
@@ -24,6 +27,8 @@
     border-radius: var(--radius-sm, 4px);
     color: var(--menu-item-color);
     background: transparent;
+    /* Resting / hover-exit easing (the slower, ease-out direction). */
+    transition: background-color var(--menu-item-timing-out);
     font: inherit;
     font-size: 14px;
     line-height: 16px;
@@ -37,9 +42,13 @@
   a-menu-item:hover,
   a-menu-item:focus-visible {
     background: color-mix(in oklch, currentColor var(--menu-item-hover), transparent);
+    /* Hover-enter easing (moderate, shorter). */
+    transition: background-color var(--menu-item-timing-in);
   }
   a-menu-item:active {
     background: color-mix(in oklch, currentColor var(--menu-item-active), transparent);
+    /* Press is instant — no transition. */
+    transition: none;
   }
 
   a-menu-item:focus-visible {
@@ -109,7 +118,7 @@
   }
 
   .dark a-menu-item {
-    --menu-item-hover: 13%;
-    --menu-item-active: 19%;
+    --menu-item-hover: 10%;
+    --menu-item-active: 15%;
   }
 }

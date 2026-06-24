@@ -20,6 +20,7 @@ export default function InputPasswordDemo() {
       label="Password"
       type={reveal ? 'text' : 'password'}
       defaultValue="hunter2"
+      dimActions
       style={{ width: '300px' }}
       trailing={
         <Button

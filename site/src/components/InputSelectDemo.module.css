@@ -1,7 +1,7 @@
-/* Rotate only the chevron glyph (the inner <a-icon>), not the whole button. */
-.chevron a-icon {
+/* The chevron is the trailing <Icon> itself; rotate it when the menu is open. */
+.chevron {
   transition: transform 150ms ease;
 }
-.chevron.open a-icon {
+.chevron.open {
   transform: rotate(180deg);
 }

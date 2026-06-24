@@ -19,13 +19,13 @@ export interface MenuItemProps extends BaseProps {
   tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
   /** Marks this item as a submenu parent: adds the trailing chevron,
    *  `aria-haspopup="menu"`, and an `aria-expanded` baseline (kept in sync by
-   *  the nested menu). Nest the flyout as a `<Menu submenu>` child. */
+   *  the nested menu). Nest the flyout as a `<Menu>` child. */
   submenu?: boolean
   /** Convenience activation handler — fires on click / Enter / Space unless
    *  the item is disabled. (Mapped to the underlying click.) */
   onSelect?: (e: any) => void
   /** Item content. With `label` set, children are extra content — most
-   *  notably the nested `<Menu submenu>` for a submenu parent. */
+   *  notably the nested `<Menu>` for a submenu parent. */
   children?: React.ReactNode
 }
 
@@ -33,7 +33,7 @@ export interface MenuItemProps extends BaseProps {
  * MenuItem — a single selectable row inside a `Menu`. Composes a leading
  * `icon`, a `label` (or `children`), an optional trailing `kbd` hint, and an
  * optional trailing icon. For a submenu, set `submenu` and nest a
- * `<Menu submenu>` as a child — a chevron is added automatically.
+ * `<Menu>` as a child — a chevron is added automatically.
  *
  * Selecting an item closes the menu; add `data-menu-open` to keep it open
  * (toggles / multi-select) — it forwards to the element.
@@ -43,7 +43,7 @@ export interface MenuItemProps extends BaseProps {
  * <MenuItem icon="copy" label="Duplicate" kbd="⌘D" onSelect={dup} />
  * <MenuItem label="Word wrap" data-menu-open onSelect={toggleWrap} />
  * <MenuItem label="Share" submenu>
- *   <Menu submenu hover>
+ *   <Menu hover>
  *     <MenuItem label="Copy link" onSelect={copyLink} />
  *   </Menu>
  * </MenuItem>
