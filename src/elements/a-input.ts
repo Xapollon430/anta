@@ -66,6 +66,12 @@ const BOOL_FORWARDED = new Set(['readonly', 'required'])
 // framework hydration needed. The element converts it into the public clear
 // lifecycle (see the constructor listener): a cancelable `clearclick`, then —
 // if not prevented — `clear()`, which empties the field and fires `clearinput`.
+//
+// CONTRACT: this string MUST stay in sync with the `data-custom-event` value
+// the `<Input>` wrapper sets on its clear `<Button>` (src/components/Input.tsx).
+// It's duplicated rather than shared because the wrapper can't import from this
+// module without pulling in element registration (the tiers are decoupled, and
+// importing here self-registers `a-input` + its CSS). Rename in both places.
 const CLEAR_TRIGGER = 'clearrequest'
 
 // Public clear events. Both bubble and are all-lowercase so they bind portably
@@ -234,12 +240,14 @@ const SHADOW_STYLE = `
     opacity: 0.6;
     transition: opacity 120ms ease;
   }
-  :host([dim-actions]) .field:hover slot[name="leading"],
-  :host([dim-actions]) .field:hover slot[name="trailing"],
-  :host([dim-actions]) .field:hover slot[name="clear"],
-  :host([dim-actions]) .field:focus-within slot[name="leading"],
-  :host([dim-actions]) .field:focus-within slot[name="trailing"],
-  :host([dim-actions]) .field:focus-within slot[name="clear"] {
+  /* …but never on a disabled field — :not([disabled]) so the hover/focus
+     brightening can't override the disabled dim below. */
+  :host([dim-actions]:not([disabled])) .field:hover slot[name="leading"],
+  :host([dim-actions]:not([disabled])) .field:hover slot[name="trailing"],
+  :host([dim-actions]:not([disabled])) .field:hover slot[name="clear"],
+  :host([dim-actions]:not([disabled])) .field:focus-within slot[name="leading"],
+  :host([dim-actions]:not([disabled])) .field:focus-within slot[name="trailing"],
+  :host([dim-actions]:not([disabled])) .field:focus-within slot[name="clear"] {
     opacity: 1;
   }
 
@@ -302,6 +310,7 @@ export class AInputElement extends HTMLElementBase {
   private labelBox: HTMLDivElement
   private hintBox: HTMLDivElement
   private labelSlot: HTMLSlotElement
+  private hintSlot: HTMLSlotElement
   private leadingSlot: HTMLSlotElement
   private trailingSlot: HTMLSlotElement
   private control?: Control
@@ -377,12 +386,14 @@ export class AInputElement extends HTMLElementBase {
     this.hintBox = document.createElement('div')
     this.hintBox.className = 'hint'
     this.hintBox.setAttribute('part', 'hint')
-    const hintSlot = document.createElement('slot')
-    hintSlot.name = 'hint'
-    hintSlot.addEventListener('slotchange', () => {
-      this.hintBox.classList.toggle('has-hint', hintSlot.assignedNodes().length > 0)
-    })
-    this.hintBox.append(hintSlot)
+    this.hintSlot = document.createElement('slot')
+    this.hintSlot.name = 'hint'
+    // Mirror the hint/error text into the control's aria-description (unless the
+    // host already carries one) — IDREFs can't cross the shadow boundary, so the
+    // string-valued aria-description is how the message reaches the focused
+    // control. Same approach as the label → aria-label mirror above.
+    this.hintSlot.addEventListener('slotchange', this.onHintSlotChange)
+    this.hintBox.append(this.hintSlot)
 
     // Default (unnamed) slot for projecting extra children. It sits *between*
     // the field and the hint, so a plain child renders directly under the field
@@ -456,6 +467,7 @@ export class AInputElement extends HTMLElementBase {
     this.syncDisabled()
     if (this.getAttribute('status') === 'critical') next.setAttribute('aria-invalid', 'true')
     this.applyLabelAria()
+    this.applyDescriptionAria()
     if (multiline) this.configureTextarea(next as HTMLTextAreaElement)
 
     const value = initial ?? this.pendingValue ?? this.getAttribute('value') ?? this.getAttribute('defaultvalue') ?? ''
@@ -545,6 +557,20 @@ export class AInputElement extends HTMLElementBase {
     const text = this.labelSlot.assignedNodes().map((n) => n.textContent ?? '').join(' ').trim()
     if (text) c.setAttribute('aria-label', text)
     else c.removeAttribute('aria-label')
+  }
+
+  private onHintSlotChange = () => {
+    this.hintBox.classList.toggle('has-hint', this.hintSlot.assignedNodes().length > 0)
+    this.applyDescriptionAria()
+  }
+
+  private applyDescriptionAria() {
+    const c = this.control
+    if (!c) return
+    if (this.hasAttribute('aria-description') || this.hasAttribute('aria-describedby')) return
+    const text = this.hintSlot.assignedNodes().map((n) => n.textContent ?? '').join(' ').trim()
+    if (text) c.setAttribute('aria-description', text)
+    else c.removeAttribute('aria-description')
   }
 
   private updateFilled() {

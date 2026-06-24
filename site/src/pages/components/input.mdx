@@ -106,7 +106,8 @@ embed links, `<code>`, or a `<Text>` for full control.
 
 The label is wired as the control's accessible name automatically — the element
 mirrors the label text into `aria-label`, since a native `<label for>` can't
-cross the shadow boundary.
+cross the shadow boundary. The `hint` (or error) is mirrored the same way into
+`aria-description`, so a screen reader announces the message too.
 
 </Col>
 </Columns>

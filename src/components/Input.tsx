@@ -306,6 +306,10 @@ export const Input = ({
         // only when filled + editable). It fires the bubbling `clearrequest`
         // event via a-button's global listener, so clearing works even without
         // framework hydration; the element turns that into clearclick→clear().
+        // CONTRACT: the `data-custom-event` value below MUST match `CLEAR_TRIGGER`
+        // in the element (src/elements/a-input.ts). The string is duplicated, not
+        // shared — importing the element module here would self-register it and
+        // break the wrapper/element decoupling. Rename in both places.
         <span slot="clear" style={{ display: 'contents' }}>
           <Button
             priority="tertiary"
