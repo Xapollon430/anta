@@ -525,6 +525,14 @@ field goes red, shows the warning glyph, and reports invalid to the form. Mark
 the form `noValidate` so the browser's default bubbles step aside for Anta's
 styling. Try submitting empty, or with a bad email / out-of-range age.
 
+**Enter doesn't submit the form.** The real `<input>` lives in shadow DOM, so
+it isn't a light-DOM member of the `<form>`, and pressing Enter won't trigger
+native implicit submission — a deliberate choice, since auto-submitting a
+half-filled multi-field form is usually more annoyance than help. To submit on
+Enter, handle it yourself (`onKeyDown` → `form.requestSubmit()`), or reach for
+Anta's upcoming `<Form>` component. Everything else — value submission under
+`name`, `checkValidity()`, `formReset` — works natively.
+
 </Col>
 </Columns>
 
