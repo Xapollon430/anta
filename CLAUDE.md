@@ -133,7 +133,7 @@ cd site && pnpm run build    # Static build
 
 ## Design references
 
-When naming components, props, CSS variables, internal class names, or suggesting patterns, reference established design systems: Material Design, shadcn/ui, Carbon Design System, and Shopify Polaris Web Components. Prefer terminology and conventions already used by these libraries over inventing new ones.
+When naming components, props, CSS variables, internal class names, or suggesting patterns, reference established design systems: Material Design, shadcn/ui, Radix UI, Carbon Design System, Shopify Polaris Web Components, Ant Design, Atlassian Design System, Base UI (base-ui.com), and Blueprint. Prefer terminology and conventions already used by these libraries over inventing new ones.
 
 ## Working with Figma
 
