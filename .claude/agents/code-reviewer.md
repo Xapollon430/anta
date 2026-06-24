@@ -50,8 +50,8 @@ the peer comparison and the add/remove recommendations.
 - **Functionality & flexibility** — does it cover real-world use? For a
   component, how does it stack up against peer design-system equivalents
   (**shadcn/ui, Radix UI, Material UI, Ant Design, Carbon, Atlassian, Shopify
-  Polaris, Base UI (base-ui.com), Blueprint**) on flexibility, clarity, and
-  functionality? Call out concretely where it **lags or leads**.
+  Polaris, Base UI (base-ui.com), Blueprint, Web Awesome**) on flexibility,
+  clarity, and functionality? Call out concretely where it **lags or leads**.
 - **Philosophy fit** — within Anta's philosophy and requirements (`CLAUDE.md`),
   what would make this better? Be specific about what's worth **adding** and
   what's worth **removing or simplifying** — and, equally, what to **hold the
