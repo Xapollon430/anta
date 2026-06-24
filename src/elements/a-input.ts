@@ -204,14 +204,17 @@ const SHADOW_STYLE = `
      trailing button, since it lives in the field). Opacity on the slot groups all
      its content, wrapped or not. */
   :host([dim-actions]) slot[name="leading"],
-  :host([dim-actions]) slot[name="trailing"] {
+  :host([dim-actions]) slot[name="trailing"],
+  :host([dim-actions]) slot[name="clear"] {
     opacity: 0.6;
     transition: opacity 120ms ease;
   }
   :host([dim-actions]) .field:hover slot[name="leading"],
   :host([dim-actions]) .field:hover slot[name="trailing"],
+  :host([dim-actions]) .field:hover slot[name="clear"],
   :host([dim-actions]) .field:focus-within slot[name="leading"],
-  :host([dim-actions]) .field:focus-within slot[name="trailing"] {
+  :host([dim-actions]) .field:focus-within slot[name="trailing"],
+  :host([dim-actions]) .field:focus-within slot[name="clear"] {
     opacity: 1;
   }
 
@@ -324,8 +327,9 @@ export class AInputElement extends HTMLElementBase {
     clearSlot.name = 'clear'
     clearSlot.setAttribute('part', 'clear')
 
-    // Leading, then (control inserted here on build), then trailing, then clear.
-    this.field.append(this.leadingSlot, this.trailingSlot, clearSlot)
+    // Leading, then (control inserted after leading on build), then clear, then
+    // trailing — so the clear button sits to the LEFT of any trailing actions.
+    this.field.append(this.leadingSlot, clearSlot, this.trailingSlot)
 
     // The clear button (an <a-button data-custom-event="clearrequest"> in the
     // `clear` slot) fires CLEAR_TRIGGER on click/Enter/Space — without needing
@@ -411,7 +415,7 @@ export class AInputElement extends HTMLElementBase {
     const next = document.createElement(multiline ? 'textarea' : 'input') as Control
     next.setAttribute('part', 'input')
     if (this.control) this.control.replaceWith(next)
-    else this.trailingSlot.before(next)
+    else this.leadingSlot.after(next)
     this.control = next
 
     for (const attr of FORWARDED) {
