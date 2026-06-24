@@ -171,22 +171,23 @@ variables instead — `--button-bg-{priority}-hover`,
 </Col>
 <Col>
 
-Three sizes (`medium` is default); only the padding changes, so the label
-keeps the same 15px size — readability stays constant while the hit area
-grows or shrinks.
+Three sizes (`medium` is default). The **type scale** (font / line-height) and
+the **icon** track the size, matching Anta's text scale and the same-size
+`Input`; the hit area grows or shrinks to match.
 
-Height comes from `line-height` (18px) plus vertical padding, which is
-calibrated for 15px font-size of TT Interphases to get visual vertical
-centering.
+Height comes from the label's `line-height` plus a uniform 3.5px vertical padding
+and a 1px `padding-bottom` that optically centers Anta's font (its glyphs sit a
+touch low in the line-box) — netting `line-height + 8`, so it lands at
+24 / 28 / 32px without any per-size padding tuning.
 
 </Col>
 </Columns>
 
-| size | height | `padding-y` | text-edge `padding-x` | icon-edge `padding-x` |
-|---|---|---|---|---|
-| `small` | 24px | 3px | 7px | 5px |
-| `medium` (default) | 28px | 5px | 9px | 7px |
-| `large` | 32px | 7px | 13px | 11px |
+| size | height | font / line | icon | text-edge `padding-x` | icon-edge `padding-x` |
+|---|---|---|---|---|---|
+| `small` | 24px | 13 / 16 | 14px | 7px | 5px |
+| `medium` (default) | 28px | 15 / 20 | 16px | 9px | 7px |
+| `large` | 32px | 17 / 24 | 18px | 13px | 11px |
 
 <Columns>
 <Col>
@@ -198,9 +199,9 @@ full padding. The gap between an icon and the label is `0.5ch` at every
 size.
 
 Need a different font size? Style the `<a-button-label>` directly — set
-its `font-size` and `line-height`, and (if the text then sits a little
-high) drop the 1px `padding-bottom` that optically centers Anta's
-default font.
+its `font-size` and `line-height` (the label's `line-height` drives the
+button's height, so the box follows your value), and (if the text then sits a
+little high) drop the 1px `padding-bottom` that optically centers Anta's font.
 
 </Col>
 <Col>

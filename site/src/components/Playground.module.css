@@ -483,19 +483,8 @@
   font-style: italic;
 }
 
-.slider, .number, .text {
-  width: 100%;
-  border: 1px solid var(--border-4);
-  background: var(--bg-canvas);
-  color: var(--text-1);
-  border-radius: 6px;
-  padding: 6px 8px;
-  font: inherit;
-  font-size: 13px;
-}
-
 .slider {
-  padding: 0;
+  width: 100%;
   appearance: none;
   background: transparent;
   border: none;
