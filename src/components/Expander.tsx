@@ -57,27 +57,39 @@ export interface ExpanderProps extends Omit<BaseProps, "title"> {
   disabled?: boolean;
   /** Controlled open state. When provided, the consumer owns open/close:
    *  the expander only follows this prop, and clicking the summary just
-   *  requests a change via `onToggle` (so a toggle can be rejected by not
-   *  updating). Leave undefined for uncontrolled. */
+   *  requests a change via `onStateChange` (so a toggle can be rejected by
+   *  not updating). Leave undefined for uncontrolled. */
   open?: boolean;
   /** Initial open state for the uncontrolled case. */
   defaultOpen?: boolean;
-  /** Fired whenever the summary is toggled, with the requested open
-   *  state (in controlled mode, apply it to `open` to accept). */
-  onToggle?: (open: boolean) => void;
+  /** Fired before the open state changes. `event` is the cancelable
+   *  `statechange` — call `event.preventDefault()` to veto an *uncontrolled*
+   *  toggle (e.g. confirm before closing). `detail.next` is the requested
+   *  open state, `detail.prev` the current one (booleans). In controlled
+   *  mode, apply `detail.next` to `open` to accept, or do nothing to reject. */
+  onStateChange?: (
+    event: CustomEvent,
+    detail: { next: boolean; prev: boolean },
+  ) => void;
 }
 
-/** The element's `toggle` event payload. */
-type ToggleEvent = CustomEvent<{ open: boolean }>;
+/** The element's `statechange` payload, in the `'open'|'closed'` vocabulary. */
+type StateChangeDetail = { next: "open" | "closed"; prev: "open" | "closed" };
+type StateChangeEvent =
+  | CustomEvent<StateChangeDetail>
+  | { nativeEvent: CustomEvent<StateChangeDetail> };
 
-/** Pull the requested open state out of the element's `toggle` event,
- *  across renderers: a raw `CustomEvent` carries `detail` directly; a
- *  synthetic wrapper carries it on `nativeEvent.detail`. */
-function toggledOpen(e: ToggleEvent | { nativeEvent: ToggleEvent }): boolean {
-  const detail =
-    ("nativeEvent" in e ? e.nativeEvent?.detail : undefined) ??
-    ("detail" in e ? e.detail : undefined);
-  return !!detail?.open;
+/** Resolve the *native* `statechange` event across renderers: it's `e`
+ *  directly (vanilla / React 19 / Preact all bind a native listener for
+ *  custom events) or `e.nativeEvent` behind a synthetic wrapper. Returning the
+ *  native event is what lets a consumer's `preventDefault()` reach the
+ *  element's `dispatchEvent` return and actually veto the transition. */
+function nativeStateChange(e: StateChangeEvent): {
+  event: CustomEvent<StateChangeDetail>;
+  detail?: StateChangeDetail;
+} {
+  const event = ("nativeEvent" in e ? e.nativeEvent : e) as CustomEvent<StateChangeDetail>;
+  return { event, detail: event?.detail };
 }
 
 /**
@@ -88,12 +100,13 @@ function toggledOpen(e: ToggleEvent | { nativeEvent: ToggleEvent }): boolean {
  * no state and grabs no ref — it only maps props to attributes (safe
  * wherever the host DOM is reconciled, incl. off the UI thread).
  *
- * Uncontrolled (`defaultOpen`): the element owns its open state. The
- * wrapper emits `defaultopen` — never `open` — so the DOM carries no
- * stale state attribute. Controlled (`open` + `onToggle`): the wrapper
- * emits `open="" | "false"`; the element treats the attribute as the
- * source of truth and clicks only dispatch the `toggle` event, giving
- * real controlled semantics (a consumer can reject a toggle).
+ * Uncontrolled (`defaultOpen`): the element owns its open state. The wrapper
+ * emits `default-state="open"` — never `state` — so the DOM carries no stale
+ * controlled attribute. Controlled (`open` + `onStateChange`): the wrapper
+ * emits `state="open" | "closed"`; the element treats the attribute as the
+ * source of truth and clicks only dispatch the cancelable `statechange` event,
+ * giving real controlled semantics (a consumer can reject a toggle). See
+ * STATEFUL-COMPONENTS.md.
  */
 export const Expander = ({
   title,
@@ -105,7 +118,7 @@ export const Expander = ({
   disabled,
   open,
   defaultOpen,
-  onToggle,
+  onStateChange,
   className,
   style,
   children,
@@ -140,18 +153,29 @@ export const Expander = ({
 
   return (
     <a-expander
-      open={controlled ? (open ? "" : "false") : undefined}
-      defaultopen={!controlled && defaultOpen ? "" : undefined}
+      state={controlled ? (open ? "open" : "closed") : undefined}
+      default-state={!controlled && defaultOpen ? "open" : undefined}
       level={level != null ? (String(level) as `${typeof level}`) : undefined}
       tone={tone && tone !== "neutral" ? tone : undefined}
       priority={priority && priority !== "secondary" ? priority : undefined}
       outdent={outdent ? "" : undefined}
       disabled={disabled ? "" : undefined}
-      // All-lowercase `ontoggle` is the one event-prop spelling both
-      // renderers bind to our `toggle` event: React 19 keeps the case of
-      // whatever follows `on` (so `onToggle` would listen for "Toggle"),
+      // All-lowercase `onstatechange` is the one event-prop spelling both
+      // renderers bind to our `statechange` event: React 19 keeps the case of
+      // whatever follows `on` (so `onStateChange` would listen for "StateChange"),
       // Preact lowercases. Verified against real React 19 + Preact.
-      ontoggle={onToggle ? (e: ToggleEvent) => onToggle(toggledOpen(e)) : undefined}
+      onstatechange={
+        onStateChange
+          ? (e: StateChangeEvent) => {
+              const { event, detail } = nativeStateChange(e);
+              if (detail)
+                onStateChange(event, {
+                  next: detail.next === "open",
+                  prev: detail.prev === "open",
+                });
+            }
+          : undefined
+      }
       class={className}
       style={computedStyle}
       {...rest}

@@ -10,7 +10,7 @@ export interface TitleProps extends BaseProps {
    *  @defaultValue primary */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary'
   /** Color tint. Applies the matching `--text-{N}-{tone}` palette. */
-  tone?: 'brand' | 'success' | 'critical' | 'warning' | 'info'
+  tone?: 'brand' | 'info' | 'success' | 'warning' | 'critical'
 }
 
 /**
@@ -25,6 +25,15 @@ export interface TitleProps extends BaseProps {
  * Raw `<h1>`-`<h6>` get the same visual styling via `src/reset.css`,
  * so use a real heading tag if SEO matters and you don't need the
  * `tone` / `priority` props.
+ *
+ * Styling notes (`a-title.css` ships comment-free): `<a-title>` is
+ * intentionally CSS-only — no JS, no shadow DOM, not even
+ * `customElements.define`; the browser treats it as a generic unknown
+ * element and the CSS gives it block layout, the demi-bold variable-font
+ * weight, and the per-level type scale + vertical rhythm. The matching
+ * `h1`–`h6` rules in `src/reset.css` are kept in lockstep so raw markup
+ * looks the same as `<Title level={n}>`. The tone × priority color matrix
+ * has the same shape as `a-text`'s.
  *
  * Requires `@antadesign/anta/elements` to be imported (client-side only)
  * so the CSS ships with the page.

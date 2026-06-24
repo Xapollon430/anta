@@ -13,12 +13,19 @@ export interface TagProps extends BaseProps {
    *  label; the color + weight contrast does the separating. */
   value?: string
   /** Semantic tone, or any literal CSS color (`'#ff1493'`, `'rebeccapurple'`)
-   *  for a one-off custom tone. Named tones map to the `--text-2-{tone}` /
-   *  `--bg-4-{tone}` palette; a custom color keeps its hue while lightness
-   *  and chroma are pinned. `'neutral'` (the default) is the gray tag —
-   *  the same as omitting `tone`.
+   *  for a one-off custom tone. Each tone renders the secondary tag style:
+   *  `--text-3-{tone}` text over an alpha tint of the tone's hue (fill + a
+   *  slightly stronger hairline border). A custom color is tinted the same
+   *  way, with the text deepened to a readable foreground. `'neutral'` (the
+   *  default) is the gray tag — the same as omitting `tone`.
    *  @defaultValue neutral */
   tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Emphasis level. `secondary` (the default) is the subtle alpha-tint
+   *  fill; `primary` is a solid fill with white text; `tertiary` is a
+   *  transparent outline. Omitting it (or passing `'secondary'`) renders
+   *  the default and emits no DOM attribute.
+   *  @defaultValue secondary */
+  priority?: 'primary' | 'secondary' | 'tertiary'
   /** Size variant. `small` = 16px tall, `medium` = 20px, `large` = 24px
    *  (matching `Button`). Omit the attribute or pass `'medium'` for the
    *  default — both render identically and emit no DOM attribute.
@@ -49,6 +56,32 @@ export interface TagProps extends BaseProps {
  * Requires `@antadesign/anta/elements` to be imported (client-side only)
  * so the CSS ships with the page.
  *
+ * Styling notes (`a-tag.css` ships comment-free):
+ * - Sizing is intrinsic — no fixed height, like `<a-button>`: height falls
+ *   out of `line-height` + `padding-block` + the 0.5px border (the base
+ *   1.5px block padding compensates the half-pixel border to keep the pill
+ *   at 20px), so text is never clipped and the padding tokens can be
+ *   retuned freely. An edge icon trims ~2px off its side's padding
+ *   (optical), and icons scale to `--tag-icon-size`.
+ * - Color comes from the theme-aware semantic tokens, so named tones need
+ *   no `.dark` rules; the hairline border and the segment divider both
+ *   derive from `--tag-text`, so every tone gets a matching edge. A lone
+ *   `label` is dropped into `<a-tag-value>` by this wrapper so it keeps the
+ *   default weight; `<a-tag-label>` only renders as the bold key before a
+ *   value (weight contrast does the separating — no divider).
+ * - Segmented children: raw children (not the structured label/value/icon
+ *   elements) get a hairline left border per segment after the first; the
+ *   flex `gap` sits left of the border and `padding-left` balances it.
+ * - Custom tones (any non-named `tone`) keep the source hue with
+ *   lightness/chroma pinned via oklch relative color; the `--_tag-*` knobs
+ *   are the only numbers to tune and the `.dark` block re-tunes them. The
+ *   wrapper writes `--tag-tone-source` inline; a typed `attr()` fallback
+ *   picks up raw `<a-tag tone="…">` on Chrome 133+/Safari 18.2+.
+ * - `nocaps` drops the uppercase transform and tightens tracking to the
+ *   body-text 0.02ch (uppercase needs 0.08ch); tabular figures + `ss05`
+ *   stay on. Large + nocaps bumps to 13px, keeping the same +1px
+ *   over-uppercase relationship medium has, with height unchanged.
+ *
  * @example Basic usage
  * ```tsx
  * <Tag tone="success" label="Running" />
@@ -62,6 +95,7 @@ export const Tag = ({
   label,
   value,
   tone,
+  priority,
   size,
   nocaps,
   className,
@@ -82,6 +116,8 @@ export const Tag = ({
   return (
     <a-tag
       tone={tone}
+      // 'secondary' (and unset) is the implicit default — emit no DOM attr.
+      priority={priority && priority !== 'secondary' ? priority : undefined}
       // 'medium' (and unset) is the implicit default — emit no DOM attr.
       size={size && size !== 'medium' ? size : undefined}
       // Boolean attribute: presence (empty string) on, omit off — the CSS

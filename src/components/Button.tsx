@@ -41,10 +41,10 @@ export type BaseButtonProps = {
   tone?:
     | 'neutral'
     | 'brand'
-    | 'critical'
     | 'info'
     | 'success'
     | 'warning'
+    | 'critical'
     | (string & {})
   /** Size variant. small=24px, medium=28px, large=32px. Omit the
    *  attribute or pass `'medium'` for the default — both render
