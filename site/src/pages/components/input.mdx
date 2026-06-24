@@ -332,8 +332,7 @@ const [reveal, setReveal] = useState(false)
 A `trailing` eye `<Button>` flips the field's `type` between `password` and
 `text` — native disc masking when hidden, plain text when revealed. Because it
 stays a real `type="password"` when hidden, password managers and autofill keep
-working. The `selected` button state reflects the toggle, and the uncontrolled
-value is preserved across it.
+working, and the uncontrolled value is preserved across the toggle.
 
 The mask glyph stays the browser default — restyling it means dropping
 `type="password"`, which loses password-manager support and isn't masked in

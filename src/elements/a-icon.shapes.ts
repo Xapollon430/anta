@@ -90,6 +90,7 @@ export const ICON_SHAPES = [
   'swatch-book',
   'table-2',
   'tag',
+  'text-cursor-input',
   'text-highlight',
   'text-initial',
   'timer',
@@ -283,6 +284,7 @@ declare module '@antadesign/anta' {
     'swatch-book': true
     'table-2': true
     'tag': true
+    'text-cursor-input': true
     'text-highlight': true
     'text-initial': true
     'timer': true
