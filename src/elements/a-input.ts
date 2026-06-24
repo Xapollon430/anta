@@ -324,7 +324,18 @@ export class AInputElement extends HTMLElementBase {
 
   constructor() {
     super()
-    this.internals = typeof this.attachInternals === 'function' ? this.attachInternals() : undefined
+    // Form association via ElementInternals. Guarded because the element may be
+    // constructed in a non-standard runtime (a worker-rendered DOM, a partial
+    // polyfill, or a custom runtime wired via `configure()`) where
+    // `attachInternals` is missing, not callable, or throws. Degrade to no
+    // form-association rather than break construction. Unlikely — this runs on
+    // the web-component side — but cheap insurance; the rest of the element
+    // already treats `internals` as optional.
+    try {
+      this.internals = this.attachInternals?.()
+    } catch (err) {
+      console.warn('a-input: ElementInternals unavailable — form association disabled.', err)
+    }
     const shadow = this.attachShadow({ mode: 'open', delegatesFocus: true })
 
     const style = document.createElement('style')
