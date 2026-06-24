@@ -157,6 +157,11 @@
      consumers wiring their own prose contexts. */
   --link-color: #1466d4;
   --link-color-hover: #2674e6;
+
+  /* Focus ring — the one interaction-state color shared by every focusable
+     control (button, input, checkbox, menu item). Components point their
+     `--{component}-focus` at it; it themes here, so they need no dark override. */
+  --focus-ring: oklch(0.55 0.2 284.15);
 }
 
 
@@ -291,5 +296,7 @@
   /* Prose link colors — dark mode */
   --link-color: #7baee9;
   --link-color-hover: #90bdee;
+
+  --focus-ring: #a897fc;
 }
 

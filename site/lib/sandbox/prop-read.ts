@@ -53,15 +53,13 @@ export function readProp(
   }
 
   if (attr.valueRange.kind === 'string') {
-    // Strip the surrounding quotes.
+    // Strip the surrounding quotes — show the unquoted text in the control.
     const raw = attr.valueRange.text.slice(1, -1)
-    // An expression prop with a bare string-literal attribute
-    // (`actions="x"`) — surface the quoted literal verbatim so the
-    // field repopulates and re-serializes to a valid `actions={"x"}`.
-    if (prop.kind === 'expression') {
-      return { kind: 'literal', value: attr.valueRange.text }
-    }
-    if (prop.kind === 'string' || prop.kind === 'literal-union') {
+    // Expression props now treat a bare string the same as string /
+    // literal-union props: surface the *unquoted* value (so the field shows
+    // `Search`, not `"Search"`). It re-serializes to `name="Search"` — a leading
+    // quote is no longer read as an expression (see prop-patch).
+    if (prop.kind === 'expression' || prop.kind === 'string' || prop.kind === 'literal-union') {
       return { kind: 'literal', value: raw }
     }
     // String value supplied to a number / boolean prop — unusual; surface

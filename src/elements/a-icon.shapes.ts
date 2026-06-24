@@ -25,6 +25,7 @@ export const ICON_SHAPES = [
   'chevrons-right',
   'circle-check',
   'circle-large',
+  'circle-small-solid',
   'circle',
   'click',
   'clock',
@@ -37,6 +38,8 @@ export const ICON_SHAPES = [
   'edit',
   'education-disk',
   'external-link',
+  'eye-closed',
+  'eye',
   'file-down',
   'file',
   'filter',
@@ -87,12 +90,14 @@ export const ICON_SHAPES = [
   'swatch-book',
   'table-2',
   'tag',
+  'text-cursor-input',
   'text-highlight',
   'text-initial',
   'timer',
   'trash',
   'trello-logo',
   'view',
+  'warning-diamond',
   'warning-triangle',
   'webhook',
   'workflow',
@@ -100,6 +105,7 @@ export const ICON_SHAPES = [
 ] as const
 
 export const ICON_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
+  'warning-diamond': ['error', 'invalid', 'alert', 'danger'],
   'swatch-book': ['palette', 'color', 'swatch', 'paint', 'design'],
   'hat-glasses': ['accessibility', 'vision', 'disguise', 'person'],
   'heart-handshake': ['credits', 'thanks', 'agreement', 'deal', 'partnership'],
@@ -131,7 +137,7 @@ export const ICON_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   'copy': ['duplicate', 'clone'],
   'trash': ['delete', 'remove', 'bin'],
   'edit': ['pencil', 'modify', 'rename'],
-  'view': ['eye', 'show', 'display', 'preview'],
+  'view': ['show', 'display', 'preview'],
   'click': ['tap', 'press', 'touch'],
   'send': ['submit', 'share', 'deliver'],
   'play': ['start', 'run', 'execute'],
@@ -213,6 +219,7 @@ declare module '@antadesign/anta' {
     'chevrons-right': true
     'circle-check': true
     'circle-large': true
+    'circle-small-solid': true
     'circle': true
     'click': true
     'clock': true
@@ -225,6 +232,8 @@ declare module '@antadesign/anta' {
     'edit': true
     'education-disk': true
     'external-link': true
+    'eye-closed': true
+    'eye': true
     'file-down': true
     'file': true
     'filter': true
@@ -275,12 +284,14 @@ declare module '@antadesign/anta' {
     'swatch-book': true
     'table-2': true
     'tag': true
+    'text-cursor-input': true
     'text-highlight': true
     'text-initial': true
     'timer': true
     'trash': true
     'trello-logo': true
     'view': true
+    'warning-diamond': true
     'warning-triangle': true
     'webhook': true
     'workflow': true

@@ -20,8 +20,114 @@ export interface BaseProps {
   [key: `aria-${string}`]: unknown
 }
 
+/**
+ * Standard DOM event handlers Anta forwards to the rendered element. These are
+ * **enumerated on purpose** — rather than an open `on${string}` index signature
+ * — so a typo like `onClik` is a type error instead of silently accepted. They
+ * stay `(e: any) => void` to remain React/Preact-agnostic (we don't commit to
+ * either framework's event types). Standard events bubble/compose, so a handler
+ * on an `<a-*>` host fires for interactions inside its shadow DOM. Component-
+ * specific events (e.g. `oninput`/`onclearclick` on `<a-input>`) are declared on
+ * that element's own attributes. This enumerates the full standard (bubble-phase)
+ * DOM event set; add a `…Capture` variant here if one is ever needed.
+ */
+export interface DOMEventHandlers {
+  // Mouse / pointer
+  onClick?: (e: any) => void
+  onDoubleClick?: (e: any) => void
+  onAuxClick?: (e: any) => void
+  onContextMenu?: (e: any) => void
+  onMouseDown?: (e: any) => void
+  onMouseUp?: (e: any) => void
+  onMouseEnter?: (e: any) => void
+  onMouseLeave?: (e: any) => void
+  onMouseMove?: (e: any) => void
+  onMouseOver?: (e: any) => void
+  onMouseOut?: (e: any) => void
+  onPointerDown?: (e: any) => void
+  onPointerUp?: (e: any) => void
+  onPointerMove?: (e: any) => void
+  onPointerEnter?: (e: any) => void
+  onPointerLeave?: (e: any) => void
+  onPointerOver?: (e: any) => void
+  onPointerOut?: (e: any) => void
+  onPointerCancel?: (e: any) => void
+  onGotPointerCapture?: (e: any) => void
+  onLostPointerCapture?: (e: any) => void
+  // Touch
+  onTouchStart?: (e: any) => void
+  onTouchEnd?: (e: any) => void
+  onTouchMove?: (e: any) => void
+  onTouchCancel?: (e: any) => void
+  // Keyboard
+  onKeyDown?: (e: any) => void
+  onKeyUp?: (e: any) => void
+  // Focus
+  onFocus?: (e: any) => void
+  onBlur?: (e: any) => void
+  // Form
+  onChange?: (e: any) => void
+  onInput?: (e: any) => void
+  onBeforeInput?: (e: any) => void
+  onInvalid?: (e: any) => void
+  onReset?: (e: any) => void
+  onSubmit?: (e: any) => void
+  onSelect?: (e: any) => void
+  // Clipboard
+  onCopy?: (e: any) => void
+  onCut?: (e: any) => void
+  onPaste?: (e: any) => void
+  // Composition (IME)
+  onCompositionStart?: (e: any) => void
+  onCompositionUpdate?: (e: any) => void
+  onCompositionEnd?: (e: any) => void
+  // Drag & drop
+  onDrag?: (e: any) => void
+  onDragStart?: (e: any) => void
+  onDragEnd?: (e: any) => void
+  onDragEnter?: (e: any) => void
+  onDragLeave?: (e: any) => void
+  onDragOver?: (e: any) => void
+  onDrop?: (e: any) => void
+  // Scroll / wheel
+  onScroll?: (e: any) => void
+  onWheel?: (e: any) => void
+  // Animation / transition
+  onAnimationStart?: (e: any) => void
+  onAnimationEnd?: (e: any) => void
+  onAnimationIteration?: (e: any) => void
+  onTransitionEnd?: (e: any) => void
+  // Resource / state
+  onLoad?: (e: any) => void
+  onError?: (e: any) => void
+  onAbort?: (e: any) => void
+  onToggle?: (e: any) => void
+  onBeforeToggle?: (e: any) => void
+  // Media
+  onCanPlay?: (e: any) => void
+  onCanPlayThrough?: (e: any) => void
+  onDurationChange?: (e: any) => void
+  onEmptied?: (e: any) => void
+  onEnded?: (e: any) => void
+  onLoadedData?: (e: any) => void
+  onLoadedMetadata?: (e: any) => void
+  onLoadStart?: (e: any) => void
+  onPause?: (e: any) => void
+  onPlay?: (e: any) => void
+  onPlaying?: (e: any) => void
+  onProgress?: (e: any) => void
+  onRateChange?: (e: any) => void
+  onSeeked?: (e: any) => void
+  onSeeking?: (e: any) => void
+  onStalled?: (e: any) => void
+  onSuspend?: (e: any) => void
+  onTimeUpdate?: (e: any) => void
+  onVolumeChange?: (e: any) => void
+  onWaiting?: (e: any) => void
+}
+
 /** Attributes for intrinsic custom elements (`<a-*>` tags) in JSX. */
-export interface BaseAttributes {
+export interface BaseAttributes extends DOMEventHandlers {
   /** React/Preact reconciliation key when rendered inside a list. */
   key?: string | number | null
   /** HTML `class` attribute (standard DOM). */
@@ -37,10 +143,6 @@ export interface BaseAttributes {
   tabIndex?: number
   /** ARIA role override. */
   role?: string
-  /** Keydown handler — used for keyboard-driven interactions. */
-  onKeyDown?: (e: any) => void
-  /** Click handler — used for mouse / tap activation. */
-  onClick?: (e: any) => void
 }
 
 /**
@@ -238,6 +340,74 @@ export interface ATooltipAttributes extends BaseAttributes {
 }
 
 /**
+ * Attributes for the `<a-input>` custom element — a form-associated text
+ * field whose real `<input>` / `<textarea>` lives in shadow DOM. For the
+ * typed JSX wrapper use `Input` from `@antadesign/anta`.
+ *
+ * Slots (light-DOM children): `label`, `leading`, `trailing`, `hint`.
+ * The element exposes `::part(field | input | label | leading | trailing | hint)`
+ * for styling, and `:state(filled)` / `:state(invalid)` as CSS hooks.
+ */
+export interface AInputAttributes extends BaseAttributes {
+  /** Controlled value (string). Reflected to the shadow control only when it
+   *  differs, so the caret survives re-renders. */
+  value?: string
+  /** Initial value for the uncontrolled case; read once on connect. */
+  defaultvalue?: string
+  /** Render a `<textarea>` rather than `<input>`. Presence-based. */
+  multiline?: boolean | ''
+  /** Fixed visible row count for a `<textarea>` (implies multiline). */
+  rows?: number | string
+  /** Cap autogrow height (rows) for a multiline field with no `rows`. */
+  maxrows?: number | string
+  /** Validation/feedback tone — colors the border + message and (via the
+   *  wrapper) the glyph. Only `critical` carries validity weight (`aria-invalid`
+   *  + `:state(invalid)`); the others are advisory. Omit for the neutral field. */
+  status?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
+  /** Disabled state. Presence-based. */
+  disabled?: boolean | ''
+  /** Read-only state. Presence-based. */
+  readonly?: boolean | ''
+  /** Required — drives native validity. Presence-based. */
+  required?: boolean | ''
+  /** Dim the leading/trailing adornments at rest (0.6); they brighten to full
+   *  when the field is hovered or focused. Presence-based. */
+  'dim-actions'?: boolean | ''
+  /** Size variant. small=24px, medium (default)=28px, large=32px. */
+  size?: 'small' | 'medium' | 'large'
+  /** Single-line input type (ignored when multiline). `search` is intentionally
+   *  unavailable — it triggers browser-injected clear/search affordances. */
+  type?: 'text' | 'email' | 'password' | 'tel' | 'url' | 'number'
+  /** Form field name — submitted via ElementInternals. */
+  name?: string
+  /** Placeholder shown when empty. */
+  placeholder?: string
+  autocomplete?: string
+  inputmode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
+  maxlength?: number | string
+  minlength?: number | string
+  pattern?: string
+  min?: number | string
+  max?: number | string
+  step?: number | string
+  spellcheck?: 'true' | 'false' | boolean
+  /** Fires on every keystroke (`input` is composed — it reaches the host). */
+  oninput?: (e: any) => void
+  /** Fires on commit; the element re-dispatches the control's `change` on the
+   *  host (native `change` isn't composed). */
+  onchange?: (e: any) => void
+  /** Fires when the built-in clear button is clicked, before clearing
+   *  (cancelable, bubbling `clearclick` event — preventDefault keeps the
+   *  value). All-lowercase so it binds in React *and* Preact. */
+  onclearclick?: (e: any) => void
+  /** Fires after the field has been cleared (bubbling `clearinput` event).
+   *  All-lowercase so it binds in React *and* Preact. */
+  onclearinput?: (e: any) => void
+  'aria-invalid'?: 'true' | 'false' | boolean
+  'aria-label'?: string
+}
+
+/**
  * Attributes for the `<a-menu>` custom element. Placed immediately after the
  * trigger it anchors to (root menu), or nested inside an `<a-menu-item>`
  * (submenu). For the typed JSX wrapper use `Menu` from `@antadesign/anta`.
@@ -245,17 +415,16 @@ export interface ATooltipAttributes extends BaseAttributes {
 export interface AMenuAttributes extends BaseAttributes {
   /** Preferred placement relative to the trigger; auto-flips / clamps.
    *  Defaults to `'bottom-start'`. */
-  placement?: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
+  placement?: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'bottom' | 'top'
   /** Open on right-click of the trigger region, positioned at the pointer.
    *  Presence-based (`''` on, omit off). */
   context?: boolean | ''
   /** Open at the pointer coordinates instead of aligned to the trigger box.
    *  Presence-based (`''` on, omit off). */
   coord?: boolean | ''
-  /** Marks this menu as a submenu of the enclosing `<a-menu-item>`.
-   *  Presence-based (`''` on, omit off). */
-  submenu?: boolean | ''
-  /** For a submenu: also open on hover. Presence-based (`''` on, omit off). */
+  /** For a submenu (an `<a-menu>` nested inside an `<a-menu-item>` — detected
+   *  from that structure, no flag needed): also open on hover. Presence-based
+   *  (`''` on, omit off). */
   hover?: boolean | ''
   /** Gap in pixels between the trigger and the menu. Defaults to 4. */
   offset?: number | string
@@ -292,13 +461,13 @@ export interface AMenuItemAttributes extends BaseAttributes {
    *  off). The universal form is `data-menu-open` (works on any element). */
   'data-menu-open'?: boolean | ''
   /** Marks this item as a submenu parent (renders a chevron, opens a nested
-   *  `<a-menu submenu>`). Presence-based (`''` on, omit off). */
+   *  `<a-menu>`). Presence-based (`''` on, omit off). */
   submenu?: boolean | ''
   /** ARIA role — `'menuitem'`. */
   role?: string
   'aria-haspopup'?: 'menu' | 'true' | 'false' | boolean
   /** Submenu-parent expanded state. Render `'false'` as the resting baseline;
-   *  the nested `<a-menu submenu>` element reflects the live open state. */
+   *  the nested `<a-menu>` element reflects the live open state. */
   'aria-expanded'?: 'true' | 'false' | boolean
   'aria-disabled'?: 'true' | 'false' | boolean
 }

@@ -1,4 +1,5 @@
 {
+  "warning-diamond": ["error", "invalid", "alert", "danger"],
   "swatch-book": ["palette", "color", "swatch", "paint", "design"],
   "hat-glasses": ["accessibility", "vision", "disguise", "person"],
   "heart-handshake": ["credits", "thanks", "agreement", "deal", "partnership"],
@@ -30,7 +31,7 @@
   "copy": ["duplicate", "clone"],
   "trash": ["delete", "remove", "bin"],
   "edit": ["pencil", "modify", "rename"],
-  "view": ["eye", "show", "display", "preview"],
+  "view": ["show", "display", "preview"],
   "click": ["tap", "press", "touch"],
   "send": ["submit", "share", "deliver"],
   "play": ["start", "run", "execute"],

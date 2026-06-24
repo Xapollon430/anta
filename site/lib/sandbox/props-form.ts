@@ -410,6 +410,16 @@ function controlFor(p: any): PropEntry | null {
         { name, kind: 'string' },
       )
     }
+    // Open-string / icon-name union with no plain string literals — e.g.
+    // `iconError: IconShape | (string & {}) | false`. Render a text input,
+    // seeded from the `@defaultValue` tag so the panel shows the runtime default.
+    const hasIconShape = t.types.some((x: any) => x.type === 'reference' && x.name === 'IconShape')
+    if (hasOpenString || hasIconShape) {
+      return wrap(
+        { kind: 'text', name, defaultValue: readDefaultValueTag(p.comment), description },
+        { name, kind: 'string' },
+      )
+    }
     // Fall through.
   }
 

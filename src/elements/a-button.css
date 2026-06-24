@@ -3,7 +3,7 @@
   a[role="button"] {
     --button-primary-fg: #ffffff;
 
-    --button-focus: #503cb4;
+    --button-focus: var(--focus-ring);
 
     --bg-primary-disabled: #ece9ec;
     --bg-secondary-disabled: #f6f4f6;
@@ -42,8 +42,18 @@
     --button-fg-quaternary-rest: #635b65;
     --button-fg-quaternary-hover: #49424c;
 
+    /* Type scale by size (small 13/16 · medium 15/20 · large 17/24); --_fs/--_lh
+       carry it. The label gets an optical `padding-bottom` (--_pb) that scales
+       with the font (0.5 / 1 / 1.5px) — Anta's glyphs sit slightly low in the
+       line-box, a font-metric offset that grows with size. Block padding derives
+       from --_pb so the two always sum to 8px, holding the box at
+       line-height + 8 → 24/28/32, matching the same-size Input. Icon-only
+       buttons are min-height-anchored separately, below. */
+    --_fs: 15px;
+    --_lh: 20px;
+    --_pb: 1px;
     --button-padding-x: 9px;
-    --button-padding-y: 5px;
+    --button-padding-y: calc((8px - var(--_pb)) / 2);
     --button-max-width: 100%;
     --button-max-height: 100%;
 
@@ -165,8 +175,6 @@
 
   .dark a-button,
   .dark a[role="button"] {
-    --button-focus: #a897fc;
-
     --bg-primary-disabled: #272329;
     --bg-secondary-disabled: #1d1a1e;
     --fg-disabled-primary: #776e77;
@@ -316,7 +324,7 @@
 
     box-shadow: inset 0 0 1px color-mix(in oklch, currentColor, transparent 70%);
 
-    font-size: 15px;
+    font-size: var(--_fs);
     font-family: var(--sans-serif);
     font-weight: 450;
 
@@ -326,7 +334,7 @@
        font-feature-settings a consumer sets on an ancestor — it replaces, not
        merges. */
     font-feature-settings: "ss02", "ss05";
-    line-height: 18px;
+    line-height: var(--_lh);
     letter-spacing: 0.05ch;
 
     text-overflow: ellipsis;
@@ -346,8 +354,11 @@
       overflow: hidden;
       min-width: 0;
 
-      line-height: 17px;
-      padding-bottom: 1px;
+      line-height: var(--_lh);
+      /* Optically centers Anta's font (glyphs sit slightly low in the line-box —
+         a font-metric offset that scales with size: 0.5 / 1 / 1.5px). The button
+         height math (above) absorbs --_pb so the box stays line-height + 8. */
+      padding-bottom: var(--_pb);
 
       &:has(> *) {
         display: inline-flex;
@@ -409,12 +420,20 @@
     }
 
     &[size="small"] {
-      --button-padding-y: 3px;
       --button-padding-x: 7px;
+      --_fs: 13px;
+      --_lh: 16px;
+      --_pb: 0.5px;
+      /* Icon tracks the button size (medium is the a-icon default, 16px). An
+         explicit `<Icon size>` (inline `--icon-size`) still wins. */
+      & a-icon { --icon-size: 14px; }
     }
     &[size="large"] {
-      --button-padding-y: 7px;
       --button-padding-x: 13px;
+      --_fs: 17px;
+      --_lh: 24px;
+      --_pb: 1.5px;
+      & a-icon { --icon-size: 18px; }
     }
 
     &[priority="tertiary"],
