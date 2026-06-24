@@ -76,6 +76,16 @@ export interface InputProps extends BaseProps {
    *  deliberately — it triggers browser-injected clear/search affordances.)
    *  @defaultValue text */
   type?: 'text' | 'email' | 'password' | 'tel' | 'url' | 'number'
+  /** Native autocomplete token. Overrides the value derived from `type`
+   *  (`email` / `tel` / `url`) — set it for the cases `type` can't express, e.g.
+   *  `username`, `current-password`, `new-password`, `one-time-code`, or `off`. */
+  autoComplete?:
+    | 'off' | 'on' | 'name' | 'username' | 'email'
+    | 'current-password' | 'new-password' | 'one-time-code'
+    | 'tel' | 'url'
+    | (string & {})
+  /** Virtual-keyboard hint. Overrides the value derived from `type`. */
+  inputMode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
   /** Form field name — submitted with the form via ElementInternals. */
   name?: string
   /** Placeholder shown when empty. */
@@ -153,14 +163,16 @@ const attrsOf = (e: any): InputChangeAttrs => {
   }
 }
 
-// Autocomplete is derived from `type` (not a prop): the types that *are* valid
-// autocomplete tokens map to themselves; the rest (text/password/number) have
-// no standard token, so none is set — password managers still key off
-// `type="password"`, the numeric keyboard off `type="number"`, etc.
+// Autocomplete default, derived from `type` (the `autoComplete` prop overrides
+// it): the types that *are* valid autocomplete tokens map to themselves; the
+// rest (text/password/number) have no standard token, so none is set — password
+// managers still key off `type="password"`, the numeric keyboard off
+// `type="number"`, etc. Pass `autoComplete` for the cases `type` can't express
+// (`current-password`, `one-time-code`, …).
 const AUTOCOMPLETE_BY_TYPE: Record<string, string> = { email: 'email', tel: 'tel', url: 'url' }
-// Virtual-keyboard hint derived from `type` (not a prop). `type` already drives
-// the keyboard for these, so this is belt-and-suspenders; a raw <a-input> can
-// still set `inputmode` directly to decouple keyboard from type (e.g. an OTP).
+// Virtual-keyboard hint default, derived from `type` (the `inputMode` prop
+// overrides it). `type` already drives the keyboard for these, so this is
+// belt-and-suspenders; set `inputMode` to decouple keyboard from type (e.g. an OTP).
 const INPUTMODE_BY_TYPE: Record<string, 'email' | 'tel' | 'url' | 'numeric'> = {
   email: 'email', tel: 'tel', url: 'url', number: 'numeric',
 }
@@ -197,6 +209,8 @@ export const Input = ({
   leading,
   trailing,
   type,
+  autoComplete,
+  inputMode,
   name,
   placeholder,
   disabled,
@@ -241,8 +255,8 @@ export const Input = ({
       readonly={presence(readOnly)}
       required={presence(required)}
       dim-actions={presence(dimActions)}
-      autocomplete={!multiline && rows == null && type ? AUTOCOMPLETE_BY_TYPE[type] : undefined}
-      inputmode={!multiline && rows == null && type ? INPUTMODE_BY_TYPE[type] : undefined}
+      autocomplete={autoComplete ?? (!multiline && rows == null && type ? AUTOCOMPLETE_BY_TYPE[type] : undefined)}
+      inputmode={inputMode ?? (!multiline && rows == null && type ? INPUTMODE_BY_TYPE[type] : undefined)}
       spellcheck={spellCheck != null ? (spellCheck ? 'true' : 'false') : undefined}
       maxlength={maxLength != null ? String(maxLength) : undefined}
       minlength={minLength != null ? String(minLength) : undefined}
