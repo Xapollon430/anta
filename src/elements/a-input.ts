@@ -274,6 +274,9 @@ const SHADOW_STYLE = `
     display: none;
     gap: 4px;
     align-items: flex-start;
+    /* 1px off the edge so neither the message nor a status glyph sits flush
+       against the field's left line. */
+    padding-inline-start: 1px;
     color: var(--input-hint);
     font-family: var(--sans-serif);
     /* Hint reads quieter than the field: 1px smaller, with a tighter line. */

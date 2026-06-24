@@ -148,15 +148,22 @@ content.)
 <Col>
 
 <Preview>
-  <Input label="Email" defaultValue="not-an-email" status="critical" hint="Enter a valid email address." />
+  <Input label="Display name" defaultValue="Ada Lovelace" hint="This is your public name." />
+  <Input label="Workspace" defaultValue="acme" status="info" hint="Lowercase letters and dashes only." />
   <Input label="Username" defaultValue="ada" status="success" hint="Username is available." />
   <Input label="Password" type="password" defaultValue="hunter2" status="warning" hint="Weak — add more characters." />
+  <Input label="Email" defaultValue="not-an-email" status="critical" hint="Enter a valid email address." />
+  <Input label="Plan" defaultValue="Pro" status="brand" hint="You're on the Pro plan." />
 </Preview>
 
 ```tsx folded
-<Input label="Email" defaultValue="not-an-email" status="critical" hint="Enter a valid email address." />
+{/* No status = neutral helper text */}
+<Input label="Display name" defaultValue="Ada Lovelace" hint="This is your public name." />
+<Input label="Workspace" defaultValue="acme" status="info" hint="Lowercase letters and dashes only." />
 <Input label="Username" defaultValue="ada" status="success" hint="Username is available." />
 <Input label="Password" type="password" defaultValue="hunter2" status="warning" hint="Weak — add more characters." />
+<Input label="Email" defaultValue="not-an-email" status="critical" hint="Enter a valid email address." />
+<Input label="Plan" defaultValue="Pro" status="brand" hint="You're on the Pro plan." />
 ```
 
 </Col>
@@ -172,8 +179,9 @@ Only `status="critical"` carries validity — it sets `aria-invalid`, flips the
 `ElementInternals`. The other tones are advisory and stay valid.
 
 Each status has a default glyph (`critical` → `warning-diamond`, `warning` →
-`warning-triangle`, `success` → `circle-check`, `info` → `info`). Override it
-with **`statusIcon`** (any shape), or drop it with `statusIcon={false}`.
+`warning-triangle`, `success` → `circle-check`, `info` → `info`, `brand` →
+`circle-small-solid`). Override it with **`statusIcon`** (any shape), or drop it
+with `statusIcon={false}`.
 
 </Col>
 </Columns>

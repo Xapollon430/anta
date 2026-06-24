@@ -40,8 +40,13 @@
     --input-hint: var(--text-2-warning);
   }
   a-input[status="success"] {
-    --input-border: var(--border-1-success);
-    --input-border-hover: var(--border-1-success);
+    /* --border-1-success reads a touch hot in light mode (green is the brightest
+       hue at a given step), so deepen it toward the success text tone in oklch —
+       same hue, lower brightness — to sit alongside the critical/warning borders.
+       Dialing knob: raise the second percentage to deepen further. Dark mode
+       (below) keeps the muted role token as-is. */
+    --input-border: color-mix(in oklch, var(--border-1-success) 72%, var(--text-2-success));
+    --input-border-hover: color-mix(in oklch, var(--border-1-success) 72%, var(--text-2-success));
     --input-hint: var(--text-2-success);
   }
   a-input[status="info"] {
@@ -68,10 +73,28 @@
   a-input[size="small"] a-icon { --icon-size: 14px; }
   a-input[size="large"] a-icon { --icon-size: 18px; }
 
-  .dark a-input {
+  /* Optical top-nudge so the status glyph aligns with the hint's first line —
+     scaled to the size's type scale (small 0.5 · medium 1 · large 1.5). The glyph
+     is the direct child of the `hint` slot wrapper (the message sits in a nested
+     span), so `> a-icon` won't catch an icon inside the message itself. */
+  a-input [slot="hint"] > a-icon { margin-block-start: 1px; }
+  a-input[size="small"] [slot="hint"] > a-icon { margin-block-start: 0.5px; }
+  a-input[size="large"] [slot="hint"] > a-icon { margin-block-start: 1.5px; }
+
+  /* `:not([status])` so this neutral dark border doesn't clobber a status
+     border — same specificity as the per-status rules above, but later in
+     source, so without the guard it would win in dark mode and the status color
+     would show only on hover. Status borders use tone role tokens, which carry
+     their own dark variants, so they need no dark override here. */
+  .dark a-input:not([status]) {
     /* Dimmer than the light default (--border-2 reads too bright on the dark
-       surface); hover still lifts to --border-1. Status borders use tone role
-       tokens, which carry their own dark variants — no override needed here. */
+       surface); hover still lifts to --border-1. */
     --input-border: var(--border-3);
+  }
+  /* The success border's light-mode deepening would read muddy against the dark
+     surface — fall back to the muted dark role token there. */
+  .dark a-input[status="success"] {
+    --input-border: var(--border-1-success);
+    --input-border-hover: var(--border-1-success);
   }
 }

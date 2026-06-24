@@ -42,8 +42,8 @@ export interface InputProps extends BaseProps {
   status?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
   /** Glyph shown before the `hint` when `status` is set. Each status has a
    *  default (critical → `warning-diamond`, warning → `warning-triangle`,
-   *  success → `circle-check`, info → `info`); pass a shape to override, or
-   *  `false` to drop it. `brand` / `neutral` have no default glyph. */
+   *  success → `circle-check`, info → `info`, brand → `circle-small-solid`); pass a
+   *  shape to override, or `false` to drop it. `neutral` has no default glyph. */
   statusIcon?: IconShape | (string & {}) | false
   /** Size variant. small=24px, medium=28px, large=32px tall; the type scale and
    *  icon track the size (small 13/16 + 14px icon · medium 15/20 + 16px ·
@@ -178,13 +178,15 @@ const AUTOCOMPLETE_BY_TYPE: Record<string, string> = { email: 'email', tel: 'tel
 const INPUTMODE_BY_TYPE: Record<string, 'email' | 'tel' | 'url' | 'numeric'> = {
   email: 'email', tel: 'tel', url: 'url', number: 'numeric',
 }
-// Default glyph per status, prefixed to the message. `brand` / `neutral` have
-// none. Overridable per instance via `statusIcon` (or `statusIcon={false}`).
+// Default glyph per status, prefixed to the message. `neutral` has none (it's
+// the no-status case). Overridable per instance via `statusIcon` (or
+// `statusIcon={false}`).
 const STATUS_ICON: Record<string, IconShape> = {
   critical: 'warning-diamond',
   warning: 'warning-triangle',
   success: 'circle-check',
   info: 'info',
+  brand: 'circle-small-solid',
 }
 
 /**
@@ -323,7 +325,7 @@ export const Input = ({
       {hint != null && (
         <span slot="hint" style={{ display: 'contents' }}>
           {glyph && (
-            <Icon shape={glyph as IconShape} aria-hidden="true" style={{ marginTop: '2px' }} />
+            <Icon shape={glyph as IconShape} aria-hidden="true" />
           )}
           <span>{hint}</span>
         </span>

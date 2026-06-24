@@ -25,6 +25,7 @@ export const ICON_SHAPES = [
   'chevrons-right',
   'circle-check',
   'circle-large',
+  'circle-small-solid',
   'circle',
   'click',
   'clock',
@@ -217,6 +218,7 @@ declare module '@antadesign/anta' {
     'chevrons-right': true
     'circle-check': true
     'circle-large': true
+    'circle-small-solid': true
     'circle': true
     'click': true
     'clock': true
