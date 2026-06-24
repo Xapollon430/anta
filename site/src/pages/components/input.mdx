@@ -142,35 +142,38 @@ content.)
 </Col>
 </Columns>
 
-## Error
+## Status
 
 <Columns>
 <Col>
 
 <Preview>
-  <Input label="Email" defaultValue="not-an-email" error="Enter a valid email address." />
-  <Input label="Password" type="password" defaultValue="123" error />
+  <Input label="Email" defaultValue="not-an-email" status="critical" hint="Enter a valid email address." />
+  <Input label="Username" defaultValue="ada" status="success" hint="Username is available." />
+  <Input label="Password" type="password" defaultValue="hunter2" status="warning" hint="Weak — add more characters." />
 </Preview>
 
 ```tsx folded
-{/* A message marks the field invalid AND replaces the hint */}
-<Input label="Email" defaultValue="not-an-email" error="Enter a valid email address." />
-{/* `error` alone flags the border only */}
-<Input label="Password" type="password" defaultValue="123" error />
+<Input label="Email" defaultValue="not-an-email" status="critical" hint="Enter a valid email address." />
+<Input label="Username" defaultValue="ada" status="success" hint="Username is available." />
+<Input label="Password" type="password" defaultValue="hunter2" status="warning" hint="Weak — add more characters." />
 ```
 
 </Col>
 <Col>
 
-`error` takes a node/string **or** a boolean. Any truthy value flips the field
-to invalid — critical border, warning glyph, and the `:state(invalid)` hook. A
-message **replaces** the `hint`; a bare `error` (boolean) marks the border only.
+`status` tints the border and the `hint`, and prefixes a glyph — `critical`,
+`warning`, `success`, `info`, or `brand`. Each pulls its tone's role tokens, so
+dark mode is automatic. The message always rides in `hint`; `status` only
+recolors it.
 
-The glyph before the message is the `warning-diamond` icon — swap it with
-**`iconError`** (any icon shape), or `iconError={false}` to drop it.
+Only `status="critical"` carries validity — it sets `aria-invalid`, flips the
+`:state(invalid)` hook, and reports invalid to a surrounding `<form>` through
+`ElementInternals`. The other tones are advisory and stay valid.
 
-Invalid state also drives native validity through `ElementInternals`, so the
-field reports as invalid to a surrounding `<form>`.
+Each status has a default glyph (`critical` → `warning-diamond`, `warning` →
+`warning-triangle`, `success` → `circle-check`, `info` → `info`). Override it
+with **`statusIcon`** (any shape), or drop it with `statusIcon={false}`.
 
 </Col>
 </Columns>
@@ -480,7 +483,7 @@ blocked while invalid — no extra wiring.
 </Preview>
 
 ```tsx folded
-// Surface the browser's own validity messages as Anta's error UI.
+// Surface the browser's own validity messages as Anta's critical-status UI.
 const [errors, setErrors] = useState({})
 
 function onSubmit(e) {
@@ -493,9 +496,11 @@ function onSubmit(e) {
 }
 
 <form noValidate onSubmit={onSubmit}>
-  <Input name="email" type="email" required error={errors.email}
+  <Input name="email" type="email" required hint={errors.email}
+         status={errors.email ? 'critical' : undefined}
          onInput={() => setErrors(p => ({ ...p, email: undefined }))} />
-  <Input name="age" type="number" min="18" max="120" error={errors.age}
+  <Input name="age" type="number" min="18" max="120" hint={errors.age}
+         status={errors.age ? 'critical' : undefined}
          onInput={() => setErrors(p => ({ ...p, age: undefined }))} />
   <Button type="submit" label="Submit" />
 </form>
@@ -507,10 +512,10 @@ function onSubmit(e) {
 The element proxies native validity: `<a-input>` exposes `checkValidity()` and
 `validationMessage` (the browser's localized message).
 
-Read `validationMessage` and pass it to **`error`** — the field goes red, shows
-the warning glyph, and the message replaces the hint. Mark the form `noValidate`
-so the browser's default bubbles step aside for Anta's styling. Try submitting
-empty, or with a bad email / out-of-range age.
+Pass `validationMessage` to **`hint`** and set **`status="critical"`** — the
+field goes red, shows the warning glyph, and reports invalid to the form. Mark
+the form `noValidate` so the browser's default bubbles step aside for Anta's
+styling. Try submitting empty, or with a bad email / out-of-range age.
 
 </Col>
 </Columns>
@@ -702,7 +707,7 @@ hooks: `:state(filled)` and `:state(invalid)`. (The clear button itself is a
 real `<a-button>` in the `clear` slot — style it directly.)
 
 The border is drawn as an **inset `box-shadow`**, not a real `border`, so its
-width (`0.5px` → `1px` when invalid) and placement never change the box size —
+width (`0.5px` → `1px` when a `status` is set) and placement never change the box size —
 the field height stays locked to the matching Button. Drop the leading `inset`
 from the field's `box-shadow` to draw the border as an outset ring instead.
 
@@ -728,14 +733,12 @@ the input.
 | Token | Description |
 |---|---|
 | `--input-bg` | Field background. Defaults to `--bg-1`. |
-| `--input-border`<br />`--input-border-hover` | Border color at rest / hover. Default `--border-2` / `--border-1`. |
-| `--input-border-error` | Border color when `invalid`. |
+| `--input-border`<br />`--input-border-hover` | Border color at rest / hover. Default `--border-2` / `--border-1`. A `status` re-points both to its tone's `--border-1-*` role token. |
 | `--input-focus` | Focus-ring color. |
 | `--input-text` | Value (typed text) color. Defaults to `--text-1`. |
 | `--input-label` | Label color. Defaults to `--text-3`. |
 | `--input-placeholder` | Placeholder color. Defaults to `--text-4`. |
 | `--input-adornment` | Color of `leading` / `trailing` content — icons and plain text (a slotted `<Button>` keeps its own). Defaults to `--text-4`. |
-| `--input-hint` | Hint text color. Defaults to `--text-3`. |
-| `--input-error-text` | Error message + glyph color. Defaults to `--text-2-critical`. |
+| `--input-hint` | Hint message + glyph color. Defaults to `--text-3`; a `status` re-points it to its tone's `--text-2-*` role token. |
 
 </Disclosure>

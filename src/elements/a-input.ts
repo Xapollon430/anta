@@ -25,7 +25,7 @@ import './a-input.css'
  *     <slot name="leading" part="leading">
  *     <input|textarea part="input">                         ← created in JS per multiline/rows
  *     <slot name="trailing" part="trailing">
- *   <div class="hint" part="hint"><slot name="hint">       ← message; wrapper slots an error <Icon> here too when [invalid]
+ *   <div class="hint" part="hint"><slot name="hint">       ← message; wrapper slots a status <Icon> here too when [status]
  *
  * ## Value — controlled vs uncontrolled (mirrors a native input)
  *
@@ -44,9 +44,10 @@ import './a-input.css'
  * ## Declarative-DOM safety
  *
  * Nothing on the *host* is ever mutated from JS (the host may be reconciled off
- * the UI thread). Filled / invalid are surfaced via `ElementInternals` custom
- * states (`:state(filled)`, `:state(invalid)`) — element-internal, not host
- * attributes — purely as styling hooks (the wrapper's clear button shows on
+ * the UI thread). Filled / invalid (status="critical") are surfaced via
+ * `ElementInternals` custom states (`:state(filled)`, `:state(invalid)`) —
+ * element-internal, not host attributes — purely as styling hooks (the clear
+ * button shows on
  * `:state(filled)`). All other writes target the shadow control the element
  * created, which is its own sanctioned territory.
  */
@@ -128,14 +129,17 @@ const SHADOW_STYLE = `
     background: var(--input-bg);
     border-radius: 4px;
     /* The border is a shadow, not a real border, so it never affects the box
-       size: the rest→invalid width change (0.5px→1px) causes no reflow, and the
+       size: the rest→status width change (0.5px→1px) causes no reflow, and the
        height still matches a same-size Button. Drawn inset (inside the box);
        drop the leading \`inset\` to draw it as an outset ring instead. */
     box-shadow: inset 0 0 0 var(--_bw) var(--_bc);
     transition: box-shadow 120ms ease;
   }
   :host([multiline]) .field { align-items: stretch; }
-  :host([invalid]) .field { --_bw: 1px; }
+  /* Any (non-neutral) status thickens the border to 1px for emphasis; the color
+     comes from the per-status tone tokens in a-input.css. box-shadow border, so
+     no reflow. */
+  :host([status]) .field { --_bw: 1px; }
   /* Field height by size — matches the same-size Button (24 / 28 / 32). */
   :host([size="small"]) { --_fs: 13px; --_lh: 16px; }
   :host([size="large"]) { --_fs: 17px; --_lh: 24px; }
@@ -277,9 +281,9 @@ const SHADOW_STYLE = `
     line-height: calc(var(--_lh) - 2px);
   }
   .hint.has-hint { display: flex; }
-  /* Invalid recolors the whole hint row (message + the wrapper-rendered error
-     <Icon>, which paints with currentColor). */
-  :host([invalid]) .hint { color: var(--input-error-text); }
+  /* A status recolors the whole hint row (message + the wrapper-rendered status
+     <Icon>, which paints with currentColor) via the per-status \`--input-hint\`
+     override in a-input.css. */
 `
 
 type Control = HTMLInputElement | HTMLTextAreaElement
@@ -287,7 +291,7 @@ type Control = HTMLInputElement | HTMLTextAreaElement
 export class AInputElement extends HTMLElementBase {
   static formAssociated = true
   static observedAttributes = [
-    ...FORWARDED, 'value', 'defaultvalue', 'multiline', 'rows', 'maxrows', 'invalid', 'disabled',
+    ...FORWARDED, 'value', 'defaultvalue', 'multiline', 'rows', 'maxrows', 'status', 'disabled',
   ]
 
   private internals?: ElementInternals
@@ -414,10 +418,13 @@ export class AInputElement extends HTMLElementBase {
       else if (this.control instanceof HTMLTextAreaElement) this.configureTextarea(this.control)
       return
     }
-    if (name === 'invalid') {
-      this.control?.setAttribute('aria-invalid', value != null ? 'true' : 'false')
+    if (name === 'status') {
+      // Only `critical` carries validity weight (aria-invalid + customError +
+      // :state(invalid)); the other tones are advisory feedback, still valid.
+      const critical = value === 'critical'
+      this.control?.setAttribute('aria-invalid', critical ? 'true' : 'false')
       this.updateValidity()
-      try { value != null ? this.internals?.states.add('invalid') : this.internals?.states.delete('invalid') } catch {}
+      try { critical ? this.internals?.states.add('invalid') : this.internals?.states.delete('invalid') } catch {}
       return
     }
     if (name === 'disabled') { this.syncDisabled(); return }
@@ -444,7 +451,7 @@ export class AInputElement extends HTMLElementBase {
       this.forward(attr, this.getAttribute(attr))
     }
     this.syncDisabled()
-    if (this.hasAttribute('invalid')) next.setAttribute('aria-invalid', 'true')
+    if (this.getAttribute('status') === 'critical') next.setAttribute('aria-invalid', 'true')
     this.applyLabelAria()
     if (multiline) this.configureTextarea(next as HTMLTextAreaElement)
 
@@ -554,9 +561,9 @@ export class AInputElement extends HTMLElementBase {
     // Reflect the inner control's native constraints — valueMissing (from
     // `required`), typeMismatch (e.g. `type="email"`), patternMismatch,
     // tooShort/tooLong, … — onto the host so the surrounding <form> sees them.
-    // The explicit `invalid` prop layers a customError on top when the control
-    // is otherwise valid (so an app-level error still blocks submission).
-    if (this.hasAttribute('invalid') && c.validity.valid) {
+    // An explicit `status="critical"` layers a customError on top when the
+    // control is otherwise valid (so an app-level error still blocks submission).
+    if (this.getAttribute('status') === 'critical' && c.validity.valid) {
       this.internals.setValidity({ customError: true }, 'Invalid value.', c)
     } else {
       this.internals.setValidity(c.validity, c.validationMessage, c)

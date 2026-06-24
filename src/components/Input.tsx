@@ -32,17 +32,19 @@ export interface InputProps extends BaseProps {
    *  control as its accessible name (the element mirrors the label text to
    *  `aria-label`, since `<label for>` can't cross the shadow boundary). */
   label?: React.ReactNode
-  /** Helper text below the field (`--text-3`, no icon). Replaced by `error`
-   *  when that's set. */
+  /** Message below the field. Neutral helper text by default; `status` recolors
+   *  it and prefixes the matching glyph. */
   hint?: React.ReactNode
-  /** Error state. Truthy ⇒ the field is marked invalid (red border, warning
-   *  glyph). A node/string is shown below in place of `hint`; `true` flags the
-   *  border only. */
-  error?: React.ReactNode | boolean
-  /** Icon shown before the error message. Defaults to `warning-diamond`; pass
-   *  another shape (or any icon-name string) to swap it, or `false` to drop it.
-   *  @defaultValue warning-diamond */
-  iconError?: IconShape | (string & {}) | false
+  /** Validation / feedback tone — colors the border + `hint` and prefixes a
+   *  glyph. Only `critical` marks the field invalid (`aria-invalid`, blocks form
+   *  submission, `:state(invalid)`); `success` / `warning` / `info` / `brand`
+   *  are advisory and stay valid. Omit (or `neutral`) for a plain field. */
+  status?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
+  /** Glyph shown before the `hint` when `status` is set. Each status has a
+   *  default (critical → `warning-diamond`, warning → `warning-triangle`,
+   *  success → `circle-check`, info → `info`); pass a shape to override, or
+   *  `false` to drop it. `brand` / `neutral` have no default glyph. */
+  statusIcon?: IconShape | (string & {}) | false
   /** Size variant. small=24px, medium=28px, large=32px tall; the type scale and
    *  icon track the size (small 13/16 + 14px icon · medium 15/20 + 16px ·
    *  large 17/24 + 18px).
@@ -176,6 +178,14 @@ const AUTOCOMPLETE_BY_TYPE: Record<string, string> = { email: 'email', tel: 'tel
 const INPUTMODE_BY_TYPE: Record<string, 'email' | 'tel' | 'url' | 'numeric'> = {
   email: 'email', tel: 'tel', url: 'url', number: 'numeric',
 }
+// Default glyph per status, prefixed to the message. `brand` / `neutral` have
+// none. Overridable per instance via `statusIcon` (or `statusIcon={false}`).
+const STATUS_ICON: Record<string, IconShape> = {
+  critical: 'warning-diamond',
+  warning: 'warning-triangle',
+  success: 'circle-check',
+  info: 'info',
+}
 
 /**
  * `<Input>` — a text field. Renders an `<a-input>` web component whose real
@@ -197,8 +207,8 @@ const INPUTMODE_BY_TYPE: Record<string, 'email' | 'tel' | 'url' | 'numeric'> = {
 export const Input = ({
   label,
   hint,
-  error,
-  iconError = 'warning-diamond',
+  status,
+  statusIcon,
   size,
   value,
   defaultValue,
@@ -234,10 +244,10 @@ export const Input = ({
   style,
   ...rest
 }: InputProps) => {
-  const invalid = !!error
-  // error replaces hint as the message; a boolean `error` flags the border only.
-  const message =
-    error != null && typeof error !== 'boolean' ? error : invalid ? undefined : hint
+  // `hint` is the single message channel; `status` only recolors it + adds a
+  // glyph. `statusIcon` overrides the per-status default; `false` drops it.
+  const tone = status && status !== 'neutral' ? status : undefined
+  const glyph = statusIcon === undefined ? (tone ? STATUS_ICON[tone] : undefined) : statusIcon
 
   return (
     <a-input
@@ -247,7 +257,7 @@ export const Input = ({
       multiline={presence(multiline || rows != null)}
       rows={rows != null ? String(rows) : undefined}
       maxrows={maxRows != null ? String(maxRows) : undefined}
-      invalid={presence(invalid)}
+      status={tone}
       type={!multiline && rows == null ? type : undefined}
       name={name}
       placeholder={placeholder}
@@ -264,7 +274,7 @@ export const Input = ({
       min={min}
       max={max}
       step={step}
-      aria-invalid={invalid ? 'true' : undefined}
+      aria-invalid={status === 'critical' ? 'true' : undefined}
       oninput={onInput || onAnyChange ? (e: any) => { onInput?.(e); onAnyChange?.(e, attrsOf(e)) } : undefined}
       onchange={onChange || onAnyChange ? (e: any) => { onChange?.(e); onAnyChange?.(e, attrsOf(e)) } : undefined}
       onclearclick={onClearClick}
@@ -310,12 +320,12 @@ export const Input = ({
         </span>
       )}
 
-      {message != null && (
+      {hint != null && (
         <span slot="hint" style={{ display: 'contents' }}>
-          {invalid && iconError !== false && (
-            <Icon shape={iconError as IconShape} aria-hidden="true" style={{ marginTop: '2px' }} />
+          {glyph && (
+            <Icon shape={glyph as IconShape} aria-hidden="true" style={{ marginTop: '2px' }} />
           )}
-          <span>{message}</span>
+          <span>{hint}</span>
         </span>
       )}
 

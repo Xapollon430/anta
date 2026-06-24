@@ -263,8 +263,10 @@ export interface AInputAttributes extends BaseAttributes {
   rows?: number | string
   /** Cap autogrow height (rows) for a multiline field with no `rows`. */
   maxrows?: number | string
-  /** Invalid state — critical border + warning glyph. Presence-based. */
-  invalid?: boolean | ''
+  /** Validation/feedback tone — colors the border + message and (via the
+   *  wrapper) the glyph. Only `critical` carries validity weight (`aria-invalid`
+   *  + `:state(invalid)`); the others are advisory. Omit for the neutral field. */
+  status?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
   /** Disabled state. Presence-based. */
   disabled?: boolean | ''
   /** Read-only state. Presence-based. */

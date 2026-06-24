@@ -11,7 +11,6 @@
     --input-bg: var(--bg-1);
     --input-border: var(--border-2);
     --input-border-hover: var(--border-1);
-    --input-border-error: #c9302c;
     --input-focus: var(--focus-ring);
 
     --input-text: var(--text-1);
@@ -19,19 +18,41 @@
     --input-placeholder: var(--text-4);
     --input-adornment: var(--text-4);
     --input-hint: var(--text-3);
-    --input-error-text: var(--text-2-critical);
 
     /* `display` is owned by the shadow `:host` (a grid) so consumer CSS can
        re-template it; we only set the box width here. */
     width: 100%;
   }
 
-  /* Invalid: the border goes critical and stops reacting to hover (the 1px
-     width bump + warning glyph + error message are handled inside the shadow
-     off the same `[invalid]` host attribute). */
-  a-input[invalid] {
-    --input-border: var(--input-border-error);
-    --input-border-hover: var(--input-border-error);
+  /* Status: the border + message (and the wrapper-slotted glyph, via
+     currentColor) take the matching tone's role tokens, so dark mode is free.
+     The 1px width bump and the glyph are handled in the shadow off the same
+     `[status]` host attribute; only `critical` also drives validity. The border
+     stops reacting to hover (hover == border, so pin it to the status color). */
+  a-input[status="critical"] {
+    --input-border: var(--border-1-critical);
+    --input-border-hover: var(--border-1-critical);
+    --input-hint: var(--text-2-critical);
+  }
+  a-input[status="warning"] {
+    --input-border: var(--border-1-warning);
+    --input-border-hover: var(--border-1-warning);
+    --input-hint: var(--text-2-warning);
+  }
+  a-input[status="success"] {
+    --input-border: var(--border-1-success);
+    --input-border-hover: var(--border-1-success);
+    --input-hint: var(--text-2-success);
+  }
+  a-input[status="info"] {
+    --input-border: var(--border-1-info);
+    --input-border-hover: var(--border-1-info);
+    --input-hint: var(--text-2-info);
+  }
+  a-input[status="brand"] {
+    --input-border: var(--border-1-brand);
+    --input-border-hover: var(--border-1-brand);
+    --input-hint: var(--text-2-brand);
   }
 
   a-input[disabled] {
@@ -49,8 +70,8 @@
 
   .dark a-input {
     /* Dimmer than the light default (--border-2 reads too bright on the dark
-       surface); hover still lifts to --border-1. */
+       surface); hover still lifts to --border-1. Status borders use tone role
+       tokens, which carry their own dark variants — no override needed here. */
     --input-border: var(--border-3);
-    --input-border-error: #de4545;
   }
 }

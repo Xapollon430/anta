@@ -5,7 +5,8 @@ import { Input, Button } from '@antadesign/anta'
  * Shows native constraint validation surfaced as Anta's *own* error UI. The
  * form is `noValidate` (so the browser's default bubbles are suppressed); on
  * submit we read each field's `validationMessage` (computed natively from
- * `type` / `required` / `min` / `max`) and feed it straight into `error`.
+ * `type` / `required` / `min` / `max`) into `hint`, and flag the field with
+ * `status="critical"`.
  */
 export default function InputValidationDemo() {
   const [errors, setErrors] = useState<Record<string, string | undefined>>({})
@@ -38,7 +39,8 @@ export default function InputValidationDemo() {
         label="Email"
         placeholder="you@example.com"
         required
-        error={errors.email}
+        hint={errors.email}
+        status={errors.email ? 'critical' : undefined}
         onInput={() => clear('email')}
       />
       <Input
@@ -46,7 +48,8 @@ export default function InputValidationDemo() {
         type="url"
         label="Website"
         placeholder="https://…"
-        error={errors.site}
+        hint={errors.site}
+        status={errors.site ? 'critical' : undefined}
         onInput={() => clear('site')}
       />
       <Input
@@ -56,7 +59,8 @@ export default function InputValidationDemo() {
         placeholder="18 – 120"
         min="18"
         max="120"
-        error={errors.age}
+        hint={errors.age}
+        status={errors.age ? 'critical' : undefined}
         onInput={() => clear('age')}
       />
       <div style={{ display: 'flex', gap: '8px' }}>
