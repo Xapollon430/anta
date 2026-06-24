@@ -10,7 +10,7 @@
     --menu-item-active: 10%;
     --menu-item-padding-x: 8px;
     --menu-item-padding-y: 6px;
-    --menu-item-focus: #503cb4;
+    --menu-item-focus: var(--focus-ring);
 
     display: flex;
     flex-shrink: 0;
@@ -111,6 +111,5 @@
   .dark a-menu-item {
     --menu-item-hover: 13%;
     --menu-item-active: 19%;
-    --menu-item-focus: #a897fc;
   }
 }

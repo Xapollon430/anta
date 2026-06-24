@@ -60,20 +60,16 @@ via `ElementInternals`, reporting its value under `name`.
 </Col>
 <Col>
 
-Three sizes (`medium` is the default). Only the field **height** changes — the
-font (**15px / 20px**) and the **7px** horizontal text padding stay constant at
-every size, so text alignment across a form of mixed-size fields stays
-consistent.
+Three sizes (`medium` is the default). The field **height**, the **type scale**
+(font / line-height), and the **icon** all track the size; the **7px**
+horizontal text padding stays constant. Each step matches Anta's text scale, so
+a field lines up with same-size `Text` / `Button`.
 
-| size | height | text padding-x |
-|---|---|---|
-| `small` | 24px | 7px |
-| `medium` (default) | 28px | 7px |
-| `large` | 32px | 7px |
-
-Each size is exactly the **same height as the matching `Button`** size
-(24 / 28 / 32px), so an input and a button sit flush on one row — a search
-field next to a submit button, an input group, a toolbar.
+| size | height | font / line | icon | padding-x |
+|---|---|---|---|---|
+| `small` | 24px | 13 / 16 | 14px | 7px |
+| `medium` | 28px | 15 / 20 | 16px | 7px |
+| `large` | 32px | 17 / 24 | 18px | 7px |
 
 </Col>
 </Columns>
@@ -202,24 +198,18 @@ left by the same `pad-x` as the text, so it lines up on the field's rhythm; the
 playground at the top of this page shows a live leading icon alongside the clear
 button.
 
-`clearable` adds a built-in clear button at the right edge that appears once the
-field has a value (the element owns its visibility via the filled state). It's a
-real `<a-button>` in the element's dedicated `clear` slot, so it gets the full
-button styling and is **keyboard-focusable**. It carries
-`data-custom-event="clearrequest"`, so a-button's own global handler fires that
-bubbling trigger on click *and* Enter/Space — the element turns it into the
-public clear lifecycle, which works **without any framework hydration**.
+`clearable` adds a clear button at the right edge, shown once the field has a
+value. It's a real `<a-button>` in the `clear` slot — full button styling,
+**keyboard-focusable** — and it works **without framework hydration**: a-button's
+global handler fires a `clearrequest` trigger on click and Enter/Space, which the
+element turns into the lifecycle below.
 
-The lifecycle has two hooks. **`onClearClick`** fires *first*, before anything
-is touched, and is **cancelable** — call `e.preventDefault()` to keep the
-current value (handy for a "discard unsaved text?" confirm). If it isn't
-prevented, the element clears: it empties the field, fires `input` / `change`
-(so a controlled consumer's `onChange` runs with an empty value), refocuses the
-control, and finally fires **`onClearInput`** — so that one is the "it was
-actually cleared" hook. Both are backed by bubbling element events (`clearclick`
-and `clearinput`); on a raw `<a-input>` bind them all-lowercase as `onclearclick`
-/ `onclearinput` (React keeps the case after `on` while Preact lowercases, so
-lowercase works in both).
+Two hooks bracket the clear. **`onClearClick`** fires first and is **cancelable** —
+`e.preventDefault()` keeps the value (e.g. a "discard unsaved text?" confirm). If
+it isn't prevented, the field clears: it empties, fires `input` / `change` (a
+controlled `onChange` runs with the empty value), refocuses, then fires
+**`onClearInput`**. On a raw `<a-input>`, bind both lowercase (`onclearclick` /
+`onclearinput`) — that form binds in React and Preact alike.
 
 Note: there's no `type="search"` — that type makes browsers inject their own
 clear button and magnifier (and style them inconsistently). Anta owns every
@@ -287,10 +277,9 @@ chevron `<Button>` that toggles a menu, and a few option `<Button>`s that set
 the value and close. The chevron rotates on open, and the menu closes on outside
 click / `Escape`.
 
-This is illustrative — a real `<Select>` will own the popover positioning,
-keyboard navigation (arrow keys, type-ahead), and the full listbox ARIA. The
-point here is that the field itself already provides the slots and states the
-pattern needs.
+This is illustrative; a real `<Select>` will own the popover positioning,
+keyboard navigation, and listbox ARIA. The point: the field already provides the
+slots and states such a pattern needs.
 
 </Col>
 </Columns>
@@ -333,10 +322,9 @@ stays a real `type="password"` when hidden, password managers and autofill keep
 working. The `selected` button state reflects the toggle, and the uncontrolled
 value is preserved across it.
 
-(The mask glyph stays the browser default — it can't be restyled on a native
-password field. Controlling the glyph means dropping `type="password"`, which
-loses manager support and isn't masked in Firefox, so it's intentionally not a
-built-in.)
+The mask glyph stays the browser default — restyling it means dropping
+`type="password"`, which loses password-manager support and isn't masked in
+Firefox. So Anta keeps the native field.
 
 </Col>
 </Columns>
@@ -514,15 +502,13 @@ function onSubmit(e) {
 </Col>
 <Col>
 
-Turning standard validation into Anta's own error styling is **easy** — the
-element already does the work. The inner control computes native validity, and
-the element proxies it: `<a-input>` exposes `checkValidity()` and
+The element proxies native validity: `<a-input>` exposes `checkValidity()` and
 `validationMessage` (the browser's localized message).
 
-So you read `validationMessage` and pass it to **`error`** — the field goes red,
-shows the warning glyph, and the message replaces the hint. Mark the form
-`noValidate` so the browser's default bubbles step aside and Anta's styling
-shows instead. Try submitting empty or with a bad email / out-of-range age.
+Read `validationMessage` and pass it to **`error`** — the field goes red, shows
+the warning glyph, and the message replaces the hint. Mark the form `noValidate`
+so the browser's default bubbles step aside for Anta's styling. Try submitting
+empty, or with a bad email / out-of-range age.
 
 </Col>
 </Columns>
@@ -533,11 +519,10 @@ shows instead. Try submitting empty or with a bad email / out-of-range age.
 <Col>
 
 The label, field, and hint **aren't hardcoded to "stacked."** The element lays
-them out as a single-column **grid** by default — that's where the familiar
-label-above / hint-below rhythm comes from — and exposes each region as a shadow
-part (`label`, `field`, `hint`). So you rearrange them entirely from your own
-CSS: re-template the grid on `a-input`, then place the parts. There's no layout
-prop to learn and nothing to opt into; your rule wins because the element's
+them out as a single-column **grid** (hence the default label-above / hint-below
+rhythm) and exposes each region as a shadow part (`label`, `field`, `hint`).
+Rearrange them from your own CSS: re-template the grid on `a-input`, then place
+the parts. No layout prop to learn — your rule wins because the element's
 defaults live in `@layer anta`.
 
 </Col>
@@ -589,7 +574,7 @@ under the field by landing in the same column.
 `}</style>
 ```
 
-### A shared label column across a form
+### Label column
 
 Put the fields in a grid and let each one adopt the form's tracks with
 `grid-template-columns: subgrid` — which reaches *through* the shadow boundary,

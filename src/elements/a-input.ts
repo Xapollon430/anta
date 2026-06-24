@@ -86,6 +86,12 @@ const SHADOW_STYLE = `
      column with a 4px row rhythm — i.e. the familiar stacked layout. An empty
      label/hint is display:none, so it contributes no track or gap. */
   :host {
+    /* Type scale by size (small 13/16 · medium 15/20 · large 17/24) — the label,
+       control, and hint all read these; the field min-height (below) still
+       anchors the box height to the matching Button, and the text centers in it. */
+    --_fs: 15px;
+    --_lh: 20px;
+
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     row-gap: 4px;
@@ -96,8 +102,8 @@ const SHADOW_STYLE = `
     display: none;
     color: var(--input-label);
     font-family: var(--sans-serif);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--_fs);
+    line-height: var(--_lh);
     font-weight: 500;
   }
   .label.has-label { display: block; }
@@ -122,6 +128,8 @@ const SHADOW_STYLE = `
   :host([multiline]) .field { align-items: stretch; }
   :host([invalid]) .field { --_bw: 1px; }
   /* Field height by size — matches the same-size Button (24 / 28 / 32). */
+  :host([size="small"]) { --_fs: 13px; --_lh: 16px; }
+  :host([size="large"]) { --_fs: 17px; --_lh: 24px; }
   :host([size="small"]) .field { min-height: 24px; }
   :host([size="large"]) .field { min-height: 32px; }
 
@@ -153,8 +161,8 @@ const SHADOW_STYLE = `
     color: var(--input-text);
     font-family: var(--sans-serif);
     font-feature-settings: 'ss02', 'ss05';
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--_fs);
+    line-height: var(--_lh);
     font-weight: 400;
     /* No browser-injected affordances (search clear/magnifier, number spinners,
        reveal/clear in Edge) — Anta owns every in-field control. */
@@ -220,8 +228,8 @@ const SHADOW_STYLE = `
     align-items: flex-start;
     color: var(--input-hint);
     font-family: var(--sans-serif);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--_fs);
+    line-height: var(--_lh);
   }
   .hint.has-hint { display: flex; }
   /* Invalid recolors the whole hint row (message + the wrapper-rendered error

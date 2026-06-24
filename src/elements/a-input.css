@@ -3,14 +3,16 @@
      can re-point a single instance or a whole theme. Text/bg/border point at
      Anta's theme-aware role tokens (so dark mode is mostly free); the focus
      ring and the error border are literals (no role token matches them) and
-     get a `.dark` override below. Sizes change height + horizontal padding
-     only — the font stays 15/20 at every size (per the design). */
+     get a `.dark` override below. Sizes set the field height plus a per-size
+     type scale (small 13/16 · medium 15/20 · large 17/24) and icon size
+     (14/16/18); the field min-height still anchors the box to the same-size
+     Button. */
   a-input {
     --input-bg: var(--bg-1);
     --input-border: var(--border-2);
     --input-border-hover: var(--border-1);
     --input-border-error: #c9302c;
-    --input-focus: #503cb4;
+    --input-focus: var(--focus-ring);
 
     --input-text: var(--text-1);
     --input-label: var(--text-1);
@@ -38,8 +40,13 @@
     cursor: not-allowed;
   }
 
+  /* Icon size tracks the field size — small 14 / medium 16 (the a-icon default)
+     / large 18. Targets the slotted leading / trailing / clear icons (light-DOM
+     descendants); an explicit `<Icon size>` (inline `--icon-size`) still wins. */
+  a-input[size="small"] a-icon { --icon-size: 14px; }
+  a-input[size="large"] a-icon { --icon-size: 18px; }
+
   .dark a-input {
     --input-border-error: #de4545;
-    --input-focus: #a897fc;
   }
 }

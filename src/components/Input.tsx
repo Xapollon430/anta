@@ -7,14 +7,10 @@ import { Icon } from './Icon'
 export interface InputChangeAttrs {
   /** Current value. */
   value: string
-  /** The field's `name` — handy for keyed updates: `s => ({ ...s, [name]: value })`. */
+  /** The field's `name` — handy for keyed updates: `s => ({ ...s, [name]: value })`.
+   *  The one caller-provided field carried here, for that pattern; read anything
+   *  else (`id`, `type`, `className`) off `event.target`. */
   name?: string
-  /** The field's `id`. */
-  id?: string
-  /** `'text'` (or the set single-line `type`); `'textarea'` when multiline. */
-  type: string
-  /** The field's class name. */
-  className?: string
   /** `true` when the value is empty. */
   empty: boolean
   /** Whether the field currently passes validation (native + `error`). `undefined`
@@ -47,8 +43,9 @@ export interface InputProps extends BaseProps {
    *  another shape (or any icon-name string) to swap it, or `false` to drop it.
    *  @defaultValue warning-diamond */
   iconError?: IconShape | (string & {}) | false
-  /** Size variant. small=24px, medium=28px, large=32px tall; the font stays
-   *  15px at every size.
+  /** Size variant. small=24px, medium=28px, large=32px tall; the type scale and
+   *  icon track the size (small 13/16 + 14px icon · medium 15/20 + 16px ·
+   *  large 17/24 + 18px).
    *  @defaultValue medium */
   size?: 'small' | 'medium' | 'large'
   /** Controlled value. Pair with `onChange` / `onInput`. */
@@ -104,10 +101,10 @@ export interface InputProps extends BaseProps {
   onChange?: (e: any) => void
   /** Unified value-change handler — the easy path for state. Fires on `input`
    *  *and* `change` (and on clear), with the native `event` plus a convenience
-   *  `attrs` snapshot (`value`, `name`, `id`, `type`, `className`, `empty`,
-   *  `valid`, `validationMessage`) so you can do `setForm(s => ({ ...s,
-   *  [attrs.name]: attrs.value }))` without digging into the event. Use
-   *  `event.type` to tell a live edit (`input`) from a commit (`change`). */
+   *  `attrs` snapshot (`value`, `name`, `empty`, `valid`, `validationMessage`) so
+   *  you can do `setForm(s => ({ ...s, [attrs.name]: attrs.value }))` without
+   *  digging into the event. Use `event.type` to tell a live edit (`input`) from
+   *  a commit (`change`); read `id` / `type` / `className` off `event.target`. */
   onAnyChange?: (event: any, attrs: InputChangeAttrs) => void
   /** Fires when the built-in clear button (`clearable`) is clicked, *before*
    *  the field is cleared. Call `e.preventDefault()` to keep the current value
@@ -134,17 +131,15 @@ const presence = (on: boolean | undefined) => (on ? '' : undefined)
 const isStringish = (n: React.ReactNode) => typeof n === 'string' || typeof n === 'number'
 
 // Build the `onAnyChange` attrs snapshot from the event target (the <a-input>
-// host — events retarget to it, and id/name/value/class all live there).
+// host — the value retargets to it). Carries the value + derived results only;
+// `name` is the lone caller-provided field, kept for keyed `[name]: value`
+// updates. Read `id` / `type` / `className` off `event.target` if needed.
 const attrsOf = (e: any): InputChangeAttrs => {
   const el = e?.target ?? {}
   const value = el.value ?? ''
-  const multiline = el.getAttribute?.('multiline') != null || el.getAttribute?.('rows') != null
   return {
     value,
     name: el.getAttribute?.('name') ?? undefined,
-    id: el.id || undefined,
-    type: multiline ? 'textarea' : el.getAttribute?.('type') ?? 'text',
-    className: el.className || undefined,
     empty: !value,
     valid: el.validity ? el.validity.valid : undefined,
     validationMessage: el.validationMessage ?? '',

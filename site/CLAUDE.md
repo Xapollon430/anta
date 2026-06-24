@@ -59,6 +59,21 @@ cd site && pnpm run build    # static build (site only)
 
 The site's own `pnpm run dev` (which the root command invokes under the hood) chains through `docs:api` (typedoc → `src/api.json`), `docs:pages` (regenerate index.mdx from README.md), `docs:wasm` (copy esbuild.wasm), and `docs:iframe-runtime` (rebuild iframe runtime) before starting Astro.
 
+## Docs prose style
+
+Component-page copy should be **precise, concrete, and said once** — dense with information but not with words. The failure mode here is the four-clause run-on stitched together with em-dashes and parentheticals. Check every sentence against these:
+
+- **Lead with the point.** A section's first sentence states what the thing *is* or *does*; details follow. No throat-clearing ("In this section we'll look at…").
+- **One idea per sentence.** Two em-dashes or two parentheticals in a sentence means it's doing too much — split it.
+- **Don't narrate the props table.** `PropsTable` already lists names, types, and defaults; prose adds only what a table can't — *when* to reach for a prop, gotchas, interactions. Never restate each value as a sentence.
+- **Show over tell.** A short code block beats a paragraph describing the code.
+- **Cut filler.** Drop "simply / just / basically / note that"; "in order to" → "to", "is able to" → "can", "a number of" → "several".
+- **Active voice, present tense, second person.** "Pass `open` to control it," not "`open` can be passed."
+- **Say each fact once**, in its most relevant section; cross-reference rather than repeat.
+- **Concrete, not vague.** "24px tall," not "appropriately sized."
+
+This tightens the existing voice — it doesn't dumb it down. Keep the technical depth; cut the word count. `input.mdx` is the worked reference for the tightened style.
+
 ## Component reference tables
 
 - **Props table is automatic.** `<PropsTable component="Button" />` derives everything from `src/api.json` (typedoc) and `PropsTable.astro` owns the rendering, so it's uniform across pages — don't hand-format props. How it renders (for reference, all in `PropsTable.astro`): prop name = monospace, weight 475, no code pill; the optional `?` is a separate `--text-5` element with `user-select: none` (double-click selects just the name, copy omits the `?`); the type column lists each union member on its own line (no `|`), with **type names** (`string`/`number`/`boolean` and named types like `IconShape`) as plain `--text-3` monospace and **literal values** as copyable `<code>` pills with the surrounding quotes stripped (e.g. `neutral`); "no value" em-dashes in the Type/Default columns use `--text-5`.
