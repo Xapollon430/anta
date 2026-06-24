@@ -17,6 +17,8 @@
  * See site/lib/sandbox/* for the moving parts.
  */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
+import { Input, Tooltip, Text } from '@antadesign/anta'
+import { marked } from 'marked'
 import s from './Playground.module.css'
 // Monaco ships its structural CSS as ~110 separate `import './x.css'`
 // side-effect imports inside its ESM build. Vite injects each one
@@ -873,6 +875,39 @@ function FormField({
     )
   }
 
+  // Text/number controls are Anta <Input>s, which carry their own label — so we
+  // drop the external label row and pass the name (+ description as an Anta
+  // <Tooltip>, + the "set by code" badge) into the Input's `label` prop.
+  if (c.kind === 'text' || c.kind === 'number') {
+    const inputLabel = (
+      <span style={c.description ? { cursor: 'help' } : undefined}>
+        <span class={s.fieldName}>{c.name}</span>
+        {c.description ? (
+          // Render the description's inline markdown (it's full of `code` spans)
+          // and wrap it in a small <Text> for the bubble. Source is our own
+          // TSDoc (build-time api.json), so the HTML is trusted.
+          <Tooltip>
+            <Text size="small">
+              <span dangerouslySetInnerHTML={{ __html: marked.parseInline(c.description) as string }} />
+            </Text>
+          </Tooltip>
+        ) : null}
+        {fromExpression ? <span class={s.fieldExpressionBadge}> · set by code</span> : null}
+      </span>
+    )
+    return (
+      <div class={s.field}>
+        <FieldControl
+          control={c}
+          value={value}
+          disabled={fromExpression}
+          onChange={handle}
+          label={inputLabel}
+        />
+      </div>
+    )
+  }
+
   return (
     <div class={s.field}>
       <div class={s.fieldLabel}>
@@ -900,11 +935,14 @@ function FieldControl({
   value,
   disabled,
   onChange,
+  label,
 }: {
   control: Control
   value: string | number | boolean | undefined
   disabled: boolean
   onChange: (v: string | number | boolean | null) => void
+  /** Rendered as the Anta <Input>'s own label (text/number controls only). */
+  label?: React.ReactNode
 }) {
   const cls = disabled ? s.disabled : ''
   switch (control.kind) {
@@ -921,15 +959,18 @@ function FieldControl({
           disabled={disabled}
         />
       )
+    // Dogfood Anta's <Input> for the text & number controls (small size); it's a
+    // text field that also handles type="number". Slider/color/etc. stay native.
     case 'number':
       return (
-        <input
+        <Input
+          label={label}
           type="number"
-          class={`${s.number} ${cls}`}
-          value={typeof value === 'number' ? value : ''}
+          size="small"
+          value={typeof value === 'number' ? String(value) : ''}
           placeholder={control.defaultValue != null ? String(control.defaultValue) : ''}
-          onInput={(e) => {
-            const v = (e.currentTarget as HTMLInputElement).value
+          onInput={(e: any) => {
+            const v = e.target.value as string
             onChange(v === '' ? null : Number(v))
           }}
           disabled={disabled}
@@ -937,12 +978,13 @@ function FieldControl({
       )
     case 'text':
       return (
-        <input
+        <Input
+          label={label}
           type="text"
-          class={`${s.text} ${cls}`}
+          size="small"
           value={typeof value === 'string' ? value : ''}
           placeholder={control.defaultValue ?? ''}
-          onInput={(e) => onChange((e.currentTarget as HTMLInputElement).value)}
+          onInput={(e: any) => onChange(e.target.value as string)}
           disabled={disabled}
         />
       )
