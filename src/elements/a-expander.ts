@@ -202,9 +202,6 @@ const SUMMARY_LEVEL_RULES = Object.entries(SUMMARY_TYPE_SCALE)
   )
   .join('\n  ')
 
-const CHEVRON =
-  "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m9 18 6-6-6-6'/%3e%3c/svg%3e\")"
-
 const SHADOW_STYLE = `
   :host { display: block; }
 
@@ -275,8 +272,8 @@ const SHADOW_STYLE = `
     width: 16px;
     height: 16px;
     background-color: currentColor;
-    -webkit-mask-image: ${CHEVRON};
-            mask-image: ${CHEVRON};
+    -webkit-mask-image: var(--_expander-chevron);
+            mask-image: var(--_expander-chevron);
     -webkit-mask-size: contain;
             mask-size: contain;
     -webkit-mask-repeat: no-repeat;
