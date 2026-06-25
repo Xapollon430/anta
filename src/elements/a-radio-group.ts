@@ -46,6 +46,8 @@ export class ARadioGroupElement extends HTMLElementBase {
 
   private internals?: ElementInternals;
   private uncontrolledValue: string | null = null;
+  private seeded = false;
+  private observer?: MutationObserver;
 
   constructor() {
     super();
@@ -53,20 +55,45 @@ export class ARadioGroupElement extends HTMLElementBase {
   }
 
   connectedCallback() {
-    this.uncontrolledValue = this.getAttribute("default-state");
+    // Seed the uncontrolled value only on the FIRST connect (see a-checkbox): a
+    // user's selection must survive DOM moves / re-parents rather than snapping
+    // back to `default-state`. `formResetCallback` re-seeds on purpose. The
+    // listeners use stable arrow-fn refs, so re-adding on reconnect is a no-op.
+    if (!this.seeded) {
+      this.uncontrolledValue = this.getAttribute("default-state");
+      this.seeded = true;
+    }
     this.addEventListener("click", this.onClick);
     this.addEventListener("keydown", this.onKeyDown);
+
+    // Reconcile selection + the submitted form value when options are added OR
+    // removed. The element owns this (a JSX wrapper has no live DOM handle in a
+    // worker-rendered tree). Scoped to <a-radio> add/remove (ignores label-text
+    // churn) and coalesced by MutationObserver into one callback per batch — so
+    // mounting N options is a single O(N) sync, not N. Realm-correct constructor
+    // (`this.view`) for the iframe-hosted playground.
+    this.observer ??= new this.view.MutationObserver((records) => {
+      const touchedOptions = records.some((rec) =>
+        [...rec.addedNodes, ...rec.removedNodes].some(
+          (n) =>
+            n.nodeName === "A-RADIO" ||
+            (n as Element).querySelector?.("a-radio") != null,
+        ),
+      );
+      if (touchedOptions) this.sync();
+    });
+    this.observer.observe(this, { childList: true, subtree: true });
+
     this.sync();
+  }
+
+  disconnectedCallback() {
+    this.observer?.disconnect();
   }
 
   attributeChangedCallback() {
     this.sync();
   }
-
-  /** A child <a-radio> calls this on connect so an option added after mount
-   *  still gets its `selected` property wired up. (Add-only — a removed option
-   *  reconciles on the next sync.) */
-  requestSync = () => this.sync();
 
   formDisabledCallback(disabled: boolean) {
     if (disabled) this.internals?.states.add("disabled");
@@ -75,22 +102,20 @@ export class ARadioGroupElement extends HTMLElementBase {
   }
 
   formResetCallback() {
-    // Rewind to `default-state`. Uncontrolled self-applies via sync() below; for
-    // the controlled/wrapper case we also dispatch `statechange` so the controller
-    // (the RadioGroup wrapper's useState, or the app) follows the reset.
+    // Rewind to `default-state`. Uncontrolled self-applies via sync() below; the
+    // `reason: "reset"` statechange lets a controller (the RadioGroup wrapper's
+    // mirror, or the app) follow without mistaking it for a user pick.
     const next = this.getAttribute("default-state");
-    this.dispatchEvent(
-      new CustomEvent("statechange", {
-        bubbles: true,
-        composed: true,
-        detail: { next, prev: this.currentValue },
-      }),
-    );
+    this.emitStateChange(next, this.currentValue, "reset", false);
     this.uncontrolledValue = next;
     this.sync();
   }
 
   formStateRestoreCallback(state: string) {
+    // bfcache / autofill restore changes selection without a user pick — emit a
+    // `reason: "restore"` statechange so the wrapper's roving-tabindex mirror (and
+    // any app controller) re-syncs instead of diverging from the restored dot.
+    this.emitStateChange(state, this.currentValue, "restore", false);
     this.uncontrolledValue = state;
     this.sync();
   }
@@ -115,14 +140,16 @@ export class ARadioGroupElement extends HTMLElementBase {
 
   private sync = () => {
     const value = this.currentValue;
-    // Submit name=value when something is selected; submit nothing when the
-    // selection is empty/cleared (matches a native radio group with nothing checked).
-    this.internals?.setFormValue(value ? value : null, value);
-
     const radios = this.radios;
-    const selectedEl =
-      radios.find((r) => r.value === value && value != null && value !== "") ??
-      null;
+    // `null` (attribute absent) means "nothing selected"; an empty string is a
+    // *real* value (a legitimate `value=""` option), so only the null check guards.
+    const selectedEl = radios.find((r) => r.value === value && value != null) ?? null;
+
+    // Submit (and seed bfcache with) the *resolved* radio's value, not the raw
+    // `value` — so a value with no matching option (e.g. the selected option was
+    // removed) submits nothing rather than a phantom string.
+    const submitted = selectedEl ? selectedEl.value : null;
+    this.internals?.setFormValue(submitted, submitted);
 
     // Selection, off-DOM: set the `selected` *property* on each radio; the radio
     // turns that into :state(selected) + aria-checked via its own internals.
@@ -142,19 +169,31 @@ export class ARadioGroupElement extends HTMLElementBase {
   private requestSelect(next: string) {
     const prev = this.currentValue;
     if (next === prev) return;
-    const ok = this.dispatchEvent(
-      new CustomEvent("statechange", {
-        cancelable: true,
-        bubbles: true,
-        composed: true,
-        detail: { next, prev },
-      }),
-    );
+    const ok = this.emitStateChange(next, prev, "user", true);
     if (this.hasAttribute("state")) return;
     if (ok) {
       this.uncontrolledValue = next;
       this.sync();
     }
+  }
+
+  /** Dispatch the shared `statechange` event. `reason` lets a controller tell a
+   *  user pick (cancelable) apart from a form `reset` / bfcache `restore` (not).
+   *  `next` is `null` when nothing is selected (no default / reset-to-none). */
+  private emitStateChange(
+    next: string | null,
+    prev: string | null,
+    reason: "user" | "reset" | "restore",
+    cancelable: boolean,
+  ): boolean {
+    return this.dispatchEvent(
+      new CustomEvent("statechange", {
+        cancelable,
+        bubbles: true,
+        composed: true,
+        detail: { next, prev, reason },
+      }),
+    );
   }
 
   private onClick = (e: MouseEvent) => {

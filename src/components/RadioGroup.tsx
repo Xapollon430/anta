@@ -1,8 +1,14 @@
-import { useId, useState } from "react"
+// Hooks come from the jsx-runtime indirection (configurable via `configure()`),
+// not a hard `react` import — so a custom runtime resolves them, not whatever
+// `react` maps to. See CLAUDE.md (stateless-wrapper exception for RadioGroup).
+import { useId, useState } from "../jsx-runtime"
+import { nativeStateChange, toneStyle } from "../anta_helpers"
 import type { BaseProps } from "../general_types"
 
-/** The element's `statechange` event payload — the requested and prior values. */
-type StateDetail = { next: string; prev: string | null }
+/** The element's `statechange` payload. `next`/`prev` are values (`null` = nothing
+ *  selected); `reason` distinguishes a user pick from a form reset / bfcache restore. */
+type StateReason = "user" | "reset" | "restore"
+type StateDetail = { next: string | null; prev: string | null; reason: StateReason }
 type StateChangeEvent = CustomEvent<StateDetail>
 
 /** One option in a `<RadioGroup>`. The wrapper renders an `<a-radio>` per entry. */
@@ -34,10 +40,13 @@ export interface RadioGroupProps extends Omit<BaseProps, "children" | "onChange"
   /** Initial selected value for the uncontrolled case (the wrapper then owns the
    *  selection in local state). */
   defaultValue?: string
-  /** Fired on a pick *before* selection is applied. Event-first so
-   *  `event.preventDefault()` is the synchronous veto (uncontrolled mode); `detail`
-   *  carries `{ next, prev }` values. In controlled mode answer by updating
-   *  `value`, reject by doing nothing. */
+  /** Fired whenever selection changes — event-first. `detail` is
+   *  `{ next, prev, reason }`: `next`/`prev` are values (`null` = nothing selected);
+   *  `reason` is `'user'` | `'reset'` | `'restore'`. A `'user'` pick fires *before*
+   *  applying and is **cancelable** — `event.preventDefault()` vetoes it
+   *  (uncontrolled), or in controlled mode answer by updating `value` (reject by
+   *  doing nothing). `'reset'` (form reset) and `'restore'` (bfcache / autofill) are
+   *  not cancelable — filter on `reason` if you only track user picks. */
   onStateChange?: (event: StateChangeEvent, detail: StateDetail) => void
   /** Form field name — the group submits one `name=value` (it's the
    *  form-associated element). */
@@ -67,27 +76,6 @@ export interface RadioGroupProps extends Omit<BaseProps, "children" | "onChange"
    *  @defaultValue 'vertical' */
   orientation?: "vertical" | "horizontal"
 }
-
-/** Pull the `{ next, prev }` payload out of the element's `statechange` event,
- *  across renderers: a raw `CustomEvent` carries `detail` directly; React's
- *  synthetic wrapper carries the original on `nativeEvent`. */
-function readDetail(
-  e: StateChangeEvent | { nativeEvent: StateChangeEvent },
-): StateDetail | undefined {
-  return "nativeEvent" in e ? e.nativeEvent?.detail : e.detail
-}
-
-const NAMED_TONES = new Set(["brand", "neutral", "info", "success", "warning", "critical"])
-
-/** A non-named tone is a custom CSS color — hand it to the element via
- *  `--radio-tone-source` inline; the element's CSS derives the fill curve. */
-const toneStyle = (
-  tone: string | undefined,
-  base?: React.CSSProperties,
-): React.CSSProperties | undefined =>
-  tone != null && !NAMED_TONES.has(tone)
-    ? { ...base, ["--radio-tone-source" as string]: tone }
-    : base
 
 /**
  * `<RadioGroup>` — a single-select radio control, rendered from `options`.
@@ -127,7 +115,7 @@ export const RadioGroup = ({
   // Uncontrolled selection lives here (re-renders declaratively) rather than in
   // the element — the wrapper needs the value to compute the roving tabindex, and
   // component state re-rendering is allowed where element DOM mutation isn't.
-  const [internalValue, setInternalValue] = useState(defaultValue ?? "")
+  const [internalValue, setInternalValue] = useState<string | undefined>(defaultValue)
   const currentValue = controlled ? value : internalValue
 
   // Values are an option's identity — duplicates make selection ambiguous. Warn
@@ -144,20 +132,25 @@ export const RadioGroup = ({
   const labelId = useId()
   const hintId = useId()
 
-  // The single roving tab stop: the selected option if it's enabled, else the
-  // first enabled option. Every other (and every disabled) radio gets tabindex -1.
-  const isEnabled = (o: RadioOption) => !disabled && !o.disabled
-  const tabStopValue =
-    options.find((o) => isEnabled(o) && o.value === currentValue)?.value ??
-    options.find(isEnabled)?.value
+  // The single roving tab stop. Prefer the *selected* option — even when it's
+  // disabled (focusable-disabled is ARIA-allowed), so Tab always reaches the visible
+  // selection — else the first enabled option. None when the whole group is disabled.
+  const tabStopValue = disabled
+    ? undefined
+    : (options.find((o) => o.value === currentValue)?.value ??
+       options.find((o) => !o.disabled)?.value)
 
   const onstatechange = (e: StateChangeEvent) => {
-    const detail = readDetail(e)
+    const { event, detail } = nativeStateChange<StateDetail>(e)
     if (!detail) return
-    onStateChange?.(e, detail)
-    // Uncontrolled: mirror the element's pick so the roving tabindex follows.
-    // (`preventDefault()` in the consumer's handler vetoes — honor it.)
-    if (!controlled && !e.defaultPrevented) setInternalValue(detail.next ?? "")
+    onStateChange?.(event, detail)
+    if (controlled) return
+    // Mirror every change (pick / reset / restore) so the roving tabindex follows
+    // the element's selection. The only case we skip is a *vetoed* user pick;
+    // reset/restore are never cancelable. (B2: in controlled mode a rejected pick
+    // leaves the tab stop on the still-selected option — accepted, APG-correct.)
+    if (detail.reason === "user" && event.defaultPrevented) return
+    setInternalValue(detail.next ?? undefined)
   }
 
   return (
@@ -182,7 +175,7 @@ export const RadioGroup = ({
       orientation={orientation && orientation !== "vertical" ? orientation : undefined}
       onstatechange={onstatechange}
       class={className}
-      style={toneStyle(tone, style)}
+      style={toneStyle(tone, "--radio-tone-source", style)}
     >
       {label && <a-radio-group-label id={labelId}>{label}</a-radio-group-label>}
       {hint && <a-radio-group-hint id={hintId}>{hint}</a-radio-group-hint>}
@@ -195,14 +188,15 @@ export const RadioGroup = ({
               role="radio"
               value={o.value}
               aria-disabled={optDisabled ? "true" : undefined}
-              // Roving tabindex — the wrapper's job (declarative DOM). Disabled or
-              // non-tab-stop options are -1; the one tab stop is 0. `aria-checked`
-              // is NOT set here — the element publishes it off-DOM via internals.
-              tabIndex={optDisabled ? -1 : o.value === tabStopValue ? 0 : -1}
+              // Roving tabindex — the wrapper's job (declarative DOM). Exactly one
+              // radio (the tab stop) is 0, the rest are -1; the tab stop may be a
+              // disabled-but-selected option (focusable-disabled). `aria-checked` is
+              // NOT set here — the element publishes it off-DOM via internals.
+              tabIndex={o.value === tabStopValue ? 0 : -1}
               tone={o.tone && o.tone !== "neutral" ? o.tone : undefined}
               size={o.size && o.size !== "medium" ? o.size : undefined}
               disabled={o.disabled ? "" : undefined}
-              style={toneStyle(o.tone)}
+              style={toneStyle(o.tone, "--radio-tone-source")}
             >
               <a-radio-label>{o.label}</a-radio-label>
               {o.hint != null && <a-radio-hint>{o.hint}</a-radio-hint>}

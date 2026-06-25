@@ -1,7 +1,4 @@
 import { HTMLElementBase } from "../anta_helpers";
-// Type-only (erased at build — no runtime circular import) so `closest` returns
-// the typed group and we can call `requestSync` without a cast.
-import type { ARadioGroupElement } from "./a-radio-group";
 import "./a-radio.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -28,14 +25,10 @@ export class ARadioElement extends HTMLElementBase {
   }
 
   connectedCallback() {
+    // Reflect a hand-authored `selected` attribute as the initial paint; the
+    // enclosing <a-radio-group> observes child add/remove and drives selection
+    // thereafter (its MutationObserver catches this radio appearing).
     this.applyState(this.hasAttribute("selected"));
-    // Tell the group an option appeared so it re-syncs selection (add-only —
-    // removals reconcile on the group's next sync). The `?.requestSync?.()`
-    // double-guard matters: during initial parse a radio can upgrade before its
-    // group does, so `closest()` returns a not-yet-upgraded element with no
-    // method — in that case the group's own connectedCallback will sync once it
-    // upgrades, so skipping here is correct.
-    this.closest<ARadioGroupElement>("a-radio-group")?.requestSync?.();
   }
 
   attributeChangedCallback(name: string) {

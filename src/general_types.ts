@@ -641,11 +641,19 @@ export interface ARadioGroupAttributes extends BaseAttributes {
   disabled?: boolean | ''
   /** Layout + arrow-key axis. `'vertical'` is the default. */
   orientation?: 'vertical' | 'horizontal'
-  /** Fires on a pick *before* the group applies it. Cancelable `statechange`
-   *  `CustomEvent` whose `detail` carries `{ next, prev }` (selected values); a
-   *  synchronous `preventDefault()` vetoes the transition (uncontrolled mode).
+  /** Fires whenever the selection changes. `detail` carries `{ next, prev, reason }`:
+   *  `next`/`prev` are the selected values (`null` = nothing selected), and `reason`
+   *  is `'user'` (a pick — the event is **cancelable**; a synchronous
+   *  `preventDefault()` vetoes it in uncontrolled mode), `'reset'` (a `<form>` reset),
+   *  or `'restore'` (bfcache / autofill restore) — the latter two are not cancelable.
    *  All-lowercase to bind across both renderers (like `<a-checkbox>`). */
-  onstatechange?: (e: CustomEvent<{ next: string; prev: string | null }>) => void
+  onstatechange?: (
+    e: CustomEvent<{
+      next: string | null
+      prev: string | null
+      reason: 'user' | 'reset' | 'restore'
+    }>,
+  ) => void
   /** ARIA — set by the `RadioGroup` wrapper (the element never touches these). */
   role?: 'radiogroup'
   'aria-disabled'?: 'true' | 'false'

@@ -1,3 +1,4 @@
+import { nativeStateChange, toneStyle } from "../anta_helpers"
 import type { BaseProps } from "../general_types"
 
 /** The wrapper-level checked value: a boolean for the binary axis, the string
@@ -14,21 +15,9 @@ const valueToState = (v: CheckboxValue): CheckboxState =>
 const stateToValue = (s: CheckboxState): CheckboxValue =>
   s === 'indeterminate' ? 'indeterminate' : s === 'checked'
 
-const ariaForValue = (v: CheckboxValue): 'true' | 'false' | 'mixed' =>
-  v === 'indeterminate' ? 'mixed' : v ? 'true' : 'false'
-
 /** The element's `statechange` event payload. */
 type StateDetail = { next: CheckboxState; prev: CheckboxState }
 type StateChangeEvent = CustomEvent<StateDetail>
-
-/** Pull the `{ next, prev }` payload out of the element's `statechange` event,
- *  across renderers: a raw `CustomEvent` carries `detail` directly; React's
- *  synthetic wrapper carries the original on `nativeEvent`. */
-function readDetail(
-  e: StateChangeEvent | { nativeEvent: StateChangeEvent },
-): StateDetail | undefined {
-  return 'nativeEvent' in e ? e.nativeEvent?.detail : e.detail
-}
 
 export interface CheckboxProps extends BaseProps {
   /** Visible label — the *value* of the checkbox (clicked along with the box).
@@ -78,8 +67,6 @@ export interface CheckboxProps extends BaseProps {
   ) => void
 }
 
-const NAMED_TONES = new Set(['brand', 'neutral', 'info', 'success', 'warning', 'critical'])
-
 /**
  * Checkbox. Renders an `<a-checkbox>` web component that owns the visual
  * state; controlled via `checked` + `onStateChange`, or uncontrolled via
@@ -108,19 +95,14 @@ export const Checkbox = ({
   tabIndex,
   ...rest
 }: CheckboxProps) => {
-  // The wrapper is stateless on purpose (matches every other Anta wrapper;
-  // keeps `configure()` portability). `aria-checked` is the live value for
-  // controlled, the seed for uncontrolled — which then goes stale on
-  // self-toggles; prefer controlled when a screen reader must track every
-  // toggle.
-  const liveValue: CheckboxValue = checked ?? defaultChecked ?? false
+  // The wrapper is stateless on purpose (matches every other Anta wrapper; keeps
+  // `configure()` portability). `aria-checked` is NOT set here — `<a-checkbox>`
+  // publishes it off-DOM via `ElementInternals`, so it stays live through
+  // uncontrolled self-toggles (a wrapper-set value would go stale there).
 
-  // A non-named tone is a custom CSS color — hand it to the element via
-  // `--checkbox-tone-source` inline; the CSS resolver derives the fill curve.
-  const isCustomTone = tone != null && !NAMED_TONES.has(tone)
-  const computedStyle = isCustomTone
-    ? { ...style, ['--checkbox-tone-source']: tone }
-    : style
+  // A non-named tone is a custom CSS color — `toneStyle` hands it to the element
+  // via `--checkbox-tone-source`; the element's CSS derives the fill curve.
+  const computedStyle = toneStyle(tone, '--checkbox-tone-source', style)
 
   // The accessible name is wrapper-derived (matches `Input` and the "ARIA lives
   // in the wrapper" rule): a string label / children becomes the box's
@@ -134,9 +116,9 @@ export const Checkbox = ({
 
   const onstatechange = onStateChange
     ? (e: StateChangeEvent) => {
-        const detail = readDetail(e)
+        const { event, detail } = nativeStateChange<StateDetail>(e)
         if (!detail) return
-        onStateChange(e, {
+        onStateChange(event, {
           next: stateToValue(detail.next),
           prev: stateToValue(detail.prev),
         })
@@ -157,7 +139,6 @@ export const Checkbox = ({
   return (
     <a-checkbox
       role="checkbox"
-      aria-checked={ariaForValue(liveValue)}
       aria-disabled={disabled ? 'true' : undefined}
       aria-label={ariaLabel}
       {...rest}

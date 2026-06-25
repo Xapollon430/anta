@@ -9,9 +9,10 @@ const parseState = (v: string | null): CheckboxState =>
 /**
  * `<a-checkbox>` — interactive light-DOM checkbox. Visual state lives on
  * `ElementInternals` (CSS keys off `:state(checked)` / `:state(indeterminate)`),
- * never on host attributes. **ARIA is not the element's job** — set `role` /
- * `aria-checked` / `aria-label` on the element yourself (the `Checkbox` wrapper
- * does this from its props).
+ * never on host attributes. The element **publishes `aria-checked` itself**, via
+ * `ElementInternals` (off the DOM), so it stays live as the element self-toggles
+ * uncontrolled — the wrapper does NOT set `aria-checked`. Other ARIA (`role`,
+ * `aria-label`) is still the wrapper's / consumer's job.
  *
  * One ternary state — `checked` / `unchecked` / `indeterminate` — carried by two
  * attributes: `state` is the **controlled** live value (the element reflects
@@ -31,6 +32,7 @@ export class ACheckboxElement extends HTMLElementBase {
 
   private internals?: ElementInternals;
   private currentState: CheckboxState = "unchecked";
+  private seeded = false;
 
   constructor() {
     super();
@@ -45,7 +47,16 @@ export class ACheckboxElement extends HTMLElementBase {
   }
 
   connectedCallback() {
-    this.seed();
+    // Seed only on the FIRST connect. An uncontrolled checkbox must keep the
+    // user's toggled state across DOM moves / re-parents (a list reorder, a keyed
+    // move, a detach+reattach, a worker re-render) — re-seeding from `default-state`
+    // every connect would silently reset it, unlike a native checkbox. Controlled
+    // updates still arrive via attributeChangedCallback; `formResetCallback`
+    // re-seeds on purpose (a reset *should* restore the default).
+    if (!this.seeded) {
+      this.seed();
+      this.seeded = true;
+    }
     this.paint();
   }
 
@@ -101,6 +112,15 @@ export class ACheckboxElement extends HTMLElementBase {
     i.states.delete("indeterminate");
     if (this.currentState === "indeterminate") i.states.add("indeterminate");
     else if (this.currentState === "checked") i.states.add("checked");
+    // Publish aria-checked off-DOM via ElementInternals (like a-radio), so it stays
+    // live as the element self-toggles in *uncontrolled* mode — a wrapper-set
+    // aria-checked would go stale there (it only re-renders for controlled changes).
+    i.ariaChecked =
+      this.currentState === "indeterminate"
+        ? "mixed"
+        : this.currentState === "checked"
+          ? "true"
+          : "false";
     // Submit value/"on" when checked, nothing otherwise; 2nd arg is the bfcache state.
     i.setFormValue?.(
       this.currentState === "checked" ? (this.getAttribute("value") ?? "on") : null,

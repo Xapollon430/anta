@@ -6,26 +6,56 @@ type JsxFunction = {
   h(type: ComponentType, props: Record<string, unknown> | null, ...children: unknown[]): unknown
 }['h']
 
+/** The two hooks the stateful wrappers (currently only `RadioGroup`) need. Typed
+ *  loosely to stay renderer-agnostic — any React-compatible hook implementation. */
+type UseState = <S>(initial: S | (() => S)) => [S, (next: S | ((prev: S) => S)) => void]
+type UseId = () => string
+
 let _jsx: JsxFunction = React.createElement as JsxFunction
 let _Fragment: ComponentType = React.Fragment as ComponentType
+// Default to React's hooks. Under Preact-compat (the documented Preact path), the
+// `react` specifier already aliases to `preact/compat`, so these resolve to Preact's
+// hooks automatically — no `configure()` needed. A non-compat custom runtime passes
+// its own via `configure(jsx, Fragment, { useState, useId })`.
+let _useState: UseState = React.useState as UseState
+let _useId: UseId = React.useId as UseId
 
 /**
- * Swap the underlying JSX factory used by all anta components.
+ * Swap the underlying JSX factory (and, optionally, the hooks) used by all anta
+ * components.
  *
- * Not needed for React or Preact-with-compat — those work automatically.
- * Call this before rendering any anta components when using Preact without
- * compat aliasing, or a custom JSX runtime.
+ * Not needed for React or Preact-with-compat — those work automatically. Call this
+ * before rendering any anta components when using Preact without compat aliasing,
+ * or a custom JSX runtime. Pass `hooks` when your runtime's hooks don't resolve via
+ * the `react` specifier (the stateful wrappers — `RadioGroup` — need `useState` /
+ * `useId`); omit it and they default to whatever `react` resolves to.
  *
  * @example Preact without compat
  * ```ts
  * import { configure } from '@antadesign/anta'
  * import { h, Fragment } from 'preact'
- * configure(h, Fragment)
+ * import { useState, useId } from 'preact/hooks'
+ * configure(h, Fragment, { useState, useId })
  * ```
  */
-export function configure(jsx: JsxFunction, Fragment?: ComponentType) {
+export function configure(
+  jsx: JsxFunction,
+  Fragment?: ComponentType,
+  hooks?: { useState?: UseState; useId?: UseId },
+) {
   _jsx = jsx
   if (Fragment !== undefined) _Fragment = Fragment
+  if (hooks?.useState) _useState = hooks.useState
+  if (hooks?.useId) _useId = hooks.useId
+}
+
+/** Hooks indirection so wrappers depend on the configured renderer, not a hard
+ *  `import … from 'react'`. Call these exactly like the React hooks. */
+export function useState<S>(initial: S | (() => S)): [S, (next: S | ((prev: S) => S)) => void] {
+  return _useState(initial)
+}
+export function useId(): string {
+  return _useId()
 }
 
 export function jsx(type: ComponentType, props: Record<string, unknown> | null, key?: string | number): unknown {

@@ -1,3 +1,4 @@
+import { nativeStateChange } from '../anta_helpers'
 import type { BaseProps } from '../general_types'
 
 export interface MenuProps extends BaseProps {
@@ -49,18 +50,6 @@ type StateChangeEvent =
   | CustomEvent<StateChangeDetail>
   | { nativeEvent: CustomEvent<StateChangeDetail> }
 
-/** Resolve the *native* `statechange` event across renderers: it's `e` directly
- *  (vanilla / React 19 / Preact bind a native listener for custom events) or
- *  `e.nativeEvent` behind a synthetic wrapper. Returning the native event is
- *  what lets a consumer's `preventDefault()` reach the element's `dispatchEvent`
- *  return and actually veto the transition. */
-function nativeStateChange(e: StateChangeEvent): {
-  event: CustomEvent<StateChangeDetail>
-  detail?: StateChangeDetail
-} {
-  const event = ('nativeEvent' in e ? e.nativeEvent : e) as CustomEvent<StateChangeDetail>
-  return { event, detail: event?.detail }
-}
 
 /**
  * Menu — a dropdown / context menu that anchors to any target and "just
@@ -116,7 +105,7 @@ export const Menu = ({
       onstatechange={
         onStateChange
           ? (e: StateChangeEvent) => {
-              const { event, detail } = nativeStateChange(e)
+              const { event, detail } = nativeStateChange<StateChangeDetail>(e)
               if (detail)
                 onStateChange(event, {
                   next: detail.next === 'open',

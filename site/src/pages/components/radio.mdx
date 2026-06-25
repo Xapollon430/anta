@@ -363,6 +363,11 @@ const [plan, setPlan] = useState('pro')
 </Col>
 </Columns>
 
+`onStateChange`'s `detail` carries a `reason`: `'user'` for a pick (the only
+**cancelable** one — `preventDefault()` vetoes it), and `'reset'` / `'restore'`
+when a `<form>` reset or a bfcache/autofill restore moves the selection. Filter on
+`reason` if you only want user picks; `next` is `null` when nothing is selected.
+
 <Disclosure title="RadioGroup props" open>
 
 <PropsTable component="RadioGroup" />

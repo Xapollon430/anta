@@ -3,6 +3,46 @@ export function hasChildren(children: React.ReactNode): boolean {
 }
 
 /**
+ * Unwrap a `statechange` (or any) `CustomEvent` a renderer may deliver wrapped:
+ * React hands a synthetic event with the real one on `.nativeEvent`; Preact passes
+ * the native event directly. Returns the native event and its `detail`. Shared by
+ * every stateful wrapper (`Menu`, `Expander`, `Checkbox`, `RadioGroup`) — don't
+ * re-implement it per component.
+ */
+export function nativeStateChange<D>(
+  e: CustomEvent<D> | { nativeEvent: CustomEvent<D> },
+): { event: CustomEvent<D>; detail?: D } {
+  const event = ('nativeEvent' in e ? e.nativeEvent : e) as CustomEvent<D>
+  return { event, detail: event?.detail }
+}
+
+/** The six named tones every toned component shares. Anything else is a literal
+ *  CSS colour the element resolves through its `--{component}-tone-source` var. */
+export const NAMED_TONES = new Set([
+  'brand',
+  'neutral',
+  'info',
+  'success',
+  'warning',
+  'critical',
+])
+
+/**
+ * Inline-style helper for a custom (non-named) tone: hands the literal colour to
+ * the element via `varName` (e.g. `--radio-tone-source`) so the element's CSS
+ * derives the fill/text/border curve in oklch. Named tones return `base` unchanged.
+ */
+export function toneStyle(
+  tone: string | undefined,
+  varName: string,
+  base?: React.CSSProperties,
+): React.CSSProperties | undefined {
+  return tone != null && !NAMED_TONES.has(tone)
+    ? { ...base, [varName]: tone }
+    : base
+}
+
+/**
  * `HTMLElement` in browsers, a noop class in Node/Worker environments.
  * Use this as the base for custom element classes so importing the
  * module in a non-DOM environment doesn't throw on `extends HTMLElement`.
