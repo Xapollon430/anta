@@ -1,5 +1,6 @@
 import type { BaseProps, DOMEventHandlers } from '../general_types'
 import type { IconShape } from '../elements/a-icon.shapes'
+import { nativeStateChange } from '../anta_helpers'
 import { Button } from './Button'
 import { Icon } from './Icon'
 
@@ -116,7 +117,10 @@ export interface InputProps extends BaseProps, DOMEventHandlers {
   step?: number | string
   /** Fires on every keystroke. Read `e.target.value`. */
   onInput?: (e: any) => void
-  /** Fires on commit (blur / Enter). Read `e.target.value`. */
+  /** Fires on **commit** (blur / Enter) — the platform `change` semantics, **not**
+   *  React's per-keystroke `onChange`. This is a web component, so `onChange` keeps
+   *  the native meaning; reach for `onInput` (every keystroke) or `onAnyChange`
+   *  (both) for live updates. Read `e.target.value`. */
   onChange?: (e: any) => void
   /** Unified value-change handler — the easy path for state. Fires on `input`
    *  *and* `change` (and on clear), with the native `event` plus a convenience
@@ -253,7 +257,10 @@ export const Input = ({
     <a-input
       size={size && size !== 'medium' ? size : undefined}
       value={value}
-      defaultvalue={value === undefined ? defaultValue : undefined}
+      // Pass `defaultvalue` even when controlled, so a <form> reset has a target
+      // (the element resets to it and fires change → controlled state re-syncs).
+      // `value` still wins for the live render — the element reads it first.
+      defaultvalue={defaultValue}
       multiline={presence(multiline || rows != null)}
       rows={rows != null ? String(rows) : undefined}
       maxrows={maxRows != null ? String(maxRows) : undefined}
@@ -277,8 +284,8 @@ export const Input = ({
       aria-invalid={status === 'critical' ? 'true' : undefined}
       oninput={onInput || onAnyChange ? (e: any) => { onInput?.(e); onAnyChange?.(e, attrsOf(e)) } : undefined}
       onchange={onChange || onAnyChange ? (e: any) => { onChange?.(e); onAnyChange?.(e, attrsOf(e)) } : undefined}
-      onclearclick={onClearClick}
-      onclearinput={onClearInput}
+      onclearclick={onClearClick ? (e: any) => onClearClick(nativeStateChange(e).event) : undefined}
+      onclearinput={onClearInput ? (e: any) => onClearInput(nativeStateChange(e).event) : undefined}
       class={className}
       style={style}
       {...rest}

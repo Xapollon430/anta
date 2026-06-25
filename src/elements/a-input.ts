@@ -153,7 +153,7 @@ const SHADOW_STYLE = `
   :host([size="large"]) .field { min-height: 32px; }
 
   @media (hover: hover) and (pointer: fine) {
-    :host(:not([disabled])) .field:hover { --_bc: var(--input-border-hover); }
+    :host(:not(:disabled)) .field:hover { --_bc: var(--input-border-hover); }
   }
   /* Ring shows only when the *control* is focused — not when focus is on a
      slotted child like the clear button (that would be :focus-within). The
@@ -240,21 +240,21 @@ const SHADOW_STYLE = `
     opacity: 0.6;
     transition: opacity 120ms ease;
   }
-  /* …but never on a disabled field — :not([disabled]) so the hover/focus
+  /* …but never on a disabled field — :not(:disabled) so the hover/focus
      brightening can't override the disabled dim below. */
-  :host([dim-actions]:not([disabled])) .field:hover slot[name="leading"],
-  :host([dim-actions]:not([disabled])) .field:hover slot[name="trailing"],
-  :host([dim-actions]:not([disabled])) .field:hover slot[name="clear"],
-  :host([dim-actions]:not([disabled])) .field:focus-within slot[name="leading"],
-  :host([dim-actions]:not([disabled])) .field:focus-within slot[name="trailing"],
-  :host([dim-actions]:not([disabled])) .field:focus-within slot[name="clear"] {
+  :host([dim-actions]:not(:disabled)) .field:hover slot[name="leading"],
+  :host([dim-actions]:not(:disabled)) .field:hover slot[name="trailing"],
+  :host([dim-actions]:not(:disabled)) .field:hover slot[name="clear"],
+  :host([dim-actions]:not(:disabled)) .field:focus-within slot[name="leading"],
+  :host([dim-actions]:not(:disabled)) .field:focus-within slot[name="trailing"],
+  :host([dim-actions]:not(:disabled)) .field:focus-within slot[name="clear"] {
     opacity: 1;
   }
 
   /* Disabled: slotted leading/trailing content dims and stops taking input
      (pointer-events is inherited, so it reaches the projected nodes). */
-  :host([disabled]) slot[name="leading"],
-  :host([disabled]) slot[name="trailing"] { opacity: 0.5; pointer-events: none; }
+  :host(:disabled) slot[name="leading"],
+  :host(:disabled) slot[name="trailing"] { opacity: 0.5; pointer-events: none; }
 
   /* Clear slot — rightmost, flush. The element owns its visibility (shown only
      when filled + editable) in shadow CSS, so it's bundled wherever the element
@@ -262,7 +262,7 @@ const SHADOW_STYLE = `
      no width. */
   slot[name="clear"] { display: none; flex-shrink: 0; }
   .field.is-filled slot[name="clear"] { display: flex; align-items: center; }
-  :host([disabled]) slot[name="clear"],
+  :host(:disabled) slot[name="clear"],
   :host([readonly]) slot[name="clear"] { display: none; }
   :host([multiline]) slot[name="clear"] { align-self: flex-start; }
 
@@ -321,6 +321,9 @@ export class AInputElement extends HTMLElementBase {
   // True between connect and the first control build, so attribute changes for
   // forwarded props don't try to touch a control that doesn't exist yet.
   private ready = false
+  // Set by formDisabledCallback when an ancestor <fieldset disabled> / disabled
+  // form turns the field off (the host can't carry a [disabled] attribute itself).
+  private formDisabled = false
 
   constructor() {
     super()
@@ -443,27 +446,29 @@ export class AInputElement extends HTMLElementBase {
       else if (this.control instanceof HTMLTextAreaElement) this.configureTextarea(this.control)
       return
     }
-    if (name === 'status') {
-      // Only `critical` carries validity weight (aria-invalid + customError +
-      // :state(invalid)); the other tones are advisory feedback, still valid.
-      const critical = value === 'critical'
-      this.control?.setAttribute('aria-invalid', critical ? 'true' : 'false')
-      this.updateValidity()
-      try { critical ? this.internals?.states.add('invalid') : this.internals?.states.delete('invalid') } catch {}
-      return
-    }
+    if (name === 'status') { this.syncStatus(); this.updateValidity(); return }
     if (name === 'disabled') { this.syncDisabled(); return }
-    // Raw-HTML controlled author: route the attribute through the setter
-    // (caret-safe, updates form value + validity). React/Preact set the
-    // `value` property instead, which hits the same setter.
-    if (name === 'value') { this.value = value ?? ''; return }
+    // Controlled value: apply only when the attribute is PRESENT. Removing it
+    // (controlled → uncontrolled) keeps the current text, like a native input —
+    // the old `value ?? ''` wiped the field to empty on attribute removal.
+    if (name === 'value') { if (value !== null) this.value = value; return }
     if (name === 'defaultvalue') return
-    // Forwarded attribute changed.
-    if (this.control) this.forward(name, value)
+    // Forwarded attribute changed — also re-run validity, since a constraint
+    // (required / pattern / min / max / step / minlength / maxlength / type) can
+    // flip the inner control's validity. Symmetric with the `status` branch.
+    if (this.control) { this.forward(name, value); this.updateValidity() }
   }
 
   /** (Re)build the shadow control from the current attributes. */
   private buildControl(initial?: string) {
+    // Preserve focus + caret across an input<->textarea rebuild (e.g. toggling
+    // `multiline` mid-edit) so the user isn't kicked out of the field.
+    const prev = this.control
+    const refocus = prev != null && this.shadowRoot?.activeElement === prev
+    let selStart: number | null = null
+    let selEnd: number | null = null
+    if (prev) try { selStart = prev.selectionStart; selEnd = prev.selectionEnd } catch { /* number/email expose no selection */ }
+
     const multiline = this.hasAttribute('multiline') || this.hasAttribute('rows')
     const next = document.createElement(multiline ? 'textarea' : 'input') as Control
     next.setAttribute('part', 'input')
@@ -476,7 +481,7 @@ export class AInputElement extends HTMLElementBase {
       this.forward(attr, this.getAttribute(attr))
     }
     this.syncDisabled()
-    if (this.getAttribute('status') === 'critical') next.setAttribute('aria-invalid', 'true')
+    this.syncStatus()
     this.applyLabelAria()
     this.applyDescriptionAria()
     if (multiline) this.configureTextarea(next as HTMLTextAreaElement)
@@ -486,6 +491,11 @@ export class AInputElement extends HTMLElementBase {
 
     next.addEventListener('input', this.onInput)
     next.addEventListener('change', this.onChange)
+
+    if (refocus) {
+      next.focus()
+      if (selStart != null) try { next.setSelectionRange(selStart, selEnd ?? selStart) } catch { /* unsupported type */ }
+    }
 
     this.internals?.setFormValue(value)
     this.updateValidity()
@@ -541,7 +551,22 @@ export class AInputElement extends HTMLElementBase {
   }
 
   private syncDisabled() {
-    if (this.control) this.control.disabled = this.hasAttribute('disabled')
+    // Effective disabled = own `disabled` attribute OR an ancestor
+    // `<fieldset disabled>` / disabled form (via formDisabledCallback). Using the
+    // union means re-enabling the fieldset doesn't enable a field that's also
+    // disabled by its own attribute.
+    if (this.control) this.control.disabled = this.hasAttribute('disabled') || this.formDisabled
+  }
+
+  /** Reflect `status` into the control's `aria-invalid` and the `:state(invalid)`
+   *  custom state. Called on `status` change AND from buildControl — so a field
+   *  that mounts already `status="critical"` gets `:state(invalid)` on the FIRST
+   *  paint (the status attributeChangedCallback fires before connect, while
+   *  `ready` is false and the early-return skips it). */
+  private syncStatus() {
+    const critical = this.getAttribute('status') === 'critical'
+    this.control?.setAttribute('aria-invalid', critical ? 'true' : 'false')
+    try { critical ? this.internals?.states.add('invalid') : this.internals?.states.delete('invalid') } catch {}
   }
 
   private onInput = () => {
@@ -648,9 +673,20 @@ export class AInputElement extends HTMLElementBase {
   checkValidity(): boolean { return this.internals?.checkValidity() ?? true }
   reportValidity(): boolean { return this.internals?.reportValidity() ?? true }
 
+  /** Form field name — mirrors the `name` attribute, like native `<input>.name`,
+   *  so `el.name` works (e.g. keying validation messages by field in a form loop). */
+  get name(): string { return this.getAttribute('name') ?? '' }
+
   // --- Form-associated callbacks ---
-  formResetCallback() { this.value = this.getAttribute('defaultvalue') ?? '' }
-  formDisabledCallback(disabled: boolean) { if (this.control) this.control.disabled = disabled }
+  formResetCallback() {
+    this.value = this.getAttribute('defaultvalue') ?? ''
+    // The setter updates form value / validity / filled but fires no events, so a
+    // controlled consumer would never learn the field reset and would re-render
+    // the stale value back. Emit input + change (matching clear()) so it re-syncs.
+    this.dispatchEvent(new Event('input', { bubbles: true }))
+    this.dispatchEvent(new Event('change', { bubbles: true }))
+  }
+  formDisabledCallback(disabled: boolean) { this.formDisabled = disabled; this.syncDisabled() }
   formStateRestoreCallback(state: string) { this.value = state ?? '' }
 }
 

@@ -20,7 +20,7 @@ export default function InputValidationDemo() {
     const form = e.currentTarget as HTMLFormElement
     const next: Record<string, string | undefined> = {}
     form.querySelectorAll('a-input').forEach((el: any) => {
-      if (!el.checkValidity()) next[el.getAttribute('name')!] = el.validationMessage
+      if (!el.checkValidity()) next[el.name] = el.validationMessage
     })
     setErrors(next)
   }
