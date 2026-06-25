@@ -519,8 +519,12 @@ export class AMenuElement extends HTMLElementBase {
           openStack.length = pidx + 1
         }
       }
-    } else {
+    } else if (!openStack.includes(this)) {
       // Root menu: a fresh root closes any other open menu system entirely.
+      // Skip when THIS same menu is already open — a context/coord re-trigger
+      // is a quiet reposition (below), not a close-then-reopen, which would run
+      // closeAll() → a spurious statechange('closed') that dismisses a
+      // controlled menu instead of moving it.
       closeAll()
     }
 
@@ -579,16 +583,19 @@ export class AMenuElement extends HTMLElementBase {
     this.cancelCloseTimer()
   }
 
-  /** Mirror the open state onto the anchor's `aria-expanded`. The one
-   *  sanctioned light-DOM ARIA mutation (like `el.focus()` above): live
-   *  expanded state is interaction state owned by this element — a stateless
-   *  wrapper can't know it. The `MenuItem` wrapper renders the resting
-   *  `aria-expanded="false"` baseline on submenu parents, so a reactive
-   *  engine that re-renders the anchor resets it to a valid value and the
-   *  next open/close re-syncs. Skipped for `context` menus — a right-click
-   *  region isn't an interactive trigger, so `aria-expanded` doesn't apply. */
+  /** Mirror the open state onto a SUBMENU parent's `aria-expanded`. This is the
+   *  one sanctioned light-DOM ARIA mutation (like `el.focus()`): the anchor is
+   *  an `<a-menu-item>` the `MenuItem` wrapper renders WITH a resting
+   *  `aria-expanded="false"` baseline, so a reactive re-render resets it to a
+   *  valid value and the next open/close re-syncs.
+   *
+   *  A ROOT menu's trigger is a consumer-owned sibling we don't render and have
+   *  no baseline for — writing to it would mutate foreign DOM (and couldn't
+   *  self-heal), so we leave its `aria-expanded` to the consumer. The menu is
+   *  still announced and Esc-dismissable; consumers add `aria-haspopup="menu"`
+   *  to their trigger themselves. (`context` menus aren't triggers either.) */
   private reflectExpanded(open: boolean) {
-    if (this.isContext) return
+    if (!this.isSubmenu) return
     this.triggerAnchor?.setAttribute('aria-expanded', open ? 'true' : 'false')
   }
 
@@ -701,7 +708,11 @@ export class AMenuElement extends HTMLElementBase {
           return
         }
         // Submenu parent → its own handler opens the submenu; don't close.
-        if (node.hasAttribute('submenu')) return
+        // Detected STRUCTURALLY (a nested `<a-menu>`), matching `isSubmenu` —
+        // not the `submenu` attribute, which the wrapper only emits when the
+        // consumer passes `submenu` (so a bare nested `<Menu>` would otherwise
+        // open then immediately get dismissed by closeSystem here).
+        if (node.querySelector('a-menu')) return
         return this.closeSystem(e)
       }
 
@@ -744,11 +755,17 @@ export class AMenuElement extends HTMLElementBase {
       if (!f.length) return
       e.preventDefault()
       const i = active ? f.indexOf(active) : -1
+      // Focus isn't on a listed focusable (the surface itself, or an unmatched
+      // slotted node) → step to the first item rather than wrapping to the last.
+      if (i === -1) {
+        f[0]?.focus()
+        return
+      }
       const next = e.shiftKey
-        ? i <= 0
+        ? i === 0
           ? f.length - 1
           : i - 1
-        : i === -1 || i === f.length - 1
+        : i === f.length - 1
           ? 0
           : i + 1
       f[next]?.focus()
@@ -806,7 +823,10 @@ export class AMenuElement extends HTMLElementBase {
   }
 
   private submenuOf(item: HTMLElement | null): AMenuElement | null {
-    if (!item || !(item instanceof AMenuItemElement) || !item.hasAttribute('submenu')) return null
+    // Structural detection (a nested `<a-menu>`), matching `isSubmenu` — so
+    // ArrowRight opens the flyout whether or not the `submenu` attribute is set
+    // (the wrapper only emits it when the consumer passes `submenu`).
+    if (!item || !(item instanceof AMenuItemElement)) return null
     return item.querySelector('a-menu') as AMenuElement | null
   }
 
@@ -814,8 +834,17 @@ export class AMenuElement extends HTMLElementBase {
     this.typeBuffer += ch.toLowerCase()
     clearTimeout(this.typeTimer)
     this.typeTimer = setTimeout(() => (this.typeBuffer = ''), TYPEAHEAD_RESET)
-    const match = items.find((it) => (it.textContent ?? '').trim().toLowerCase().startsWith(this.typeBuffer))
+    const match = items.find((it) => this.itemLabel(it).startsWith(this.typeBuffer))
     match?.focus()
+  }
+
+  /** The item's own visible label for type-ahead. Prefers the
+   *  `<a-menu-item-label>` text so it excludes a trailing `kbd` hint AND — for
+   *  a submenu parent — the entire nested `<a-menu>` flyout's text (which is a
+   *  light-DOM descendant, so it'd otherwise be folded into `textContent`). */
+  private itemLabel(it: AMenuItemElement): string {
+    const label = it.querySelector('a-menu-item-label')
+    return ((label ?? it).textContent ?? '').trim().toLowerCase()
   }
 
   /* ====================== trigger listener wiring ====================== */
@@ -873,7 +902,19 @@ export class AMenuElement extends HTMLElementBase {
         // detail === 0 ⇒ keyboard-synthesized click (Enter/Space on the
         // trigger) ⇒ open and move focus to the first item.
         const viaKeyboard = e.detail === 0
-        const coord = this.isCoord ? ([e.clientX, e.clientY] as [number, number]) : undefined
+        // A coord menu opens at the pointer — but a keyboard click reports
+        // clientX/clientY = 0, which would pin it to the top-left corner. Fall
+        // back to the trigger's own rect (a DOM read, not a mutation) so it
+        // opens at the focused trigger instead.
+        let coord: [number, number] | undefined
+        if (this.isCoord) {
+          if (viaKeyboard) {
+            const r = anchor.getBoundingClientRect()
+            coord = [r.left, r.bottom]
+          } else {
+            coord = [e.clientX, e.clientY]
+          }
+        }
         if (this._shown) this.requestClose(e)
         else this.requestOpen({ coord, viaKeyboard, originEvent: e })
       }

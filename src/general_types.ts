@@ -192,9 +192,13 @@ export interface ATextAttributes extends BaseAttributes {
    *  available via the `--line-clamp` CSS custom property set inline. */
   truncate?: boolean | string | number
   /** Marks the host as expandable when paired with `truncate`. Adds
-   *  the fade-out mask; the JSX wrapper renders the chevron and owns
-   *  the click/keyboard expansion logic. */
+   *  the fade-out mask and the expand/collapse chevron button; the element
+   *  owns the click/keyboard expansion logic. Without `collapsible`,
+   *  expanding is one-way (the control is removed once expanded). */
   expandable?: boolean | ''
+  /** Paired with `expandable`: the chevron becomes a two-way "Show more" /
+   *  "Show less" toggle that stays visible while expanded. Omit for one-way. */
+  collapsible?: boolean | ''
   /** ARIA disclosure state, mirrors the JSX wrapper's `expanded` flag. */
   'aria-expanded'?: boolean | 'true' | 'false'
 }

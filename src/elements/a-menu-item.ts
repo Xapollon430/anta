@@ -45,10 +45,16 @@ declare global {
  */
 export class AMenuItemElement extends HTMLElementBase {
   connectedCallback() {
-    // One global delegated keydown for all menu items (mirrors a-button).
-    if (!document.hasKeyListenerForAMenuItem) {
-      document.addEventListener('keydown', handleKeyDown, true)
-      document.hasKeyListenerForAMenuItem = true
+    // One delegated keydown per document (mirrors a-button). Bind to this
+    // item's OWN document (`this.doc`), not the module-global `document`: the
+    // class may be defined in the parent page while the item lives in an
+    // iframe (the docs playground), and a-menu binds its own listeners through
+    // `this.doc`/`this.view` too — a parent-frame listener here would leave
+    // Enter/Space activation dead for items rendered in another frame.
+    const doc = this.doc
+    if (!doc.hasKeyListenerForAMenuItem) {
+      doc.addEventListener('keydown', handleKeyDown, true)
+      doc.hasKeyListenerForAMenuItem = true
     }
   }
 }

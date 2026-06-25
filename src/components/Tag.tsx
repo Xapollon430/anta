@@ -1,7 +1,7 @@
 import type { BaseProps } from "../general_types"
 import type { IconShape } from '../elements/a-icon.shapes'
-
-const NAMED_TONES = new Set(['neutral', 'brand', 'info', 'success', 'warning', 'critical'])
+import { toneStyle } from "../anta_helpers"
+import { Icon } from "./Icon"
 
 export interface TagProps extends BaseProps {
   /** A short "key" shown before the value. When paired with `value` it
@@ -103,19 +103,26 @@ export const Tag = ({
   children,
   ...rest
 }: TagProps) => {
-  const isCustomTone = tone != null && !NAMED_TONES.has(tone)
-  const computedStyle = isCustomTone
-    ? { ...style, ['--tag-tone-source']: tone }
-    : style
+  // A non-named tone is a literal CSS color: feed it to the element's oklch
+  // derivation via the inline custom property (shared helper — see anta_helpers).
+  const computedStyle = toneStyle(tone, '--tag-tone-source', style)
 
   // `value` is the primary text. A label only becomes the dim/bold "key"
   // when it has a value to sit before; a lone label is the primary text,
   // so it goes into <a-tag-value> to keep the default styling.
   const hasValue = value != null
 
+  // An icon-only tag (no text content) has no accessible name — its only
+  // content is a decorative (aria-hidden) icon. Derive one from the shape so
+  // screen readers announce something; a consumer's own `aria-label` (via
+  // ...rest) wins by spread order.
+  const isIconOnly =
+    icon != null && label == null && value == null && children == null && iconTrailing == null
+
   return (
     <a-tag
       tone={tone}
+      aria-label={isIconOnly ? `${icon} tag` : undefined}
       // 'secondary' (and unset) is the implicit default — emit no DOM attr.
       priority={priority && priority !== 'secondary' ? priority : undefined}
       // 'medium' (and unset) is the implicit default — emit no DOM attr.
@@ -127,14 +134,14 @@ export const Tag = ({
       style={computedStyle}
       {...rest}
     >
-      {icon && <a-icon shape={icon} aria-hidden="true" />}
+      {icon && <Icon shape={icon} />}
       {label != null &&
         (hasValue
           ? <a-tag-label>{label}</a-tag-label>
           : <a-tag-value>{label}</a-tag-value>)}
       {hasValue && <a-tag-value>{value}</a-tag-value>}
       {children}
-      {iconTrailing && <a-icon shape={iconTrailing} aria-hidden="true" />}
+      {iconTrailing && <Icon shape={iconTrailing} />}
     </a-tag>
   )
 }

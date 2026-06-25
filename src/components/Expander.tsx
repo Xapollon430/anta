@@ -1,14 +1,5 @@
-import { nativeStateChange } from "../anta_helpers";
+import { nativeStateChange, toneStyle } from "../anta_helpers";
 import type { BaseProps } from "../general_types";
-
-const NAMED_TONES = new Set([
-  "neutral",
-  "brand",
-  "info",
-  "success",
-  "warning",
-  "critical",
-]);
 
 /** Public props for the `<Expander>` disclosure. `title` is the always-
  *  visible summary; `children` is the collapsible body. */
@@ -117,11 +108,8 @@ export const Expander = ({
 
   // A non-named tone is a literal CSS color: feed it to the element's
   // oklch derivation via an inline custom property (the CSS attr() form
-  // is only a fallback for raw-HTML authors).
-  const isCustomTone = tone != null && !NAMED_TONES.has(tone);
-  const computedStyle = isCustomTone
-    ? { ...style, ["--expander-tone-source"]: tone }
-    : style;
+  // is only a fallback for raw-HTML authors). Shared helper — see anta_helpers.
+  const computedStyle = toneStyle(tone, "--expander-tone-source", style);
 
   // A string (or number) title is rendered as our <a-expander-summary>,
   // which carries the hover affordance. A node title is the consumer's

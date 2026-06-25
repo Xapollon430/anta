@@ -10,9 +10,13 @@ export interface ProgressProps extends BaseProps {
   /** Color variant. `'info'` applies a blue tint.
    *  @defaultValue neutral */
   tone?: 'neutral' | 'info'
-  /** Text label displayed after the percentage. */
+  /** Text label displayed after the percentage. When you provide custom
+   *  `children` (which replace the default label row), `label` is no longer
+   *  rendered — but it still supplies the progressbar's accessible name, so
+   *  pass it for screen readers to announce more than the bare percentage. */
   label?: string
-  /** Right-aligned hint text (e.g. "3 of 7"). */
+  /** Right-aligned hint text (e.g. "3 of 7"). Like `label`, it's not rendered
+   *  when custom `children` are provided but still feeds the accessible name. */
   hint?: string
 }
 
@@ -45,6 +49,10 @@ export interface ProgressProps extends BaseProps {
  */
 export const Progress = ({ value, max = 100, tone, label, hint, className, children, ...rest }: ProgressProps) => {
   const percent = max > 0 ? Math.round(Math.min(100, Math.max(0, (value / max) * 100))) : 0
+  // Clamp the announced value to [0, max] so screen readers never report an
+  // out-of-range progress (e.g. "150 of 100") that contradicts the visually
+  // clamped bar and the percentage shown in the label.
+  const clampedValue = max > 0 ? Math.min(max, Math.max(0, value)) : 0
   // ARIA wiring is added here in the wrapper, not in the web component
   // (see CLAUDE.md "ARIA goes in JSX wrappers"). The aria-label echoes
   // every visible piece — label text, percentage, and hint — so screen
@@ -58,7 +66,8 @@ export const Progress = ({ value, max = 100, tone, label, hint, className, child
       max={max}
       tone={tone}
       role="progressbar"
-      aria-valuenow={value}
+      aria-valuenow={clampedValue}
+      aria-valuemin={0}
       aria-valuemax={max}
       aria-label={ariaLabel}
       class={className}
