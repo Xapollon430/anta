@@ -12,7 +12,9 @@ import './a-text.css'
 // - The expand button is the whole fade strip (full-width bottom strip for
 //   multi-line, narrow right region for single-line) — the chevron is just
 //   a masked ::before pinned in its bottom-right corner. It appears on
-//   hover / focus-within.
+//   hover / focus-within while collapsed; while expanded (the two-way
+//   `collapsible` toggle) it stays visible with the chevron rotated to point
+//   up. A one-way expand removes the button entirely (handled in JS).
 const SHADOW_STYLE = `
   :host {
     display: block;
@@ -83,9 +85,10 @@ const SHADOW_STYLE = `
             mask-repeat: no-repeat;
     -webkit-mask-size: contain;
             mask-size: contain;
+    transition: transform 150ms ease-out;
   }
 
-  :host([truncate][expandable]) .expand-btn:not(.hidden) {
+  :host([truncate][expandable]) .expand-btn {
     display: block;
     left: 0;
     right: 0;
@@ -93,16 +96,21 @@ const SHADOW_STYLE = `
     height: 1.5em;
   }
 
-  :host([truncate="1"][expandable]) .expand-btn:not(.hidden) {
+  :host([truncate="1"][expandable]) .expand-btn {
     left: auto;
     top: 0;
     bottom: 0;
     width: 3em;
   }
 
-  :host([truncate][expandable]:hover) .expand-btn:not(.hidden),
-  :host([truncate][expandable]:focus-within) .expand-btn:not(.hidden) {
+  :host([truncate][expandable]:hover) .expand-btn,
+  :host([truncate][expandable]:focus-within) .expand-btn,
+  .expand-btn.expanded {
     opacity: 1;
+  }
+
+  .expand-btn.expanded::before {
+    transform: rotate(180deg);
   }
 `
 
@@ -128,10 +136,16 @@ const SHADOW_STYLE = `
  *   `(hover: hover) and (pointer: fine)` to avoid sticky hover after a tap.
  */
 export class ATextElement extends HTMLElementBase {
-  static observedAttributes = ['expandable', 'truncate']
+  static observedAttributes = ['expandable', 'truncate', 'collapsible']
 
   private slotEl: HTMLSlotElement
-  private expandBtn: HTMLButtonElement
+  /** The expand/collapse chevron — built lazily, only while the element is
+   *  expandable (a plain `<a-text>` never creates a button or a listener).
+   *  Removed when `expandable` is dropped, and when a one-way expand completes. */
+  private expandBtn?: HTMLButtonElement
+  /** Expanded state lives here, on the element — a stateless wrapper can't hold
+   *  it and the app DOM may be reconciled off the UI thread. */
+  private expanded = false
 
   constructor() {
     super()
@@ -142,28 +156,73 @@ export class ATextElement extends HTMLElementBase {
 
     this.slotEl = document.createElement('slot')
 
-    this.expandBtn = document.createElement('button')
-    this.expandBtn.className = 'expand-btn'
-    this.expandBtn.type = 'button'
-    this.expandBtn.setAttribute('aria-label', 'Show more')
-    this.expandBtn.setAttribute('aria-expanded', 'false')
-    this.expandBtn.addEventListener('click', this.handleExpand)
-
-    shadow.append(style, this.slotEl, this.expandBtn)
+    shadow.append(style, this.slotEl)
   }
 
-  attributeChangedCallback() {
-    // When the configuration changes, restart in the collapsed state.
-    this.slotEl.classList.remove('expanded')
-    this.expandBtn.classList.remove('hidden')
-    this.expandBtn.setAttribute('aria-expanded', 'false')
+  connectedCallback() {
+    this.syncExpandButton()
   }
 
-  private handleExpand = () => {
-    if (this.slotEl.classList.contains('expanded')) return
-    this.slotEl.classList.add('expanded')
-    this.expandBtn.classList.add('hidden')
-    this.expandBtn.setAttribute('aria-expanded', 'true')
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
+    // A no-op re-render (a reactive engine re-setting an attribute to the same
+    // value) must NOT discard the reader's expand — only a real change to the
+    // truncation/expandability resets to collapsed. (`collapsible` flipping
+    // changes the affordance, not the state.)
+    if (oldValue === newValue) return
+    if (name === 'truncate' || name === 'expandable') this.setExpanded(false)
+    this.syncExpandButton()
+  }
+
+  private get isExpandable(): boolean {
+    return this.hasAttribute('truncate') && this.hasAttribute('expandable')
+  }
+  private get isCollapsible(): boolean {
+    return this.hasAttribute('collapsible')
+  }
+
+  /** Create or remove the chevron button to match `expandable`, then refresh
+   *  its label/visibility — the single place the button's lifecycle lives. */
+  private syncExpandButton() {
+    if (this.isExpandable && !this.expandBtn) {
+      const btn = document.createElement('button')
+      btn.className = 'expand-btn'
+      btn.type = 'button'
+      btn.addEventListener('click', this.handleToggle)
+      this.shadowRoot!.append(btn)
+      this.expandBtn = btn
+    } else if (!this.isExpandable && this.expandBtn) {
+      this.expandBtn.remove()
+      this.expandBtn = undefined
+    }
+    this.refreshButton()
+  }
+
+  private handleToggle = () => {
+    this.setExpanded(!this.expanded)
+  }
+
+  private setExpanded(next: boolean) {
+    if (next === this.expanded) return
+    this.expanded = next
+    this.slotEl.classList.toggle('expanded', next)
+    this.refreshButton()
+  }
+
+  /** Reflect the current state onto the button: label + `aria-expanded` + the
+   *  `.expanded` class (CSS keeps it visible and rotates the chevron up). A
+   *  one-way expand (no `collapsible`) removes the button once expanded — there
+   *  is nothing to collapse back to. */
+  private refreshButton() {
+    const btn = this.expandBtn
+    if (!btn) return
+    if (this.expanded && !this.isCollapsible) {
+      btn.remove()
+      this.expandBtn = undefined
+      return
+    }
+    btn.setAttribute('aria-expanded', this.expanded ? 'true' : 'false')
+    btn.setAttribute('aria-label', this.expanded ? 'Show less' : 'Show more')
+    btn.classList.toggle('expanded', this.expanded)
   }
 }
 

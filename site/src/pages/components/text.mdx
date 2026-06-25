@@ -74,11 +74,12 @@ the underline to full alpha.
 <TruncateDemo client:load />
 
 `truncate` accepts either `true` (or `1`) for a single-line ellipsis or
-any integer ≥ 2 for multi-line clamping. Both modes use
-`-webkit-line-clamp` inside `display: -webkit-box`. Despite the
-`-webkit-` prefix, every major browser supports it (Firefox 68+,
-Chrome, Safari, Edge). The host gets `min-width: 0` so truncation
-works correctly inside flex and grid containers.
+any integer ≥ 2 for multi-line clamping; `0` or a negative value means
+no truncation. Both modes use `-webkit-line-clamp` inside
+`display: -webkit-box`. Despite the `-webkit-` prefix, every major
+browser supports it (Firefox 68+, Chrome, Safari, Edge). The host gets
+`min-width: 0` so truncation works correctly inside flex and grid
+containers.
 
 ```tsx folded
 {/* Single line */}
@@ -102,10 +103,18 @@ The chevron is a real `<button>` carrying `aria-expanded` — clicking it
 (or focusing it and pressing Enter) drops the clamp and reveals the
 full text. `expandable` only takes effect together with `truncate`.
 
+By default expanding is **one-way** — once revealed, the control is
+removed. Add `collapsible` to make it a two-way toggle: the chevron
+stays visible while expanded (rotated to point up) and flips between
+"Show more" and "Show less". `collapsible` only takes effect together
+with `expandable`.
+
 ```tsx folded
 <Text truncate expandable>{longSentence}</Text>
 <Text truncate={3} expandable>{longSentence}</Text>
-<Text truncate={5} expandable>{longSentence}</Text>
+
+{/* Two-way: reader can collapse it back */}
+<Text truncate={5} expandable collapsible>{longSentence}</Text>
 ```
 
 </Col>

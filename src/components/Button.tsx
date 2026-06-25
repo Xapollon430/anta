@@ -1,9 +1,6 @@
 import type { BaseProps } from "../general_types"
 import type { IconShape } from '../elements/a-icon.shapes'
-
-const NAMED_TONES = new Set([
-  'brand', 'neutral', 'critical', 'info', 'success', 'warning',
-])
+import { toneStyle } from "../anta_helpers"
 
 /** Normalize button children. Uses plain Array.isArray + typeof for
  *  React/Preact portability — avoids React.Children.* helpers.
@@ -51,7 +48,8 @@ export type BaseButtonProps = {
    *  identically and emit no DOM attribute.
    *  @defaultValue medium */
   size?: 'small' | 'medium' | 'large'
-  /** Show a rotating loading indicator. Blocks clicks. */
+  /** Show a rotating loading indicator. Blocks clicks and keyboard
+   *  activation, and removes the button from the tab order while active. */
   loading?: boolean
   /** Disable the button. */
   disabled?: boolean
@@ -60,8 +58,10 @@ export type BaseButtonProps = {
   /** Click handler. */
   onClick?: (e: any) => void
   /** Tab order. The button is keyboard-focusable by default (`0`) and
-   *  becomes `-1` automatically while `disabled` — `<a-button>` and
-   *  `<a role="button">` aren't focusable without an explicit tabindex.
+   *  becomes `-1` automatically while `disabled` or `loading` — `<a-button>`
+   *  and `<a role="button">` aren't focusable without an explicit tabindex,
+   *  and a loading button must stay out of the tab order so Enter/Space can't
+   *  fire it mid-flight.
    *  @defaultValue 0 */
   tabIndex?: number
 }
@@ -182,10 +182,9 @@ export const Button = ({
   // Don't emit a bare `tone=""` (it matched the custom-tone branch and
   // resolved to a `transparent` source, rendering an invisible button).
   const toneAttr = tone || undefined
-  const isCustomTone = toneAttr != null && !NAMED_TONES.has(toneAttr)
-  const computedStyle = isCustomTone
-    ? { ...style, ['--button-tone-source']: toneAttr }
-    : style
+  // A non-named tone is a literal CSS color: feed it to the element's oklch
+  // derivation via the inline custom property (shared helper — see anta_helpers).
+  const computedStyle = toneStyle(toneAttr, '--button-tone-source', style)
 
   const isIconOnly =
     icon != null && label == null && children == null && iconTrailing == null
@@ -205,7 +204,10 @@ export const Button = ({
     loading: loading ? '' : undefined,
     disabled: disabled ? '' : undefined,
     selected: selected ? '' : undefined,
-    tabIndex: disabled ? -1 : 0,
+    // Disabled AND loading both leave the keyboard tab order — a loading
+    // button blocks the mouse (pointer-events), so it must block Enter/Space
+    // activation too, else the loading guard would be mouse-only.
+    tabIndex: disabled || loading ? -1 : 0,
     'aria-disabled': disabled || loading ? 'true' : undefined,
     'aria-busy': loading ? 'true' : undefined,
     'aria-pressed': selected ? 'true' : undefined,

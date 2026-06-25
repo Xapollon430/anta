@@ -8,15 +8,19 @@ declare global {
 }
 
 /** Install the one-per-document delegated key/click handlers that power Enter/
- *  Space activation, form submit/reset, and `data-custom-event`. Idempotent.
- *  Called eagerly at registration (so the handlers exist before the first click
- *  — e.g. a freshly-rendered clear button in a sandboxed iframe) and again from
- *  connectedCallback as a fallback. */
-function installDocumentHandlers() {
-  if (typeof document === "undefined" || document.hasKeyListenerForAButton) return;
-  document.addEventListener("keydown", handleKeyDown, true);
-  document.addEventListener("click", handleClick, true);
-  document.hasKeyListenerForAButton = true;
+ *  Space activation, form submit/reset, and `data-custom-event`. Idempotent
+ *  per document (the guard flag lives on the document object). Bind to the
+ *  element's OWN document (`this.doc`) rather than the module-global `document`:
+ *  the class may be defined in the parent page while the element lives in an
+ *  iframe (the docs playground), so a parent-frame listener would never see the
+ *  iframe's events. Called from connectedCallback with `this.doc` (the button's
+ *  real frame) and eagerly at registration with the registering frame's
+ *  `document` (best-effort, before the first connect). */
+function installDocumentHandlers(doc: Document | undefined) {
+  if (!doc || doc.hasKeyListenerForAButton) return;
+  doc.addEventListener("keydown", handleKeyDown, true);
+  doc.addEventListener("click", handleClick, true);
+  doc.hasKeyListenerForAButton = true;
 }
 
 /**
@@ -77,24 +81,32 @@ function installDocumentHandlers() {
  */
 export class AButtonElement extends HTMLElementBase {
   connectedCallback() {
-    installDocumentHandlers();
+    // Install on the button's OWN document so activation works in whatever
+    // frame the element actually lives in (parent page or playground iframe).
+    installDocumentHandlers(this.doc);
   }
 }
 
 function findForm(el: HTMLElement): HTMLFormElement | null {
   const formId = el.getAttribute("form");
   if (formId) {
-    return document.getElementById(formId) as HTMLFormElement | null;
+    return el.ownerDocument.getElementById(formId) as HTMLFormElement | null;
   }
   return el.closest("form");
 }
 
 function handleKeyDown(e: KeyboardEvent) {
   if (e.key !== "Enter" && e.key !== " ") return;
+  // Ignore OS key-repeat — holding Enter must not fire repeated activations
+  // (e.g. a submit button re-submitting once per repeat tick).
+  if (e.repeat) return;
   const el = (e.target as HTMLElement).closest(
     "a-button",
   ) as AButtonElement | null;
   if (!el) return;
+  // A disabled / loading button must not activate from the keyboard either —
+  // the CSS `pointer-events: none` only blocks the mouse, so guard here too.
+  if (el.hasAttribute("disabled") || el.hasAttribute("loading")) return;
   e.preventDefault();
   el.click();
 }
@@ -104,6 +116,9 @@ function handleClick(e: MouseEvent) {
     "a-button",
   ) as AButtonElement | null;
   if (!el) return;
+  // Block activation while disabled / loading — also covers a programmatic
+  // `el.click()` that bypasses the CSS pointer-events guard.
+  if (el.hasAttribute("disabled") || el.hasAttribute("loading")) return;
 
   // Optional bubbling event for analytics / workflow handlers.
   const customEvent = el.getAttribute("data-custom-event");
@@ -118,11 +133,10 @@ function handleClick(e: MouseEvent) {
   if (!form) return;
 
   if (type === "submit") {
-    if (form.requestSubmit) {
-      form.requestSubmit();
-    } else {
-      form.submit();
-    }
+    // requestSubmit() (not submit()) so the form fires its `submit` event and
+    // runs constraint validation. Baseline-available on every engine anta
+    // targets (it relies on the Popover API elsewhere), so no fallback.
+    form.requestSubmit();
     // Richer event so listeners can inspect which button submitted.
     const formData = new FormData(form);
     form.dispatchEvent(
@@ -147,10 +161,11 @@ function handleClick(e: MouseEvent) {
 
 export function register_a_button() {
   if (typeof customElements === "undefined") return;
-  // Eager install so the delegated handlers exist as soon as a-button is
-  // defined — before any button (incl. a wrapper-rendered clear button) is
-  // first clicked. connectedCallback re-checks as a fallback.
-  installDocumentHandlers();
+  // Eager install on the registering frame's document so the delegated
+  // handlers exist as soon as a-button is defined — before any button (incl. a
+  // wrapper-rendered clear button) is first clicked. connectedCallback then
+  // installs on each element's own document (covers cross-frame / iframe).
+  installDocumentHandlers(typeof document !== "undefined" ? document : undefined);
   if (!customElements.get("a-button")) {
     customElements.define("a-button", AButtonElement);
   }

@@ -389,60 +389,62 @@ export class ATooltipElement extends HTMLElementBase {
 
   // --- positioning (sets only the shadow container's own transform) ---
 
+  // Single pending position frame: a burst of mousemoves within one frame
+  // coalesces to ONE layout read + transform write, using the LATEST geometry
+  // (earlier samples never matter — only where the cursor ends the frame).
+  private positionFrame?: number
+  private pendingPosition?: () => void
+  private schedulePosition(compute: () => void) {
+    this.pendingPosition = compute
+    if (this.positionFrame != null) return
+    this.positionFrame = this.view.requestAnimationFrame(() => {
+      this.positionFrame = undefined
+      const run = this.pendingPosition
+      this.pendingPosition = undefined
+      run?.()
+    })
+  }
+
+  /** Pick the vertical origin: prefer the `above` candidate when `preferAbove`
+   *  (auto-flipping to `below` if it'd clip the top), else `below` (flipping to
+   *  `above` if it'd clip the bottom). Shared by anchor- and cursor-anchored
+   *  placement — only the candidate origins differ. */
+  private flipVertical(above: number, below: number, boxHeight: number, vh: number, preferAbove: boolean): number {
+    if (preferAbove) return above < MARGIN ? below : above
+    return below + boxHeight > vh ? above : below
+  }
+
+  /** Clamp a candidate (left, top) into the viewport and write it as the
+   *  container's transform — the single place the transform is set. */
+  private place(left: number, top: number, boxWidth: number, vw: number) {
+    if (left + boxWidth > vw) left = vw - boxWidth - MARGIN
+    left = Math.max(MARGIN, left)
+    top = Math.max(MARGIN, top)
+    this.container.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`
+  }
+
   private positionToTarget = () => {
-    requestAnimationFrame(() => {
+    this.schedulePosition(() => {
       if (!this.anchor || !this.shown) return
       const a = this.anchor.getBoundingClientRect()
       const box = this.container.getBoundingClientRect()
-      const view = this.view
-      const vw = view.innerWidth
-      const vh = view.innerHeight
-
-      let left = a.left
-      if (left + box.width > vw) left = vw - box.width - MARGIN
-      left = Math.max(MARGIN, left)
-
-      // Touch long-press biases above the anchor so the fingertip resting on
-      // it doesn't cover the bubble (auto-flips below when there's no room).
-      let top: number
-      if (this.prefersTop || this.touchOpen) {
-        top = a.top - box.height - MARGIN
-        if (top < MARGIN) top = a.bottom + MARGIN
-      } else {
-        top = a.bottom + MARGIN
-        if (top + box.height > vh) top = a.top - box.height - MARGIN
-      }
-      top = Math.max(MARGIN, top)
-
-      this.container.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`
+      const { innerWidth: vw, innerHeight: vh } = this.view
+      // Touch long-press biases above the anchor so the fingertip resting on it
+      // doesn't cover the bubble (auto-flips below when there's no room).
+      const top = this.flipVertical(a.top - box.height - MARGIN, a.bottom + MARGIN, box.height, vh, this.prefersTop || this.touchOpen)
+      this.place(a.left, top, box.width, vw)
     })
   }
 
   private positionToMouse = (e: MouseEvent) => {
-    requestAnimationFrame(() => {
+    this.schedulePosition(() => {
       if (!this.shown && !this.fading) return
       const box = this.container.getBoundingClientRect()
-      const view = this.view
-      const vw = view.innerWidth
-      const vh = view.innerHeight
-
-      // Shift left by the bubble's left padding so the cursor sits at the
-      // start of the text rather than to the left of the whole bubble.
-      let left = e.clientX - PADDING_X
-      if (left + box.width > vw) left = vw - box.width - MARGIN
-      left = Math.max(MARGIN, left)
-
-      let top: number
-      if (this.prefersTop) {
-        top = e.clientY - box.height - MARGIN * 2
-        if (top < MARGIN) top = e.clientY + CURSOR_SIZE
-      } else {
-        top = e.clientY + CURSOR_SIZE
-        if (top + box.height > vh) top = e.clientY - box.height - MARGIN * 2
-      }
-      top = Math.max(MARGIN, top)
-
-      this.container.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`
+      const { innerWidth: vw, innerHeight: vh } = this.view
+      // Shift left by the bubble's left padding so the cursor sits at the start
+      // of the text rather than to the left of the whole bubble.
+      const top = this.flipVertical(e.clientY - box.height - MARGIN * 2, e.clientY + CURSOR_SIZE, box.height, vh, this.prefersTop)
+      this.place(e.clientX - PADDING_X, top, box.width, vw)
     })
   }
 

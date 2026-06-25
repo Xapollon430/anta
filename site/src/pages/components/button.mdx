@@ -393,7 +393,8 @@ underline stylistically, it supports three styles — `solid`, `dashed`,
 
 - **`loading`** — diagonal stripe overlay slides across the button.
   Stripe color follows `currentColor`, so it tracks the tone. Blocks
-  clicks via `pointer-events: none`.
+  clicks via `pointer-events: none`, and (like `disabled`) removes the
+  button from the tab order so Enter/Space can't fire it mid-flight.
 - **`disabled`** — locks the colors to the disabled palette, sets
   `pointer-events: none`, and removes the button from the tab order.
   Beats inline `--button-bg` overrides.
