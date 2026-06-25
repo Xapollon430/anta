@@ -751,13 +751,40 @@ dimensions. The focus ring is the global [`--focus-ring`](/colors/#focus-ring).
 ```
 
 `<a-input>` is shadow-DOM, so for everything else style its **parts** —
-`::part(field | input | label | leading | trailing | hint)` — with plain CSS:
+`::part(field | input | label | leading | trailing | hint)` — with plain CSS;
+`:focus-within::part(field)` reaches the focused state. `light-dark()` works too
+(Anta sets `color-scheme` from its theme toggle). The `.fancy` class is just for the
+demo — a borderless pill that fills dark-grey and darkens on focus in light mode,
+and the inverse in dark:
+
+<Preview>
+  <Input className="fancy" label="Email" placeholder="you@example.com" />
+  <style is:inline>{`
+    a-input.fancy::part(field) {
+      border-radius: 999px;
+      box-shadow: none;
+      background: light-dark(#3a3a3a, #ececec);
+      padding-block: 10px;
+      padding-inline: 20px;
+    }
+    a-input.fancy::part(input) { color: light-dark(#ffffff, #1a1a1a); }
+    a-input.fancy:focus-within::part(field) { background: light-dark(#161616, #ffffff); }
+  `}</style>
+</Preview>
 
 ```css folded
-/* field box, typed text, label, placeholder */
-a-input::part(field) { background: #fafafa; border-radius: 8px; }
-a-input::part(input) { font-family: var(--monospace); }
-a-input::part(label) { letter-spacing: 0.02em; }
+/* a borderless pill — the resting border is a box-shadow, so clear it. Dark-grey
+   fill that darkens on focus, white text; the inverse in dark mode via light-dark()
+   (Anta drives color-scheme from its theme toggle). */
+a-input.fancy::part(field) {
+  border-radius: 999px;
+  box-shadow: none;                          /* remove the box-shadow border */
+  background: light-dark(#3a3a3a, #ececec);
+  padding-block: 10px;
+  padding-inline: 20px;                      /* roomier */
+}
+a-input.fancy::part(input) { color: light-dark(#ffffff, #1a1a1a); }
+a-input.fancy:focus-within::part(field) { background: light-dark(#161616, #ffffff); }
 ```
 
 </Disclosure>

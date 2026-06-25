@@ -1,6 +1,16 @@
 ---
 import '@antadesign/anta/tokens.css'
 import '@antadesign/anta/reset.css'
+// Link every element's HOST / light-DOM CSS (border, background, gutter, tones,
+// summary/details typography) as a render-blocking <head> stylesheet. Without
+// it, that CSS only lands when the client-side `@antadesign/anta/elements`
+// module runs (each `a-*.ts` does `import './a-*.css'`) — i.e. AFTER first
+// paint — so an `<a-expander>` flashes as an unstyled box until the
+// registration round-trip completes. We import only the stylesheets (never the
+// JS barrel, which calls `customElements.define` and would crash SSR where
+// `HTMLElement` is undefined), so the host chrome paints immediately; only the
+// shadow-DOM internals still wait for upgrade. See element-host-styles.css.
+import './element-host-styles.css'
 import '../styles/base.css'
 // Docs-site-only extra icon shapes (generated via Anta's generate-icons
 // script), registered on `<a-icon>` per the "Adding your own icons" guide.
@@ -429,7 +439,7 @@ if (isComponentPage && title) {
   }
 
   .sidebar {
-    width: 208px;
+    width: 214px;
     flex-shrink: 0;
     background: var(--bg-pane);
     /* border-right: 1px solid var(--border-5); */
@@ -561,34 +571,16 @@ if (isComponentPage && title) {
   }
 
   /* Right "On this page" rail — sticky, full-height; holds the <a-toc> web
-     component. Defaults to 240px (matching the left nav). It only shrinks to
-     200px in the constrained mid-desktop band where the content column has no
-     room to spare (see the media query below); when there's free space around
-     the content, or once it folds into the slide-out (≤1100px), it stays 240. */
+     component. Docked at 214px (matching the left nav); once it folds into the
+     slide-out (≤1024px) it widens to 240px. */
   .toc-rail {
-    width: 240px;
+    width: 214px;
     flex-shrink: 0;
     padding: 32px 16px 32px 4px;
     position: sticky;
     top: 0;
     height: 100vh;
     overflow-y: auto;
-  }
-
-  /* Constrained mid-desktop band: between the fold breakpoint (1100px) and the
-     point where even a *narrowed* 200px rail would leave free space around the
-     960px content column (240 nav + 64 padding + 960 content + 200 rail =
-     1464px), the content fills the track edge-to-edge. Shave the rail to 200px
-     here so the content — and two-column <Columns> sections — get ~40px more
-     room before collapsing. The 1464 (not 1504) upper bound is deliberate: it
-     guarantees the 200px state never coincides with visible free space — the
-     moment shrinking the rail would expose a gap, we keep the full 240px
-     instead. Above the band the base 240px stands; below 1100px the slide-out
-     rule (also 240px) wins (the lower bound keeps this off the slide-out). */
-  @media (min-width: 1101px) and (max-width: 1464px) {
-    .toc-rail {
-      width: 200px;
-    }
   }
 
   .topbar { display: none; }
@@ -598,7 +590,7 @@ if (isComponentPage && title) {
      top-level "On this page" trigger — earlier than the full-mobile
      layout, because the dual-rail shell squeezes the content track first.
      The nav sidebar keeps its own slide-out at 640px below. */
-  @media (max-width: 1100px) {
+  @media (max-width: 1024px) {
     /* Positioning context for the absolutely-placed TOC trigger. */
     .content {
       position: relative;
@@ -676,6 +668,8 @@ if (isComponentPage && title) {
       position: fixed;
       top: 0;
       right: 0;
+      /* Wider as a slide-out than docked (214px) — matches the TOC slide-out. */
+      width: min(240px, 80vw);
       height: 100dvh;
       transform: translateX(100%);
       transition: transform 250ms ease-out, background 200ms ease-out;

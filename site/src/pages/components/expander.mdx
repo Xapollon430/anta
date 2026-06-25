@@ -425,21 +425,24 @@ a-expander.hover-tint::part(summary):hover  { background: var(--bg-3); }
 a-expander.hover-tint::part(summary):active { background: var(--bg-2); }
 ```
 
-Or just **highlight the title** — recolour the header on hover with
-`::part(summary):hover`; the slotted title inherits the colour, so the whole header
-eases to it:
+Or just **highlight the title** on hover. The slotted title's colour is driven by an
+inherited custom property (`--expander-text-hover`) — a Chromium slotted-invalidation
+workaround — so a plain `::part(summary):hover { color }` wouldn't reach it; set the
+token instead. Drop the tertiary hover underline on the light-DOM `a-expander-summary`:
 
 <Preview direction="column" gap="8px">
   <Expander class="title-highlight" title="Hover the title" priority="tertiary">
-    <Text>The title eases to the brand color on hover via ::part(summary).</Text>
+    <Text>The title eases to red on hover.</Text>
   </Expander>
   <style is:inline>{`
-    a-expander.title-highlight::part(summary):hover { color: var(--text-1-brand); }
+    a-expander.title-highlight { --expander-text-hover: #e5484d; }
+    a-expander.title-highlight a-expander-summary { text-decoration: none; }
   `}</style>
 </Preview>
 
 ```css folded
-a-expander.title-highlight::part(summary):hover { color: var(--text-1-brand); }
+a-expander.title-highlight { --expander-text-hover: #e5484d; }          /* title colour on hover */
+a-expander.title-highlight a-expander-summary { text-decoration: none; }  /* drop the hover underline */
 ```
 
 The header also exposes its open/closed state as the **`:state(open)`**
@@ -462,10 +465,9 @@ export function SaveButton() {
   </a-expander>
   <style is:inline>{`
     a-expander.code-like {
-      --expander-bg: var(--bg-pane);
-      --expander-border: var(--border-5);
-      --expander-text: var(--text-2);
-
+      background: var(--bg-pane);
+      border-color: var(--border-5);
+      color: var(--text-2);
       border-radius: 0;
     }
     a-expander.code-like::part(summary):hover { color: var(--text-1); }
@@ -509,9 +511,9 @@ export function SaveButton() {
 
 <style>{`
   a-expander.code-like {
-    --expander-bg: var(--bg-pane);         /* header — a bit darker than the content */
-    --expander-border: var(--border-5);    /* the code-block frame outline */
-    --expander-text: var(--text-2);        /* title + code */
+    background: var(--bg-pane);         /* header — a bit darker than the content */
+    border-color: var(--border-5);     /* the code-block frame outline */
+    color: var(--text-2);              /* title + code */
 
     /* With custom corner radius don't reach for overflow:hidden (it would clip
        the focus ring); instead give the host the radius and match it on the
@@ -622,12 +624,32 @@ in lockstep; `outdent` sets it to `0`).
 For everything else, `<a-expander>` exposes shadow **parts** — `::part(summary)` (the
 header button), `::part(content)` (the body), `::part(actions)` (the actions row).
 The header hover recolour, focus state, and the chevron all go through
-`::part(summary)`:
+`::part(summary)`. The `.fancy` class is just for the demo:
+
+<Preview>
+  <Expander className="fancy" title="Hover the header" priority="secondary">
+    <Text>The header tints on hover, the chevron is a solid triangle, and the body has roomier padding.</Text>
+  </Expander>
+  <style is:inline>{`
+    a-expander.fancy::part(summary):hover { background: var(--bg-3); }
+    a-expander.fancy::part(summary)::before {
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5l11 7-11 7z'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5l11 7-11 7z'/%3E%3C/svg%3E");
+    }
+    a-expander.fancy a-expander-details { padding-block: 12px; }
+  `}</style>
+</Preview>
 
 ```css folded
-a-expander::part(summary):hover { background: var(--bg-3); color: var(--text-1); }
-a-expander::part(summary)::before { transform: scale(1.2); } /* the chevron */
-a-expander::part(content) { padding-block: 12px; }
+a-expander.fancy::part(summary):hover { background: var(--bg-3); }
+/* swap the chevron glyph for a solid triangle (it keeps its position + the
+   open-state rotate; the mask-image is just a small inline SVG) */
+a-expander.fancy::part(summary)::before {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5l11 7-11 7z'/%3E%3C/svg%3E");
+}
+/* pad the body on the light-DOM <a-expander-details>, NOT ::part(content) —
+   that part is the collapsing grid track, so padding it would stop it closing. */
+a-expander.fancy a-expander-details { padding-block: 12px; }
 ```
 
 The light-DOM `<a-expander-summary>` / `<a-expander-details>` children can also be

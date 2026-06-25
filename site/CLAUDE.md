@@ -50,6 +50,8 @@ Create `site/src/pages/components/{name}.mdx` with `layout: ../../layouts/DocsLa
 
 The preview iframe loads `tokens.css` + `reset.css` + the registered elements via `site/scripts/build-iframe-runtime.mjs` (→ `public/iframe-anta-runtime.js`), so component CSS that references `--bg-*` / `--text-*` / `--border-*` resolves the same as on the docs site. If a new component's appearance depends on a stylesheet not in that bundle, add it there.
 
+**`site/src/layouts/element-host-styles.css` is a hand-maintained aggregator** — it `@import`s every element's `dist/elements/a-*.css` so `DocsLayout.astro` can link the host/light-DOM chrome render-blocking in `<head>` (otherwise the element CSS only arrives when the client `@antadesign/anta/elements` JS registers the elements, flashing an unstyled box on load). **When you add a new component, add its `a-{name}.css` `@import` here too** (the same manual step as `build:css` and `elements/index.ts`), or its host chrome will flash before upgrade on the docs site.
+
 ```sh
 pnpm run dev                 # ← run from the REPO ROOT (see below); the dev command for all work
 cd site && pnpm run build    # static build (site only)

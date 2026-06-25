@@ -460,20 +460,51 @@ or do nothing to reject. (Submenus are always uncontrolled, regardless of `open`
 
 The popover surface lives in shadow DOM and is exposed as a **part** — style its
 chrome (background, frost, border, radius, shadow, padding, min-width) with
-`::part(menu)`:
+`::part(menu)`. Menu items are light DOM, so style `a-menu-item` (and its
+`a-icon` / `kbd` / `a-menu-item-label` children) directly. **Click the trigger** to
+open the styled menu; the `.fancy` class is just for the demo:
+
+<Preview>
+  <Button>Actions</Button>
+  <Menu className="fancy">
+    <MenuItem icon="edit" label="Edit" />
+    <MenuItem icon="copy" label="Duplicate" />
+    <MenuItem tone="critical" icon="trash" label="Delete" />
+  </Menu>
+  <style is:inline>{`
+    a-menu.fancy::part(menu) {
+      border-radius: 22px;
+      min-width: 240px;
+      padding: 8px;
+      background: light-dark(rgba(255,255,255,0.55), rgba(28,26,32,0.5));
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+    }
+    a-menu.fancy a-menu-item {
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 15px;
+      --icon-size: 18px;
+    }
+  `}</style>
+</Preview>
 
 ```css folded
-a-menu::part(menu) {
-  background: #1a161d;
-  border-radius: 10px;
-  min-width: 220px;
-  backdrop-filter: none;
+/* a "liquid glass" menu — more transparent + a stronger blur, big radius, fully
+   rounded items with roomier padding and bigger icons / type. */
+a-menu.fancy::part(menu) {
+  border-radius: 22px;
+  min-width: 240px;
+  padding: 8px;
+  background: light-dark(rgba(255,255,255,0.55), rgba(28,26,32,0.5));
+  backdrop-filter: blur(28px) saturate(180%);
+}
+a-menu.fancy a-menu-item {     /* items are light DOM — style them directly */
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 15px;
+  --icon-size: 18px;           /* inherited by the item's <a-icon> */
 }
 ```
-
-**Menu items aren't tokenized.** `a-menu-item` is light DOM, so style it — and its
-`a-icon` / `kbd` / `a-menu-item-label` children — directly (e.g.
-`a-menu-item { font-size: 13px }` or a class). The `tone` attribute covers the
-semantic palette.
 
 </Disclosure>

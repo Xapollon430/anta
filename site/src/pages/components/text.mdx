@@ -6,11 +6,13 @@ import TextDemo from '../../components/TextDemo'
 import TruncateDemo from '../../components/TruncateDemo'
 import ExpandableDemo from '../../components/ExpandableDemo'
 import Playground from '../../components/Playground'
+import Preview from '../../components/Preview.astro'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import textDemoCode from './text.demo.ts'
+import { Text } from '@antadesign/anta'
 
 # Text
 
@@ -138,10 +140,34 @@ everywhere — see [Colors](/colors/).
 <Text priority="secondary" tone="brand">Tinted secondary text</Text>
 ```
 
-`<a-text>` is light-DOM, so one-offs are plain CSS on the element or its prose links:
+`<a-text>` is light-DOM, so one-offs are plain CSS on the element or its prose
+links. The `.fancy` class is just for the demo:
+
+<Preview>
+  <Text className="fancy">
+    Body copy with a <a href="#styling">prose link</a> inside it.
+  </Text>
+  <style is:inline>{`
+    a-text.fancy {
+      color: light-dark(#0f6e5f, #5fd0bb);
+      font-size: 16px;
+      line-height: 1.7;
+      letter-spacing: 0.06em;
+    }
+    a-text.fancy a { text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  `}</style>
+</Preview>
 
 ```css folded
-a-text a { text-decoration-thickness: 2px; }
+/* teal body text via light-dark() (deep in light, bright in dark — Anta drives
+   color-scheme from its theme toggle), with wider tracking */
+a-text.fancy {
+  color: light-dark(#0f6e5f, #5fd0bb);
+  font-size: 16px;
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+}
+a-text.fancy a { text-decoration-thickness: 2px; text-underline-offset: 3px; }
 ```
 
 </Disclosure>

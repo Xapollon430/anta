@@ -42,6 +42,23 @@
     transition: background-color 100ms ease;
   }
 
+  /* FOUC guard for the gap before the custom element upgrades. Until `a-expander`
+     is `:defined`, there is no shadow DOM to collapse the region, so the light-DOM
+     body (`<a-expander-details>`, `display:block`) would paint fully open and then
+     snap shut on upgrade. Hide the body while not-defined; reveal it only when the
+     SSR markup already says open — controlled `state="open"` or uncontrolled
+     `default-state="open"` — so open-by-default expanders show immediately with no
+     flash, and everything else (the closed default carries neither attribute) stays
+     collapsed from first paint. Once the element upgrades, `:defined` drops this and
+     the shadow region owns visibility (with its open/close animation). */
+  a-expander:not(:defined) a-expander-details {
+    display: none;
+  }
+  a-expander:not(:defined)[state="open"] a-expander-details,
+  a-expander:not(:defined)[default-state="open"] a-expander-details {
+    display: block;
+  }
+
   a-expander-summary {
     display: block;
     min-width: 0;

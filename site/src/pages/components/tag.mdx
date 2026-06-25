@@ -234,15 +234,37 @@ tone — it derives the fill / border / text in oklch), **`priority`** the fill 
 <Tag tone="#e0457b" priority="secondary" label="Custom" />
 ```
 
-`<a-tag>` is light-DOM, so one-offs are plain CSS — spacing, icon size, label weight
-(an un-layered rule beats `@layer anta` without `!important`):
+`<a-tag>` is light-DOM, so for anything a tone can't give you it's plain CSS (an
+un-layered rule beats `@layer anta` without `!important`). The `.badge` class below
+takes a **gradient** background (impossible from `tone`, which is a solid colour),
+**1px** corners, and taller vertical padding so it reads completely differently:
+
+<Preview gap="8px">
+  <Tag className="badge" priority="secondary" label="Status" value="Active" />
+  <style is:inline>{`
+    a-tag.badge {
+      background: linear-gradient(135deg, light-dark(#1f6e5f, #2f9c84), light-dark(#845ec2, #9d78d6));
+      color: #fff;
+      border-radius: 1px;
+      padding-block: 5px;
+      padding-inline: 14px;
+    }
+    a-tag.badge a-tag-label { font-weight: 600; letter-spacing: 0.15ch; }
+  `}</style>
+</Preview>
 
 ```css folded
-a-tag { padding-inline: 10px; gap: 0.8ch; }
-a-tag-label { font-weight: 500; }
+a-tag.badge {
+  background: linear-gradient(135deg, #1f6e5f, #845ec2);   /* a tone can't do gradients */
+  color: #fff;
+  border-radius: 1px;                                       /* sharp corners */
+  padding-block: 5px;                                       /* tighter vertical padding */
+  padding-inline: 14px;
+}
+a-tag.badge a-tag-label { font-weight: 600; letter-spacing: 0.15ch; }
 ```
 
-Don't reach for the resolved `--tag-bg` / `--tag-border` / `--tag-text`: they're
-recomputed per priority and tone — use `tone` / `priority` for colour.
+For a *solid* recolour, prefer `tone` / `priority` — don't reach for the resolved
+`--tag-bg` / `--tag-border` / `--tag-text` (they're recomputed per priority and tone).
 
 </Disclosure>

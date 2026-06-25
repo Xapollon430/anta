@@ -306,7 +306,7 @@ name "trash". Pass your own `aria-label` to override.
 </Col>
 </Columns>
 
-### Children alongside label & icon
+### Children
 
 <Columns>
 <Col>
@@ -427,7 +427,7 @@ same CSS rules.
 </Col>
 </Columns>
 
-<Disclosure title="Linking with routing libraries" level={3}>
+<Disclosure title="Routing libraries" level={3}>
 
 Anta's CSS targets `a-button, a[role="button"]` — an anchor (`<a>`) with
 `role="button"` and the right attributes gets the styling. That means anta doesn't
@@ -549,14 +549,136 @@ the emphasis, **`size`** the dimensions. The focus ring is the global
 <Button tone="#e0457b" priority="primary" label="Custom" />
 ```
 
-`<a-button>` is light-DOM, so one-offs are plain CSS — spacing, the loading stripe,
-transitions (an un-layered rule beats `@layer anta` without `!important`):
+For anything beyond the props, `<a-button>` is light-DOM — restyle it with plain
+CSS (an un-layered rule beats `@layer anta` without `!important`). Set
+`background-color` / `color` **per state**, plus full type control (size,
+line-height, letter-spacing, `font-feature-settings`), padding, radius, even a
+frosted `backdrop-filter` — no need to touch a single token. **`light-dark()`** works
+too (Anta sets `color-scheme` from its theme toggle), so colours adapt to dark mode
+with no `.dark` selector. The classes below are just for the demos:
+
+<Preview>
+  <div class="glass-stage">
+    <Button className="checkout" priority="primary" label="Customize" />
+    <Button className="glass" priority="primary" label="Beautify" />
+  </div>
+  <style is:inline>{`
+    .glass-stage {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      padding: 36px;
+      border-radius: 16px;
+      background:
+        radial-gradient(120% 140% at 0% 0%, #ffd56b, transparent 55%),
+        linear-gradient(120deg, #ff6b6b, #845ec2 45%, #2c9bf0);
+    }
+
+    /* First button — inverted: near-black in light, near-white in dark, via a
+       theme-flipping gradient (light-dark() inside the gradient stops). */
+    a-button.checkout {
+      background: linear-gradient(140deg, light-dark(#26262b, #ffffff), light-dark(#000000, #dcdce0));
+      color: light-dark(#ffffff, #0b0b0c);
+      font-size: 20px;
+      line-height: 1.2em;
+      padding-block: 12px;
+      padding-inline: 26px;
+      border-radius: 999px;
+    }
+    a-button.checkout:hover  { background: linear-gradient(140deg, light-dark(#3a3a42, #ffffff), light-dark(#161618, #cacace)); }
+    a-button.checkout:active { background: linear-gradient(140deg, light-dark(#000000, #ececf0), light-dark(#1a1a1c, #ffffff)); }
+    /* customised label — uppercase, wide tracking */
+    a-button.checkout a-button-label {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 600;
+      font-feature-settings: "ss02", "ss05";
+    }
+
+    /* Second button — liquid glass: frost (blur + saturate + brightness),
+       translucent tint, a diagonal specular sheen, a top/bottom bevel, and lift. */
+    a-button.glass {
+      color: #fff;
+      background-color: rgba(255, 255, 255, 0.12);
+      background-image: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.06) 45%, transparent 65%);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 999px;
+      backdrop-filter: blur(8px) saturate(1.8) brightness(1.06);
+      -webkit-backdrop-filter: blur(8px) saturate(1.8) brightness(1.06);
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.65),
+        inset 0 -2px 3px rgba(255, 255, 255, 0.18),
+        0 8px 24px rgba(0, 0, 0, 0.22);
+      font-size: 20px;
+      line-height: 1.2em;
+      padding-block: 12px;
+      padding-inline: 26px;
+    }
+    a-button.glass:hover  { background-color: rgba(255, 255, 255, 0.22); }
+    a-button.glass:active { background-color: rgba(255, 255, 255, 0.08); }
+    /* beautified label — glossy gradient text with a soft shadow */
+    a-button.glass a-button-label {
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      background: linear-gradient(180deg, #ffffff, #cfe0ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+    }
+  `}</style>
+</Preview>
 
 ```css folded
-a-button { padding-inline: 12px; transition-duration: 0; }
+/* First — inverted pill: a theme-flipping gradient (near-black in light,
+   near-white in dark) via light-dark() in the gradient stops. Anta sets
+   color-scheme from its .dark toggle, so it adapts with no .dark selector. */
+a-button.checkout {
+  background: linear-gradient(140deg, light-dark(#26262b, #fff), light-dark(#000, #dcdce0));
+  color: light-dark(#fff, #0b0b0c);
+  font-size: 20px;
+  line-height: 1.2em;
+  padding: 12px 26px;
+  border-radius: 999px;
+}
+a-button.checkout:hover  { background: linear-gradient(140deg, light-dark(#3a3a42, #fff), light-dark(#161618, #cacace)); }
+a-button.checkout:active { background: linear-gradient(140deg, light-dark(#000, #ececf0), light-dark(#1a1a1c, #fff)); }
+a-button.checkout a-button-label {            /* customised label */
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+}
+
+/* Second — liquid glass: frost + translucent tint + a diagonal specular sheen,
+   a top/bottom bevel, and a soft lift. Sits on a colourful backdrop so it reads. */
+a-button.glass {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.12);
+  background-image: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.06) 45%, transparent 65%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  backdrop-filter: blur(8px) saturate(1.8) brightness(1.06);
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.65),    /* top bevel */
+    inset 0 -2px 3px rgba(255,255,255,0.18),
+    0 8px 24px rgba(0,0,0,0.22);               /* lift */
+  font-size: 20px; line-height: 1.2em; padding: 12px 26px;
+}
+a-button.glass:hover  { background-color: rgba(255, 255, 255, 0.22); }
+a-button.glass:active { background-color: rgba(255, 255, 255, 0.08); }
+a-button.glass a-button-label {               /* beautified label — gradient text */
+  font-weight: 600;
+  background: linear-gradient(180deg, #fff, #cfe0ff);
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
+}
 ```
 
 Don't reach for the resolved `--button-fg` / `--button-bg`: they're recomputed per
-state, so setting one only catches a single state — use `tone` for colour.
+state, so setting one only catches a single state — restyle per state as above, or
+use `tone` for a full custom-colour curve.
 
 </Disclosure>

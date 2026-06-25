@@ -233,22 +233,53 @@ global [`--focus-ring`](/colors/#focus-ring).
 ```
 
 For anything else, `<a-checkbox>` is light-DOM — the **box is `::before`**, the
-**check/minus glyph is `::after`**, the label/hint are the `a-checkbox-label` /
-`a-checkbox-hint` children. Target them with plain CSS; Anta ships in `@layer anta`,
-so an un-layered rule wins without `!important`:
+**check/minus glyph is `::after`** (a masked SVG — swap `--checkbox-mask-check` for a
+custom mark), the label/hint are the `a-checkbox-label` / `a-checkbox-hint` children.
+Target them with plain CSS, **per state** (an un-layered rule beats `@layer anta`
+without `!important`). The classes below are just for the demos:
+
+<Preview gap="20px">
+  <Checkbox className="customized" defaultChecked>Customized</Checkbox>
+  <Checkbox className="beautified" defaultChecked>Beautified</Checkbox>
+  <style is:inline>{`
+    a-checkbox.customized { font-weight: 700; }
+    a-checkbox.customized::before,
+    a-checkbox.customized::after { inline-size: 24px; block-size: 24px; }
+    a-checkbox.customized::before { border-radius: 50%; border-width: 2px; }
+    a-checkbox.customized::after { -webkit-mask-size: 16px; mask-size: 16px; }
+    a-checkbox.customized:state(checked)::before { background: light-dark(#1f6e5f, #2f9c84); border-color: light-dark(#1f6e5f, #2f9c84); }
+
+    a-checkbox.beautified { --checkbox-mask-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z'/%3E%3C/svg%3E"); }
+    a-checkbox.beautified::before { border-radius: 8px; }
+    a-checkbox.beautified::after { -webkit-mask-size: 10px; mask-size: 10px; }
+    a-checkbox.beautified:state(checked)::before { background: light-dark(#ec4899, #f472b6); border-color: transparent; }
+  `}</style>
+</Preview>
 
 ```css folded
-/* recolour just the unchecked border, square off the box, restyle the hint */
-a-checkbox::before { border-color: #888; border-radius: 2px; }
-a-checkbox-hint { color: #999; }
-```
+/* Customized — bold label, bigger circular box, bigger checkmark.
+   Colours use light-dark() so they're tuned for both themes at once. */
+a-checkbox.customized { font-weight: 700; }
+a-checkbox.customized::before,
+a-checkbox.customized::after { inline-size: 24px; block-size: 24px; }
+a-checkbox.customized::before { border-radius: 50%; border-width: 2px; }
+a-checkbox.customized::after { mask-size: 16px; }                /* bigger mark */
+a-checkbox.customized:state(checked)::before {
+  background: light-dark(#1f6e5f, #2f9c84);
+  border-color: light-dark(#1f6e5f, #2f9c84);
+}
 
-The one thing not reachable as plain CSS is the **mark artwork** — swap it with
-`--checkbox-mask-check` / `--checkbox-mask-indeterminate` (each a `mask-image`
-`url()`):
-
-```css folded
-a-checkbox { --checkbox-mask-check: url("/icons/my-check.svg"); }
+/* Beautified — a full white heart mark swapped in via --checkbox-mask-check
+   (centred by the default mask-position), sized down a touch, on a pink fill */
+a-checkbox.beautified {
+  --checkbox-mask-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z'/%3E%3C/svg%3E");
+}
+a-checkbox.beautified::before { border-radius: 8px; }
+a-checkbox.beautified::after { mask-size: 10px; }            /* smaller heart */
+a-checkbox.beautified:state(checked)::before {
+  background: light-dark(#ec4899, #f472b6);                  /* pink, both themes */
+  border-color: transparent;
+}
 ```
 
 </Disclosure>

@@ -446,15 +446,53 @@ ring is the global [`--focus-ring`](/colors/#focus-ring).
 ```
 
 For anything else, `<a-radio>` is light-DOM — the **ring is `::before`**, the **dot
-is `::after`**, the label/hint are the `a-radio-label` / `a-radio-hint` children, and
-the options sit in a plain `<a-radio-list>`. Target them with ordinary CSS (an
-un-layered rule beats `@layer anta` without `!important`):
+is `::after`**, the label/hint are the `a-radio-label` / `a-radio-hint` children.
+Target them with ordinary CSS, **per state** (an un-layered rule beats `@layer anta`
+without `!important`). The two groups below push it — square black/white marks, and a
+bigger ring with a heart-shaped mark (the dot, masked — same heart as the checkbox):
+
+<Preview gap="32px">
+  <RadioGroup className="square" name="sty-sq" defaultValue="a"
+    options={[{ value: 'a', label: 'One' }, { value: 'b', label: 'Two' }]} />
+  <RadioGroup className="heart" name="sty-ht" defaultValue="a"
+    options={[{ value: 'a', label: 'One' }, { value: 'b', label: 'Two' }]} />
+  <style is:inline>{`
+    a-radio-group.square a-radio::before,
+    a-radio-group.square a-radio::after { border-radius: 0; }
+    a-radio-group.square a-radio:state(selected)::before { background: light-dark(#000, #fff); border-color: light-dark(#000, #fff); }
+    a-radio-group.square a-radio:state(selected)::after { background: light-dark(#fff, #000); }
+
+    a-radio-group.heart a-radio::before { inline-size: 22px; block-size: 22px; }
+    a-radio-group.heart a-radio::after {
+      inline-size: 13px; block-size: 13px; border-radius: 0;
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z'/%3E%3C/svg%3E");
+      -webkit-mask-size: contain; mask-size: contain;
+      -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+      -webkit-mask-position: center; mask-position: center;
+    }
+    a-radio-group.heart a-radio:state(selected)::before { background: light-dark(#ec4899, #f472b6); border-color: transparent; }
+    a-radio-group.heart a-radio:state(selected)::after { background: #fff; }
+  `}</style>
+</Preview>
 
 ```css folded
-/* square the ring, resize the dot, lay options out in a grid */
-a-radio::before { border-radius: 4px; }
-a-radio::after { inline-size: 8px; block-size: 8px; }
-a-radio-group a-radio-list { display: grid; grid-template-columns: 1fr 1fr; }
+/* Square — square ring + square dot, black/white per theme via light-dark() */
+a-radio-group.square a-radio::before,
+a-radio-group.square a-radio::after { border-radius: 0; }
+a-radio-group.square a-radio:state(selected)::before { background: light-dark(#000, #fff); border-color: light-dark(#000, #fff); }
+a-radio-group.square a-radio:state(selected)::after { background: light-dark(#fff, #000); }   /* contrasting dot */
+
+/* Heart — a bigger ring with a heart mark (the dot ::after, masked) on a pink fill.
+   Same heart SVG as the checkbox; mask-size: contain centres it in the bigger ring. */
+a-radio-group.heart a-radio::before { inline-size: 22px; block-size: 22px; }   /* bigger ring */
+a-radio-group.heart a-radio::after {
+  inline-size: 13px; block-size: 13px; border-radius: 0;
+  mask-image: url("data:image/svg+xml,%3Csvg …a heart path… /%3E");
+  mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+}
+a-radio-group.heart a-radio:state(selected)::before { background: light-dark(#ec4899, #f472b6); border-color: transparent; }
+a-radio-group.heart a-radio:state(selected)::after { background: #fff; }   /* white heart */
 ```
 
 </Disclosure>
