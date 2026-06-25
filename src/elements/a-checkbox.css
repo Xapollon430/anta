@@ -27,11 +27,24 @@
     --checkbox-icon-disabled: #c1b9c1;
     --checkbox-bg-disabled: color-mix(in oklch, #44374b 10%, transparent);
     --checkbox-border-disabled: color-mix(in oklch, #44374b 15%, transparent);
-    --checkbox-focus: #503cb4;
+
+    /* The glyph (::after mark): its size and the check / minus mask images, exposed
+       so a consumer can resize or swap the mark. The keyboard focus ring uses the
+       global --focus-ring token (no per-checkbox focus token). */
+    --checkbox-mask-size: 12px;
+    --checkbox-mask-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+    --checkbox-mask-indeterminate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
 
     --checkbox-label-color: var(--text-2);
     --checkbox-label-color-disabled: var(--text-4);
     --checkbox-hint-color: var(--text-4);
+
+    /* Type scales with `size` (like <a-radio>): label tracks the body size, hint
+       a step down. Tokens so the size variants set them in one place. */
+    --checkbox-label-fs: 15px;
+    --checkbox-label-lh: 20px;
+    --checkbox-hint-fs: 13px;
+    --checkbox-hint-lh: 16px;
 
     /* Inline-grid: box in column 1, label/hint stacked in column 2. The box
        (::before) and glyph (::after) span rows 1/-1 of column 1 so they stay
@@ -52,8 +65,8 @@
 
     color: var(--checkbox-label-color);
     font-family: var(--sans-serif);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--checkbox-label-fs);
+    line-height: var(--checkbox-label-lh);
     font-feature-settings: "ss02", "ss05";
 
     &::before {
@@ -87,8 +100,8 @@
       mask-repeat: no-repeat;
       -webkit-mask-position: center;
       mask-position: center;
-      -webkit-mask-size: 12px;
-      mask-size: 12px;
+      -webkit-mask-size: var(--checkbox-mask-size);
+      mask-size: var(--checkbox-mask-size);
     }
 
     @media (hover: hover) and (pointer: fine) {
@@ -122,16 +135,16 @@
       &::after { background-color: var(--checkbox-icon); }
     }
     &:state(checked)::after {
-      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
-      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+      -webkit-mask-image: var(--checkbox-mask-check);
+      mask-image: var(--checkbox-mask-check);
     }
     &:state(indeterminate)::after {
-      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
-      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+      -webkit-mask-image: var(--checkbox-mask-indeterminate);
+      mask-image: var(--checkbox-mask-indeterminate);
     }
 
     &:focus-visible::before {
-      outline: 1px solid var(--checkbox-focus);
+      outline: 1px solid var(--focus-ring);
       outline-offset: 1px;
     }
 
@@ -152,14 +165,82 @@
 
     &[size="small"] {
       --checkbox-gap: 6px;
+      --checkbox-label-fs: 13px;
+      --checkbox-label-lh: 16px;
+      --checkbox-hint-fs: 12px;
+      --checkbox-hint-lh: 14px;
+      --checkbox-mask-size: 10px;
       &::before,
       &::after { inline-size: 14px; block-size: 14px; }
-      &::after { -webkit-mask-size: 10px; mask-size: 10px; }
     }
     &[size="large"] {
+      --checkbox-label-fs: 17px;
+      --checkbox-label-lh: 24px;
+      --checkbox-hint-fs: 15px;
+      --checkbox-hint-lh: 19px;
+      --checkbox-mask-size: 14px;
       &::before,
       &::after { inline-size: 18px; block-size: 18px; }
-      &::after { -webkit-mask-size: 14px; mask-size: 14px; }
+    }
+  }
+
+  /* Secondary priority — outlined: the checked/indeterminate box stays unfilled
+     (keeps --checkbox-bg) and the border + glyph take the fill colour instead, so
+     a checked secondary box reads as a tinted outline with a tinted check rather
+     than a solid fill with a white check. Border + glyph follow the same
+     rest/hover/active fill curve. Disabled is left to the shared :disabled rule
+     (hence :not(:disabled) here), so a disabled secondary looks like primary. */
+  a-checkbox[priority="secondary"] {
+    &:not(:disabled):is(:state(checked), :state(indeterminate)) {
+      &::before { background: var(--checkbox-bg); border-color: var(--checkbox-fill); }
+      &::after  { background-color: var(--checkbox-fill); }
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:not(:disabled):hover:is(:state(checked), :state(indeterminate)) {
+        &::before { background: var(--checkbox-bg); border-color: var(--checkbox-fill-hover); }
+        &::after  { background-color: var(--checkbox-fill-hover); }
+      }
+    }
+    &:not(:disabled):active:is(:state(checked), :state(indeterminate)) {
+      &::before { background: var(--checkbox-bg); border-color: var(--checkbox-fill-active); }
+      &::after  { background-color: var(--checkbox-fill-active); }
+    }
+  }
+
+  /* Dark: the check / minus glyph reads a touch thin on the solid fill, so nudge the
+     mask up 1px across sizes (12 / 10 / 14 → 13 / 11 / 15) via the token (so a
+     consumer's --checkbox-mask-size override still wins). Secondary bumps further
+     (+2) in its own rule below. */
+  .dark a-checkbox { --checkbox-mask-size: 13px; }
+  .dark a-checkbox[size="small"] { --checkbox-mask-size: 11px; }
+  .dark a-checkbox[size="large"] { --checkbox-mask-size: 15px; }
+
+  /* Dark: an outlined box in the resting fill (the darkest shade in dark) barely
+     reads against the dark page, so anchor the secondary border + checkmark to the
+     brightest shade (--checkbox-fill-active) — keeping the checked look as legible
+     in dark as it is in light. Hover/active still respond (brightening further, the
+     dark-mode direction) so a checked secondary isn't inert. Mirrors a-radio. */
+  .dark a-checkbox[priority="secondary"] {
+    /* The outlined checkmark is a thin tone-coloured stroke (not a white glyph on a
+       solid fill), so give the glyph +2px of mask in dark for a touch more presence
+       (13 / 11 / 15 → 14 / 12 / 16), via the token. */
+    --checkbox-mask-size: 14px;
+    &[size="small"] { --checkbox-mask-size: 12px; }
+    &[size="large"] { --checkbox-mask-size: 16px; }
+
+    &:not(:disabled):is(:state(checked), :state(indeterminate)) {
+      &::before { border-color: var(--checkbox-fill-active); }
+      &::after  { background-color: var(--checkbox-fill-active); }
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:not(:disabled):hover:is(:state(checked), :state(indeterminate)) {
+        &::before { border-color: oklch(from var(--checkbox-fill-active) calc(l + 0.07) c h); }
+        &::after  { background-color: oklch(from var(--checkbox-fill-active) calc(l + 0.07) c h); }
+      }
+    }
+    &:not(:disabled):active:is(:state(checked), :state(indeterminate)) {
+      &::before { border-color: oklch(from var(--checkbox-fill-active) calc(l + 0.12) c h); }
+      &::after  { background-color: oklch(from var(--checkbox-fill-active) calc(l + 0.12) c h); }
     }
   }
 
@@ -173,8 +254,8 @@
   }
   a-checkbox-hint {
     color: var(--checkbox-hint-color);
-    font-size: 13px;
-    line-height: 16px;
+    font-size: var(--checkbox-hint-fs);
+    line-height: var(--checkbox-hint-lh);
     margin-block-start: 2px;
   }
 
@@ -224,19 +305,31 @@
     --checkbox-fill-active: #a01c1c;
   }
 
-  /* Tinted tones only: the unselected box border becomes the fill colour (neutral
-     keeps the base grey); tracks light/dark via --checkbox-fill. */
+  /* Tinted tones only: the unselected box border picks up the tone and ramps like
+     the neutral border — lightest at rest, darkening through hover to active. The
+     active anchor is the fill mixed toward the neutral grey (this is the old static
+     value); rest and hover step up in oklch lightness from there, so hue/chroma
+     stay put. Tracks light/dark via --checkbox-fill and the theme-aware grey. */
   a-checkbox[tone]:not([tone=""], [tone="neutral"]) {
-    --checkbox-border:        color-mix(in oklch, var(--checkbox-fill) 70%, var(--checkbox-border-neutral));
-    --checkbox-border-hover:  color-mix(in oklch, var(--checkbox-fill-hover) 70%, var(--checkbox-border-neutral));
-    --checkbox-border-active: color-mix(in oklch, var(--checkbox-fill-active) 70%, var(--checkbox-border-neutral));
+    --_checkbox-border-base: color-mix(in oklch, var(--checkbox-fill) 70%, var(--checkbox-border-neutral));
+    --checkbox-border:        oklch(from var(--_checkbox-border-base) calc(l + 0.17) c h);
+    --checkbox-border-hover:  oklch(from var(--_checkbox-border-base) calc(l + 0.1) c h);
+    --checkbox-border-active: var(--_checkbox-border-base);
+
+    /* Dark inverts the direction: interaction brightens the border (rest darkest,
+       active lightest), matching the neutral dark ramp. */
+    .dark & {
+      --checkbox-border:        var(--_checkbox-border-base);
+      --checkbox-border-hover:  oklch(from var(--_checkbox-border-base) calc(l + 0.1) c h);
+      --checkbox-border-active: oklch(from var(--_checkbox-border-base) calc(l + 0.17) c h);
+    }
   }
 
   /* Custom tone — any non-named tone is treated as a literal CSS color and the
      fill curve is derived in oklch. Every named value must be listed in the
      :not(): without it `info` / `success` / etc would also hit this rule and
      attr(tone type(<color>)) would fail to parse them, rendering transparent.
-     The focus ring stays brand (base --checkbox-focus) across every tone. */
+     The focus ring is the global --focus-ring across every tone. */
   a-checkbox[tone]:not(
       [tone=""],
       [tone="brand"],
@@ -286,7 +379,6 @@
     --checkbox-icon-disabled: #635b65;
     --checkbox-bg-disabled: color-mix(in oklch, #e4d1ef 10%, transparent);
     --checkbox-border-disabled: color-mix(in oklch, #e4d1ef 15%, transparent);
-    --checkbox-focus: #a897fc;
   }
   .dark a-checkbox[tone="brand"] {
     --checkbox-fill: #503cb4;

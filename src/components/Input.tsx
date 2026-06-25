@@ -1,6 +1,6 @@
 import type { BaseProps, DOMEventHandlers } from '../general_types'
 import type { IconShape } from '../elements/a-icon.shapes'
-import { nativeStateChange } from '../anta_helpers'
+import { nativeStateChange, toneStyle } from '../anta_helpers'
 import { Button } from './Button'
 import { Icon } from './Icon'
 
@@ -46,6 +46,10 @@ export interface InputProps extends BaseProps, DOMEventHandlers {
    *  success → `circle-check`, info → `info`, brand → `circle-small-solid`); pass a
    *  shape to override, or `false` to drop it. `neutral` has no default glyph. */
   statusIcon?: IconShape | (string & {}) | false
+  /** Custom accent colour — any literal CSS colour tints the resting + hover
+   *  border (focus ring stays the global `--focus-ring`). For consistency with the
+   *  other controls' custom-tone knob; a `status` still overrides for validation. */
+  tone?: string
   /** Size variant. small=24px, medium=28px, large=32px tall; the type scale and
    *  icon track the size (small 13/16 + 14px icon · medium 15/20 + 16px ·
    *  large 17/24 + 18px).
@@ -213,6 +217,7 @@ export const Input = ({
   hint,
   status,
   statusIcon,
+  tone,
   size,
   value,
   defaultValue,
@@ -250,8 +255,8 @@ export const Input = ({
 }: InputProps) => {
   // `hint` is the single message channel; `status` only recolors it + adds a
   // glyph. `statusIcon` overrides the per-status default; `false` drops it.
-  const tone = status && status !== 'neutral' ? status : undefined
-  const glyph = statusIcon === undefined ? (tone ? STATUS_ICON[tone] : undefined) : statusIcon
+  const statusTone = status && status !== 'neutral' ? status : undefined
+  const glyph = statusIcon === undefined ? (statusTone ? STATUS_ICON[statusTone] : undefined) : statusIcon
 
   return (
     <a-input
@@ -264,7 +269,8 @@ export const Input = ({
       multiline={presence(multiline || rows != null)}
       rows={rows != null ? String(rows) : undefined}
       maxrows={maxRows != null ? String(maxRows) : undefined}
-      status={tone}
+      status={statusTone}
+      tone={tone || undefined}
       type={!multiline && rows == null ? type : undefined}
       name={name}
       placeholder={placeholder}
@@ -287,7 +293,7 @@ export const Input = ({
       onclearclick={onClearClick ? (e: any) => onClearClick(nativeStateChange(e).event) : undefined}
       onclearinput={onClearInput ? (e: any) => onClearInput(nativeStateChange(e).event) : undefined}
       class={className}
-      style={style}
+      style={toneStyle(tone, '--input-tone-source', style)}
       {...rest}
     >
       {label != null &&

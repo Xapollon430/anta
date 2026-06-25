@@ -36,10 +36,10 @@ A progress indicator for displaying task completion. Consists of a track
 <Preview>
   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
     <Progress value={60} />
-    <Progress value={42} label="Uploading files…" hint="3 of 7" />
+    <Progress value={42} tone="brand" label="Uploading files…" hint="3 of 7" />
     <Progress value={75} tone="info" label="Processing" />
-    <Progress value={60} label="Uploading" hint="3 of 5" style={{ borderBottomWidth: '1px' }} />
-    <AnimatedProgress client:visible speed={2} />
+    <Progress value={60} tone="warning" label="Uploading" hint="3 of 5" style={{ borderBottomWidth: '1px' }} />
+    <AnimatedProgress client:visible speed={2} tone="critical" />
   </div>
 </Preview>
 
@@ -48,14 +48,14 @@ A progress indicator for displaying task completion. Consists of a track
 <Progress value={60} />
 
 // Pair the value with a descriptive label and a right-aligned hint.
-<Progress value={42} label="Uploading files…" hint="3 of 7" />
+<Progress value={42} tone="brand" label="Uploading files…" hint="3 of 7" />
 
-// tone="info" re-tints every internal color via the --*-info token cascade.
+// A named tone re-tints every internal color via the --*-{tone} token cascade.
 <Progress value={75} tone="info" label="Processing" />
 
 // The host pre-declares border colour + style with width 0 — give it any
 // width to opt in; the colour auto-tracks the tone.
-<Progress value={60} label="Uploading" hint="3 of 5" style={{ borderBottomWidth: '1px' }} />
+<Progress value={60} tone="warning" label="Uploading" hint="3 of 5" style={{ borderBottomWidth: '1px' }} />
 
 // Animate by driving `value` over time.
 function AnimatedProgress({ speed = 1 }) {
@@ -74,17 +74,59 @@ function AnimatedProgress({ speed = 1 }) {
 
 </Disclosure>
 
-<Disclosure title="Component tokens" open>
+<Disclosure title="Styling">
 
-Progress exposes these CSS custom properties as its theming surface. Override any of them in consumer CSS to retint a single instance, or set them on a `[tone="…"]` selector to add a new tone variant. Tokens marked *(shadow-only API)* style elements inside the shadow DOM and can **only** be customized via these properties — consumer CSS can't reach those elements directly.
+Reach for **`tone`** first — a named tone (`brand` / `info` / `success` / `warning`
+/ `critical`) or any CSS colour for a custom tone (it derives the track, indicator,
+and text in oklch):
 
-| Token | Description |
-|-------|-------------|
-| `--progress-bg` | Host background (the track behind the indicator). |
-| `--progress-border-color` | Host border colour. Also one endpoint of the indicator-edge gradient. |
-| `--progress-indicator-bg` *(shadow-only API)* | Indicator fill colour. Also the start endpoint of the indicator-edge gradient. |
-| `--progress-indicator-edge` *(shadow-only API)* | Gradient painted at the indicator's right edge. Defaults to `linear-gradient(90deg in oklch, var(--progress-indicator-bg), var(--progress-border-color))`. |
-| `--progress-text-color` | Colour of the percentage number and the label text. |
-| `--progress-hint-color` | Colour of the right-aligned hint text. |
+```tsx folded
+<Progress value={60} tone="success" />
+<Progress value={60} tone="#e0457b" />
+```
+
+For one-offs, the **track** is the host (style `a-progress` directly) and the
+**indicator** (fill bar) is a shadow **part** — `::part(indicator)`. The `.fancy`
+class is just for the demo:
+
+<Preview>
+  <div style={{ width: '100%' }}>
+    <Progress className="fancy" value={62} label="Uploading" hint="62%" />
+  </div>
+  <style is:inline>{`
+    a-progress.fancy {
+      border-radius: 999px;
+      background: light-dark(#ececf2, #26232c);
+    }
+    a-progress.fancy::part(indicator) {
+      background: linear-gradient(90deg, light-dark(#6a5acd, #8b7cf0), light-dark(#d44ea3, #ec64bc) 55%, light-dark(#ff8a5b, #ffa477));
+      box-shadow: 0 0 12px rgba(212, 78, 163, 0.55);
+    }
+    /* the indicator's right edge has a soft fade by default — clear it for a crisp tip */
+    a-progress.fancy::part(indicator)::after { background: none; }
+    a-progress.fancy a-progress-number,
+    a-progress.fancy a-progress-text,
+    a-progress.fancy a-progress-hint { color: #fff; }
+  `}</style>
+</Preview>
+
+```css folded
+/* a fancy bar: rounded track (all sides), a multi-stop gradient fill with a glow,
+   and a crisp hard right edge (the default soft right-edge fade is cleared). */
+a-progress.fancy {
+  border-radius: 999px;
+  background: light-dark(#ececf2, #26232c);
+}
+a-progress.fancy::part(indicator) {
+  background: linear-gradient(90deg, #6a5acd, #d44ea3 55%, #ff8a5b);
+  box-shadow: 0 0 12px rgba(212, 78, 163, 0.55);   /* glow */
+}
+a-progress.fancy::part(indicator)::after { background: none; }   /* hard right edge */
+
+/* the percentage / label / hint are light-DOM children — recolour for the bar */
+a-progress.fancy a-progress-number,
+a-progress.fancy a-progress-text,
+a-progress.fancy a-progress-hint { color: #fff; }
+```
 
 </Disclosure>

@@ -740,21 +740,51 @@ The resolver lives in `@layer anta`, so any un-layered rule of yours wins.
 
 </Disclosure>
 
-<Disclosure title="Component tokens" open>
+<Disclosure title="Styling">
 
-Override any of these on a single instance
-(`style={{ '--input-border': 'var(--border-1)' }}`) or on a selector wrapping
-the input.
+Reach for the props first: **`status`** sets a validation tone (border + message),
+**`tone`** a custom accent colour for the border (any CSS colour), **`size`** the
+dimensions. The focus ring is the global [`--focus-ring`](/colors/#focus-ring).
 
-| Token | Description |
-|---|---|
-| `--input-bg` | Field background. Defaults to `--bg-1`. |
-| `--input-border`<br />`--input-border-hover` | Border color at rest / hover. Default `--border-2` / `--border-1`. A `status` re-points both to its tone's `--border-1-*` role token. |
-| `--input-focus` | Focus-ring color. |
-| `--input-text` | Value (typed text) color. Defaults to `--text-1`. |
-| `--input-label` | Label color. Defaults to `--text-3`. |
-| `--input-placeholder` | Placeholder color. Defaults to `--text-4`. |
-| `--input-adornment` | Color of `leading` / `trailing` content — icons and plain text (a slotted `<Button>` keeps its own). Defaults to `--text-4`. |
-| `--input-hint` | Hint message + glyph color. Defaults to `--text-3`; a `status` re-points it to its tone's `--text-2-*` role token. |
+```tsx folded
+<Input tone="#e0457b" label="Custom accent" />
+```
+
+`<a-input>` is shadow-DOM, so for everything else style its **parts** —
+`::part(field | input | label | leading | trailing | hint)` — with plain CSS;
+`:focus-within::part(field)` reaches the focused state. `light-dark()` works too
+(Anta sets `color-scheme` from its theme toggle). The `.fancy` class is just for the
+demo — a borderless pill that fills dark-grey and darkens on focus in light mode,
+and the inverse in dark:
+
+<Preview>
+  <Input className="fancy" label="Email" placeholder="you@example.com" />
+  <style is:inline>{`
+    a-input.fancy::part(field) {
+      border-radius: 999px;
+      box-shadow: none;
+      background: light-dark(#3a3a3a, #ececec);
+      padding-block: 10px;
+      padding-inline: 20px;
+    }
+    a-input.fancy::part(input) { color: light-dark(#ffffff, #1a1a1a); }
+    a-input.fancy:focus-within::part(field) { background: light-dark(#161616, #ffffff); }
+  `}</style>
+</Preview>
+
+```css folded
+/* a borderless pill — the resting border is a box-shadow, so clear it. Dark-grey
+   fill that darkens on focus, white text; the inverse in dark mode via light-dark()
+   (Anta drives color-scheme from its theme toggle). */
+a-input.fancy::part(field) {
+  border-radius: 999px;
+  box-shadow: none;                          /* remove the box-shadow border */
+  background: light-dark(#3a3a3a, #ececec);
+  padding-block: 10px;
+  padding-inline: 20px;                      /* roomier */
+}
+a-input.fancy::part(input) { color: light-dark(#ffffff, #1a1a1a); }
+a-input.fancy:focus-within::part(field) { background: light-dark(#161616, #ffffff); }
+```
 
 </Disclosure>

@@ -158,8 +158,9 @@ export interface AProgressAttributes extends BaseAttributes {
   value?: number | string
   /** Maximum value. Defaults to 100. */
   max?: number | string
-  /** Color variant. `'neutral'` is the default gray; `'info'` is blue. */
-  tone?: 'neutral' | 'info'
+  /** Colour variant, or any literal CSS colour for a custom tone (derived in
+   *  oklch). Named tones track light/dark automatically. */
+  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** ARIA role — the JSX wrapper sets this to `'progressbar'`. */
   role?: string
   /** ARIA value-now (current). */
@@ -362,6 +363,10 @@ export interface ACheckboxAttributes extends BaseAttributes {
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size variant. `small` = 14px, `medium` (default) = 16px, `large` = 18px box. */
   size?: 'small' | 'medium' | 'large'
+  /** Visual priority. `primary` (default) fills the checked box with the tone
+   *  colour and draws a white checkmark; `secondary` keeps the box unfilled and
+   *  draws the border + checkmark in the tone colour (an outlined look). */
+  priority?: 'primary' | 'secondary'
   /** Controlled state — the element reflects changes to this attribute. Use this
    *  (driven from your store) for a controlled checkbox; use `default-state` for
    *  an uncontrolled one. */
@@ -384,6 +389,9 @@ export interface ACheckboxAttributes extends BaseAttributes {
   onstatechange?: (
     e: CustomEvent<{ next: 'checked' | 'unchecked' | 'indeterminate'; prev: 'checked' | 'unchecked' | 'indeterminate' }>,
   ) => void
+  /** Native `change`, fired *after* a toggle applies (post-apply counterpart to
+   *  `onstatechange`). Lowercase so both renderers bind the native event. */
+  onchange?: (e: Event) => void
   /** ARIA — set by the consumer / the `Checkbox` wrapper (the element never
    *  touches these itself). */
   'aria-checked'?: 'true' | 'false' | 'mixed'
@@ -416,6 +424,9 @@ export interface AInputAttributes extends BaseAttributes {
    *  wrapper) the glyph. Only `critical` carries validity weight (`aria-invalid`
    *  + `:state(invalid)`); the others are advisory. Omit for the neutral field. */
   status?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
+  /** Custom accent colour (any literal CSS colour) — tints the resting + hover
+   *  border via an oklch derivation. `status` overrides it for validation. */
+  tone?: string
   /** Disabled state. Presence-based. */
   disabled?: boolean | ''
   /** Read-only state. Presence-based. */
@@ -592,6 +603,10 @@ export interface ARadioAttributes extends BaseAttributes {
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size variant. small=14px, medium=16px, large=18px control. */
   size?: 'small' | 'medium' | 'large'
+  /** Visual priority. `primary` (default) fills the selected ring with the tone
+   *  colour and draws a white dot; `secondary` keeps the ring unfilled and draws
+   *  the border + dot in the tone colour (an outlined look). */
+  priority?: 'primary' | 'secondary'
   /** Disabled state. Presence-based (`''` on, omit off). */
   disabled?: boolean | ''
   /** Selected state — connect-time seed for the standalone render path (no
@@ -638,6 +653,10 @@ export interface ARadioGroupAttributes extends BaseAttributes {
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size cascaded to children that don't set their own. */
   size?: 'small' | 'medium' | 'large'
+  /** Visual priority cascaded to children that don't set their own. `primary`
+   *  (default) fills the selected ring with the tone colour; `secondary` keeps it
+   *  unfilled and draws the border + dot in the tone colour (an outlined look). */
+  priority?: 'primary' | 'secondary'
   /** Validation/feedback tone for the group hint — same set as `<a-input>`'s
    *  `status`. Recolours `<a-radio-group-hint>`; omit for the neutral default. */
   status?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
@@ -658,6 +677,14 @@ export interface ARadioGroupAttributes extends BaseAttributes {
       reason: 'user' | 'reset' | 'restore'
     }>,
   ) => void
+  /** Native `change`, fired *after* a selection applies (post-apply counterpart to
+   *  `onstatechange`). Lowercase so both renderers bind the native event. */
+  onchange?: (e: Event) => void
+  /** Group focus enter / leave — wired from the bubbling `focusin` / `focusout`
+   *  (focus lands on an option, not the group). The `RadioGroup` wrapper maps its
+   *  `onFocus` / `onBlur` props here. */
+  onfocusin?: (e: FocusEvent) => void
+  onfocusout?: (e: FocusEvent) => void
   /** ARIA — set by the `RadioGroup` wrapper (the element never touches these). */
   role?: 'radiogroup'
   'aria-disabled'?: 'true' | 'false'

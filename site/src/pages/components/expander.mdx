@@ -160,8 +160,8 @@ so the title and body line up exactly with the surrounding content.
 <Preview>
   <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
     <Text>A line of surrounding prose above the expander — note where its left edge sits.</Text>
-    <Expander priority="tertiary" outdent title="Flush header, chevron in the gutter" defaultOpen>
-      <Text>The chevron hangs to the left of the title; the title and this body align with the surrounding content.</Text>
+    <Expander priority="tertiary" outdent title="A header with alignment to the outside content, chevron in the gutter" defaultOpen>
+      <Text>A line with the chevron in the gutter — the title and this body align with the surrounding content.</Text>
     </Expander>
     <Text>A line of surrounding prose below — the flush title and body line up with both.</Text>
   </div>
@@ -375,22 +375,60 @@ const [open, setOpen] = useState(false)
 <Expander title="Details" open={open} onStateChange={(e, { next }) => setOpen(next)}>…</Expander>
 ```
 
-## Styling the chevron & header
+## Controlled vs Uncontrolled
 
-Each example keeps its CSS in a `<style>` **inside** its own preview,
-targeting a demo class on that preview's expander (e.g. `.hide-chevron`) —
-so the rule you read is literally in the preview's DOM, right next to the
-element it styles, never in a page-wide stylesheet. The folded recipe under
-each preview is that same CSS; in your app, swap the demo class for your own
-selector.
+Open state follows Anta's shared **state contract**. Leave it *uncontrolled* and
+the expander owns open/close; pass the controlled prop and *you* own it. The two
+layers speak different idioms — the `<Expander>` wrapper takes booleans, the
+`<a-expander>` element takes a `state` string enum — and the wrapper maps between
+them:
 
-There's deliberately no prop to hide the chevron: a region that folds
-needs a visible affordance, so the default is to always show one. If you
-have a genuine one-off need, the chevron is the summary's `::before`, so
-you can remove it in CSS — then pull `--expander-gutter` in (it drives the
-title *and* body inset together) to tighten the now-empty chevron gutter.
-Since a foldable region still needs an affordance, drop your own marker —
-an emoji or a down-arrow glyph — into the title:
+| | `<Expander>` (JSX) | `<a-expander>` (element) |
+|---|---|---|
+| **Uncontrolled** — element owns it | `defaultOpen` | `default-state="open" \| "closed"` |
+| **Controlled** — you own it | `open` + `onStateChange` | `state="open" \| "closed"` + `statechange` |
+| **Change event** | `onStateChange(event, { next, prev })` — `next` / `prev` are **booleans** | `statechange`, a `CustomEvent<{ next, prev }>` — `'open'` / `'closed'` |
+
+`statechange` is **cancelable** and fires *before* the element applies the
+change. Uncontrolled, call `event.preventDefault()` to veto a toggle (e.g.
+confirm before closing). Controlled, the element never self-applies — apply
+`detail.next` to `open` to accept, or do nothing to reject.
+
+<Disclosure title="Component props" open>
+
+<PropsTable component="Expander" />
+
+</Disclosure>
+
+<Disclosure title="Styling">
+
+Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
+tone — it derives the surface in oklch), **`priority`** the fill, **`level`** the
+heading. Two knobs are worth keeping: **`--expander-tone-source`** (the colour a
+custom `tone` derives from — set it to drive the palette from your own variable) and
+**`--expander-gutter`** (the shared left inset that re-insets header + body + chevron
+in lockstep; `outdent` sets it to `0`).
+
+```tsx folded
+<Expander tone="#e0457b" title="Custom" />
+```
+
+For everything else, `<a-expander>` exposes shadow **parts** — `::part(summary)` (the
+header button), `::part(content)` (the body), `::part(actions)` (the actions row) — and
+the light-DOM `<a-expander-summary>` / `<a-expander-details>` children, which you style
+directly. The header hover / active / focus states and the chevron all live on
+`::part(summary)`.
+
+Each example keeps its CSS in a `<style>` **inside** its own preview, targeting a demo
+class on that preview's expander (e.g. `.hide-chevron`) — so the rule you read is
+literally in the preview's DOM, next to the element it styles, never a page-wide
+stylesheet. The folded recipe under each preview is that same CSS; in your app, swap the
+demo class for your own selector.
+
+**Hide the chevron.** There's deliberately no prop for it: a region that folds needs a
+visible affordance. For a genuine one-off, the chevron is the summary's `::before`, so
+remove it — then pull `--expander-gutter` in (it drives the title *and* body inset
+together) to tighten the now-empty gutter, and drop your own marker into the title:
 
 <Preview direction="column" gap="8px">
   <Expander class="hide-chevron" title="No built-in chevron ⏷" defaultOpen>
@@ -407,8 +445,31 @@ a-expander.hide-chevron::part(summary)::before { display: none; }  /* remove the
 a-expander.hide-chevron { --expander-gutter: 12px; }               /* tighten the inset (default 24px) */
 ```
 
-To tint the **whole header** on hover / press, style the summary part
-(the header `<button>`):
+**Swap the chevron glyph.** It's a CSS mask, so point `mask-image` at your own SVG; it
+keeps its gutter position and the open-state rotation:
+
+<Preview direction="column" gap="8px">
+  <Expander class="swap-chevron" title="Triangle chevron" priority="tertiary">
+    <Text>The chevron is a CSS mask — swap in any SVG.</Text>
+  </Expander>
+  <style is:inline>{`
+    a-expander.swap-chevron::part(summary)::before {
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5l11 7-11 7z'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5l11 7-11 7z'/%3E%3C/svg%3E");
+    }
+  `}</style>
+</Preview>
+
+```css folded
+/* the chevron is the summary's ::before with a mask-image; swap the glyph for a
+   solid triangle — it keeps its position and the open-state rotate */
+a-expander.swap-chevron::part(summary)::before {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5l11 7-11 7z'/%3E%3C/svg%3E");
+}
+```
+
+**Tint the whole header** on hover / press by styling the summary part (the header
+`<button>`):
 
 <Preview direction="column" gap="8px">
   <Expander class="hover-tint" title="Hover or press the header" priority="tertiary">
@@ -425,28 +486,32 @@ a-expander.hover-tint::part(summary):hover  { background: var(--bg-3); }
 a-expander.hover-tint::part(summary):active { background: var(--bg-2); }
 ```
 
-Or just **highlight the title** — the header already eases the title to
-`--expander-text-hover` on hover, so re-point that token (per tone if you
-like) instead of writing your own hover rule:
+**Highlight the title on hover.** The title inherits its `color` from `::part(summary)`,
+so recolour the part on hover and the title (and the `currentColor` chevron) follow — a
+custom title node that sets its own `color` opts out. Here we also drop the tertiary
+hover underline on the light-DOM `a-expander-summary`:
 
 <Preview direction="column" gap="8px">
   <Expander class="title-highlight" title="Hover the title" priority="tertiary">
-    <Text>The title eases to the brand color on hover — no extra :hover rule.</Text>
+    <Text>The title eases to red on hover.</Text>
   </Expander>
   <style is:inline>{`
-    a-expander.title-highlight { --expander-text-hover: var(--text-1-brand); }
+    a-expander.title-highlight::part(summary):hover { color: #e5484d; }
+    a-expander.title-highlight a-expander-summary { text-decoration: none; }
   `}</style>
 </Preview>
 
 ```css folded
-a-expander.title-highlight { --expander-text-hover: var(--text-1-brand); }
+a-expander.title-highlight::part(summary):hover { color: #e5484d; }       /* title colour on hover */
+a-expander.title-highlight a-expander-summary { text-decoration: none; }  /* drop the hover underline */
 ```
 
-The header also exposes its open/closed state as the **`:state(open)`**
-custom state, so your CSS can react to it (in controlled and uncontrolled
-mode alike) — no JS. Two worked examples:
+**React to open / closed state** with the **`:state(open)`** custom state — your CSS can
+respond to it in controlled and uncontrolled mode alike, no JS. Two worked examples.
 
-**Custom expandable code block**
+*A custom code block* — pointed at the code-block surface tokens so it reads like the
+foldable code blocks on this site: a darker header bar over a lighter content surface, a
+`border-5` frame, and a tertiary-button copy that fades in once open.
 
 <Preview direction="column" gap="8px">
   <a-expander class="code-like" default-state="open">
@@ -462,13 +527,12 @@ export function SaveButton() {
   </a-expander>
   <style is:inline>{`
     a-expander.code-like {
-      --expander-bg: var(--bg-pane);
-      --expander-border: var(--border-5);
-      --expander-text: var(--text-2);
-      --expander-text-hover: var(--text-1);
-
+      background: var(--bg-pane);
+      border-color: var(--border-5);
+      color: var(--text-2);
       border-radius: 0;
     }
+    a-expander.code-like::part(summary):hover { color: var(--text-1); }
     a-expander.code-like::part(summary) { min-height: 36px; }
     a-expander.code-like::part(actions) { gap: 6px; }
     a-expander.code-like a-expander-summary {
@@ -509,16 +573,16 @@ export function SaveButton() {
 
 <style>{`
   a-expander.code-like {
-    --expander-bg: var(--bg-pane);         /* header — a bit darker than the content */
-    --expander-border: var(--border-5);    /* the code-block frame outline */
-    --expander-text: var(--text-2);        /* title + code */
-    --expander-text-hover: var(--text-1);
+    background: var(--bg-pane);         /* header — a bit darker than the content */
+    border-color: var(--border-5);     /* the code-block frame outline */
+    color: var(--text-2);              /* title + code */
 
     /* With custom corner radius don't reach for overflow:hidden (it would clip
        the focus ring); instead give the host the radius and match it on the
        parts: ::part(summary) the top corners, the body the bottom corners. */
     border-radius: 0;
   }
+  a-expander.code-like::part(summary):hover { color: var(--text-1); }  /* title brightens on hover */
   a-expander.code-like::part(summary) { min-height: 36px; }
   a-expander.code-like::part(actions) { gap: 6px; }        /* roomier action row */
   a-expander.code-like a-expander-summary {
@@ -539,11 +603,10 @@ export function SaveButton() {
 `}</style>
 ```
 
-**Chevron as a status indicator** — drop the built-in toggle chevron and
-put a **non-interactive** chevron in `actions` instead. The whole header
-still toggles; the indicator only reflects state, rotating via
-`:state(open)`. With the `<Expander>` JSX wrapper, pass
-`actions={<Icon shape="chevron-down" />}` (the preview below uses the
+*A chevron as a status indicator* — drop the built-in toggle chevron and put a
+**non-interactive** chevron in `actions` instead. The whole header still toggles; the
+indicator only reflects state, rotating via `:state(open)`. With the `<Expander>` JSX
+wrapper, pass `actions={<Icon shape="chevron-down" />}` (the preview below uses the
 equivalent element composition because these docs render statically):
 
 <Preview direction="column" gap="8px">
@@ -579,76 +642,6 @@ equivalent element composition because these docs render statically):
   }
   a-expander.indicator:state(open) [slot="actions"] { transform: rotate(180deg); }  /* points down → up */
 `}</style>
-```
-
-## Controlled vs Uncontrolled
-
-Open state follows Anta's shared **state contract**. Leave it *uncontrolled* and
-the expander owns open/close; pass the controlled prop and *you* own it. The two
-layers speak different idioms — the `<Expander>` wrapper takes booleans, the
-`<a-expander>` element takes a `state` string enum — and the wrapper maps between
-them:
-
-| | `<Expander>` (JSX) | `<a-expander>` (element) |
-|---|---|---|
-| **Uncontrolled** — element owns it | `defaultOpen` | `default-state="open" \| "closed"` |
-| **Controlled** — you own it | `open` + `onStateChange` | `state="open" \| "closed"` + `statechange` |
-| **Change event** | `onStateChange(event, { next, prev })` — `next` / `prev` are **booleans** | `statechange`, a `CustomEvent<{ next, prev }>` — `'open'` / `'closed'` |
-
-`statechange` is **cancelable** and fires *before* the element applies the
-change. Uncontrolled, call `event.preventDefault()` to veto a toggle (e.g.
-confirm before closing). Controlled, the element never self-applies — apply
-`detail.next` to `open` to accept, or do nothing to reject.
-
-<Disclosure title="Component props" open>
-
-<PropsTable component="Expander" />
-
-</Disclosure>
-
-<Disclosure title="Component tokens" open>
-
-Override any of these on a single instance
-(`style={{ '--expander-text': 'var(--text-1)' }}`) or on a wrapping
-selector. These are the text + resolved-surface roles; tones re-point them
-from the theme palette (so light / dark track for free) and `priority`
-selects the fill. For interaction states beyond color — the header
-hover/press background, the chevron — reach `::part(summary)` (see below).
-
-| Token | Description |
-|---|---|
-| `--expander-gutter` | The shared left inset (`24px` default) the title, the body, **and** the chevron position all derive from — the chevron sits absolutely inside it instead of pushing the title, so overriding this one value re-insets header + body in lockstep. `outdent` sets it to `0`. |
-| `--expander-text` | Header + body text color (and the chevron, via `currentColor`). |
-| `--expander-text-hover` | Title color on header hover. Set it to recolor the hover highlight. (It's a token rather than a `:hover` rule because the slotted title takes the color via an inherited property — a Chromium slotted-invalidation workaround.) |
-| `--expander-bg` | Host background — the resolved surface fill (`secondary` by default, `primary` on `priority="primary"`, transparent on `tertiary`). |
-| `--expander-border` | Host border color — follows the same resolved surface. |
-| `--expander-tone-source` | The color a custom (non-named) `tone` derives from. The wrapper sets it inline; set it yourself to derive the palette from your own variable. |
-
-Each tone internally re-points per-priority pairs
-(`--expander-{bg,border}-{secondary,primary}`) and `priority` picks which
-pair is live — that's plumbing for the tone × priority matrix, not an
-override surface. Reach for the resolved `--expander-bg` / `--expander-border`
-(or `::part(summary)`) instead.
-
-</Disclosure>
-
-<Disclosure title="Parts">
-
-Most styling is covered by the tokens above and by the light-DOM
-`<a-expander-summary>` / `<a-expander-details>` children, which you can
-target with plain CSS. For what a variable can't express — interaction
-states on the header, or the chevron — the shadow internals are exposed
-as [`::part`](https://developer.mozilla.org/en-US/docs/Web/CSS/::part):
-
-| Part | What it is |
-|---|---|
-| `summary` | The header `<button>`. Reach what CSS variables can't — states (`::part(summary):hover`, `:focus-visible`), the chevron via `::part(summary)::before`, or bespoke header typography beyond what `level` offers. |
-| `actions` | The header actions row (only rendered when actions are slotted) — e.g. to change its `gap` or alignment. |
-| `content` | The collapsible body region. |
-
-```css
-a-expander::part(summary):hover { background: var(--bg-3); }
-a-expander::part(summary)::before { transform: scale(1.2); } /* the chevron */
 ```
 
 </Disclosure>

@@ -171,7 +171,7 @@ const SHADOW_STYLE = `
   }
   .field:has(input:focus, textarea:focus) {
     --_bc: var(--input-border-hover);
-    outline: 1px solid var(--input-focus);
+    outline: 1px solid var(--focus-ring);
     outline-offset: 1px;
   }
 

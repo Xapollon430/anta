@@ -511,12 +511,21 @@
   scrollbar-width: thin;
 }
 
-/* Prop name — plain monospace value, not a copyable code pill. */
+/* Prop name — plain monospace value, not a copyable code pill. Inherits its
+   colour from the control's own label (Input / Checkbox) rather than forcing one. */
 .fieldName {
   font-family: var(--monospace);
   letter-spacing: 0;
   font-size: 12px;
-  color: var(--text-1);
+}
+
+/* `children` / ReactNode fields hold JSX/markup — monospace, code-style value text.
+   The shadow <textarea> sets its own font, so reach it via ::part(input). Auto-grow
+   (multiline, unbounded height) comes from Anta <Input>'s `multiline` prop. */
+.codeField::part(input) {
+  font-family: var(--monospace);
+  letter-spacing: 0;
+  font-size: 12px;
 }
 
 .segBtn {

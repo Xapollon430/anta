@@ -6,11 +6,13 @@ import TextDemo from '../../components/TextDemo'
 import TruncateDemo from '../../components/TruncateDemo'
 import ExpandableDemo from '../../components/ExpandableDemo'
 import Playground from '../../components/Playground'
+import Preview from '../../components/Preview.astro'
 import PropsTable from '../../components/PropsTable.astro'
 import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import textDemoCode from './text.demo.ts'
+import { Text } from '@antadesign/anta'
 
 # Text
 
@@ -126,27 +128,46 @@ with `expandable`.
 
 </Disclosure>
 
-<Disclosure title="Component tokens" open>
+<Disclosure title="Styling">
 
-`Text` derives its colors from the global token system. Every variable
-below has a light and dark mode value defined in
-`anta_global_tokens.css`.
+Colour comes from **`priority`** (the neutral text level) and **`tone`** (the tint);
+`size` and the type props set the rest. `Text` doesn't expose its own tokens — it
+consumes the global **text role tokens** (`--text-1` … `--text-5`, the `-{tone}`
+tints, `--link-color`). Retune those once on `:root` / `.dark` to shift text colour
+everywhere — see [Colors](/colors/).
 
-| Token                       | Description                                     |
-|-----------------------------|-------------------------------------------------|
-| `--text-1` … `--text-5`     | Neutral text levels (most → least prominent)    |
-| `--text-1-{tone}` … `--text-5-{tone}` | Tinted text levels for each `tone` value |
-| `--link-color`              | Default prose-link color (priorities 1 & 2)     |
-| `--link-color-hover`        | Hover prose-link color (priorities 1 & 2)       |
+```tsx folded
+<Text priority="secondary" tone="brand">Tinted secondary text</Text>
+```
 
-`<a-text>` itself exposes four internal variables that carry the
-resolved values into its descendant link rule:
+`<a-text>` is light-DOM, so one-offs are plain CSS on the element or its prose
+links. The `.fancy` class is just for the demo:
 
-| Token                          | Description                                  |
-|--------------------------------|----------------------------------------------|
-| `--text-color`                 | Resolved text color for the priority/tone    |
-| `--text-link-color`            | Color used by `a-text a` at rest             |
-| `--text-link-hover`            | Color used by `a-text a:hover`               |
-| `--text-link-underline-alpha`  | Alpha applied to the underline (50% / 100%)  |
+<Preview>
+  <Text className="fancy">
+    Body copy with a <a href="#styling">prose link</a> inside it.
+  </Text>
+  <style is:inline>{`
+    a-text.fancy {
+      color: light-dark(#0f6e5f, #5fd0bb);
+      font-size: 16px;
+      line-height: 1.7;
+      letter-spacing: 0.06em;
+    }
+    a-text.fancy a { text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  `}</style>
+</Preview>
+
+```css folded
+/* teal body text via light-dark() (deep in light, bright in dark — Anta drives
+   color-scheme from its theme toggle), with wider tracking */
+a-text.fancy {
+  color: light-dark(#0f6e5f, #5fd0bb);
+  font-size: 16px;
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+}
+a-text.fancy a { text-decoration-thickness: 2px; text-underline-offset: 3px; }
+```
 
 </Disclosure>

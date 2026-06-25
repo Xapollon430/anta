@@ -29,7 +29,7 @@ from your `onStateChange` handler (submenus stay uncontrolled). `statechange` is
 open with `event.preventDefault()`. You can also grab a `ref` and call
 `.open()` / `.close()` / `.toggle()`.
 
-<Disclosure title="Playground" anchor={false} brand open>
+<Disclosure title="Playground" anchor={false} brand>
 
 Tweak the props (or edit the code), then **click the trigger to open the menu**.
 The props panel is generated from the `Menu` API and edits the `<Menu>` element.
@@ -456,25 +456,55 @@ or do nothing to reject. (Submenus are always uncontrolled, regardless of `open`
 
 </Disclosure>
 
-<Disclosure title="Component tokens">
+<Disclosure title="Styling">
 
-These tokens theme the **surface** — the popover chrome that lives in shadow DOM
-and so can't be reached with plain CSS. Override them on a single menu
-(`style={{ '--menu-bg': 'var(--bg-2)' }}`) or on a selector wrapping it.
+The popover surface lives in shadow DOM and is exposed as a **part** — style its
+chrome (background, frost, border, radius, shadow, padding, min-width) with
+`::part(menu)`. Menu items are light DOM, so style `a-menu-item` (and its
+`a-icon` / `kbd` / `a-menu-item-label` children) directly. **Click the trigger** to
+open the styled menu; the `.fancy` class is just for the demo:
 
-| Token | Description |
-|---|---|
-| `--menu-bg` | Surface background fill (frosted via `--menu-backdrop-filter`). |
-| `--menu-border` | Surface hairline border. |
-| `--menu-radius` | Surface corner radius. |
-| `--menu-shadow` | Surface drop shadow (lift). |
-| `--menu-padding` | Inner padding around the items. |
-| `--menu-min-width` | Minimum surface width. |
-| `--menu-backdrop-filter` | Backdrop blur behind the surface. |
+<Preview>
+  <Button>Actions</Button>
+  <Menu className="fancy">
+    <MenuItem icon="edit" label="Edit" />
+    <MenuItem icon="copy" label="Duplicate" />
+    <MenuItem tone="critical" icon="trash" label="Delete" />
+  </Menu>
+  <style is:inline>{`
+    a-menu.fancy::part(menu) {
+      border-radius: 22px;
+      min-width: 240px;
+      padding: 8px;
+      background: light-dark(rgba(255,255,255,0.55), rgba(28,26,32,0.5));
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+    }
+    a-menu.fancy a-menu-item {
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 15px;
+      --icon-size: 18px;
+    }
+  `}</style>
+</Preview>
 
-**Menu items aren't tokenized.** `a-menu-item` is light DOM, so style it — and
-its `a-icon` / `kbd` / `a-menu-item-label` children — directly with your own CSS
-(e.g. `a-menu-item { font-size: 13px }` or a class). The `tone` attribute already
-covers the semantic palette.
+```css folded
+/* a "liquid glass" menu — more transparent + a stronger blur, big radius, fully
+   rounded items with roomier padding and bigger icons / type. */
+a-menu.fancy::part(menu) {
+  border-radius: 22px;
+  min-width: 240px;
+  padding: 8px;
+  background: light-dark(rgba(255,255,255,0.55), rgba(28,26,32,0.5));
+  backdrop-filter: blur(28px) saturate(180%);
+}
+a-menu.fancy a-menu-item {     /* items are light DOM — style them directly */
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 15px;
+  --icon-size: 18px;           /* inherited by the item's <a-icon> */
+}
+```
 
 </Disclosure>

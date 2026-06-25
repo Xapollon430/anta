@@ -261,9 +261,11 @@ export class AMenuElement extends HTMLElementBase {
         outline: none;
 
         /* Closed / exit state — fade + a tiny vertical settle (no horizontal
-           shift). The same transition drives both directions; 'display' and
-           'overlay' are transitioned with 'allow-discrete' so the menu stays in
-           the top layer and visible while it animates OUT, then hides. */
+           shift). This 140ms governs the EXIT (open → closed); the enter is a
+           touch quicker (see :popover-open below) so the menu feels snappy to
+           open but unhurried to dismiss. 'display' and 'overlay' transition with
+           'allow-discrete' so the menu stays in the top layer and visible while
+           it animates OUT, then hides. */
         opacity: 0;
         translate: 0 -4px;
         transition:
@@ -276,6 +278,12 @@ export class AMenuElement extends HTMLElementBase {
         display: flex;
         opacity: 1;
         translate: 0 0;
+        /* Enter (closed → open) — quicker than the exit above. */
+        transition:
+          opacity 100ms ease-out,
+          translate 100ms ease-out,
+          display 100ms allow-discrete,
+          overlay 100ms allow-discrete;
       }
       /* Enter: start from the closed state and transition in. */
       @starting-style {
@@ -284,6 +292,10 @@ export class AMenuElement extends HTMLElementBase {
     `
     this.surface = document.createElement('div')
     this.surface.className = 'container'
+    // Exposed as a shadow part so consumers can style the popover surface
+    // (background, radius, shadow, padding) from plain CSS — `a-menu::part(menu)` —
+    // instead of the `--menu-*` custom properties.
+    this.surface.setAttribute('part', 'menu')
     this.surface.setAttribute('popover', 'manual')
     this.surface.append(document.createElement('slot'))
 

@@ -115,9 +115,49 @@ The group's own `label` and `hint` form a header **above** the options: the
 
 Six named tones — `neutral` (default), `brand`, `info`, `success`, `warning`,
 `critical`. `tone` tints the **whole option** — the fill, the label, the hint, and
-(for a tinted tone) the unselected ring border; `neutral` keeps a grey ring. Set it on the `RadioGroup` to
-colour every option, or on a single option to override just that one. Any literal
-CSS colour works too, for a one-off custom tone.
+(for a tinted tone) the unselected ring border (a light shade of the fill that
+darkens on hover and active, like the neutral ring; `neutral` keeps a grey ring).
+Set it on the `RadioGroup` to colour every option, or on a single option to
+override just that one. Any literal CSS colour works too, for a one-off custom tone.
+
+</Col>
+</Columns>
+
+## Priority
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup
+    name="prio"
+    tone="brand"
+    defaultValue="secondary"
+    options={[
+      { value: 'primary', label: 'Primary (default)' },
+      { value: 'secondary', label: 'Secondary', priority: 'secondary' },
+    ]}
+  />
+</Preview>
+
+```tsx folded
+<RadioGroup
+  tone="brand"
+  defaultValue="secondary"
+  options={[
+    { value: 'primary', label: 'Primary (default)' },
+    { value: 'secondary', label: 'Secondary', priority: 'secondary' },
+  ]}
+/>
+```
+
+</Col>
+<Col>
+
+`priority` sets how the selected ring is painted. `primary` (the default) fills
+the ring with the tone colour and centres a white dot. `secondary` leaves the ring
+unfilled and draws the border + dot in the tone colour — an outlined look. Set it
+on the `RadioGroup` for the whole set, or on a single option to override one.
 
 </Col>
 </Columns>
@@ -368,17 +408,91 @@ const [plan, setPlan] = useState('pro')
 when a `<form>` reset or a bfcache/autofill restore moves the selection. Filter on
 `reason` if you only want user picks; `next` is `null` when nothing is selected.
 
+## Events
+
+Three callbacks, in firing order:
+
+| Callback | When | Cancelable | Payload |
+|---|---|---|---|
+| `onStateChange(e, { next, prev, reason })` | **before** a pick applies | ✅ (user picks only) | next / prev value + `reason` |
+| `onChange(e)` | **after** selection applies | — | native `change` event |
+| `onAnyChange(e, attrs)` | **after** selection applies | — | `{ value, name }` |
+
+Reach for **`onStateChange`** to intercept/veto or to filter on `reason` (reset vs
+restore vs user); for the everyday "react to the new value", use **`onAnyChange`**.
+`onChange` is the plain native hook. **`onFocus` / `onBlur`** report focus entering
+and leaving the *group* (wired to `focusin` / `focusout`, since focus lands on an
+individual option).
+
+```tsx folded
+<RadioGroup onAnyChange={(_e, { value }) => save(value)} options={…} />
+```
+
 <Disclosure title="RadioGroup props" open>
 
 <PropsTable component="RadioGroup" />
 
 </Disclosure>
 
-<Disclosure title="Styling" open>
+<Disclosure title="Styling">
 
-Colour comes from the `tone` prop (and tracks light/dark automatically); size
-from `size`. For anything beyond that, target the element with plain CSS — the
-options live in a light-DOM `<a-radio-list>`, and the internal `--radio-*` custom
-properties are available if you need to re-point a specific colour.
+Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
+tone, set on the group or a single option — derives the full curve in oklch),
+**`size`** the dimensions + type, **`priority`** the fill-vs-outline look. The focus
+ring is the global [`--focus-ring`](/colors/#focus-ring).
+
+```tsx folded
+<RadioGroup tone="#e0457b" defaultValue="a" options={[{ value: 'a', label: 'A' }]} />
+```
+
+For anything else, `<a-radio>` is light-DOM — the **ring is `::before`**, the **dot
+is `::after`**, the label/hint are the `a-radio-label` / `a-radio-hint` children.
+Target them with ordinary CSS, **per state** (an un-layered rule beats `@layer anta`
+without `!important`). The two groups below push it — square black/white marks, and a
+bigger ring with a heart-shaped mark (the dot, masked — same heart as the checkbox):
+
+<Preview gap="32px">
+  <RadioGroup className="square" name="sty-sq" defaultValue="a"
+    options={[{ value: 'a', label: 'One' }, { value: 'b', label: 'Two' }]} />
+  <RadioGroup className="heart" name="sty-ht" defaultValue="a"
+    options={[{ value: 'a', label: 'One' }, { value: 'b', label: 'Two' }]} />
+  <style is:inline>{`
+    a-radio-group.square a-radio::before,
+    a-radio-group.square a-radio::after { border-radius: 0; }
+    a-radio-group.square a-radio:state(selected)::before { background: light-dark(#000, #fff); border-color: light-dark(#000, #fff); }
+    a-radio-group.square a-radio:state(selected)::after { background: light-dark(#fff, #000); }
+
+    a-radio-group.heart a-radio::before { inline-size: 22px; block-size: 22px; }
+    a-radio-group.heart a-radio::after {
+      inline-size: 13px; block-size: 13px; border-radius: 0;
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z'/%3E%3C/svg%3E");
+      -webkit-mask-size: contain; mask-size: contain;
+      -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+      -webkit-mask-position: center; mask-position: center;
+    }
+    a-radio-group.heart a-radio:state(selected)::before { background: light-dark(#ec4899, #f472b6); border-color: transparent; }
+    a-radio-group.heart a-radio:state(selected)::after { background: #fff; }
+  `}</style>
+</Preview>
+
+```css folded
+/* Square — square ring + square dot, black/white per theme via light-dark() */
+a-radio-group.square a-radio::before,
+a-radio-group.square a-radio::after { border-radius: 0; }
+a-radio-group.square a-radio:state(selected)::before { background: light-dark(#000, #fff); border-color: light-dark(#000, #fff); }
+a-radio-group.square a-radio:state(selected)::after { background: light-dark(#fff, #000); }   /* contrasting dot */
+
+/* Heart — a bigger ring with a heart mark (the dot ::after, masked) on a pink fill.
+   Same heart SVG as the checkbox; mask-size: contain centres it in the bigger ring. */
+a-radio-group.heart a-radio::before { inline-size: 22px; block-size: 22px; }   /* bigger ring */
+a-radio-group.heart a-radio::after {
+  inline-size: 13px; block-size: 13px; border-radius: 0;
+  mask-image: url("data:image/svg+xml,%3Csvg …a heart path… /%3E");
+  mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+}
+a-radio-group.heart a-radio:state(selected)::before { background: light-dark(#ec4899, #f472b6); border-color: transparent; }
+a-radio-group.heart a-radio:state(selected)::after { background: #fff; }   /* white heart */
+```
 
 </Disclosure>

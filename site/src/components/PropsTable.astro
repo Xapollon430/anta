@@ -195,7 +195,11 @@ const props = all
     if (aOpt !== bOpt) return aOpt - bOpt // required first
     return a.name.localeCompare(b.name)
   })
-const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeCompare(b.name))
+// DOM `on*` event handlers are inherited too, but listing all ~50 as rows
+// drowns the table — they're called out in the note under it instead.
+const inherited = all
+  .filter((p) => p.fromBase && !/^on[A-Z]/.test(p.name))
+  .sort((a, b) => a.name.localeCompare(b.name))
 ---
 
 {props.length > 0 && (
@@ -349,8 +353,10 @@ const inherited = all.filter((p) => p.fromBase).sort((a, b) => a.name.localeComp
       </table>
     </div>
     <p class="inherited-note">
-      Plus any <code>data-*</code> or <code>aria-*</code> attribute — forwarded
-      as-is to the underlying <code>&lt;a-*&gt;</code> element.
+      Plus every standard DOM event handler (<code>onClick</code>,
+      <code>onFocus</code>, <code>onKeyDown</code>, …) and any
+      <code>data-*</code> or <code>aria-*</code> attribute — forwarded as-is to
+      the underlying <code>&lt;a-*&gt;</code> element.
     </p>
   </details>
 )}

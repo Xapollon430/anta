@@ -27,6 +27,12 @@
        code-block header mirrors this spacing.) */
     --expander-gutter: 24px;
 
+    /* The chevron glyph, shared so the shadow `button::before` AND the
+       pre-upgrade light-DOM placeholder (the `:not(:defined)` rule below) paint
+       the same mask without duplicating the SVG. Used as a mask, so only its
+       alpha matters. */
+    --_expander-chevron: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m9 18 6-6-6-6'/%3e%3c/svg%3e");
+
     display: block;
     width: 100%;
     box-sizing: border-box;
@@ -42,13 +48,58 @@
     transition: background-color 100ms ease;
   }
 
+  /* FOUC guard for the gap before the custom element upgrades. Until `a-expander`
+     is `:defined`, there is no shadow DOM to collapse the region, so the light-DOM
+     body (`<a-expander-details>`, `display:block`) would paint fully open and then
+     snap shut on upgrade. Hide the body while not-defined; reveal it only when the
+     SSR markup already says open — controlled `state="open"` or uncontrolled
+     `default-state="open"` — so open-by-default expanders show immediately with no
+     flash, and everything else (the closed default carries neither attribute) stays
+     collapsed from first paint. Once the element upgrades, `:defined` drops this and
+     the shadow region owns visibility (with its open/close animation). */
+  a-expander:not(:defined) a-expander-details {
+    display: none;
+  }
+  a-expander:not(:defined)[state="open"] a-expander-details,
+  a-expander:not(:defined)[default-state="open"] a-expander-details {
+    display: block;
+  }
+
+  /* Pre-upgrade header match. Before the element upgrades there's no shadow
+     `<button>`, so the light-DOM `<a-expander-summary>` would sit flush at the
+     host edge with no chevron, then jump right + grow a chevron the instant the
+     shadow header takes over (a FOUC). Give the summary the same gutter padding
+     and a placeholder chevron here so the resting header looks identical before
+     and after upgrade. `:defined` drops this and the shadow `<button>` owns it. */
+  a-expander:not(:defined) a-expander-summary {
+    position: relative;
+    padding: 6px 4px 6px var(--expander-gutter);
+  }
+  a-expander:not(:defined) a-expander-summary::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--expander-gutter) - 16px - 2px);
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translateY(-50%);
+    background-color: currentColor;
+    -webkit-mask: var(--_expander-chevron) center / contain no-repeat;
+            mask: var(--_expander-chevron) center / contain no-repeat;
+    opacity: 0.6;
+  }
+
   a-expander-summary {
     display: block;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--_summary-color, currentColor);
+    /* No explicit color: the title inherits `color` from the shadow
+       `::part(summary)` button across the slot boundary. That's what lets the
+       built-in hover/active recolour (driven on the button) AND a consumer's
+       `::part(summary):hover { color }` both reach the title. A custom title
+       node with its own `color` opts out of the recolour by overriding it. */
     text-decoration-line: var(--_summary-underline, none);
     text-decoration-style: dotted;
     text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);

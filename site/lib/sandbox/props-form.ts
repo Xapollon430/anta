@@ -113,7 +113,7 @@ export function controlsFor(componentName: string): PropEntry[] {
   for (const p of props) {
     if (EXCLUDED_PROP_NAMES.has(p.name)) continue
     if (perComponent?.has(p.name)) continue
-    const ctl = controlFor(p)
+    const ctl = controlFor(p, root)
     if (!ctl) continue
     entries.push(ctl)
   }
@@ -253,7 +253,7 @@ function collectLiterals(t: any, out: any[]): void {
   else if (t.type === 'union') for (const x of t.types ?? []) collectLiterals(x, out)
 }
 
-function controlFor(p: any): PropEntry | null {
+function controlFor(p: any, root?: any): PropEntry | null {
   const name: string = p.name
   const description = renderComment(p.comment)
   const optional = !!p.flags?.isOptional
@@ -456,6 +456,26 @@ function controlFor(p: any): PropEntry | null {
       { kind: 'text', name, description: description || 'A JSX expression, e.g. `<Button label="Download" />`.' },
       { name, kind: 'expression' },
     )
+  }
+
+  // A reference to a local type alias whose definition is a boolean-ish
+  // union (e.g. `CheckboxValue = boolean | 'indeterminate'`, the type of
+  // `checked` / `defaultChecked`) — surface as a boolean toggle. The
+  // non-boolean members aren't reachable from the simple checkbox control,
+  // by design: the panel drives the binary axis.
+  if (t.type === 'reference' && root) {
+    const target = root.children?.find((c: any) => c.name === t.name)
+    const resolved = target?.type
+    if (
+      resolved?.type === 'union' &&
+      Array.isArray(resolved.types) &&
+      resolved.types.some((x: any) => x.type === 'intrinsic' && x.name === 'boolean')
+    ) {
+      return wrap(
+        { kind: 'boolean', name, description },
+        { name, kind: 'boolean' },
+      )
+    }
   }
 
   // Anything else — `CSSProperties`, named references,
