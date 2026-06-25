@@ -91,20 +91,42 @@ const CLEAR_INPUT_EVENT = 'clearinput'
 const SUPPORTS_FIELD_SIZING =
   typeof CSS !== 'undefined' && !!CSS.supports?.('field-sizing', 'content')
 
+// Shadow styles, injected verbatim into every <a-input> shadow root, so this
+// string is kept COMMENT-FREE (it ships + re-injects per instance — see the
+// "no comments inside shadow-<style> strings" rule in CLAUDE.md).
+//
+// Styling notes (what the rules below do, by region):
+//  • :host — a grid of the three ::part regions (label / field / hint) in one
+//    column with a 4px row rhythm; consumers can re-place/resize them (label on
+//    the left, a shared label column via subgrid, …). An empty label/hint is
+//    display:none, so it contributes no track or gap. The host's own focus
+//    outline is suppressed (delegatesFocus can ring it) — the field ring is the
+//    single indicator. --_fs/--_lh are the size-driven type scale (small 13/16 ·
+//    medium 15/20 · large 17/24); label, control, and hint all read them.
+//  • .field — min-height (24/28/32) matches the same-size Button. The border is a
+//    box-shadow (inset), not a real border, so the rest→status width bump
+//    (0.5px→1px, thickened for emphasis; colour from a-input.css per-status
+//    tokens) never reflows. The focus ring shows only when the *control* is
+//    focused (:has), not when a slotted button holds focus.
+//  • input / textarea — only the control carries the horizontal text inset; edge
+//    slots + clear sit flush. appearance:none and the ::-webkit/::-ms resets strip
+//    browser-injected affordances (search clear/spinners/Edge reveal) — Anta owns
+//    every in-field control. textarea's --_pad-block is the single source for its
+//    vertical padding; the autogrow cap (:host([maxrows]:not([rows]))) is computed
+//    from --_lh + that padding so it tracks size, with JS injecting only the
+//    --_maxrows integer. A fixed `rows` turns autogrow off, so the cap doesn't apply.
+//  • slots — leading/trailing/clear are display:none until they hold content
+//    (toggled via slotchange), so an empty slot reserves no box or phantom gap.
+//    Adornments are muted (--input-adornment) and inherit currentColor; a slotted
+//    <a-button> keeps its own colour. `dim-actions` rests them at 0.6 and brightens
+//    to full on field hover/focus — but never while disabled. The clear slot shows
+//    only when filled + editable (hidden when disabled/readonly). A leading item is
+//    inset to line up with the text's left rhythm.
+//  • .hint — reads quieter (1px smaller, tighter line, --input-hint), 1px off the
+//    left edge; a status recolours the whole row (message + glyph) via the
+//    per-status --input-hint override in a-input.css.
 const SHADOW_STYLE = `
-  /* Suppress any UA focus outline on the host — with delegatesFocus some
-     browsers ring the host too; the field's own ring is the single indicator.
-     (The inner input/textarea also sets outline:none below.) */
-  /* The three regions (label / field / hint) are the host grid's members,
-     each exposed as a ::part — so consumers re-place or resize them with their
-     own CSS (label-on-the-left, a shared label column across a form via
-     subgrid, etc.; see the docs "Layout" section). The default is a single
-     column with a 4px row rhythm — i.e. the familiar stacked layout. An empty
-     label/hint is display:none, so it contributes no track or gap. */
   :host {
-    /* Type scale by size (small 13/16 · medium 15/20 · large 17/24) — the label,
-       control, and hint all read these; the field min-height (below) still
-       anchors the box height to the matching Button, and the text centers in it. */
     --_fs: 15px;
     --_lh: 20px;
 
@@ -134,38 +156,25 @@ const SHADOW_STYLE = `
     min-height: 28px;
     background: var(--input-bg);
     border-radius: 4px;
-    /* The border is a shadow, not a real border, so it never affects the box
-       size: the rest→status width change (0.5px→1px) causes no reflow, and the
-       height still matches a same-size Button. Drawn inset (inside the box);
-       drop the leading \`inset\` to draw it as an outset ring instead. */
     box-shadow: inset 0 0 0 var(--_bw) var(--_bc);
     transition: box-shadow 120ms ease;
   }
   :host([multiline]) .field { align-items: stretch; }
-  /* Any (non-neutral) status thickens the border to 1px for emphasis; the color
-     comes from the per-status tone tokens in a-input.css. box-shadow border, so
-     no reflow. */
   :host([status]) .field { --_bw: 1px; }
-  /* Field height by size — matches the same-size Button (24 / 28 / 32). */
   :host([size="small"]) { --_fs: 13px; --_lh: 16px; }
   :host([size="large"]) { --_fs: 17px; --_lh: 24px; }
   :host([size="small"]) .field { min-height: 24px; }
   :host([size="large"]) .field { min-height: 32px; }
 
   @media (hover: hover) and (pointer: fine) {
-    :host(:not([disabled])) .field:hover { --_bc: var(--input-border-hover); }
+    :host(:not(:disabled)) .field:hover { --_bc: var(--input-border-hover); }
   }
-  /* Ring shows only when the *control* is focused — not when focus is on a
-     slotted child like the clear button (that would be :focus-within). The
-     clear button keeps its own focus ring. */
   .field:has(input:focus, textarea:focus) {
     --_bc: var(--input-border-hover);
     outline: 1px solid var(--input-focus);
     outline-offset: 1px;
   }
 
-  /* Only the control carries the horizontal text inset; the edge slots and the
-     clear button stay flush to the field edges (no outer padding). */
   input, textarea {
     flex: 1 1 auto;
     min-width: 0;
@@ -183,25 +192,16 @@ const SHADOW_STYLE = `
     font-size: var(--_fs);
     line-height: var(--_lh);
     font-weight: 400;
-    /* No browser-injected affordances (search clear/magnifier, number spinners,
-       reveal/clear in Edge) — Anta owns every in-field control. */
     -webkit-appearance: none;
             appearance: none;
   }
   textarea {
-    /* Single source of truth for the vertical padding: both the box padding and
-       the autogrow max-height cap (below) read it, so the cap can't drift. */
     --_pad-block: 4px;
 
     resize: none;
     padding-block: var(--_pad-block);
     overflow-y: auto;
   }
-  /* Autogrow cap: stop after \`maxrows\` text lines, then scroll. Computed from the
-     size-aware line-height plus the padding above (not a literal), so it tracks
-     small/medium/large automatically; JS injects only \`--_maxrows\` (the integer
-     row count, which CSS can't read off the attribute). A fixed \`rows\` turns the
-     autogrow off, so the cap doesn't apply there. */
   :host([maxrows]:not([rows])) textarea {
     max-height: calc(var(--_lh) * var(--_maxrows) + var(--_pad-block) * 2);
   }
@@ -215,12 +215,6 @@ const SHADOW_STYLE = `
   input::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; display: none; }
   input::-ms-clear, input::-ms-reveal { display: none; }
 
-  /* Edge slots stay hidden until they hold content (toggled via slotchange) so
-     an empty slot reserves neither a box nor a phantom flex gap. They sit flush
-     to the field edges. */
-  /* Leading/trailing content is muted by default (--input-adornment = --text-4):
-     icons and plain text inherit it (an <a-icon> paints with currentColor); a
-     slotted <a-button> (clear, reveal) sets its own color and is unaffected. */
   slot[name="leading"], slot[name="trailing"] { display: none; color: var(--input-adornment); }
   .field.has-leading slot[name="leading"],
   .field.has-trailing slot[name="trailing"] {
@@ -230,45 +224,30 @@ const SHADOW_STYLE = `
   }
   .field.has-trailing slot[name="trailing"] { gap: 2px; }
 
-  /* dim-actions: adornments rest quiet (0.6) and brighten to full when the field
-     is engaged — hovered or holding focus (which covers focusing/hovering a
-     trailing button, since it lives in the field). Opacity on the slot groups all
-     its content, wrapped or not. */
   :host([dim-actions]) slot[name="leading"],
   :host([dim-actions]) slot[name="trailing"],
   :host([dim-actions]) slot[name="clear"] {
     opacity: 0.6;
     transition: opacity 120ms ease;
   }
-  /* …but never on a disabled field — :not([disabled]) so the hover/focus
-     brightening can't override the disabled dim below. */
-  :host([dim-actions]:not([disabled])) .field:hover slot[name="leading"],
-  :host([dim-actions]:not([disabled])) .field:hover slot[name="trailing"],
-  :host([dim-actions]:not([disabled])) .field:hover slot[name="clear"],
-  :host([dim-actions]:not([disabled])) .field:focus-within slot[name="leading"],
-  :host([dim-actions]:not([disabled])) .field:focus-within slot[name="trailing"],
-  :host([dim-actions]:not([disabled])) .field:focus-within slot[name="clear"] {
+  :host([dim-actions]:not(:disabled)) .field:hover slot[name="leading"],
+  :host([dim-actions]:not(:disabled)) .field:hover slot[name="trailing"],
+  :host([dim-actions]:not(:disabled)) .field:hover slot[name="clear"],
+  :host([dim-actions]:not(:disabled)) .field:focus-within slot[name="leading"],
+  :host([dim-actions]:not(:disabled)) .field:focus-within slot[name="trailing"],
+  :host([dim-actions]:not(:disabled)) .field:focus-within slot[name="clear"] {
     opacity: 1;
   }
 
-  /* Disabled: slotted leading/trailing content dims and stops taking input
-     (pointer-events is inherited, so it reaches the projected nodes). */
-  :host([disabled]) slot[name="leading"],
-  :host([disabled]) slot[name="trailing"] { opacity: 0.5; pointer-events: none; }
+  :host(:disabled) slot[name="leading"],
+  :host(:disabled) slot[name="trailing"] { opacity: 0.5; pointer-events: none; }
 
-  /* Clear slot — rightmost, flush. The element owns its visibility (shown only
-     when filled + editable) in shadow CSS, so it's bundled wherever the element
-     is and never depends on wrapper CSS. An empty slot (not clearable) reserves
-     no width. */
   slot[name="clear"] { display: none; flex-shrink: 0; }
   .field.is-filled slot[name="clear"] { display: flex; align-items: center; }
-  :host([disabled]) slot[name="clear"],
+  :host(:disabled) slot[name="clear"],
   :host([readonly]) slot[name="clear"] { display: none; }
   :host([multiline]) slot[name="clear"] { align-self: flex-start; }
 
-  /* A leading item is inset from the edge by the same amount as the text's
-     padding, so it lines up on the field's left rhythm. The gap from the icon
-     to the text is a touch tighter than the edge padding. */
   .field.has-leading slot[name="leading"] { margin-inline-start: 7px; }
   .field.has-leading input,
   .field.has-leading textarea { padding-inline-start: 5px; }
@@ -282,19 +261,13 @@ const SHADOW_STYLE = `
     display: none;
     gap: 4px;
     align-items: flex-start;
-    /* 1px off the edge so neither the message nor a status glyph sits flush
-       against the field's left line. */
     padding-inline-start: 1px;
     color: var(--input-hint);
     font-family: var(--sans-serif);
-    /* Hint reads quieter than the field: 1px smaller, with a tighter line. */
     font-size: calc(var(--_fs) - 1px);
     line-height: calc(var(--_lh) - 2px);
   }
   .hint.has-hint { display: flex; }
-  /* A status recolors the whole hint row (message + the wrapper-rendered status
-     <Icon>, which paints with currentColor) via the per-status \`--input-hint\`
-     override in a-input.css. */
 `
 
 type Control = HTMLInputElement | HTMLTextAreaElement
@@ -321,6 +294,9 @@ export class AInputElement extends HTMLElementBase {
   // True between connect and the first control build, so attribute changes for
   // forwarded props don't try to touch a control that doesn't exist yet.
   private ready = false
+  // Set by formDisabledCallback when an ancestor <fieldset disabled> / disabled
+  // form turns the field off (the host can't carry a [disabled] attribute itself).
+  private formDisabled = false
 
   constructor() {
     super()
@@ -443,27 +419,29 @@ export class AInputElement extends HTMLElementBase {
       else if (this.control instanceof HTMLTextAreaElement) this.configureTextarea(this.control)
       return
     }
-    if (name === 'status') {
-      // Only `critical` carries validity weight (aria-invalid + customError +
-      // :state(invalid)); the other tones are advisory feedback, still valid.
-      const critical = value === 'critical'
-      this.control?.setAttribute('aria-invalid', critical ? 'true' : 'false')
-      this.updateValidity()
-      try { critical ? this.internals?.states.add('invalid') : this.internals?.states.delete('invalid') } catch {}
-      return
-    }
+    if (name === 'status') { this.syncStatus(); this.updateValidity(); return }
     if (name === 'disabled') { this.syncDisabled(); return }
-    // Raw-HTML controlled author: route the attribute through the setter
-    // (caret-safe, updates form value + validity). React/Preact set the
-    // `value` property instead, which hits the same setter.
-    if (name === 'value') { this.value = value ?? ''; return }
+    // Controlled value: apply only when the attribute is PRESENT. Removing it
+    // (controlled → uncontrolled) keeps the current text, like a native input —
+    // the old `value ?? ''` wiped the field to empty on attribute removal.
+    if (name === 'value') { if (value !== null) this.value = value; return }
     if (name === 'defaultvalue') return
-    // Forwarded attribute changed.
-    if (this.control) this.forward(name, value)
+    // Forwarded attribute changed — also re-run validity, since a constraint
+    // (required / pattern / min / max / step / minlength / maxlength / type) can
+    // flip the inner control's validity. Symmetric with the `status` branch.
+    if (this.control) { this.forward(name, value); this.updateValidity() }
   }
 
   /** (Re)build the shadow control from the current attributes. */
   private buildControl(initial?: string) {
+    // Preserve focus + caret across an input<->textarea rebuild (e.g. toggling
+    // `multiline` mid-edit) so the user isn't kicked out of the field.
+    const prev = this.control
+    const refocus = prev != null && this.shadowRoot?.activeElement === prev
+    let selStart: number | null = null
+    let selEnd: number | null = null
+    if (prev) try { selStart = prev.selectionStart; selEnd = prev.selectionEnd } catch { /* number/email expose no selection */ }
+
     const multiline = this.hasAttribute('multiline') || this.hasAttribute('rows')
     const next = document.createElement(multiline ? 'textarea' : 'input') as Control
     next.setAttribute('part', 'input')
@@ -476,7 +454,7 @@ export class AInputElement extends HTMLElementBase {
       this.forward(attr, this.getAttribute(attr))
     }
     this.syncDisabled()
-    if (this.getAttribute('status') === 'critical') next.setAttribute('aria-invalid', 'true')
+    this.syncStatus()
     this.applyLabelAria()
     this.applyDescriptionAria()
     if (multiline) this.configureTextarea(next as HTMLTextAreaElement)
@@ -486,6 +464,11 @@ export class AInputElement extends HTMLElementBase {
 
     next.addEventListener('input', this.onInput)
     next.addEventListener('change', this.onChange)
+
+    if (refocus) {
+      next.focus()
+      if (selStart != null) try { next.setSelectionRange(selStart, selEnd ?? selStart) } catch { /* unsupported type */ }
+    }
 
     this.internals?.setFormValue(value)
     this.updateValidity()
@@ -541,7 +524,22 @@ export class AInputElement extends HTMLElementBase {
   }
 
   private syncDisabled() {
-    if (this.control) this.control.disabled = this.hasAttribute('disabled')
+    // Effective disabled = own `disabled` attribute OR an ancestor
+    // `<fieldset disabled>` / disabled form (via formDisabledCallback). Using the
+    // union means re-enabling the fieldset doesn't enable a field that's also
+    // disabled by its own attribute.
+    if (this.control) this.control.disabled = this.hasAttribute('disabled') || this.formDisabled
+  }
+
+  /** Reflect `status` into the control's `aria-invalid` and the `:state(invalid)`
+   *  custom state. Called on `status` change AND from buildControl — so a field
+   *  that mounts already `status="critical"` gets `:state(invalid)` on the FIRST
+   *  paint (the status attributeChangedCallback fires before connect, while
+   *  `ready` is false and the early-return skips it). */
+  private syncStatus() {
+    const critical = this.getAttribute('status') === 'critical'
+    this.control?.setAttribute('aria-invalid', critical ? 'true' : 'false')
+    try { critical ? this.internals?.states.add('invalid') : this.internals?.states.delete('invalid') } catch {}
   }
 
   private onInput = () => {
@@ -648,9 +646,20 @@ export class AInputElement extends HTMLElementBase {
   checkValidity(): boolean { return this.internals?.checkValidity() ?? true }
   reportValidity(): boolean { return this.internals?.reportValidity() ?? true }
 
+  /** Form field name — mirrors the `name` attribute, like native `<input>.name`,
+   *  so `el.name` works (e.g. keying validation messages by field in a form loop). */
+  get name(): string { return this.getAttribute('name') ?? '' }
+
   // --- Form-associated callbacks ---
-  formResetCallback() { this.value = this.getAttribute('defaultvalue') ?? '' }
-  formDisabledCallback(disabled: boolean) { if (this.control) this.control.disabled = disabled }
+  formResetCallback() {
+    this.value = this.getAttribute('defaultvalue') ?? ''
+    // The setter updates form value / validity / filled but fires no events, so a
+    // controlled consumer would never learn the field reset and would re-render
+    // the stale value back. Emit input + change (matching clear()) so it re-syncs.
+    this.dispatchEvent(new Event('input', { bubbles: true }))
+    this.dispatchEvent(new Event('change', { bubbles: true }))
+  }
+  formDisabledCallback(disabled: boolean) { this.formDisabled = disabled; this.syncDisabled() }
   formStateRestoreCallback(state: string) { this.value = state ?? '' }
 }
 

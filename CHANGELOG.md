@@ -19,6 +19,16 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
   - **Structure** — no shadow DOM: an optional group header (`<a-radio-group-label>` + an optional `<a-radio-group-hint>` description) above an `<a-radio-list>` of `<a-radio>` options; each option wraps its text in `<a-radio-label>` and an optional `<a-radio-hint>` (styled like `Input`'s hint). All plain light-DOM children laid out by `a-radio-group.css`, so the arrangement (gap, grid, wrap) is restylable with ordinary CSS — `a-radio-group a-radio-list { … }`.
   - **Styling hooks** — `--radio-*` tokens (control size, ring/fill colours per state, focus, disabled palette) and the selected look exposed via the `:state(selected)` custom state.
 - New `circle-dot` and `square-check-big` icon shapes (lucide), available as `<Icon shape="…" />` and in the `IconShape` union.
+- **`Input` exposes a `name` getter** — `el.name` now mirrors the `name` attribute (like native `<input>.name`), so it works in validation loops that key errors by field.
+
+### Fixed
+- **`Input`: dropping the controlled `value` no longer empties the field.** Removing the `value` attribute (controlled → uncontrolled) now keeps the current text, matching a native input — it previously reset to `""`.
+- **`Input`: dynamic constraint changes update validity immediately.** Toggling `required` / `pattern` / `min` / `max` / `step` / `minlength` / `maxlength` on a mounted field now re-runs validity, so the host's `checkValidity()` and form submission reflect the new constraint without waiting for a keystroke.
+- **`Input`: `status="critical"` set at mount paints `:state(invalid)` on the first render** (previously the custom state was missing until `status` changed away and back — e.g. server-rendered error fields).
+- **`Input`: a `<form>` reset re-syncs a controlled field.** The element now fires `input` + `change` on reset, so a controlled consumer's state follows instead of desyncing (field empty, state stale).
+- **`Input`: `<fieldset disabled>` / a disabled form now visually disables the field.** Disabled styling keys off `:disabled` (matching the own `disabled` attribute *and* an ancestor disabled fieldset/form), and re-enabling a fieldset no longer overrides a field's own `disabled`.
+- **`Input`: the clear button's `clearclick` veto works under React.** The wrapper routes `onClearClick` / `onClearInput` through the shared cross-renderer event unwrap, so `event.preventDefault()` reaches the native event and `event.detail` is defined.
+- **`Input`: toggling `multiline` mid-edit keeps focus + caret** (the input↔textarea rebuild now restores focus and the selection range).
 
 ## 0.2.3 — June 18, 2026
 
