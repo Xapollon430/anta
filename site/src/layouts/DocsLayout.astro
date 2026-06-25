@@ -429,7 +429,7 @@ if (isComponentPage && title) {
   }
 
   .sidebar {
-    width: 240px;
+    width: 208px;
     flex-shrink: 0;
     background: var(--bg-pane);
     /* border-right: 1px solid var(--border-5); */
@@ -597,7 +597,7 @@ if (isComponentPage && title) {
   /* The TOC rail collapses to a right-side slide-out — opened by a
      top-level "On this page" trigger — earlier than the full-mobile
      layout, because the dual-rail shell squeezes the content track first.
-     The nav sidebar keeps its own slide-out at 900px below. */
+     The nav sidebar keeps its own slide-out at 640px below. */
   @media (max-width: 1100px) {
     /* Positioning context for the absolutely-placed TOC trigger. */
     .content {
@@ -637,7 +637,7 @@ if (isComponentPage && title) {
     }
 
     /* Shared scrim for the slide-outs (the TOC here; the nav sidebar at
-       ≤900px reuses it). */
+       ≤640px reuses it). */
     .backdrop {
       display: block;
       position: fixed;
@@ -661,7 +661,7 @@ if (isComponentPage && title) {
     }
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 640px) {
     /* The full logo row (logo + "Anta" wordmark + theme toggle) shows at
        the top of the slide-out sidebar, exactly like desktop — so it keeps
        its base styles here (no mobile override). */

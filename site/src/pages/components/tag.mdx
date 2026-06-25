@@ -224,27 +224,25 @@ keeps it as `GitHub`.
 
 </Disclosure>
 
-<Disclosure title="Component tokens" open>
+<Disclosure title="Styling" open>
 
-Override any of these on a single instance
-(`style={{ '--tag-tint': 'crimson' }}`) or on a selector wrapping the
-tag. Each tone re-points three hue anchors — `--tag-tint` (the
-secondary fill + border tint), `--tag-fill` (the solid `primary` fill),
-and `--tag-edge` (the `tertiary` outline) — plus `--tag-text` (the
-theme-aware `--text-3-{tone}`). The priority then picks which apply.
+Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
+tone — it derives the fill / border / text in oklch), **`priority`** the fill style,
+**`size`** the dimensions.
 
-| Token | Description |
-|---|---|
-| `--tag-text` | Primary text (`value`) and icon color (white for `primary`). |
-| `--tag-tint` | Hue the `secondary` fill + the `secondary` / `primary` border are tinted from. |
-| `--tag-fill` | Solid fill for `priority="primary"`. |
-| `--tag-edge` | Hue of the `priority="tertiary"` outline. |
-| `--tag-bg` | Resolved background fill (a `--tag-tint` tint, the solid `--tag-fill`, or transparent — per priority). |
-| `--tag-border` | Outer hairline. `secondary` / `primary` tint `--tag-tint` (15–25%); `tertiary` tints `--tag-edge` (20–30%). |
-| `--tag-separator` | Divider between segmented children. Defaults to `--tag-text` at 30% alpha. |
-| `--tag-padding-block`<br />`--tag-padding-inline` | Inner spacing. Drives the intrinsic height (small overrides both). |
-| `--tag-gap` | Space between icon / label / value (default `0.6ch`). |
-| `--tag-icon-size` | Leading / trailing icon size (`13px` medium, `11px` small, `15px` large). |
-| `--tag-label-weight` | Weight of the `label` key (default `600`). |
+```tsx folded
+<Tag tone="#e0457b" priority="secondary" label="Custom" />
+```
+
+`<a-tag>` is light-DOM, so one-offs are plain CSS — spacing, icon size, label weight
+(an un-layered rule beats `@layer anta` without `!important`):
+
+```css folded
+a-tag { padding-inline: 10px; gap: 0.8ch; }
+a-tag-label { font-weight: 500; }
+```
+
+Don't reach for the resolved `--tag-bg` / `--tag-border` / `--tag-text`: they're
+recomputed per priority and tone — use `tone` / `priority` for colour.
 
 </Disclosure>

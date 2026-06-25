@@ -10,6 +10,9 @@
     --radio-control-size: 16px;
     --radio-border-width: 1.5px;
     --radio-dot-size: 6px;
+    /* Dark mode shrinks the rendered dot by 1px (the shadow reads heavier there);
+       applied as an offset so it tracks every size variant, not just medium. */
+    --_radio-dot-adjust: 0px;
     --radio-gap: 8px;
 
     --radio-bg: var(--bg-1);
@@ -31,7 +34,6 @@
     --radio-dot-disabled: #c1b9c1;
     --radio-bg-disabled: color-mix(in oklch, #44374b 10%, transparent);
     --radio-border-disabled: color-mix(in oklch, #44374b 15%, transparent);
-    --radio-focus: #503cb4;
 
     --radio-label-color: var(--text-2);
     --radio-label-color-disabled: var(--text-4);
@@ -91,8 +93,8 @@
       grid-row: 1 / -1;
       align-self: center;
       justify-self: center;
-      inline-size: var(--radio-dot-size);
-      block-size: var(--radio-dot-size);
+      inline-size: calc(var(--radio-dot-size) - var(--_radio-dot-adjust));
+      block-size: calc(var(--radio-dot-size) - var(--_radio-dot-adjust));
       border-radius: 50%;
       background: var(--radio-dot);
       transform: scale(0);
@@ -134,7 +136,7 @@
     /* Focus ring, roving-tabindex mode (the JSX wrapper path): real focus lands
        on the radio itself. See a-radio-group.ts for the two focus models. */
     &:focus-visible::before {
-      outline: 1px solid var(--radio-focus);
+      outline: 1px solid var(--focus-ring);
       outline-offset: 1px;
     }
 
@@ -193,8 +195,58 @@
      focus-visible. (In the wrapper path the group is never focused, so this is
      inert and the :focus-visible rule above applies instead.) */
   a-radio-group:focus-visible a-radio:state(selected)::before {
-    outline: 1px solid var(--radio-focus);
+    outline: 1px solid var(--focus-ring);
     outline-offset: 1px;
+  }
+
+  /* Secondary priority — outlined: the selected ring stays unfilled (keeps
+     --radio-bg) and the border + dot take the fill colour instead, so a selected
+     secondary radio reads as a tinted ring with a tinted dot rather than a solid
+     fill with a white dot. Border + dot follow the same rest/hover/active fill
+     curve. Disabled is left to the shared [disabled] rule (hence :not([disabled])).
+     Covers standalone radios and group-cascaded children (group sets priority; a
+     child without its own inherits it). Tracks light/dark via --radio-fill. */
+  a-radio[priority="secondary"],
+  a-radio-group[priority="secondary"] a-radio:not([priority]) {
+    &:not([disabled]):state(selected) {
+      &::before { background: var(--radio-bg); border-color: var(--radio-fill); }
+      &::after  { background: var(--radio-fill); }
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:not([disabled]):hover:state(selected) {
+        &::before { background: var(--radio-bg); border-color: var(--radio-fill-hover); }
+        &::after  { background: var(--radio-fill-hover); }
+      }
+    }
+    &:not([disabled]):active:state(selected) {
+      &::before { background: var(--radio-bg); border-color: var(--radio-fill-active); }
+      &::after  { background: var(--radio-fill-active); }
+    }
+  }
+
+  /* Dark: an outlined ring in the resting fill (the darkest shade in dark) barely
+     reads against the dark page, so anchor the secondary border + dot to the
+     brightest shade (--radio-fill-active) — keeping the selected look as legible in
+     dark as it is in light. Hover/active still respond (brightening further, the
+     dark-mode direction) so a selected secondary isn't inert. The rest rule's
+     :state(selected) also matches under hover/active and ties the light hover/active
+     rules on specificity, but the hover/active rules below (one class more) win. */
+  .dark a-radio[priority="secondary"],
+  .dark a-radio-group[priority="secondary"] a-radio:not([priority]) {
+    &:not([disabled]):state(selected) {
+      &::before { border-color: var(--radio-fill-active); }
+      &::after  { background: var(--radio-fill-active); }
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:not([disabled]):hover:state(selected) {
+        &::before { border-color: oklch(from var(--radio-fill-active) calc(l + 0.07) c h); }
+        &::after  { background: oklch(from var(--radio-fill-active) calc(l + 0.07) c h); }
+      }
+    }
+    &:not([disabled]):active:state(selected) {
+      &::before { border-color: oklch(from var(--radio-fill-active) calc(l + 0.12) c h); }
+      &::after  { background: oklch(from var(--radio-fill-active) calc(l + 0.12) c h); }
+    }
   }
 
   /* Each tone is shared by a standalone <a-radio tone> and a group-cascaded child
@@ -250,14 +302,26 @@
     --radio-fill-active: #a01c1c;
   }
 
-  /* Tinted tones only: the unselected ring border becomes the fill colour (neutral
-     keeps the base grey). Covers standalone radios and group-cascaded children;
-     since it points at --radio-fill, it tracks light/dark automatically. */
+  /* Tinted tones only: the unselected ring border picks up the tone and ramps like
+     the neutral border — lightest at rest, darkening through hover to active. The
+     active anchor is the fill mixed toward the neutral grey (this is the old static
+     value); rest and hover step up in oklch lightness from there, so hue/chroma
+     stay put. Tracks light/dark via --radio-fill and the theme-aware grey. Covers
+     standalone radios and group-cascaded children. */
   a-radio[tone]:not([tone=""], [tone="neutral"]),
   a-radio-group[tone]:not([tone=""], [tone="neutral"]) a-radio:not([tone]) {
-    --radio-border:        color-mix(in oklch, var(--radio-fill) 70%, var(--radio-border-neutral));
-    --radio-border-hover:  color-mix(in oklch, var(--radio-fill-hover) 70%, var(--radio-border-neutral));
-    --radio-border-active: color-mix(in oklch, var(--radio-fill-active) 70%, var(--radio-border-neutral));
+    --_radio-border-base: color-mix(in oklch, var(--radio-fill) 70%, var(--radio-border-neutral));
+    --radio-border:        oklch(from var(--_radio-border-base) calc(l + 0.17) c h);
+    --radio-border-hover:  oklch(from var(--_radio-border-base) calc(l + 0.1) c h);
+    --radio-border-active: var(--_radio-border-base);
+
+    /* Dark inverts the direction: interaction brightens the border (rest darkest,
+       active lightest), matching the neutral dark ramp. */
+    .dark & {
+      --radio-border:        var(--_radio-border-base);
+      --radio-border-hover:  oklch(from var(--_radio-border-base) calc(l + 0.1) c h);
+      --radio-border-active: oklch(from var(--_radio-border-base) calc(l + 0.17) c h);
+    }
   }
 
   /* Custom tone — a non-named tone is a literal CSS color; the fill curve is
@@ -302,6 +366,12 @@
   }
 
   .dark a-radio {
+    --_radio-dot-adjust: 1px;
+
+    /* Dark only: a 1px halo gives the dot definition against the darker fill.
+       Light mode keeps a plain dot (no shadow). */
+    &::after { box-shadow: 0 0 1px 1px black; }
+
     /* Neutral grey border (tinted tones mix the fill toward this). */
     --radio-border-neutral: #49424c;
     --radio-border-hover: #635b65;
@@ -315,7 +385,6 @@
     --radio-dot-disabled: #635b65;
     --radio-bg-disabled: color-mix(in oklch, #e4d1ef 10%, transparent);
     --radio-border-disabled: color-mix(in oklch, #e4d1ef 15%, transparent);
-    --radio-focus: #a897fc;
   }
   .dark a-radio[tone="brand"],
   .dark a-radio-group[tone="brand"] a-radio:not([tone]) {

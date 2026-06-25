@@ -48,6 +48,14 @@ export class ARadioGroupElement extends HTMLElementBase {
   private uncontrolledValue: string | null = null;
   private seeded = false;
   private observer?: MutationObserver;
+  // True after the first connect — gates the native `change` event so it never
+  // fires for the initial seed (only for real, post-connect selection changes).
+  private alive = false;
+
+  /** The selected option's value, or `null` when nothing is selected. */
+  get value(): string | null {
+    return this.currentValue;
+  }
 
   constructor() {
     super();
@@ -85,14 +93,18 @@ export class ARadioGroupElement extends HTMLElementBase {
     this.observer.observe(this, { childList: true, subtree: true });
 
     this.sync();
+    this.alive = true;
   }
 
   disconnectedCallback() {
     this.observer?.disconnect();
   }
 
-  attributeChangedCallback() {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
     this.sync();
+    // Controlled apply: a changed `state` is the consumer's accepted value — fire
+    // `change` on the real transition (the post-apply counterpart to statechange).
+    if (name === "state" && this.alive && newValue !== oldValue) this.emitChange();
   }
 
   formDisabledCallback(disabled: boolean) {
@@ -174,7 +186,15 @@ export class ARadioGroupElement extends HTMLElementBase {
     if (ok) {
       this.uncontrolledValue = next;
       this.sync();
+      this.emitChange();
     }
+  }
+
+  // Native `change`, fired *after* a selection applies (user pick or a controlled
+  // `state` update) — the post-apply counterpart to the cancelable, pre-apply
+  // `statechange`. Bubbles like a native radio group.
+  private emitChange() {
+    this.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   /** Dispatch the shared `statechange` event. `reason` lets a controller tell a

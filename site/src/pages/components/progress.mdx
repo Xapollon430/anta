@@ -74,17 +74,26 @@ function AnimatedProgress({ speed = 1 }) {
 
 </Disclosure>
 
-<Disclosure title="Component tokens" open>
+<Disclosure title="Styling" open>
 
-Progress exposes these CSS custom properties as its theming surface. Override any of them in consumer CSS to retint a single instance, or set them on a `[tone="…"]` selector to add a new tone variant. Tokens marked *(shadow-only API)* style elements inside the shadow DOM and can **only** be customized via these properties — consumer CSS can't reach those elements directly.
+Reach for **`tone`** first — a named tone (`brand` / `info` / `success` / `warning`
+/ `critical`) or any CSS colour for a custom tone (it derives the track, indicator,
+and text in oklch):
 
-| Token | Description |
-|-------|-------------|
-| `--progress-bg` | Host background (the track behind the indicator). |
-| `--progress-border-color` | Host border colour. Also one endpoint of the indicator-edge gradient. |
-| `--progress-indicator-bg` *(shadow-only API)* | Indicator fill colour. Also the start endpoint of the indicator-edge gradient. |
-| `--progress-indicator-edge` *(shadow-only API)* | Gradient painted at the indicator's right edge. Defaults to `linear-gradient(90deg in oklch, var(--progress-indicator-bg), var(--progress-border-color))`. |
-| `--progress-text-color` | Colour of the percentage number and the label text. |
-| `--progress-hint-color` | Colour of the right-aligned hint text. |
+```tsx folded
+<Progress value={60} tone="success" />
+<Progress value={60} tone="#e0457b" />
+```
+
+For one-offs, the **track** is the host (style `a-progress` directly) and the
+**indicator** (fill bar) is a shadow **part** — `::part(indicator)`:
+
+```css folded
+a-progress { background: #f0eef2; border-radius: 999px; }
+a-progress::part(indicator) { background: #e0457b; border-radius: 999px; }
+```
+
+The percentage / label / hint are light-DOM children (`a-progress-number`,
+`a-progress-text`, `a-progress-hint`) — recolour them with plain CSS.
 
 </Disclosure>

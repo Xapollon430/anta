@@ -11,6 +11,18 @@ type StateReason = "user" | "reset" | "restore"
 type StateDetail = { next: string | null; prev: string | null; reason: StateReason }
 type StateChangeEvent = CustomEvent<StateDetail>
 
+/** Snapshot passed as the 2nd argument to `onAnyChange` — the new value plus the
+ *  field name, so you don't poke at `event.target`. Mirrors `Input`/`Checkbox`. */
+export interface RadioChangeAttrs {
+  value: string | null
+  name?: string
+}
+
+const radioAttrsOf = (el: any): RadioChangeAttrs => ({
+  value: el?.value ?? null,
+  name: el?.getAttribute?.("name") ?? undefined,
+})
+
 /** One option in a `<RadioGroup>`. The wrapper renders an `<a-radio>` per entry. */
 export interface RadioOption {
   /** This option's identity and the value submitted when it's selected.
@@ -26,6 +38,8 @@ export interface RadioOption {
   tone?: "brand" | "neutral" | "info" | "success" | "warning" | "critical" | (string & {})
   /** Override this one option's size (defaults to the group's `size`). */
   size?: "small" | "medium" | "large"
+  /** Override this one option's priority (defaults to the group's `priority`). */
+  priority?: "primary" | "secondary"
 }
 
 /** Public props for `<RadioGroup>` — the single-select container. */
@@ -48,6 +62,18 @@ export interface RadioGroupProps extends Omit<BaseProps, "children" | "onChange"
    *  doing nothing). `'reset'` (form reset) and `'restore'` (bfcache / autofill) are
    *  not cancelable — filter on `reason` if you only track user picks. */
   onStateChange?: (event: StateChangeEvent, detail: StateDetail) => void
+  /** Fired *after* the selection changes — a native `change` event (the post-apply
+   *  counterpart to `onStateChange`). Not cancelable; for a controlled group it
+   *  fires once you've updated `value`. */
+  onChange?: (event: Event) => void
+  /** Like `onChange`, but with a `{ value, name }` snapshot as the 2nd argument —
+   *  the ergonomic "just give me the new value" callback (mirrors `Input`). */
+  onAnyChange?: (event: Event, attrs: RadioChangeAttrs) => void
+  /** Fired when focus enters the group (any option) — wired to `focusin`, since
+   *  focus lands on an individual option, not the group element itself. */
+  onFocus?: (event: FocusEvent) => void
+  /** Fired when focus leaves the group entirely — wired to `focusout`. */
+  onBlur?: (event: FocusEvent) => void
   /** Form field name — the group submits one `name=value` (it's the
    *  form-associated element). */
   name?: string
@@ -70,6 +96,12 @@ export interface RadioGroupProps extends Omit<BaseProps, "children" | "onChange"
   /** Size applied to every option (an option's own `size` wins).
    *  @defaultValue 'medium' */
   size?: "small" | "medium" | "large"
+  /** Visual priority applied to every option (an option's own `priority` wins).
+   *  `primary` fills the selected ring with the tone colour and draws a white dot;
+   *  `secondary` keeps the ring unfilled and draws the border + dot in the tone
+   *  colour (an outlined look).
+   *  @defaultValue 'primary' */
+  priority?: "primary" | "secondary"
   /** Disable the whole group. */
   disabled?: boolean
   /** Layout + arrow-key axis.
@@ -99,12 +131,17 @@ export const RadioGroup = ({
   value,
   defaultValue,
   onStateChange,
+  onChange,
+  onAnyChange,
+  onFocus,
+  onBlur,
   name,
   label,
   hint,
   status,
   tone,
   size,
+  priority,
   disabled,
   orientation,
   className,
@@ -153,6 +190,15 @@ export const RadioGroup = ({
     setInternalValue(detail.next ?? undefined)
   }
 
+  // Native `change` (post-apply). `onAnyChange` adds the value snapshot.
+  const onchange =
+    onChange || onAnyChange
+      ? (e: Event) => {
+          onChange?.(e)
+          onAnyChange?.(e, radioAttrsOf(e.currentTarget))
+        }
+      : undefined
+
   return (
     <a-radio-group
       role="radiogroup"
@@ -171,9 +217,17 @@ export const RadioGroup = ({
       status={status && status !== "neutral" ? status : undefined}
       tone={tone && tone !== "neutral" ? tone : undefined}
       size={size && size !== "medium" ? size : undefined}
+      priority={priority && priority !== "primary" ? priority : undefined}
       disabled={disabled ? "" : undefined}
       orientation={orientation && orientation !== "vertical" ? orientation : undefined}
       onstatechange={onstatechange}
+      // Native `change` (post-apply), same lowercase spelling as `<a-input>`.
+      onchange={onchange}
+      // Focus lands on an individual option, not the group — so report group focus
+      // via the bubbling `focusin` / `focusout` (not `focus` / `blur`, which don't
+      // bubble and would never fire for child focus).
+      onfocusin={onFocus}
+      onfocusout={onBlur}
       class={className}
       style={toneStyle(tone, "--radio-tone-source", style)}
     >
@@ -195,6 +249,7 @@ export const RadioGroup = ({
               tabIndex={o.value === tabStopValue ? 0 : -1}
               tone={o.tone && o.tone !== "neutral" ? o.tone : undefined}
               size={o.size && o.size !== "medium" ? o.size : undefined}
+              priority={o.priority && o.priority !== "primary" ? o.priority : undefined}
               disabled={o.disabled ? "" : undefined}
               style={toneStyle(o.tone, "--radio-tone-source")}
             >

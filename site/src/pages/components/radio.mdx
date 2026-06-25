@@ -115,9 +115,49 @@ The group's own `label` and `hint` form a header **above** the options: the
 
 Six named tones — `neutral` (default), `brand`, `info`, `success`, `warning`,
 `critical`. `tone` tints the **whole option** — the fill, the label, the hint, and
-(for a tinted tone) the unselected ring border; `neutral` keeps a grey ring. Set it on the `RadioGroup` to
-colour every option, or on a single option to override just that one. Any literal
-CSS colour works too, for a one-off custom tone.
+(for a tinted tone) the unselected ring border (a light shade of the fill that
+darkens on hover and active, like the neutral ring; `neutral` keeps a grey ring).
+Set it on the `RadioGroup` to colour every option, or on a single option to
+override just that one. Any literal CSS colour works too, for a one-off custom tone.
+
+</Col>
+</Columns>
+
+## Priority
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup
+    name="prio"
+    tone="brand"
+    defaultValue="secondary"
+    options={[
+      { value: 'primary', label: 'Primary (default)' },
+      { value: 'secondary', label: 'Secondary', priority: 'secondary' },
+    ]}
+  />
+</Preview>
+
+```tsx folded
+<RadioGroup
+  tone="brand"
+  defaultValue="secondary"
+  options={[
+    { value: 'primary', label: 'Primary (default)' },
+    { value: 'secondary', label: 'Secondary', priority: 'secondary' },
+  ]}
+/>
+```
+
+</Col>
+<Col>
+
+`priority` sets how the selected ring is painted. `primary` (the default) fills
+the ring with the tone colour and centres a white dot. `secondary` leaves the ring
+unfilled and draws the border + dot in the tone colour — an outlined look. Set it
+on the `RadioGroup` for the whole set, or on a single option to override one.
 
 </Col>
 </Columns>
@@ -368,6 +408,26 @@ const [plan, setPlan] = useState('pro')
 when a `<form>` reset or a bfcache/autofill restore moves the selection. Filter on
 `reason` if you only want user picks; `next` is `null` when nothing is selected.
 
+## Events
+
+Three callbacks, in firing order:
+
+| Callback | When | Cancelable | Payload |
+|---|---|---|---|
+| `onStateChange(e, { next, prev, reason })` | **before** a pick applies | ✅ (user picks only) | next / prev value + `reason` |
+| `onChange(e)` | **after** selection applies | — | native `change` event |
+| `onAnyChange(e, attrs)` | **after** selection applies | — | `{ value, name }` |
+
+Reach for **`onStateChange`** to intercept/veto or to filter on `reason` (reset vs
+restore vs user); for the everyday "react to the new value", use **`onAnyChange`**.
+`onChange` is the plain native hook. **`onFocus` / `onBlur`** report focus entering
+and leaving the *group* (wired to `focusin` / `focusout`, since focus lands on an
+individual option).
+
+```tsx folded
+<RadioGroup onAnyChange={(_e, { value }) => save(value)} options={…} />
+```
+
 <Disclosure title="RadioGroup props" open>
 
 <PropsTable component="RadioGroup" />
@@ -376,9 +436,25 @@ when a `<form>` reset or a bfcache/autofill restore moves the selection. Filter 
 
 <Disclosure title="Styling" open>
 
-Colour comes from the `tone` prop (and tracks light/dark automatically); size
-from `size`. For anything beyond that, target the element with plain CSS — the
-options live in a light-DOM `<a-radio-list>`, and the internal `--radio-*` custom
-properties are available if you need to re-point a specific colour.
+Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
+tone, set on the group or a single option — derives the full curve in oklch),
+**`size`** the dimensions + type, **`priority`** the fill-vs-outline look. The focus
+ring is the global [`--focus-ring`](/colors/#focus-ring).
+
+```tsx folded
+<RadioGroup tone="#e0457b" defaultValue="a" options={[{ value: 'a', label: 'A' }]} />
+```
+
+For anything else, `<a-radio>` is light-DOM — the **ring is `::before`**, the **dot
+is `::after`**, the label/hint are the `a-radio-label` / `a-radio-hint` children, and
+the options sit in a plain `<a-radio-list>`. Target them with ordinary CSS (an
+un-layered rule beats `@layer anta` without `!important`):
+
+```css folded
+/* square the ring, resize the dot, lay options out in a grid */
+a-radio::before { border-radius: 4px; }
+a-radio::after { inline-size: 8px; block-size: 8px; }
+a-radio-group a-radio-list { display: grid; grid-template-columns: 1fr 1fr; }
+```
 
 </Disclosure>

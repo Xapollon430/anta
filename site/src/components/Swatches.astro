@@ -116,6 +116,9 @@ const slug = (k: Kind) => TITLES[k].toLowerCase()
           <p><code>border-3</code> sits in the middle. It provides a moderate level of contrast, useful when a boundary should be visible but not dominant.</p>
           <p><code>border-4</code> is used to separate <code>bg-2</code> and <code>bg-3</code>, providing a slightly stronger level of contrast.</p>
           <p><code>border-5</code> is used on lighter surfaces. It works well between <code>bg-2</code> and <code>bg-1</code>, often appearing in spacing areas to subtly define boundaries.</p>
+
+          <h3 id="focus-ring"><a href="#focus-ring" class="header-anchor muted">Focus ring</a></h3>
+          <p>One global interaction-state token sits beside the role scales: <code>--focus-ring</code>, the keyboard-focus outline color shared across focusable components. It already pairs light and dark, so components use it directly rather than defining their own focus color — there's no per-component focus token to keep in sync.</p>
         </div>
       )}
     </section>

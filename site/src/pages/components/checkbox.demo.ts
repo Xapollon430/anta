@@ -7,5 +7,5 @@
  */
 export default `import { Checkbox } from '@antadesign/anta'
 
-<Checkbox>Enable notifications</Checkbox>
+<Checkbox label="Enable notifications" />
 `

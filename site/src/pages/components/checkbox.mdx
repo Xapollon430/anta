@@ -18,7 +18,7 @@ Checkboxes let users select one or more items from a set, or toggle an option on
 
 The `Checkbox` wrapper renders an `<a-checkbox>` element that manages its own state. It works both controlled and uncontrolled with `checked` / `defaultChecked` (boolean or `'indeterminate'`) and `onStateChange` for updates.
 
-<Disclosure title="Playground" anchor={false}>
+<Disclosure title="Playground" anchor={false} brand>
 
 <Playground
   client:visible
@@ -31,6 +31,78 @@ The `Checkbox` wrapper renders an `<a-checkbox>` element that manages its own st
 />
 
 </Disclosure>
+
+## Tone
+
+`tone` tints the whole control — the fill, the label, the hint, and, for a tinted
+tone, the unselected box border (a light shade of the fill that darkens on hover
+and active, like the neutral border; `neutral` keeps a grey border). Six named
+tones (`neutral` default), or pass any CSS color for a custom tone.
+
+<Preview gap="16px">
+  <Checkbox defaultChecked tone="neutral">Neutral</Checkbox>
+  <Checkbox defaultChecked tone="brand">Brand</Checkbox>
+  <Checkbox defaultChecked tone="info">Info</Checkbox>
+  <Checkbox defaultChecked tone="success">Success</Checkbox>
+  <Checkbox defaultChecked tone="warning">Warning</Checkbox>
+  <Checkbox defaultChecked tone="critical">Critical</Checkbox>
+  <Checkbox defaultChecked tone="mediumaquamarine">Custom</Checkbox>
+</Preview>
+
+```tsx folded
+<Checkbox defaultChecked tone="neutral">Neutral</Checkbox>
+<Checkbox defaultChecked tone="brand">Brand</Checkbox>
+<Checkbox defaultChecked tone="critical">Critical</Checkbox>
+<Checkbox defaultChecked tone="mediumaquamarine">Custom color</Checkbox>
+```
+
+## Priority
+
+`priority` sets how a checked box is painted. `primary` (the default) fills the
+box with the tone colour and draws a white checkmark. `secondary` leaves the box
+unfilled and draws the border + checkmark in the tone colour — an outlined look
+that sits lighter in dense lists.
+
+<Preview gap="16px">
+  <Checkbox defaultChecked tone="brand">Primary (default)</Checkbox>
+  <Checkbox defaultChecked tone="brand" priority="secondary">Secondary</Checkbox>
+</Preview>
+
+```tsx folded
+<Checkbox defaultChecked tone="brand">Primary (default)</Checkbox>
+<Checkbox defaultChecked tone="brand" priority="secondary">Secondary</Checkbox>
+```
+
+## Size
+
+Three sizes scale the box **and** the label + hint type together: `small`
+(14px box / 13px label), `medium` (16px / 15px, the default), and `large`
+(18px / 17px).
+
+<Preview gap="16px">
+  <Checkbox defaultChecked size="small">Small</Checkbox>
+  <Checkbox defaultChecked>Medium</Checkbox>
+  <Checkbox defaultChecked size="large">Large</Checkbox>
+</Preview>
+
+```tsx folded
+<Checkbox defaultChecked size="small">Small</Checkbox>
+<Checkbox defaultChecked>Medium</Checkbox>
+<Checkbox defaultChecked size="large">Large</Checkbox>
+```
+
+## Label & hint
+
+Pass the label as `children` or the `label` prop. Add a `hint` for a secondary line beneath. For a label-less checkbox (e.g. a table "select all"), pass `aria-label`.
+
+<Preview>
+  <Checkbox label="Email notifications" hint="Weekly digest, never marketing." />
+</Preview>
+
+```tsx folded
+<Checkbox label="Email notifications" hint="Weekly digest, never marketing." />
+<Checkbox aria-label="Select all rows" />
+```
 
 ## States
 
@@ -62,59 +134,6 @@ The `disabled` attribute dims the checkbox and removes it from the tab order.
 <Checkbox disabled defaultChecked label="Disabled checked" />
 ```
 
-## Label & hint
-
-Pass the label as `children` or the `label` prop. Add a `hint` for a secondary line beneath. For a label-less checkbox (e.g. a table "select all"), pass `aria-label`.
-
-<Preview>
-  <Checkbox label="Email notifications" hint="Weekly digest, never marketing." />
-</Preview>
-
-```tsx folded
-<Checkbox label="Email notifications" hint="Weekly digest, never marketing." />
-<Checkbox aria-label="Select all rows" />
-```
-
-## Size
-
-Three sizes: `small` (14px), `medium` (16px, default), `large` (18px).
-
-<Preview gap="16px">
-  <Checkbox defaultChecked size="small">Small</Checkbox>
-  <Checkbox defaultChecked>Medium</Checkbox>
-  <Checkbox defaultChecked size="large">Large</Checkbox>
-</Preview>
-
-```tsx folded
-<Checkbox defaultChecked size="small">Small</Checkbox>
-<Checkbox defaultChecked>Medium</Checkbox>
-<Checkbox defaultChecked size="large">Large</Checkbox>
-```
-
-## Tone
-
-`tone` tints the whole control — the fill, the label, the hint, and, for a tinted
-tone, the unselected box border (which becomes the fill colour; `neutral` keeps a
-grey border). Six named tones (`neutral` default), or pass any CSS color for a
-custom tone.
-
-<Preview gap="16px">
-  <Checkbox defaultChecked tone="brand">Brand</Checkbox>
-  <Checkbox defaultChecked tone="neutral">Neutral</Checkbox>
-  <Checkbox defaultChecked tone="info">Info</Checkbox>
-  <Checkbox defaultChecked tone="success">Success</Checkbox>
-  <Checkbox defaultChecked tone="warning">Warning</Checkbox>
-  <Checkbox defaultChecked tone="critical">Critical</Checkbox>
-  <Checkbox defaultChecked tone="#e0457b">Custom</Checkbox>
-</Preview>
-
-```tsx folded
-<Checkbox defaultChecked tone="brand">Brand</Checkbox>
-<Checkbox defaultChecked tone="neutral">Neutral</Checkbox>
-<Checkbox defaultChecked tone="critical">Critical</Checkbox>
-<Checkbox defaultChecked tone="#e0457b">Custom color</Checkbox>
-```
-
 ## Controlled
 
 Uncontrolled by default: pass `defaultChecked` and read the value from `onStateChange` or at form-submit. Make it controlled with `checked` and `onStateChange` to drive it from your store.
@@ -131,6 +150,26 @@ const [agreed, setAgreed] = useState(false)
 ```
 
 `onStateChange` fires before the element applies, with signature `(event, { next, prev })`. Call `event.preventDefault()` to veto the change. A controlled checkbox with no `onStateChange` is read-only.
+
+## Events
+
+Three callbacks, in firing order:
+
+| Callback | When | Cancelable | Payload |
+|---|---|---|---|
+| `onStateChange(e, { next, prev })` | **before** the toggle applies | ✅ `e.preventDefault()` vetoes | next / prev state |
+| `onChange(e)` | **after** it applies | — | native `change` event |
+| `onAnyChange(e, attrs)` | **after** it applies | — | `{ checked, indeterminate, name, value }` |
+
+Reach for **`onStateChange`** only to intercept or veto (or to drive a controlled
+checkbox). For the everyday "react to the new value", use **`onAnyChange`** — it
+hands you the value without touching `event.target`. `onChange` is the plain
+native hook. (In controlled mode `onChange`/`onAnyChange` fire once you've updated
+`checked`.) `onFocus` / `onBlur` work too — the host is the focusable element.
+
+```tsx folded
+<Checkbox onAnyChange={(_e, { checked }) => save(checked)}>Subscribe</Checkbox>
+```
 
 ## Indeterminate
 
@@ -182,25 +221,34 @@ Space toggles the checkbox. Follows the [WAI-ARIA checkbox pattern](https://www.
 
 </Disclosure>
 
-<Disclosure title="Component tokens" open>
+<Disclosure title="Styling" open>
 
-Override any of these on a single instance via `style`, or on a selector wrapping
-the checkbox. The box background is the themed `--bg-1` role; the fills, borders,
-disabled overlays, and focus ring are per-tone values with a matching dark-mode
-block. Dimensional values (box size, radius, label type scale) are baked-in
-literals — not tokens — so override them with a plain CSS rule rather than a
-variable.
+Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
+tone — it derives the full rest/hover/active curve in oklch), **`size`** the
+dimensions + type, **`priority`** the fill-vs-outline look. The focus ring is the
+global [`--focus-ring`](/colors/#focus-ring).
 
-| Token | Description |
-|---|---|
-| `--checkbox-gap` | Space between the box and the label. |
-| `--checkbox-bg` | Unchecked box background. Defaults to the `--bg-1` role. |
-| `--checkbox-border`<br />`--checkbox-border-hover`<br />`--checkbox-border-active` | Unchecked box outline across rest / hover / active. |
-| `--checkbox-fill`<br />`--checkbox-fill-hover`<br />`--checkbox-fill-active` | Filled (checked / indeterminate) background across rest / hover / active. Re-pointed per `tone`. |
-| `--checkbox-icon` | Check / minus glyph color (default white). |
-| `--checkbox-icon-disabled` | Glyph color when disabled. |
-| `--checkbox-bg-disabled`<br />`--checkbox-border-disabled` | Box fill / outline when disabled. |
-| `--checkbox-focus` | Keyboard focus ring color. |
-| `--checkbox-label-color`<br />`--checkbox-label-color-disabled` | Label text color (rest / disabled). |
+```tsx folded
+<Checkbox tone="#e0457b" defaultChecked>Custom colour</Checkbox>
+```
+
+For anything else, `<a-checkbox>` is light-DOM — the **box is `::before`**, the
+**check/minus glyph is `::after`**, the label/hint are the `a-checkbox-label` /
+`a-checkbox-hint` children. Target them with plain CSS; Anta ships in `@layer anta`,
+so an un-layered rule wins without `!important`:
+
+```css folded
+/* recolour just the unchecked border, square off the box, restyle the hint */
+a-checkbox::before { border-color: #888; border-radius: 2px; }
+a-checkbox-hint { color: #999; }
+```
+
+The one thing not reachable as plain CSS is the **mark artwork** — swap it with
+`--checkbox-mask-check` / `--checkbox-mask-indeterminate` (each a `mask-image`
+`url()`):
+
+```css folded
+a-checkbox { --checkbox-mask-check: url("/icons/my-check.svg"); }
+```
 
 </Disclosure>

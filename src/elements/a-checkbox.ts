@@ -16,9 +16,12 @@ const parseState = (v: string | null): CheckboxState =>
  *
  * One ternary state — `checked` / `unchecked` / `indeterminate` — carried by two
  * attributes: `state` is the **controlled** live value (the element reflects
- * changes to it), `default-state` is the **uncontrolled** seed (read once at
- * connect / form-reset, later changes ignored). No "controlled" flag — the
- * attribute name carries the intent (`controlled ≡ hasAttribute('state')`).
+ * changes to it), `default-state` is the **uncontrolled** seed (read at connect /
+ * form-reset, and re-applied if it changes while the checkbox is still uncontrolled
+ * and un-toggled — matching a native `<input>`, whose `checked` attribute reflects
+ * until the control is "dirtied" by interaction; once toggled, later `default-state`
+ * changes are ignored). No "controlled" flag — the attribute name carries the intent
+ * (`controlled ≡ hasAttribute('state')`).
  *
  * Follows the shared state contract (see `STATEFUL-COMPONENTS.md`): on
  * interaction the element fires a cancelable `statechange` *before* applying.
@@ -28,11 +31,27 @@ const parseState = (v: string | null): CheckboxState =>
  */
 export class ACheckboxElement extends HTMLElementBase {
   static formAssociated = true;
-  static observedAttributes = ["state", "value"];
+  static observedAttributes = ["state", "default-state", "value"];
 
   private internals?: ElementInternals;
   private currentState: CheckboxState = "unchecked";
   private seeded = false;
+  // Set once the user toggles an uncontrolled checkbox — the native "dirty checked
+  // flag". After it's set, a changed `default-state` no longer re-seeds the display.
+  private dirty = false;
+  // True after the first connect. Gates the native `change` event so it never
+  // fires for the initial attribute seed (only for real, post-connect transitions).
+  private alive = false;
+
+  /** Current checked state as a boolean (native-`<input>`-like). `indeterminate`
+   *  reads false here; check `.indeterminate` for the mixed state. */
+  get checked(): boolean {
+    return this.currentState === "checked";
+  }
+  /** Whether the checkbox is in the indeterminate ("mixed") state. */
+  get indeterminate(): boolean {
+    return this.currentState === "indeterminate";
+  }
 
   constructor() {
     super();
@@ -58,13 +77,27 @@ export class ACheckboxElement extends HTMLElementBase {
       this.seeded = true;
     }
     this.paint();
+    this.alive = true;
   }
 
   attributeChangedCallback(name: string) {
-    // `state` is the controlled channel — reflect changes. (`default-state` is the
-    // uncontrolled seed, handled once in seed(); later changes are ignored.
-    // `value` only re-syncs the submitted form entry.)
-    if (name === "state") this.currentState = parseState(this.getAttribute("state"));
+    // `state` is the controlled channel — reflect changes, and fire `change` on a
+    // real transition (the consumer's accepted value), like a native input.
+    if (name === "state") {
+      const next = parseState(this.getAttribute("state"));
+      const changed = next !== this.currentState;
+      this.currentState = next;
+      this.paint();
+      if (changed && this.alive) this.emitChange();
+      return;
+    }
+    // `default-state` is the uncontrolled seed: re-apply it while the checkbox is
+    // still uncontrolled and un-toggled (native dirty-flag semantics), so flipping
+    // it before any interaction updates the display — silently, since a native
+    // input's `checked` attribute reflection doesn't fire `change`. Once dirtied —
+    // or once `state` is present — later changes are ignored. (`value` only
+    // re-syncs the form entry.)
+    if (name === "default-state" && !this.isControlled && !this.dirty) this.seed();
     this.paint();
   }
 
@@ -81,6 +114,14 @@ export class ACheckboxElement extends HTMLElementBase {
     this.currentState = parseState(
       this.getAttribute("state") ?? this.getAttribute("default-state"),
     );
+  }
+
+  // Native `change`, fired *after* a value transition applies (user toggle or a
+  // controlled `state` update) — the post-apply counterpart to the cancelable,
+  // pre-apply `statechange`. Bubbles like a native checkbox; not composed (the
+  // element is light-DOM, so it reaches a wrapping form / listener directly).
+  private emitChange() {
+    this.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   private toggle(_e: Event) {
@@ -101,7 +142,9 @@ export class ACheckboxElement extends HTMLElementBase {
     if (this.isControlled) return;
     if (ok) {
       this.currentState = next;
+      this.dirty = true;
       this.paint();
+      this.emitChange();
     }
   }
 

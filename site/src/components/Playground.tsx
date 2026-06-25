@@ -17,7 +17,7 @@
  * See site/lib/sandbox/* for the moving parts.
  */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
-import { Input, Tooltip, Text } from '@antadesign/anta'
+import { Input, Tooltip, Text, Checkbox } from '@antadesign/anta'
 import { marked } from 'marked'
 import s from './Playground.module.css'
 // Monaco ships its structural CSS as ~110 separate `import './x.css'`
@@ -859,19 +859,23 @@ function FormField({
   }
 
   if (c.kind === 'boolean') {
+    // Dogfood Anta's <Checkbox> (small) for boolean controls — the prop name is
+    // its label (kept in the monospace field-name style); the description rides
+    // along as a native title. aria-label is set explicitly since the label is a
+    // vnode, not a plain string the wrapper could derive a name from.
     return (
-      <label class={s.fieldBoolean}>
-        <input
-          type="checkbox"
+      <div class={s.fieldBoolean}>
+        <Checkbox
+          size="small"
           checked={value === true}
           disabled={fromExpression}
-          onChange={(e) => handle((e.currentTarget as HTMLInputElement).checked)}
-        />
-        <span>
+          aria-label={c.name}
+          onStateChange={(_e, { next }) => handle(next === true)}
+        >
           <span class={s.fieldName} title={c.description}>{c.name}</span>
-        </span>
+        </Checkbox>
         {fromExpression ? <span class={s.fieldExpressionBadge}>set by code</span> : null}
-      </label>
+      </div>
     )
   }
 
@@ -880,8 +884,8 @@ function FormField({
   // <Tooltip>, + the "set by code" badge) into the Input's `label` prop.
   if (c.kind === 'text' || c.kind === 'number') {
     const inputLabel = (
-      <span style={c.description ? { cursor: 'help' } : undefined}>
-        <span class={s.fieldName}>{c.name}</span>
+      <span class={s.fieldName} style={c.description ? { cursor: 'help' } : undefined}>
+        {c.name}
         {c.description ? (
           // Render the description's inline markdown (it's full of `code` spans)
           // and wrap it in a small <Text> for the bubble. Source is our own
@@ -895,6 +899,9 @@ function FormField({
         {fromExpression ? <span class={s.fieldExpressionBadge}> · set by code</span> : null}
       </span>
     )
+    // `children` and ReactNode (`expression`) props hold JSX/markup, not a short
+    // value — give them an auto-growing, monospace, code-style field.
+    const code = entry.prop.kind === 'children' || entry.prop.kind === 'expression'
     return (
       <div class={s.field}>
         <FieldControl
@@ -903,6 +910,7 @@ function FormField({
           disabled={fromExpression}
           onChange={handle}
           label={inputLabel}
+          code={code}
         />
       </div>
     )
@@ -936,6 +944,7 @@ function FieldControl({
   disabled,
   onChange,
   label,
+  code,
 }: {
   control: Control
   value: string | number | boolean | undefined
@@ -943,6 +952,8 @@ function FieldControl({
   onChange: (v: string | number | boolean | null) => void
   /** Rendered as the Anta <Input>'s own label (text/number controls only). */
   label?: React.ReactNode
+  /** `children` / ReactNode fields: auto-grow (unbounded) + monospace. */
+  code?: boolean
 }) {
   const cls = disabled ? s.disabled : ''
   switch (control.kind) {
@@ -982,6 +993,8 @@ function FieldControl({
           label={label}
           type="text"
           size="small"
+          multiline={code || undefined}
+          className={code ? s.codeField : undefined}
           value={typeof value === 'string' ? value : ''}
           placeholder={control.defaultValue ?? ''}
           onInput={(e: any) => onChange(e.target.value as string)}

@@ -425,21 +425,21 @@ a-expander.hover-tint::part(summary):hover  { background: var(--bg-3); }
 a-expander.hover-tint::part(summary):active { background: var(--bg-2); }
 ```
 
-Or just **highlight the title** — the header already eases the title to
-`--expander-text-hover` on hover, so re-point that token (per tone if you
-like) instead of writing your own hover rule:
+Or just **highlight the title** — recolour the header on hover with
+`::part(summary):hover`; the slotted title inherits the colour, so the whole header
+eases to it:
 
 <Preview direction="column" gap="8px">
   <Expander class="title-highlight" title="Hover the title" priority="tertiary">
-    <Text>The title eases to the brand color on hover — no extra :hover rule.</Text>
+    <Text>The title eases to the brand color on hover via ::part(summary).</Text>
   </Expander>
   <style is:inline>{`
-    a-expander.title-highlight { --expander-text-hover: var(--text-1-brand); }
+    a-expander.title-highlight::part(summary):hover { color: var(--text-1-brand); }
   `}</style>
 </Preview>
 
 ```css folded
-a-expander.title-highlight { --expander-text-hover: var(--text-1-brand); }
+a-expander.title-highlight::part(summary):hover { color: var(--text-1-brand); }
 ```
 
 The header also exposes its open/closed state as the **`:state(open)`**
@@ -465,10 +465,10 @@ export function SaveButton() {
       --expander-bg: var(--bg-pane);
       --expander-border: var(--border-5);
       --expander-text: var(--text-2);
-      --expander-text-hover: var(--text-1);
 
       border-radius: 0;
     }
+    a-expander.code-like::part(summary):hover { color: var(--text-1); }
     a-expander.code-like::part(summary) { min-height: 36px; }
     a-expander.code-like::part(actions) { gap: 6px; }
     a-expander.code-like a-expander-summary {
@@ -512,13 +512,13 @@ export function SaveButton() {
     --expander-bg: var(--bg-pane);         /* header — a bit darker than the content */
     --expander-border: var(--border-5);    /* the code-block frame outline */
     --expander-text: var(--text-2);        /* title + code */
-    --expander-text-hover: var(--text-1);
 
     /* With custom corner radius don't reach for overflow:hidden (it would clip
        the focus ring); instead give the host the radius and match it on the
        parts: ::part(summary) the top corners, the body the bottom corners. */
     border-radius: 0;
   }
+  a-expander.code-like::part(summary):hover { color: var(--text-1); }  /* title hover */
   a-expander.code-like::part(summary) { min-height: 36px; }
   a-expander.code-like::part(actions) { gap: 6px; }        /* roomier action row */
   a-expander.code-like a-expander-summary {
@@ -606,49 +606,31 @@ confirm before closing). Controlled, the element never self-applies — apply
 
 </Disclosure>
 
-<Disclosure title="Component tokens" open>
+<Disclosure title="Styling" open>
 
-Override any of these on a single instance
-(`style={{ '--expander-text': 'var(--text-1)' }}`) or on a wrapping
-selector. These are the text + resolved-surface roles; tones re-point them
-from the theme palette (so light / dark track for free) and `priority`
-selects the fill. For interaction states beyond color — the header
-hover/press background, the chevron — reach `::part(summary)` (see below).
+Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
+tone — it derives the surface in oklch), **`priority`** the fill, **`level`** the
+heading. Two knobs are worth keeping: **`--expander-tone-source`** (the colour a
+custom `tone` derives from — set it to drive the palette from your own variable) and
+**`--expander-gutter`** (the shared left inset that re-insets header + body + chevron
+in lockstep; `outdent` sets it to `0`).
 
-| Token | Description |
-|---|---|
-| `--expander-gutter` | The shared left inset (`24px` default) the title, the body, **and** the chevron position all derive from — the chevron sits absolutely inside it instead of pushing the title, so overriding this one value re-insets header + body in lockstep. `outdent` sets it to `0`. |
-| `--expander-text` | Header + body text color (and the chevron, via `currentColor`). |
-| `--expander-text-hover` | Title color on header hover. Set it to recolor the hover highlight. (It's a token rather than a `:hover` rule because the slotted title takes the color via an inherited property — a Chromium slotted-invalidation workaround.) |
-| `--expander-bg` | Host background — the resolved surface fill (`secondary` by default, `primary` on `priority="primary"`, transparent on `tertiary`). |
-| `--expander-border` | Host border color — follows the same resolved surface. |
-| `--expander-tone-source` | The color a custom (non-named) `tone` derives from. The wrapper sets it inline; set it yourself to derive the palette from your own variable. |
-
-Each tone internally re-points per-priority pairs
-(`--expander-{bg,border}-{secondary,primary}`) and `priority` picks which
-pair is live — that's plumbing for the tone × priority matrix, not an
-override surface. Reach for the resolved `--expander-bg` / `--expander-border`
-(or `::part(summary)`) instead.
-
-</Disclosure>
-
-<Disclosure title="Parts">
-
-Most styling is covered by the tokens above and by the light-DOM
-`<a-expander-summary>` / `<a-expander-details>` children, which you can
-target with plain CSS. For what a variable can't express — interaction
-states on the header, or the chevron — the shadow internals are exposed
-as [`::part`](https://developer.mozilla.org/en-US/docs/Web/CSS/::part):
-
-| Part | What it is |
-|---|---|
-| `summary` | The header `<button>`. Reach what CSS variables can't — states (`::part(summary):hover`, `:focus-visible`), the chevron via `::part(summary)::before`, or bespoke header typography beyond what `level` offers. |
-| `actions` | The header actions row (only rendered when actions are slotted) — e.g. to change its `gap` or alignment. |
-| `content` | The collapsible body region. |
-
-```css
-a-expander::part(summary):hover { background: var(--bg-3); }
-a-expander::part(summary)::before { transform: scale(1.2); } /* the chevron */
+```tsx folded
+<Expander tone="#e0457b" title="Custom" />
 ```
+
+For everything else, `<a-expander>` exposes shadow **parts** — `::part(summary)` (the
+header button), `::part(content)` (the body), `::part(actions)` (the actions row).
+The header hover recolour, focus state, and the chevron all go through
+`::part(summary)`:
+
+```css folded
+a-expander::part(summary):hover { background: var(--bg-3); color: var(--text-1); }
+a-expander::part(summary)::before { transform: scale(1.2); } /* the chevron */
+a-expander::part(content) { padding-block: 12px; }
+```
+
+The light-DOM `<a-expander-summary>` / `<a-expander-details>` children can also be
+styled directly.
 
 </Disclosure>

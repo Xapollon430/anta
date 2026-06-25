@@ -172,46 +172,31 @@ it, and the outer takes back over when you leave. Hover the examples to feel it.
 
 </Disclosure>
 
-<Disclosure title="Component tokens" open>
+<Disclosure title="Styling" open>
 
-Tooltip exposes only the box "chrome" that lives inside the shadow popover and
-is therefore impossible to reach with plain consumer CSS. Every token below is a
-*(shadow-only API)* — override it in consumer CSS to restyle a single instance.
+The bubble lives in shadow DOM and is exposed as a single **part** — style
+everything (background, frost, shadow, radius, padding, a real border) with
+`::part(bubble)`:
 
-The bubble's *content* is slotted light DOM, but the bubble gives it a
-**normalized text baseline** (Anta body typography: `--text-3` colour, `wdth 100`,
-`0.02ch` letter-spacing, `1.5` line-height) so it does **not** inherit the
-anchor's text styling — e.g. a `<Button>`'s condensed width axis or tighter
-letter-spacing won't bleed into the tooltip. To customise one tooltip's text,
-put a class on the content you pass to `<Tooltip>` and style it directly — a rule
-that targets the content wins over the inherited baseline:
-
-```css
-/* applied to your own element inside <Tooltip> */
-.tip-rich { font-size: 15px; font-weight: 600; letter-spacing: normal; }
-```
-
-| Token | Description |
-|-------|-------------|
-| `--tooltip-bg` | Bubble background — a frosted translucent surface. Defaults to `color-mix(in oklch, var(--bg-1) 80%, transparent)`, paired with the bubble's `backdrop-filter: blur(8px)` (alpha lowered in dark mode). |
-| `--tooltip-shadow` | Bubble drop shadow. Has a distinct light-mode and dark-mode recipe. |
-| `--tooltip-radius` | Corner radius. Defaults to `3px`. |
-| `--tooltip-max-width` | Maximum width before content wraps. Defaults to `min(calc(100vw - 20px), 80ch)`. |
-| `--tooltip-border` | Bubble border. Defaults to `none` — the hairline edge comes from `--tooltip-shadow`. Set e.g. `1px solid var(--border-5)` for a real border. |
-| `--tooltip-backdrop-filter` | Backdrop filter behind the bubble (the frost). Defaults to `blur(8px)`. Set to `none` (with `--tooltip-bg: transparent`) for a fully see-through bubble. |
-| `--tooltip-padding` | Inner padding of the bubble. Defaults to `4px 8px`. |
-
-For anything the tokens don't cover, the bubble surface is exposed as a shadow
-**part**, so you can reach it directly with `::part(bubble)`:
-
-```css
+```css folded
 a-tooltip::part(bubble) {
-  font-size: 13px;
+  background: #1a161d;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  /* opt out of the frost: */
+  backdrop-filter: none;
 }
 ```
 
-(`::part` styles the bubble box itself; to restyle the *text content* you pass
-in, put a class on it and style that, as above.)
+The bubble's *content* is slotted light DOM with a **normalized text baseline**
+(Anta body typography) so it doesn't inherit the anchor's text styling. To restyle
+one tooltip's text, put a class on the content you pass to `<Tooltip>` and target
+that — a rule on the content wins over the baseline:
+
+```css folded
+.tip-rich { font-size: 15px; font-weight: 600; letter-spacing: normal; }
+```
 
 </Disclosure>

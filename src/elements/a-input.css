@@ -1,17 +1,17 @@
 @layer anta {
   /* Token surface — all literal/role-pointed values live here so external CSS
      can re-point a single instance or a whole theme. Text/bg/border point at
-     Anta's theme-aware role tokens (so dark mode is mostly free); the focus
-     ring and the error border are literals (no role token matches them) and
-     get a `.dark` override below. Sizes set the field height plus a per-size
-     type scale (small 13/16 · medium 15/20 · large 17/24) and icon size
-     (14/16/18); the field min-height still anchors the box to the same-size
-     Button. */
+     Anta's theme-aware role tokens (so dark mode is mostly free); the focus ring
+     uses the global `--focus-ring` token directly (it themes itself — no per-input
+     token, no `.dark` override needed); the error border is the one literal (no
+     role token matches it) and gets a `.dark` override below. Sizes set the field
+     height plus a per-size type scale (small 13/16 · medium 15/20 · large 17/24)
+     and icon size (14/16/18); the field min-height still anchors the box to the
+     same-size Button. */
   a-input {
     --input-bg: var(--bg-1);
     --input-border: var(--border-2);
     --input-border-hover: var(--border-1);
-    --input-focus: var(--focus-ring);
 
     --input-text: var(--text-1);
     --input-label: var(--text-3);
@@ -22,6 +22,25 @@
     /* `display` is owned by the shadow `:host` (a grid) so consumer CSS can
        re-template it; we only set the box width here. */
     width: 100%;
+  }
+
+  /* Custom tone — a literal CSS colour tints the resting + hover border (the focus
+     ring stays the global `--focus-ring`). Declared *before* `[status]` so a
+     validation status still wins the border on the specificity tie. FIRST-PASS
+     lightness values — review. */
+  a-input[tone]:not([tone=""]) {
+    /* Fallback is the default border (not transparent) so a non-colour value —
+       e.g. a stray `tone="brand"` (named tones live on `status`, not `tone`) —
+       degrades to the normal border instead of vanishing. */
+    --input-tone-source: attr(tone type(<color>), var(--border-2));
+
+    --input-border:       oklch(from var(--input-tone-source) 0.7 calc(c * 0.8) h);
+    --input-border-hover: oklch(from var(--input-tone-source) 0.6 c h);
+
+    .dark & {
+      --input-border:       oklch(from var(--input-tone-source) 0.5 calc(c * 0.8) h);
+      --input-border-hover: oklch(from var(--input-tone-source) 0.6 c h);
+    }
   }
 
   /* Status: the border + message (and the wrapper-slotted glyph, via

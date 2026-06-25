@@ -740,21 +740,24 @@ The resolver lives in `@layer anta`, so any un-layered rule of yours wins.
 
 </Disclosure>
 
-<Disclosure title="Component tokens" open>
+<Disclosure title="Styling" open>
 
-Override any of these on a single instance
-(`style={{ '--input-border': 'var(--border-1)' }}`) or on a selector wrapping
-the input.
+Reach for the props first: **`status`** sets a validation tone (border + message),
+**`tone`** a custom accent colour for the border (any CSS colour), **`size`** the
+dimensions. The focus ring is the global [`--focus-ring`](/colors/#focus-ring).
 
-| Token | Description |
-|---|---|
-| `--input-bg` | Field background. Defaults to `--bg-1`. |
-| `--input-border`<br />`--input-border-hover` | Border color at rest / hover. Default `--border-2` / `--border-1`. A `status` re-points both to its tone's `--border-1-*` role token. |
-| `--input-focus` | Focus-ring color. |
-| `--input-text` | Value (typed text) color. Defaults to `--text-1`. |
-| `--input-label` | Label color. Defaults to `--text-3`. |
-| `--input-placeholder` | Placeholder color. Defaults to `--text-4`. |
-| `--input-adornment` | Color of `leading` / `trailing` content — icons and plain text (a slotted `<Button>` keeps its own). Defaults to `--text-4`. |
-| `--input-hint` | Hint message + glyph color. Defaults to `--text-3`; a `status` re-points it to its tone's `--text-2-*` role token. |
+```tsx folded
+<Input tone="#e0457b" label="Custom accent" />
+```
+
+`<a-input>` is shadow-DOM, so for everything else style its **parts** —
+`::part(field | input | label | leading | trailing | hint)` — with plain CSS:
+
+```css folded
+/* field box, typed text, label, placeholder */
+a-input::part(field) { background: #fafafa; border-radius: 8px; }
+a-input::part(input) { font-family: var(--monospace); }
+a-input::part(label) { letter-spacing: 0.02em; }
+```
 
 </Disclosure>

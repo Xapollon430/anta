@@ -55,6 +55,10 @@ export class AProgressElement extends HTMLElementBase {
 
     this.indicator = document.createElement('div')
     this.indicator.className = 'indicator'
+    // Exposed as a shadow part so consumers can style the fill bar from plain CSS
+    // — `a-progress::part(indicator)` — instead of the `--progress-indicator-*`
+    // custom properties. (The track is the host: style `a-progress` directly.)
+    this.indicator.setAttribute('part', 'indicator')
 
     const slot = document.createElement('slot')
 

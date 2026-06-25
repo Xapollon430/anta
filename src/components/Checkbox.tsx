@@ -19,6 +19,23 @@ const stateToValue = (s: CheckboxState): CheckboxValue =>
 type StateDetail = { next: CheckboxState; prev: CheckboxState }
 type StateChangeEvent = CustomEvent<StateDetail>
 
+/** Snapshot passed as the 2nd argument to `onAnyChange` — the new value plus
+ *  form-relevant fields, so you don't poke at `event.target`. Mirrors `Input`'s
+ *  `onAnyChange` convention. */
+export interface CheckboxChangeAttrs {
+  checked: boolean
+  indeterminate: boolean
+  name?: string
+  value: string
+}
+
+const checkboxAttrsOf = (el: any): CheckboxChangeAttrs => ({
+  checked: !!el?.checked,
+  indeterminate: !!el?.indeterminate,
+  name: el?.getAttribute?.('name') ?? undefined,
+  value: el?.getAttribute?.('value') ?? 'on',
+})
+
 export interface CheckboxProps extends BaseProps {
   /** Visible label — the *value* of the checkbox (clicked along with the box).
    *  Convenience for the common single-string case; for richer content (markup,
@@ -57,6 +74,11 @@ export interface CheckboxProps extends BaseProps {
   /** Size variant. small=14px, medium=16px, large=18px box.
    *  @defaultValue 'medium' */
   size?: 'small' | 'medium' | 'large'
+  /** Visual priority. `primary` fills the checked box with the tone colour and
+   *  draws a white checkmark; `secondary` keeps the box unfilled and draws the
+   *  border + checkmark in the tone colour (an outlined look).
+   *  @defaultValue 'primary' */
+  priority?: 'primary' | 'secondary'
   /** Fired on click / Space *before* the element applies any change. Event-first
    *  so `event.preventDefault()` is the synchronous veto (uncontrolled mode);
    *  `detail` carries `{ next, prev }`. In controlled mode the element never
@@ -65,6 +87,14 @@ export interface CheckboxProps extends BaseProps {
     event: StateChangeEvent,
     detail: { next: CheckboxValue; prev: CheckboxValue },
   ) => void
+  /** Fired *after* the checked state changes — a native `change` event (the
+   *  post-apply counterpart to `onStateChange`). Not cancelable. For a controlled
+   *  checkbox this fires once you've updated `checked`. */
+  onChange?: (event: Event) => void
+  /** Like `onChange`, but with a `{ checked, indeterminate, name, value }` snapshot
+   *  as the 2nd argument — the ergonomic "just give me the new value" callback
+   *  (mirrors `Input`'s `onAnyChange`). */
+  onAnyChange?: (event: Event, attrs: CheckboxChangeAttrs) => void
 }
 
 /**
@@ -86,7 +116,10 @@ export const Checkbox = ({
   disabled,
   tone,
   size,
+  priority,
   onStateChange,
+  onChange,
+  onAnyChange,
   label,
   hint,
   className,
@@ -125,6 +158,16 @@ export const Checkbox = ({
       }
     : undefined
 
+  // Native `change` (post-apply). `onAnyChange` adds the value snapshot; both read
+  // the new value off the element (`event.currentTarget`).
+  const onchange =
+    onChange || onAnyChange
+      ? (e: Event) => {
+          onChange?.(e)
+          onAnyChange?.(e, checkboxAttrsOf(e.currentTarget))
+        }
+      : undefined
+
   // Emit `state` or `default-state`, never both — the DOM never carries a
   // stale state attribute, and TS narrows `checked` / `defaultChecked` to
   // non-undefined inside each branch (no casts needed).
@@ -147,6 +190,7 @@ export const Checkbox = ({
       disabled={disabled ? '' : undefined}
       tone={tone && tone !== 'neutral' ? tone : undefined}
       size={size && size !== 'medium' ? size : undefined}
+      priority={priority && priority !== 'primary' ? priority : undefined}
       tabIndex={disabled ? -1 : (tabIndex ?? 0)}
       // All-lowercase `onstatechange` is the one event-prop spelling both
       // renderers bind to our custom `statechange` event: React 19 keeps the
@@ -154,6 +198,10 @@ export const Checkbox = ({
       // path is what lets `event.preventDefault()` reach the element's
       // `dispatchEvent()` return.
       onstatechange={onstatechange}
+      // Lowercase `onchange` binds the element's native `change` (post-apply) in
+      // both React 19 and Preact, same as `<a-input>`. `onFocus` / `onBlur` flow
+      // through `...rest` — the host is the focusable element, so they fire natively.
+      onchange={onchange}
       class={className}
       style={computedStyle}
     >

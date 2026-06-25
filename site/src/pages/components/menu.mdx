@@ -456,25 +456,24 @@ or do nothing to reject. (Submenus are always uncontrolled, regardless of `open`
 
 </Disclosure>
 
-<Disclosure title="Component tokens">
+<Disclosure title="Styling">
 
-These tokens theme the **surface** — the popover chrome that lives in shadow DOM
-and so can't be reached with plain CSS. Override them on a single menu
-(`style={{ '--menu-bg': 'var(--bg-2)' }}`) or on a selector wrapping it.
+The popover surface lives in shadow DOM and is exposed as a **part** — style its
+chrome (background, frost, border, radius, shadow, padding, min-width) with
+`::part(menu)`:
 
-| Token | Description |
-|---|---|
-| `--menu-bg` | Surface background fill (frosted via `--menu-backdrop-filter`). |
-| `--menu-border` | Surface hairline border. |
-| `--menu-radius` | Surface corner radius. |
-| `--menu-shadow` | Surface drop shadow (lift). |
-| `--menu-padding` | Inner padding around the items. |
-| `--menu-min-width` | Minimum surface width. |
-| `--menu-backdrop-filter` | Backdrop blur behind the surface. |
+```css folded
+a-menu::part(menu) {
+  background: #1a161d;
+  border-radius: 10px;
+  min-width: 220px;
+  backdrop-filter: none;
+}
+```
 
-**Menu items aren't tokenized.** `a-menu-item` is light DOM, so style it — and
-its `a-icon` / `kbd` / `a-menu-item-label` children — directly with your own CSS
-(e.g. `a-menu-item { font-size: 13px }` or a class). The `tone` attribute already
-covers the semantic palette.
+**Menu items aren't tokenized.** `a-menu-item` is light DOM, so style it — and its
+`a-icon` / `kbd` / `a-menu-item-label` children — directly (e.g.
+`a-menu-item { font-size: 13px }` or a class). The `tone` attribute covers the
+semantic palette.
 
 </Disclosure>

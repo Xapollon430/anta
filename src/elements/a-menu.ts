@@ -284,6 +284,10 @@ export class AMenuElement extends HTMLElementBase {
     `
     this.surface = document.createElement('div')
     this.surface.className = 'container'
+    // Exposed as a shadow part so consumers can style the popover surface
+    // (background, radius, shadow, padding) from plain CSS — `a-menu::part(menu)` —
+    // instead of the `--menu-*` custom properties.
+    this.surface.setAttribute('part', 'menu')
     this.surface.setAttribute('popover', 'manual')
     this.surface.append(document.createElement('slot'))
 
