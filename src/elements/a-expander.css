@@ -65,7 +65,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--_summary-color, currentColor);
+    /* No explicit color: the title inherits `color` from the shadow
+       `::part(summary)` button across the slot boundary. That's what lets the
+       built-in hover/active recolour (driven on the button) AND a consumer's
+       `::part(summary):hover { color }` both reach the title. A custom title
+       node with its own `color` opts out of the recolour by overriding it. */
     text-decoration-line: var(--_summary-underline, none);
     text-decoration-style: dotted;
     text-decoration-color: color-mix(in oklch, currentColor 75%, transparent);

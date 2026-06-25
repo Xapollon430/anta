@@ -100,22 +100,26 @@ import './a-expander.css'
  *   outdent rule.)
  *   The chevron can't be hidden via an attribute (a foldable region needs a
  *   visible affordance) — restyle or remove it through ::part(summary)::before.
- * - **Hover/press affordance**: the button's `:hover`/`:active` set the
- *   inherited `--_summary-color` / `--_summary-underline` custom
- *   properties; `a-expander-summary` consumes them in its always-on rule
- *   in `a-expander.css`. Deliberately NOT `button:hover ::slotted(…)`:
- *   Chromium fails to invalidate slotted styles when an ancestor's hover
- *   state changes across a gradual pointer exit, leaving the hover look
- *   stuck (reproduced in Chrome 149; single-jump exits invalidate fine).
- *   Property inheritance propagates reliably where selector invalidation
- *   doesn't. The opt-out survives: only `a-expander-summary` reads the
- *   variables, so custom title markup ignores them. Hover eases the
- *   title to `--expander-text-hover`; the transparent tertiary surface
- *   adds the docs-header dotted underline. Press eases title + (closed)
- *   chevron back to the at-rest look as soft feedback; the underline
- *   intentionally stays (no flicker). The `:active` var-set mirrors its
- *   `:hover` counterpart's specificity and follows it in source order,
- *   so it wins while pressed.
+ * - **Hover/press affordance**: the button's `:hover`/`:active` set its
+ *   own `color` (to `--expander-text-hover` / `--expander-text`); the
+ *   slotted title and the `currentColor` chevron both follow by plain
+ *   property inheritance across the slot boundary. Deliberately NOT
+ *   `button:hover ::slotted(…)`: Chromium fails to invalidate slotted
+ *   styles when an ancestor's hover state changes across a gradual pointer
+ *   exit, leaving the hover look stuck (reproduced in Chrome 149;
+ *   single-jump exits invalidate fine). Property inheritance propagates
+ *   reliably where selector invalidation doesn't. Driving `color` (rather
+ *   than a private var the title reads) is also what lets a consumer's
+ *   `::part(summary):hover { color }` reach the title — the outer `::part`
+ *   rule overrides this inner one and inheritance carries it through. The
+ *   tradeoff: a custom title node with no explicit `color` now inherits the
+ *   hover recolour too (set `color` on it to opt out). The tertiary surface
+ *   adds the docs-header dotted underline via `--_summary-underline`, the
+ *   one bit still scoped to `a-expander-summary` (text-decoration doesn't
+ *   inherit usefully here). Press eases title + (closed) chevron back to the
+ *   at-rest look as soft feedback; the underline intentionally stays (no
+ *   flicker). The `:active` rule mirrors its `:hover` counterpart's
+ *   specificity and follows it in source order, so it wins while pressed.
  * - **Collapse animation**: grid `0fr ↔ 1fr` on `.region` (`ANIM_MS`),
  *   keyed off the button's `aria-expanded`; the `[part="content"]` grid
  *   item clips (`overflow: clip`) while animating. The grid item is the
@@ -283,14 +287,14 @@ const SHADOW_STYLE = `
     /* translateY centers it; the open state adds rotate (same transform so the
        transition animates only the rotation). */
     transform: translateY(-50%);
-    transition: transform 150ms ease, opacity 150ms ease;
+    transition: transform 150ms ease, opacity 150ms ease, background-color 150ms ease;
   }
   button:enabled:hover::before { opacity: 1; }
   button[aria-expanded="true"]::before { transform: translateY(-50%) rotate(90deg); opacity: 1; }
 
-  button:enabled:hover { --_summary-color: var(--expander-text-hover); }
+  button:enabled:hover { color: var(--expander-text-hover); }
   :host([priority="tertiary"]) button:enabled:hover { --_summary-underline: underline; }
-  button:enabled:active { --_summary-color: var(--expander-text); }
+  button:enabled:active { color: var(--expander-text); }
   button:disabled { cursor: default; }
   button:enabled:not([aria-expanded="true"]):active::before {
     opacity: 0.6;

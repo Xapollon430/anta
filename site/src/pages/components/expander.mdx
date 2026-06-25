@@ -486,30 +486,23 @@ a-expander.hover-tint::part(summary):hover  { background: var(--bg-3); }
 a-expander.hover-tint::part(summary):active { background: var(--bg-2); }
 ```
 
-**Highlight the title on hover — the one unusual case.** A plain
-`::part(summary):hover { color }` *won't* recolour the title, and it's worth knowing
-why. The title you pass is **slotted light DOM** (`<a-expander-summary slot="title">`),
-projected into a `<slot>` *inside* the `::part(summary)` button — and `::part()` only
-matches the shadow element and its shadow descendants, **never slotted nodes**, so there
-is no part to target for the title. (That `color` *does* reach the chevron, which is
-`currentColor`-based — so it recolours the arrow, not the text.) The title also pins its
-own `color`, so it ignores anything inherited from the part anyway. The element instead
-drives the title colour through one **inherited custom property**, flipped on hover —
-routed that way to dodge a Chromium bug where `::slotted` styles don't invalidate on an
-ancestor's `:hover`. So the hook is the **`--expander-text-hover`** variable, not a part:
+**Highlight the title on hover.** The title inherits its `color` from `::part(summary)`,
+so recolour the part on hover and the title (and the `currentColor` chevron) follow — a
+custom title node that sets its own `color` opts out. Here we also drop the tertiary
+hover underline on the light-DOM `a-expander-summary`:
 
 <Preview direction="column" gap="8px">
   <Expander class="title-highlight" title="Hover the title" priority="tertiary">
     <Text>The title eases to red on hover.</Text>
   </Expander>
   <style is:inline>{`
-    a-expander.title-highlight { --expander-text-hover: #e5484d; }
+    a-expander.title-highlight::part(summary):hover { color: #e5484d; }
     a-expander.title-highlight a-expander-summary { text-decoration: none; }
   `}</style>
 </Preview>
 
 ```css folded
-a-expander.title-highlight { --expander-text-hover: #e5484d; }            /* title colour on hover */
+a-expander.title-highlight::part(summary):hover { color: #e5484d; }       /* title colour on hover */
 a-expander.title-highlight a-expander-summary { text-decoration: none; }  /* drop the hover underline */
 ```
 
@@ -538,8 +531,8 @@ export function SaveButton() {
       border-color: var(--border-5);
       color: var(--text-2);
       border-radius: 0;
-      --expander-text-hover: var(--text-1);
     }
+    a-expander.code-like::part(summary):hover { color: var(--text-1); }
     a-expander.code-like::part(summary) { min-height: 36px; }
     a-expander.code-like::part(actions) { gap: 6px; }
     a-expander.code-like a-expander-summary {
@@ -583,13 +576,13 @@ export function SaveButton() {
     background: var(--bg-pane);         /* header — a bit darker than the content */
     border-color: var(--border-5);     /* the code-block frame outline */
     color: var(--text-2);              /* title + code */
-    --expander-text-hover: var(--text-1);  /* title brightens on hover (see the note above) */
 
     /* With custom corner radius don't reach for overflow:hidden (it would clip
        the focus ring); instead give the host the radius and match it on the
        parts: ::part(summary) the top corners, the body the bottom corners. */
     border-radius: 0;
   }
+  a-expander.code-like::part(summary):hover { color: var(--text-1); }  /* title brightens on hover */
   a-expander.code-like::part(summary) { min-height: 36px; }
   a-expander.code-like::part(actions) { gap: 6px; }        /* roomier action row */
   a-expander.code-like a-expander-summary {
