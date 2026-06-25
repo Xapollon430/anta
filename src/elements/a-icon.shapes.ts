@@ -24,6 +24,7 @@ export const ICON_SHAPES = [
   'chevron-up',
   'chevrons-right',
   'circle-check',
+  'circle-dot',
   'circle-large',
   'circle-small-solid',
   'circle',
@@ -85,6 +86,7 @@ export const ICON_SHAPES = [
   'search',
   'send',
   'sparkles',
+  'square-check-big',
   'square-menu',
   'sun',
   'swatch-book',
@@ -218,6 +220,7 @@ declare module '@antadesign/anta' {
     'chevron-up': true
     'chevrons-right': true
     'circle-check': true
+    'circle-dot': true
     'circle-large': true
     'circle-small-solid': true
     'circle': true
@@ -279,6 +282,7 @@ declare module '@antadesign/anta' {
     'search': true
     'send': true
     'sparkles': true
+    'square-check-big': true
     'square-menu': true
     'sun': true
     'swatch-book': true

@@ -130,6 +130,8 @@ export interface DOMEventHandlers {
 export interface BaseAttributes extends DOMEventHandlers {
   /** React/Preact reconciliation key when rendered inside a list. */
   key?: string | number | null
+  /** HTML `id` attribute. */
+  id?: string
   /** HTML `class` attribute (standard DOM). */
   class?: string
   /** React/Preact-style class name. Alias for `class`. */
@@ -340,6 +342,52 @@ export interface ATooltipAttributes extends BaseAttributes {
 }
 
 /**
+ * Attributes for the `<a-checkbox>` custom element. `<a-checkbox>` is a light-DOM
+ * interactive element: its visual state lives on `ElementInternals` (styled via
+ * the `:state(checked)` / `:state(indeterminate)` pseudo-class, not host
+ * attributes), driven by the `state` attribute (controlled) or `default-state`
+ * (uncontrolled seed). It sets no ARIA itself — `role` / `aria-*` are the
+ * consumer's job (the wrapper supplies them). The label is its children.
+ * Low-level attributes — for the typed JSX wrapper use `Checkbox` from
+ * `@antadesign/anta`.
+ */
+export interface ACheckboxAttributes extends BaseAttributes {
+  /** Colour variant, or any literal CSS color for a one-off custom tone.
+   *  Named tones track light/dark mode automatically via the theme-aware role
+   *  tokens. `'neutral'` is the default (same as omitting it). */
+  tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Size variant. `small` = 14px, `medium` (default) = 16px, `large` = 18px box. */
+  size?: 'small' | 'medium' | 'large'
+  /** Controlled state — the element reflects changes to this attribute. Use this
+   *  (driven from your store) for a controlled checkbox; use `default-state` for
+   *  an uncontrolled one. */
+  state?: 'checked' | 'unchecked' | 'indeterminate'
+  /** Uncontrolled initial state — read once at connect / form-reset, then the
+   *  element self-manages. */
+  'default-state'?: 'checked' | 'unchecked' | 'indeterminate'
+  /** Disabled state. Presence-based (`''` on, omit off). */
+  disabled?: boolean | ''
+  /** Form field name — the key this checkbox submits under inside a `<form>`. */
+  name?: string
+  /** Value submitted when checked. Defaults to `"on"`. */
+  value?: string
+  /** Fires before the element applies any change. The element dispatches a
+   *  cancelable `statechange` `CustomEvent` whose `detail` carries
+   *  `{ next, prev }` (the same string enum as `state`); a synchronous
+   *  `preventDefault()` vetoes the transition. The all-lowercase spelling is
+   *  deliberate — it's the one form both renderers bind to a custom event
+   *  (React 19 keeps the case of whatever follows `on`; Preact lowercases). */
+  onstatechange?: (
+    e: CustomEvent<{ next: 'checked' | 'unchecked' | 'indeterminate'; prev: 'checked' | 'unchecked' | 'indeterminate' }>,
+  ) => void
+  /** ARIA — set by the consumer / the `Checkbox` wrapper (the element never
+   *  touches these itself). */
+  'aria-checked'?: 'true' | 'false' | 'mixed'
+  'aria-disabled'?: 'true' | 'false'
+  'aria-label'?: string
+}
+
+/**
  * Attributes for the `<a-input>` custom element — a form-associated text
  * field whose real `<input>` / `<textarea>` lives in shadow DOM. For the
  * typed JSX wrapper use `Input` from `@antadesign/anta`.
@@ -521,4 +569,94 @@ export interface AButtonAttributes extends BaseAttributes {
   'data-custom-event'?: string
   'aria-disabled'?: 'true' | 'false' | boolean
   'aria-busy'?: 'true' | 'false' | boolean
+}
+
+/**
+ * Attributes for the `<a-radio>` custom element — one option in a radio set.
+ * Presentational: the parent `<a-radio-group>` owns selection, keyboard, and form
+ * value. The selected look comes from the element's `:state(selected)` (set by the
+ * group via the `selected` property), not a host attribute. There is no `Radio`
+ * JSX wrapper — `RadioGroup` renders these from its `options`, and hand-authors
+ * write `<a-radio>` directly inside an `<a-radio-group>`.
+ */
+export interface ARadioAttributes extends BaseAttributes {
+  /** This option's identity / submitted value. */
+  value?: string
+  /** Colour variant, or any literal CSS color for a one-off custom tone.
+   *  Named tones track light/dark mode automatically via the theme-aware role
+   *  tokens. `'neutral'` is the default (same as omitting it). */
+  tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Size variant. small=14px, medium=16px, large=18px control. */
+  size?: 'small' | 'medium' | 'large'
+  /** Disabled state. Presence-based (`''` on, omit off). */
+  disabled?: boolean | ''
+  /** Selected state — connect-time seed for the standalone render path (no
+   *  group). In a group, the group drives `:state(selected)` directly and this
+   *  attribute is ignored. Presence-based. */
+  selected?: boolean | ''
+  /** ARIA — `role="radio"` is set by the consumer (`RadioGroup` on each option,
+   *  or a hand-author). `aria-checked` is published by the element through
+   *  `ElementInternals` (off the DOM), driven by the `selected` property the group
+   *  sets — not a DOM attribute. Roving `tabindex` (inherited from `BaseAttributes`)
+   *  is likewise set by `RadioGroup`, not the element. */
+  role?: 'radio'
+  'aria-disabled'?: 'true' | 'false'
+}
+
+/**
+ * Attributes for the `<a-radio-group>` custom element — the single-select
+ * coordinator. It is the form-associated element (submits one `name=value`).
+ * No shadow DOM: an optional group header (`<a-radio-group-label>` + an optional
+ * `<a-radio-group-hint>` description) sits above an `<a-radio-list>` wrapping the
+ * `<a-radio>` options — each option wraps its text in `<a-radio-label>` and an
+ * optional `<a-radio-hint>`. All plain light-DOM children, laid out by
+ * `a-radio-group.css`, so the arrangement is restylable with ordinary CSS
+ * (`a-radio-group a-radio-list { … }`). The group
+ * coordinates **off-DOM only** — it never writes the DOM: selection via each
+ * radio's `selected` property, focus via `internals.ariaActiveDescendantElement`,
+ * the form value via `setFormValue`. Roving `tabindex` (the JSX path) is rendered
+ * by the `RadioGroup` wrapper, not the element. The `RadioGroup` wrapper composes
+ * the label/list/hint from `label` / `hint`; hand-authors write them directly.
+ * For the typed JSX wrapper use `RadioGroup` from `@antadesign/anta`.
+ */
+export interface ARadioGroupAttributes extends BaseAttributes {
+  /** Controlled selected value (the chosen radio's `value`). Present → controlled:
+   *  the element reflects changes to this attribute and a pick only dispatches
+   *  `statechange`. Absent → uncontrolled (seed with `default-state`). */
+  state?: string
+  /** Uncontrolled initial selected value — read once on connect / form-reset. */
+  'default-state'?: string
+  /** Form field name — the group submits `name=value`. */
+  name?: string
+  /** Tone cascaded to children that don't set their own, or any literal CSS
+   *  color for a one-off custom tone. Inherits through CSS so every child
+   *  `<a-radio>` picks up the same fill curve. */
+  tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Size cascaded to children that don't set their own. */
+  size?: 'small' | 'medium' | 'large'
+  /** Validation/feedback tone for the group hint — same set as `<a-input>`'s
+   *  `status`. Recolours `<a-radio-group-hint>`; omit for the neutral default. */
+  status?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'
+  /** Disable the whole group. Presence-based. */
+  disabled?: boolean | ''
+  /** Layout + arrow-key axis. `'vertical'` is the default. */
+  orientation?: 'vertical' | 'horizontal'
+  /** Fires whenever the selection changes. `detail` carries `{ next, prev, reason }`:
+   *  `next`/`prev` are the selected values (`null` = nothing selected), and `reason`
+   *  is `'user'` (a pick — the event is **cancelable**; a synchronous
+   *  `preventDefault()` vetoes it in uncontrolled mode), `'reset'` (a `<form>` reset),
+   *  or `'restore'` (bfcache / autofill restore) — the latter two are not cancelable.
+   *  All-lowercase to bind across both renderers (like `<a-checkbox>`). */
+  onstatechange?: (
+    e: CustomEvent<{
+      next: string | null
+      prev: string | null
+      reason: 'user' | 'reset' | 'restore'
+    }>,
+  ) => void
+  /** ARIA — set by the `RadioGroup` wrapper (the element never touches these). */
+  role?: 'radiogroup'
+  'aria-disabled'?: 'true' | 'false'
+  'aria-label'?: string
+  'aria-labelledby'?: string
 }
