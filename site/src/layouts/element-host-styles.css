@@ -14,20 +14,20 @@
  * `dist/elements/*.css` — keep it in sync when adding a component (the same
  * manual step as `build:css` / `elements/index.ts`).
  */
-@import '../../node_modules/@antadesign/anta/dist/elements/a-button.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-checkbox.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-expander.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-icon.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-icon.shapes.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-input.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-menu.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-menu-group.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-menu-item.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-menu-separator.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-progress.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-radio.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-radio-group.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-tag.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-text.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-title.css';
-@import '../../node_modules/@antadesign/anta/dist/elements/a-tooltip.css';
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-button.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-checkbox.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-expander.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-icon.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-icon.shapes.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-input.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-menu.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-menu-group.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-menu-item.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-menu-separator.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-progress.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-radio.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-radio-group.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-tag.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-text.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-title.css');
+@import url('../../node_modules/@antadesign/anta/dist/elements/a-tooltip.css');
