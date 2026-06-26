@@ -6,7 +6,7 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
-## Unreleased
+## 0.3.1 — June 26, 2026
 
 ### Added
 - **`MenuItem`: `value` prop.** An opaque value (`string | number`) handed back in `onSelect`'s detail, so one shared handler can tell which row was chosen without a per-item closure.
