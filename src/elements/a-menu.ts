@@ -638,10 +638,22 @@ export class AMenuElement extends HTMLElementBase {
     this._shown = true
     this._dismissNotified = false
     this.reflectExpanded(true)
+    this.hideAnchorTooltip()
     // `instant` (opening over an already-open menu) only positions synchronously
     // now — no fade-skip needed; the CSS transition + @starting-style handle the
     // enter, and a brief fade-in over an existing menu reads fine.
     this.position(coord, instant)
+  }
+
+  /** Dismiss any tooltip on the trigger as the menu opens, so the trigger's
+   *  hover tooltip doesn't linger over the just-opened menu. `a-tooltip.hide()`
+   *  mutates only its own shadow internals (like `el.focus()`), so this is
+   *  allowed under the no-light-DOM-mutation rule. No-op when the trigger has no
+   *  tooltip (or it hasn't upgraded). */
+  private hideAnchorTooltip() {
+    this.triggerAnchor
+      ?.querySelectorAll('a-tooltip')
+      .forEach((t) => (t as HTMLElement & { hide?: () => void }).hide?.())
   }
 
   /** Shadow-only hide. */
@@ -702,7 +714,14 @@ export class AMenuElement extends HTMLElementBase {
           left = it.left - box.width - this.offset
         }
         left = Math.max(MARGIN, left)
-        top = it.top - MARGIN
+        // Line the submenu's FIRST row up with the parent item. The first row
+        // sits border-top + padding-top below the surface's box edge (which is
+        // what `top` sets), so offset by that real inset — not a bare MARGIN, or
+        // the unaccounted 1px border drifts the flyout down a pixel per level
+        // and the drift compounds through nested submenus.
+        const cs = view.getComputedStyle(surface)
+        const insetTop = parseFloat(cs.borderTopWidth) + parseFloat(cs.paddingTop)
+        top = it.top - insetTop
         if (top + box.height > vh - MARGIN) top = vh - box.height - MARGIN
         top = Math.max(MARGIN, top)
       } else {
