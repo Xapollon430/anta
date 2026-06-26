@@ -8,8 +8,9 @@ export interface MenuItemProps extends BaseProps {
   label?: string
   /** A trailing keyboard-shortcut hint, e.g. `"⌘E"`. */
   kbd?: string
-  /** A trailing icon (ignored when `submenu` is set — the chevron takes its
-   *  place). */
+  /** A trailing icon. On a `submenu` item this **overrides** the default
+   *  chevron (omit it to keep the chevron); on a normal item it's the trailing
+   *  glyph (omit for none). */
   iconTrailing?: IconShape
   /** Disable the item: greyed out, not focusable for activation, no close. */
   disabled?: boolean
@@ -103,11 +104,13 @@ export const MenuItem = ({
       {icon && <a-icon shape={icon} aria-hidden="true" />}
       {label != null && <a-menu-item-label>{label}</a-menu-item-label>}
       {kbd && <kbd>{kbd}</kbd>}
-      {submenu ? (
-        <a-icon shape="chevron-right" aria-hidden="true" />
-      ) : (
-        iconTrailing && <a-icon shape={iconTrailing} aria-hidden="true" />
-      )}
+      {(() => {
+        // A submenu shows the chevron by default; `iconTrailing` overrides it.
+        // The `[submenu]` CSS still positions whatever icon sits here, since the
+        // nested <a-menu> — not this icon — is the item's real last child.
+        const trailing = submenu ? (iconTrailing ?? 'chevron-right') : iconTrailing
+        return trailing ? <a-icon shape={trailing} aria-hidden="true" /> : null
+      })()}
       {children}
     </a-menu-item>
   )
