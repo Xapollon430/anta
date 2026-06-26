@@ -42,17 +42,17 @@ export default function MenuNestedDemo() {
       <Menu>
         <MenuItem icon="edit" label="Rename" />
         <MenuItem label="Move to" submenu>
-          <Menu submenu>
+          <Menu>
             <MenuItem icon="folder-open" label="Projects" />
             <MenuItem icon="folder-open" label="Archive" />
           </Menu>
         </MenuItem>
         <MenuItem label="View" submenu>
-          <Menu submenu>
+          <Menu>
             <MenuItem label="Columns" submenu>
-              <Menu submenu>
+              <Menu>
                 <MenuItem label="Visible columns" submenu>
-                  <Menu submenu>
+                  <Menu>
                     <div class="menu-check-row" data-menu-open>
                       <Checkbox
                         className="menu-check"
