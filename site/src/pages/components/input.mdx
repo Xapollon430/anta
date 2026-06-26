@@ -701,39 +701,6 @@ wraps to fewer columns as it narrows. Resize the preview to see it reflow.
 `}</style>
 ```
 
-## Styling
-
-<Columns>
-<Col>
-
-The control and every region are exposed as shadow parts, so you can reach them
-from your own CSS without piercing the boundary blindly:
-
-```css
-a-input::part(field) { border-radius: 999px; }
-a-input::part(input) { font-variant-numeric: tabular-nums; }
-a-input::part(label) { text-transform: uppercase; }
-```
-
-</Col>
-<Col>
-
-Parts: `field`, `input`, `label`, `leading`, `trailing`, `clear`, `hint`. State
-hooks: `:state(filled)` and `:state(invalid)`. (The clear button itself is a
-real `<a-button>` in the `clear` slot — style it directly.)
-
-The border is drawn as an **inset `box-shadow`**, not a real `border`, so its
-width (`0.5px` → `1px` when a `status` is set) and placement never change the box size —
-the field height stays locked to the matching Button. Drop the leading `inset`
-from the field's `box-shadow` to draw the border as an outset ring instead.
-
-Or re-point a `--input-*` color token on one instance
-(`style={{ '--input-border': 'var(--border-1)' }}`) or a wrapping selector.
-The resolver lives in `@layer anta`, so any un-layered rule of yours wins.
-
-</Col>
-</Columns>
-
 <Disclosure title="Component props" open>
 
 <PropsTable component="Input" />
@@ -750,12 +717,29 @@ dimensions. The focus ring is the global [`--focus-ring`](/colors/#focus-ring).
 <Input tone="#e0457b" label="Custom accent" />
 ```
 
-`<a-input>` is shadow-DOM, so for everything else style its **parts** —
-`::part(field | input | label | leading | trailing | hint)` — with plain CSS;
-`:focus-within::part(field)` reaches the focused state. `light-dark()` works too
-(Anta sets `color-scheme` from its theme toggle). The `.fancy` class is just for the
-demo — a borderless pill that fills dark-grey and darkens on focus in light mode,
-and the inverse in dark:
+For everything else, `<a-input>` is shadow-DOM — style its **parts** with plain
+CSS: `::part(field | input | label | leading | trailing | clear | hint)`, plus the
+`:state(filled)` / `:state(invalid)` state hooks and `:focus-within::part(field)`
+for the focused state. The clear button is a real `<a-button>` in the `clear` slot,
+so style it directly. `light-dark()` works too (Anta sets `color-scheme` from its
+theme toggle).
+
+```css
+a-input::part(field) { border-radius: 999px; }
+a-input::part(input) { font-variant-numeric: tabular-nums; }
+a-input::part(label) { text-transform: uppercase; }
+```
+
+The border is drawn as an **inset `box-shadow`**, not a real `border`, so its width
+(`0.5px` → `1px` when a `status` is set) and placement never change the box size —
+the field height stays locked to the matching Button. Drop the leading `inset` to
+draw the border as an outset ring instead. You can also re-point an `--input-*`
+colour token on one instance (`style={{ '--input-border': 'var(--border-1)' }}`)
+or a wrapping selector; the resolver lives in `@layer anta`, so any un-layered rule
+of yours wins.
+
+The `.fancy` class is just for the demo — a borderless pill that fills dark-grey
+and darkens on focus in light mode, and the inverse in dark:
 
 <Preview>
   <Input className="fancy" label="Email" placeholder="you@example.com" />

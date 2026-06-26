@@ -6,6 +6,19 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## Unreleased
+
+### Added
+- **`MenuItem`: `value` prop.** An opaque value (`string | number`) handed back in `onSelect`'s detail, so one shared handler can tell which row was chosen without a per-item closure.
+
+### Changed
+- **`MenuItem`: `onSelect` now receives `(event, { value, label })` and only fires for a genuine selection.** The second argument is new — existing `(event) => …` handlers keep working unchanged. `onSelect` no longer fires for a **submenu parent** (clicking that opens the flyout, which isn't a selection) nor for a selection **bubbling up from a nested submenu** (previously a parent item's `onSelect` fired when you picked a child in its flyout). Disabled items still never fire.
+- **`Menu`: submenus open on hover by default; the `hover` prop/attribute is replaced by `nohover`.** Hovering a submenu's parent item opens the flyout (with intent timing) as well as clicking it — the standard desktop affordance, which used to be opt-in via `hover`. Pass **`nohover`** (`<Menu nohover>` / the `nohover` attribute) to make a submenu click-only. **Migration:** drop `hover` from any submenu that had it (now the default); add `nohover` to any submenu you want to keep click-only. As before, the flag is submenu-only — it's a no-op on a root menu. Hover-intent remains mouse-only (see Fixed).
+
+### Fixed
+- **`Menu`: opening a menu no longer closes it instantly via a self-inflicted scroll.** Opening could nudge the page — the browser scrolling the just-focused first item (keyboard) or the just-clicked trigger (mouse) fully into view, amplified into a burst of events when the page uses `scroll-behavior: smooth` — and that programmatic scroll tripped the scroll-to-dismiss listener. Two fixes: the first item is now focused with `preventScroll` (the surface is already positioned in view), and the scroll-to-dismiss now tolerates up to ~16px of page scroll from the open position before dismissing. A deliberate scroll past that still dismisses, as before.
+- **`Menu`: hover submenus no longer close immediately on touch.** A hover submenu opened by tap would close right after opening — the synthetic `mouseleave` a tap emits fired the hover-close timer. Hover-intent is now mouse-only (the open/close listeners gate on `pointerType === 'mouse'`); on touch and pen the submenu opens on tap and stays open until dismissed or a sibling opens.
+
 ## 0.3.0 — June 25, 2026
 
 ### Added

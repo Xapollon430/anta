@@ -11,6 +11,12 @@ const SUBMENU_OPEN_DELAY = 130
 const SUBMENU_CLOSE_DELAY = 130
 /** Typeahead buffer reset window (ms). */
 const TYPEAHEAD_RESET = 500
+/** Page scroll (px) tolerated after open before dismissing. Opening can nudge
+ *  the page — the browser scrolling the just-clicked/focused trigger fully into
+ *  view, a layout settle — and with `scroll-behavior: smooth` that nudge arrives
+ *  as a stream of scroll events that would otherwise dismiss the menu the instant
+ *  it opens. A deliberate scroll past this threshold still dismisses. */
+const SCROLL_DISMISS_TOLERANCE = 16
 
 type Placement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'bottom' | 'top'
 
@@ -40,6 +46,9 @@ const openStack: AMenuElement[] = []
 let docBound = false
 let boundDoc: Document | null = null
 let boundView: (Window & typeof globalThis) | null = null
+/** Page scroll position when the system opened — the baseline the scroll-dismiss
+ *  tolerance is measured against (see SCROLL_DISMISS_TOLERANCE / onScroll). */
+let openScroll: { x: number; y: number } | null = null
 
 function bindDocListeners(doc: Document, view: Window & typeof globalThis) {
   if (docBound) return
@@ -50,6 +59,7 @@ function bindDocListeners(doc: Document, view: Window & typeof globalThis) {
   view.addEventListener('resize', onResize)
   boundDoc = doc
   boundView = view
+  openScroll = { x: view.scrollX, y: view.scrollY }
   docBound = true
 }
 
@@ -101,9 +111,22 @@ function onDocContextMenu(e: Event) {
 
 function onScroll(e: Event) {
   if (!openStack.length) return
+  const t = e.target
   // Ignore the surface's own internal (max-height) scroll.
-  const t = e.target as Node
-  for (const m of openStack) if (m.surface.contains(t)) return
+  for (const m of openStack) if (t instanceof Node && m.surface.contains(t)) return
+  // Tolerate a small page scroll right after open (a focus/layout nudge, often
+  // smooth-animated into a burst of events) so the menu doesn't dismiss itself
+  // the instant it opens. Measured against the open baseline, so a deliberate
+  // scroll past the threshold still dismisses. Only the page (document) scroll
+  // is tolerated; a nested scroll container the menu sits in still dismisses.
+  const doc = boundDoc
+  const isPageScroll =
+    !!doc && (t === doc || t === doc.scrollingElement || t === doc.documentElement)
+  if (isPageScroll && openScroll && boundView) {
+    const dx = Math.abs(boundView.scrollX - openScroll.x)
+    const dy = Math.abs(boundView.scrollY - openScroll.y)
+    if (dx < SCROLL_DISMISS_TOLERANCE && dy < SCROLL_DISMISS_TOLERANCE) return
+  }
   dismiss(e)
 }
 
@@ -188,7 +211,7 @@ const lazyObserver: IntersectionObserver | null =
  *   slotted light DOM (see `a-menu-item.css`), directly styleable.
  */
 export class AMenuElement extends HTMLElementBase {
-  static observedAttributes = ['placement', 'context', 'coord', 'offset', 'hover', 'state']
+  static observedAttributes = ['placement', 'context', 'coord', 'offset', 'nohover', 'state']
 
   /** Shadow-internal popover surface — the only thing we ever mutate. */
   surface!: HTMLDivElement
@@ -299,11 +322,17 @@ export class AMenuElement extends HTMLElementBase {
     this.surface.setAttribute('popover', 'manual')
     this.surface.append(document.createElement('slot'))
 
-    // Keep an open submenu alive while the pointer is inside it.
-    this.surface.addEventListener('mouseenter', () => {
+    // Keep an open submenu alive while the pointer is inside it. Hover-intent is
+    // mouse-only: touch/pen emit compatibility pointerenter/leave for a tap, and
+    // acting on those would close a just-tapped submenu (the synthetic leave
+    // fires the moment the finger lifts / the popover appears). Touch falls back
+    // to tap-to-open, which stays open until dismissed.
+    this.surface.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse') return
       if (this.isSubmenu) this.cancelCloseTimer()
     })
-    this.surface.addEventListener('mouseleave', () => {
+    this.surface.addEventListener('pointerleave', (e) => {
+      if (e.pointerType !== 'mouse') return
       if (this.isSubmenu && this.isHover) this.scheduleClose()
     })
 
@@ -380,8 +409,10 @@ export class AMenuElement extends HTMLElementBase {
   private get isCoord(): boolean {
     return this.hasAttribute('coord')
   }
+  // Submenus open on hover by default; `nohover` opts out (click-only). Root
+  // menus never consult this — it's read only on the submenu paths.
   private get isHover(): boolean {
-    return this.hasAttribute('hover')
+    return !this.hasAttribute('nohover')
   }
   private get offset(): number {
     const n = parseInt(this.getAttribute('offset') ?? '', 10)
@@ -458,7 +489,11 @@ export class AMenuElement extends HTMLElementBase {
   }
 
   private focusFirstItem() {
-    this.focusableItems()[0]?.focus()
+    // `preventScroll`: the surface is already positioned in-view, so letting the
+    // browser scroll the document to the freshly-focused item is redundant — and
+    // when the item sits near a viewport edge that programmatic scroll fires the
+    // just-bound scroll-dismiss listener, closing the menu the instant it opens.
+    this.focusableItems()[0]?.focus({ preventScroll: true })
   }
 
   /* ============================ open / close ============================ */
@@ -872,9 +907,9 @@ export class AMenuElement extends HTMLElementBase {
     if (this.isSubmenu) {
       // The enclosing item drives the submenu: click OPENS (never toggles shut —
       // re-clicking the parent that spawned the flyout keeps it open, just
-      // repositions); optional hover opens/closes with intent timing. Closing is
-      // owned by the usual paths: outside-click, Esc, ←, hover-away, or picking
-      // an item.
+      // repositions); hover opens/closes with intent timing unless `nohover`.
+      // Closing is owned by the usual paths: outside-click, Esc, ←, hover-away,
+      // or picking an item.
       const onClick = (e: MouseEvent) => {
         // Only a DIRECT click on the parent item (re)opens the flyout. A click
         // that bubbled up from inside the already-open submenu — e.g. ticking a
@@ -885,18 +920,20 @@ export class AMenuElement extends HTMLElementBase {
         this.requestOpen({ originEvent: e })
       }
       anchor.addEventListener('click', onClick)
-      let onEnter: ((e: Event) => void) | undefined
-      let onLeave: (() => void) | undefined
+      let onEnter: ((e: PointerEvent) => void) | undefined
+      let onLeave: ((e: PointerEvent) => void) | undefined
       if (this.isHover) {
-        onEnter = () => this.scheduleOpen()
-        onLeave = () => this.scheduleClose()
-        anchor.addEventListener('mouseenter', onEnter)
-        anchor.addEventListener('mouseleave', onLeave)
+        // Mouse-only hover-intent (see the surface listeners above): touch/pen
+        // taps emit synthetic pointerenter/leave that would open-then-close.
+        onEnter = (e) => { if (e.pointerType === 'mouse') this.scheduleOpen() }
+        onLeave = (e) => { if (e.pointerType === 'mouse') this.scheduleClose() }
+        anchor.addEventListener('pointerenter', onEnter)
+        anchor.addEventListener('pointerleave', onLeave)
       }
       this.teardown = () => {
         anchor.removeEventListener('click', onClick)
-        if (onEnter) anchor.removeEventListener('mouseenter', onEnter)
-        if (onLeave) anchor.removeEventListener('mouseleave', onLeave)
+        if (onEnter) anchor.removeEventListener('pointerenter', onEnter)
+        if (onLeave) anchor.removeEventListener('pointerleave', onLeave)
         this.listening = false
       }
     } else if (this.isContext) {

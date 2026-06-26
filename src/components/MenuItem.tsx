@@ -21,9 +21,16 @@ export interface MenuItemProps extends BaseProps {
    *  `aria-haspopup="menu"`, and an `aria-expanded` baseline (kept in sync by
    *  the nested menu). Nest the flyout as a `<Menu>` child. */
   submenu?: boolean
-  /** Convenience activation handler — fires on click / Enter / Space unless
-   *  the item is disabled. (Mapped to the underlying click.) */
-  onSelect?: (e: any) => void
+  /** An opaque value identifying this item, handed back in `onSelect`'s detail
+   *  so a shared handler can tell which row was chosen without a per-item
+   *  closure. */
+  value?: string | number
+  /** Activation handler — fires when *this* item is chosen (click / Enter /
+   *  Space), unless it's `disabled`. It does **not** fire for a submenu parent
+   *  (clicking that opens the flyout, which isn't a selection) nor for a
+   *  selection bubbling up from a nested submenu. Receives the event plus a
+   *  `{ value, label }` detail. */
+  onSelect?: (event: any, detail: { value?: string | number; label?: string }) => void
   /** Item content. With `label` set, children are extra content — most
    *  notably the nested `<Menu>` for a submenu parent. */
   children?: React.ReactNode
@@ -43,7 +50,7 @@ export interface MenuItemProps extends BaseProps {
  * <MenuItem icon="copy" label="Duplicate" kbd="⌘D" onSelect={dup} />
  * <MenuItem label="Word wrap" data-menu-open onSelect={toggleWrap} />
  * <MenuItem label="Share" submenu>
- *   <Menu hover>
+ *   <Menu>
  *     <MenuItem label="Copy link" onSelect={copyLink} />
  *   </Menu>
  * </MenuItem>
@@ -57,6 +64,7 @@ export const MenuItem = ({
   disabled,
   tone,
   submenu,
+  value,
   onSelect,
   className,
   children,
@@ -75,7 +83,20 @@ export const MenuItem = ({
       // live open state onto this attribute (it owns that state).
       aria-expanded={submenu ? 'false' : undefined}
       aria-disabled={disabled ? 'true' : undefined}
-      onClick={disabled ? undefined : onSelect}
+      onClick={
+        disabled || !onSelect
+          ? undefined
+          : (e: any) => {
+              // Only a genuine activation of THIS item fires onSelect. Skip a
+              // submenu parent (its click opens the flyout, not a selection),
+              // and skip a click bubbling up from a nested submenu item
+              // (e.target's nearest item would be the child, not this row).
+              if (submenu) return
+              const t = e.target as Element | null
+              if (t?.closest?.('a-menu-item') !== e.currentTarget) return
+              onSelect(e, { value, label })
+            }
+      }
       class={className}
       {...rest}
     >

@@ -485,10 +485,11 @@ export interface AMenuAttributes extends BaseAttributes {
   /** Open at the pointer coordinates instead of aligned to the trigger box.
    *  Presence-based (`''` on, omit off). */
   coord?: boolean | ''
-  /** For a submenu (an `<a-menu>` nested inside an `<a-menu-item>` — detected
-   *  from that structure, no flag needed): also open on hover. Presence-based
+  /** Submenus only (an `<a-menu>` nested inside an `<a-menu-item>` — detected
+   *  from that structure; ignored on a root menu). Submenus open on hover by
+   *  default; this opts out, making the submenu click-only. Presence-based
    *  (`''` on, omit off). */
-  hover?: boolean | ''
+  nohover?: boolean | ''
   /** Gap in pixels between the trigger and the menu. Defaults to 4. */
   offset?: number | string
   /** Controlled open state (`'open'` / `'closed'`). Omit for uncontrolled;

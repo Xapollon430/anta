@@ -15,9 +15,12 @@ export interface MenuProps extends BaseProps {
    *  Pairs naturally with `context`; on its own it positions a left-click
    *  menu at the cursor. */
   coord?: boolean
-  /** For a submenu (a `<Menu>` nested inside a `MenuItem`): also open it on
-   *  hover (with intent timing), not only on click. No effect on a root menu. */
-  hover?: boolean
+  /** Submenu-only (a `<Menu>` nested inside a `MenuItem`); ignored on a root
+   *  menu. Submenus open on hover by default (with intent timing) as well as on
+   *  click — set `nohover` to make this submenu click-only. Hover-intent is
+   *  mouse-only regardless: on touch (and pen) a submenu always opens on tap and
+   *  stays open until dismissed. */
+  nohover?: boolean
   /** Gap in pixels between the trigger and the menu.
    *  @defaultValue 4 */
   offset?: number
@@ -81,7 +84,7 @@ export const Menu = ({
   placement,
   context,
   coord,
-  hover,
+  nohover,
   offset,
   open,
   onStateChange,
@@ -95,7 +98,7 @@ export const Menu = ({
       placement={placement && placement !== 'bottom-start' ? placement : undefined}
       context={context ? '' : undefined}
       coord={coord ? '' : undefined}
-      hover={hover ? '' : undefined}
+      nohover={nohover ? '' : undefined}
       offset={offset != null ? String(offset) : undefined}
       // Controlled lever — boolean prop → 'open'/'closed' enum; omit ⇒ uncontrolled.
       state={open === undefined ? undefined : open ? 'open' : 'closed'}

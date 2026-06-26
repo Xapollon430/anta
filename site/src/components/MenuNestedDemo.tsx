@@ -46,17 +46,17 @@ export default function MenuNestedDemo() {
       <Menu>
         <MenuItem icon="edit" label="Rename" />
         <MenuItem label="Move to" submenu>
-          <Menu submenu hover>
+          <Menu submenu>
             <MenuItem icon="folder-open" label="Projects" />
             <MenuItem icon="folder-open" label="Archive" />
           </Menu>
         </MenuItem>
         <MenuItem label="View" submenu>
-          <Menu submenu hover>
+          <Menu submenu>
             <MenuItem label="Columns" submenu>
-              <Menu submenu hover>
+              <Menu submenu>
                 <MenuItem label="Visible columns" submenu>
-                  <Menu submenu hover>
+                  <Menu submenu>
                     <label class="menu-check menu-check--all" data-menu-open>
                       <input
                         ref={selectAllRef}
