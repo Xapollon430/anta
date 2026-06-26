@@ -11,6 +11,13 @@ const SUBMENU_OPEN_DELAY = 130
 const SUBMENU_CLOSE_DELAY = 130
 /** Typeahead buffer reset window (ms). */
 const TYPEAHEAD_RESET = 500
+/** The open system dismisses once its trigger has scrolled so that less than this
+ *  fraction of it still overlaps the spot it occupied when the menu opened — a
+ *  size-proportional delta (an IntersectionObserver threshold), not a fixed px.
+ *  See trackPosition: this replaces a raw scroll listener, so it reacts to the
+ *  anchor moving for ANY reason (page scroll, a scroll container, a layout shift)
+ *  and never self-dismisses from the page nudge that opening can cause. */
+const ANCHOR_VISIBLE_RATIO = 0.5
 
 type Placement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'bottom' | 'top'
 
@@ -40,13 +47,16 @@ const openStack: AMenuElement[] = []
 let docBound = false
 let boundDoc: Document | null = null
 let boundView: (Window & typeof globalThis) | null = null
+/** Disconnect for the open system's anchor position tracker (see trackPosition /
+ *  armPositionTracker). The system dismisses when the root trigger scrolls out of
+ *  the spot it held at open, instead of on raw scroll events. */
+let removePosTracker: (() => void) | null = null
 
 function bindDocListeners(doc: Document, view: Window & typeof globalThis) {
   if (docBound) return
   doc.addEventListener('pointerdown', onDocPointerDown, true)
   doc.addEventListener('keydown', onDocKeyDown, true)
   doc.addEventListener('contextmenu', onDocContextMenu, true)
-  view.addEventListener('scroll', onScroll, { capture: true, passive: true })
   view.addEventListener('resize', onResize)
   boundDoc = doc
   boundView = view
@@ -58,11 +68,36 @@ function unbindDocListeners() {
   boundDoc?.removeEventListener('pointerdown', onDocPointerDown, true)
   boundDoc?.removeEventListener('keydown', onDocKeyDown, true)
   boundDoc?.removeEventListener('contextmenu', onDocContextMenu, true)
-  boundView?.removeEventListener('scroll', onScroll, { capture: true } as any)
   boundView?.removeEventListener('resize', onResize)
+  removePosTracker?.()
+  removePosTracker = null
   boundDoc = null
   boundView = null
   docBound = false
+}
+
+/** Fire `onEscape` once `el` has moved so that less than ANCHOR_VISIBLE_RATIO of
+ *  it still overlaps the rect it occupied at setup. An IntersectionObserver whose
+ *  viewport root is shrunk (via negative rootMargin) to el's current rect; el
+ *  sliding past the threshold drops `isIntersecting`. Read-only (no DOM
+ *  mutation). Returns a disconnect fn. (Ported from the prior menu's
+ *  browser_utils.trackPosition.) */
+function trackPosition(el: HTMLElement, onEscape: () => void): () => void {
+  if (typeof IntersectionObserver === 'undefined') return () => {}
+  const doc = el.ownerDocument
+  const rect = el.getBoundingClientRect()
+  const vw = doc.documentElement.clientWidth
+  const vh = doc.documentElement.clientHeight
+  // Negative margins shrink the viewport root down to el's current rect.
+  const rootMargin = `${-rect.top}px ${-(vw - rect.right)}px ${-(vh - rect.bottom)}px ${-rect.left}px`
+  const io = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry.isIntersecting) onEscape()
+    },
+    { root: null, rootMargin, threshold: ANCHOR_VISIBLE_RATIO },
+  )
+  io.observe(el)
+  return () => io.disconnect()
 }
 
 /** A node is "inside the open menu system" if the event path crosses any
@@ -99,14 +134,6 @@ function onDocContextMenu(e: Event) {
   if (!pathHitsMenus(e)) dismiss(e)
 }
 
-function onScroll(e: Event) {
-  if (!openStack.length) return
-  // Ignore the surface's own internal (max-height) scroll.
-  const t = e.target as Node
-  for (const m of openStack) if (m.surface.contains(t)) return
-  dismiss(e)
-}
-
 function onResize() {
   if (!openStack.length) return
   dismiss()
@@ -118,9 +145,10 @@ function onDocKeyDown(e: KeyboardEvent) {
   menu.handleKey(e)
 }
 
-/** Dismiss the open system (outside-click / scroll / resize). Routed through
- *  the root's `requestClose`, so it emits `statechange` and respects a
- *  controlled root (which stays open until the consumer flips `state`). */
+/** Dismiss the open system (outside-click / resize / anchor scrolled out of
+ *  view). Routed through the root's `requestClose`, so it emits `statechange` and
+ *  respects a controlled root (which stays open until the consumer flips
+ *  `state`). */
 function dismiss(originEvent?: Event) {
   openStack[0]?.requestClose(originEvent)
 }
@@ -188,7 +216,7 @@ const lazyObserver: IntersectionObserver | null =
  *   slotted light DOM (see `a-menu-item.css`), directly styleable.
  */
 export class AMenuElement extends HTMLElementBase {
-  static observedAttributes = ['placement', 'context', 'coord', 'offset', 'hover', 'state']
+  static observedAttributes = ['placement', 'context', 'coord', 'offset', 'nohover', 'state']
 
   /** Shadow-internal popover surface — the only thing we ever mutate. */
   surface!: HTMLDivElement
@@ -299,11 +327,17 @@ export class AMenuElement extends HTMLElementBase {
     this.surface.setAttribute('popover', 'manual')
     this.surface.append(document.createElement('slot'))
 
-    // Keep an open submenu alive while the pointer is inside it.
-    this.surface.addEventListener('mouseenter', () => {
+    // Keep an open submenu alive while the pointer is inside it. Hover-intent is
+    // mouse-only: touch/pen emit compatibility pointerenter/leave for a tap, and
+    // acting on those would close a just-tapped submenu (the synthetic leave
+    // fires the moment the finger lifts / the popover appears). Touch falls back
+    // to tap-to-open, which stays open until dismissed.
+    this.surface.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse') return
       if (this.isSubmenu) this.cancelCloseTimer()
     })
-    this.surface.addEventListener('mouseleave', () => {
+    this.surface.addEventListener('pointerleave', (e) => {
+      if (e.pointerType !== 'mouse') return
       if (this.isSubmenu && this.isHover) this.scheduleClose()
     })
 
@@ -380,8 +414,10 @@ export class AMenuElement extends HTMLElementBase {
   private get isCoord(): boolean {
     return this.hasAttribute('coord')
   }
+  // Submenus open on hover by default; `nohover` opts out (click-only). Root
+  // menus never consult this — it's read only on the submenu paths.
   private get isHover(): boolean {
-    return this.hasAttribute('hover')
+    return !this.hasAttribute('nohover')
   }
   private get offset(): number {
     const n = parseInt(this.getAttribute('offset') ?? '', 10)
@@ -458,7 +494,11 @@ export class AMenuElement extends HTMLElementBase {
   }
 
   private focusFirstItem() {
-    this.focusableItems()[0]?.focus()
+    // `preventScroll`: the surface is already positioned in-view, so letting the
+    // browser scroll the document to the freshly-focused item is redundant — and
+    // when the item sits near a viewport edge that programmatic scroll fires the
+    // just-bound scroll-dismiss listener, closing the menu the instant it opens.
+    this.focusableItems()[0]?.focus({ preventScroll: true })
   }
 
   /* ============================ open / close ============================ */
@@ -552,9 +592,27 @@ export class AMenuElement extends HTMLElementBase {
     // to the static menu already on screen. A fresh root menu still fades in.
     this._doShow(coord, !wasEmpty)
     openStack.push(this)
-    if (wasEmpty) bindDocListeners(this.doc, this.view)
+    if (wasEmpty) {
+      bindDocListeners(this.doc, this.view)
+      this.armPositionTracker()
+    }
 
     if (viaKeyboard) this.focusFirstItem()
+  }
+
+  /** Watch the root trigger and dismiss the system once it scrolls out of the
+   *  spot it held at open (see trackPosition). Deferred a frame so the trigger's
+   *  post-open layout has settled before the rect is snapshotted; guarded in case
+   *  the menu closed in between. Tracks the root anchor only — submenus ride
+   *  inside it, so if the root anchor goes, the whole system should go. */
+  private armPositionTracker() {
+    const anchor = this.triggerAnchor
+    if (!anchor) return
+    this.view.requestAnimationFrame(() => {
+      if (!this._shown || openStack[0] !== this) return
+      removePosTracker?.()
+      removePosTracker = trackPosition(anchor, () => dismiss())
+    })
   }
 
   /** Apply CLOSE to the DOM (no event). Closes this menu and everything stacked
@@ -580,10 +638,22 @@ export class AMenuElement extends HTMLElementBase {
     this._shown = true
     this._dismissNotified = false
     this.reflectExpanded(true)
+    this.hideAnchorTooltip()
     // `instant` (opening over an already-open menu) only positions synchronously
     // now — no fade-skip needed; the CSS transition + @starting-style handle the
     // enter, and a brief fade-in over an existing menu reads fine.
     this.position(coord, instant)
+  }
+
+  /** Dismiss any tooltip on the trigger as the menu opens, so the trigger's
+   *  hover tooltip doesn't linger over the just-opened menu. `a-tooltip.hide()`
+   *  mutates only its own shadow internals (like `el.focus()`), so this is
+   *  allowed under the no-light-DOM-mutation rule. No-op when the trigger has no
+   *  tooltip (or it hasn't upgraded). */
+  private hideAnchorTooltip() {
+    this.triggerAnchor
+      ?.querySelectorAll('a-tooltip')
+      .forEach((t) => (t as HTMLElement & { hide?: () => void }).hide?.())
   }
 
   /** Shadow-only hide. */
@@ -644,7 +714,14 @@ export class AMenuElement extends HTMLElementBase {
           left = it.left - box.width - this.offset
         }
         left = Math.max(MARGIN, left)
-        top = it.top - MARGIN
+        // Line the submenu's FIRST row up with the parent item. The first row
+        // sits border-top + padding-top below the surface's box edge (which is
+        // what `top` sets), so offset by that real inset — not a bare MARGIN, or
+        // the unaccounted 1px border drifts the flyout down a pixel per level
+        // and the drift compounds through nested submenus.
+        const cs = view.getComputedStyle(surface)
+        const insetTop = parseFloat(cs.borderTopWidth) + parseFloat(cs.paddingTop)
+        top = it.top - insetTop
         if (top + box.height > vh - MARGIN) top = vh - box.height - MARGIN
         top = Math.max(MARGIN, top)
       } else {
@@ -872,9 +949,9 @@ export class AMenuElement extends HTMLElementBase {
     if (this.isSubmenu) {
       // The enclosing item drives the submenu: click OPENS (never toggles shut —
       // re-clicking the parent that spawned the flyout keeps it open, just
-      // repositions); optional hover opens/closes with intent timing. Closing is
-      // owned by the usual paths: outside-click, Esc, ←, hover-away, or picking
-      // an item.
+      // repositions); hover opens/closes with intent timing unless `nohover`.
+      // Closing is owned by the usual paths: outside-click, Esc, ←, hover-away,
+      // or picking an item.
       const onClick = (e: MouseEvent) => {
         // Only a DIRECT click on the parent item (re)opens the flyout. A click
         // that bubbled up from inside the already-open submenu — e.g. ticking a
@@ -885,18 +962,20 @@ export class AMenuElement extends HTMLElementBase {
         this.requestOpen({ originEvent: e })
       }
       anchor.addEventListener('click', onClick)
-      let onEnter: ((e: Event) => void) | undefined
-      let onLeave: (() => void) | undefined
+      let onEnter: ((e: PointerEvent) => void) | undefined
+      let onLeave: ((e: PointerEvent) => void) | undefined
       if (this.isHover) {
-        onEnter = () => this.scheduleOpen()
-        onLeave = () => this.scheduleClose()
-        anchor.addEventListener('mouseenter', onEnter)
-        anchor.addEventListener('mouseleave', onLeave)
+        // Mouse-only hover-intent (see the surface listeners above): touch/pen
+        // taps emit synthetic pointerenter/leave that would open-then-close.
+        onEnter = (e) => { if (e.pointerType === 'mouse') this.scheduleOpen() }
+        onLeave = (e) => { if (e.pointerType === 'mouse') this.scheduleClose() }
+        anchor.addEventListener('pointerenter', onEnter)
+        anchor.addEventListener('pointerleave', onLeave)
       }
       this.teardown = () => {
         anchor.removeEventListener('click', onClick)
-        if (onEnter) anchor.removeEventListener('mouseenter', onEnter)
-        if (onLeave) anchor.removeEventListener('mouseleave', onLeave)
+        if (onEnter) anchor.removeEventListener('pointerenter', onEnter)
+        if (onLeave) anchor.removeEventListener('pointerleave', onLeave)
         this.listening = false
       }
     } else if (this.isContext) {

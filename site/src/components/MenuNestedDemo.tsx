@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from 'preact/hooks'
-import { Button, Menu, MenuItem, MenuSeparator } from '@antadesign/anta'
+import { useState, useEffect } from 'preact/hooks'
+import { Button, Checkbox, Menu, MenuItem, MenuSeparator } from '@antadesign/anta'
 
 const COLUMNS = ['Name', 'Status', 'Owner', 'Created', 'Modified']
 
 /**
  * Interactive demo for the Menu docs "Submenus" section: a menu nested three
  * submenus deep (View → Columns → Visible columns) whose deepest flyout is a
- * checkbox list with a "Select all" toggle and a per-row "Only" tertiary
- * button. Hydrated as an island so the checkbox state is live.
+ * list of Anta `Checkbox`es with a tri-state "Select all" toggle and a per-row
+ * "Only" tertiary button. Hydrated as an island so the checkbox state is live.
  *
  * Every interactive row carries `data-menu-open`, so ticking a box (or hitting
  * "Only") never dismisses the menu — it just updates state. Closing stays on the
@@ -23,6 +23,9 @@ export default function MenuNestedDemo() {
   )
   const allOn = COLUMNS.every((c) => on[c])
   const someOn = COLUMNS.some((c) => on[c])
+  // Tri-state value for the "Select all" Checkbox — Anta takes 'indeterminate'
+  // directly, so no imperative ref poking like a native <input> needs.
+  const allValue = allOn ? true : someOn ? 'indeterminate' : false
 
   // Functional updates throughout so a handler never reads stale render state.
   const toggle = (c: string) => setOn((s) => ({ ...s, [c]: !s[c] }))
@@ -33,46 +36,40 @@ export default function MenuNestedDemo() {
       return Object.fromEntries(COLUMNS.map((c) => [c, next]))
     })
 
-  // `indeterminate` is a DOM property, not an attribute — set it via ref when
-  // the selection is mixed (some on, some off).
-  const selectAllRef = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    if (selectAllRef.current) selectAllRef.current.indeterminate = someOn && !allOn
-  }, [someOn, allOn])
-
   return (
     <>
       <Button>More</Button>
       <Menu>
         <MenuItem icon="edit" label="Rename" />
         <MenuItem label="Move to" submenu>
-          <Menu submenu hover>
+          <Menu>
             <MenuItem icon="folder-open" label="Projects" />
             <MenuItem icon="folder-open" label="Archive" />
           </Menu>
         </MenuItem>
         <MenuItem label="View" submenu>
-          <Menu submenu hover>
+          <Menu>
             <MenuItem label="Columns" submenu>
-              <Menu submenu hover>
+              <Menu>
                 <MenuItem label="Visible columns" submenu>
-                  <Menu submenu hover>
-                    <label class="menu-check menu-check--all" data-menu-open>
-                      <input
-                        ref={selectAllRef}
-                        type="checkbox"
-                        checked={allOn}
-                        onChange={toggleAll}
+                  <Menu>
+                    <div class="menu-check-row" data-menu-open>
+                      <Checkbox
+                        className="menu-check"
+                        label="Select all"
+                        checked={allValue}
+                        onStateChange={toggleAll}
                       />
-                      <span>Select all</span>
-                    </label>
+                    </div>
                     <MenuSeparator />
                     {COLUMNS.map((c) => (
                       <div class="menu-check-row" data-menu-open key={c}>
-                        <label class="menu-check">
-                          <input type="checkbox" checked={on[c]} onChange={() => toggle(c)} />
-                          <span>{c}</span>
-                        </label>
+                        <Checkbox
+                          className="menu-check"
+                          label={c}
+                          checked={on[c]}
+                          onStateChange={() => toggle(c)}
+                        />
                         <Button priority="tertiary" size="small" onClick={() => only(c)}>
                           Only
                         </Button>

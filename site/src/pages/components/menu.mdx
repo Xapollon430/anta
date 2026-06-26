@@ -31,9 +31,6 @@ open with `event.preventDefault()`. You can also grab a `ref` and call
 
 <Disclosure title="Playground" anchor={false} brand>
 
-Tweak the props (or edit the code), then **click the trigger to open the menu**.
-The props panel is generated from the `Menu` API and edits the `<Menu>` element.
-
 <Playground
   client:visible
   component="Menu"
@@ -46,8 +43,6 @@ The props panel is generated from the `Menu` API and edits the `<Menu>` element.
 
 </Disclosure>
 
-The examples below are live — **click a trigger to open its menu**.
-
 ## Dropdown from a button
 
 <Columns>
@@ -55,8 +50,11 @@ The examples below are live — **click a trigger to open its menu**.
 
 Render `<Menu>` right after the trigger element. A `MenuItem` takes a leading
 `icon`, a `label` (or `children`), and a trailing `kbd` hint. Selecting an item
-closes the menu and fires its `onSelect`; `Escape` or an outside click dismisses
-without selecting.
+closes the menu and fires its `onSelect(event, { value, label })`; `Escape` or an
+outside click dismisses without selecting. Give items a `value` to route a single
+handler — `onSelect` reports the chosen item's `value` and `label`, and never
+fires for a submenu parent (that opens the flyout) or a selection bubbling up
+from a nested submenu.
 
 </Col>
 <Col>
@@ -73,13 +71,16 @@ without selecting.
 </Preview>
 
 ```tsx folded
+// One handler, keyed by each item's `value`.
+const onSelect = (e, { value }) => act(value)
+
 <Button>Actions</Button>
 <Menu>
-  <MenuItem icon="edit" label="Edit" kbd="⌘E" onSelect={onEdit} />
-  <MenuItem icon="copy" label="Duplicate" kbd="⌘D" onSelect={onDup} />
-  <MenuItem icon="download" label="Export" onSelect={onExport} />
+  <MenuItem icon="edit" label="Edit" kbd="⌘E" value="edit" onSelect={onSelect} />
+  <MenuItem icon="copy" label="Duplicate" kbd="⌘D" value="duplicate" onSelect={onSelect} />
+  <MenuItem icon="download" label="Export" value="export" onSelect={onSelect} />
   <MenuSeparator />
-  <MenuItem tone="critical" icon="trash" label="Delete" kbd="⌘⌫" onSelect={onDelete} />
+  <MenuItem tone="critical" icon="trash" label="Delete" kbd="⌘⌫" value="delete" onSelect={onSelect} />
 </Menu>
 ```
 
@@ -219,11 +220,14 @@ the trigger box.
 
 Mark a `MenuItem` with `submenu` and nest a `<Menu>` inside it to create a
 flyout (the nested menu detects it's a submenu from being inside the item). The
-parent item gets a chevron, `aria-haspopup="menu"`, and an `aria-expanded` that
+parent item gets a chevron (override it per item with `iconTrailing`),
+`aria-haspopup="menu"`, and an `aria-expanded` that
 tracks the flyout's open state; the submenu opens
-to the side and flips when it nears the edge. Submenus open on click by default —
-add `hover` to also open them on hover (with intent timing, so a quick
-pass-through doesn't trigger them).
+to the side and flips when it nears the edge. Submenus open on **hover**
+(with intent timing, so a quick pass-through doesn't trigger them) as well as on
+click; add `nohover` to a submenu to make it click-only. Hover-intent is
+mouse-only regardless: on touch a submenu opens on tap and stays open until you
+dismiss it or open a sibling.
 
 For a top-level dropdown, add `aria-haspopup="menu"` to your own trigger element
 — it's a control you render, so the accessible name and popup hint live there.
@@ -234,25 +238,31 @@ For a top-level dropdown, add `aria-haspopup="menu"` to your own trigger element
 <Preview>
   <MenuNestedDemo client:visible />
   <style is:inline>{`
-    .menu-check {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-      padding: 5px 8px;
-      border-radius: 5px;
-      cursor: pointer;
-      user-select: none;
-    }
-    .menu-check:hover { background: color-mix(in oklch, currentColor 8%, transparent); }
-    .menu-check input { accent-color: var(--link, #6750a4); }
     .menu-check-row {
       display: flex;
       align-items: center;
       gap: 4px;
-      padding-inline-end: 4px;
+      padding: 4px 8px 4px 6px;
+      /* the row itself isn't clickable — only the checkbox and the Only button
+         are, so don't inherit the surface's pointer cursor onto the dead slot */
+      cursor: default;
     }
-    .menu-check-row .menu-check { flex: 1; }
+    /* the checkbox fills the row up to the Only slot, so its clickable label area
+       grows long even for short labels; the pointer cursor stays on that area */
+    .menu-check { flex: 1; cursor: pointer; }
+    /* Only keeps its slot reserved (opacity, not display → no layout shift) and
+       reveals on row hover / keyboard focus; click-through while hidden so the
+       empty slot shows the default cursor and does nothing */
+    .menu-check-row a-button {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.12s ease-out;
+    }
+    .menu-check-row:hover a-button,
+    .menu-check-row a-button:focus-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
   `}</style>
 </Preview>
 
@@ -265,36 +275,40 @@ toggle, or a row's **Only** button — which leaves just that column on) updates
 ```tsx folded
 const COLUMNS = ['Name', 'Status', 'Owner', 'Created', 'Modified']
 const [on, setOn] = useState(() => Object.fromEntries(COLUMNS.map((c) => [c, true])))
+const allOn = COLUMNS.every((c) => on[c])
+const someOn = COLUMNS.some((c) => on[c])
 const only = (c) => setOn(Object.fromEntries(COLUMNS.map((k) => [k, k === c])))
-// …toggle / setAll omitted
+// …toggle / toggleAll omitted
 
 <Button>More</Button>
 <Menu>
   <MenuItem icon="edit" label="Rename" />
   <MenuItem label="Move to" submenu>
-    <Menu hover>
+    <Menu>
       <MenuItem icon="folder-open" label="Projects" />
       <MenuItem icon="folder-open" label="Archive" />
     </Menu>
   </MenuItem>
   <MenuItem label="View" submenu>
-    <Menu hover>
+    <Menu>
       <MenuItem label="Columns" submenu>
-        <Menu hover>
+        <Menu>
           <MenuItem label="Visible columns" submenu>
-            <Menu hover>
+            <Menu>
               {/* custom content — never auto-closes thanks to data-menu-open */}
-              <label class="menu-check" data-menu-open>
-                <input type="checkbox" checked={allOn} onChange={() => setAll(!allOn)} />
-                <span>Select all</span>
-              </label>
+              <div class="menu-check-row" data-menu-open>
+                {/* Checkbox takes 'indeterminate' directly — no ref poking */}
+                <Checkbox
+                  className="menu-check"
+                  label="Select all"
+                  checked={allOn ? true : someOn ? 'indeterminate' : false}
+                  onStateChange={toggleAll}
+                />
+              </div>
               <MenuSeparator />
               {COLUMNS.map((c) => (
                 <div class="menu-check-row" data-menu-open key={c}>
-                  <label class="menu-check">
-                    <input type="checkbox" checked={on[c]} onChange={() => toggle(c)} />
-                    <span>{c}</span>
-                  </label>
+                  <Checkbox className="menu-check" label={c} checked={on[c]} onStateChange={() => toggle(c)} />
                   <Button priority="tertiary" size="small" onClick={() => only(c)}>Only</Button>
                 </div>
               ))}

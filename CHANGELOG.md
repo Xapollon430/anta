@@ -6,6 +6,21 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## 0.3.1 — June 26, 2026
+
+### Added
+- **`MenuItem`: `value` prop.** An opaque value (`string | number`) handed back in `onSelect`'s detail, so one shared handler can tell which row was chosen without a per-item closure.
+- New **`share`** icon shape (lucide), available as `<Icon shape="share" />` and in the `IconShape` union.
+
+### Changed
+- **`MenuItem`: `onSelect` now receives `(event, { value, label })` and only fires for a genuine selection.** The second argument is new — existing `(event) => …` handlers keep working unchanged. `onSelect` no longer fires for a **submenu parent** (clicking that opens the flyout, which isn't a selection) nor for a selection **bubbling up from a nested submenu** (previously a parent item's `onSelect` fired when you picked a child in its flyout). Disabled items still never fire.
+- **`Menu`: submenus open on hover by default; the `hover` prop/attribute is replaced by `nohover`.** Hovering a submenu's parent item opens the flyout (with intent timing) as well as clicking it — the standard desktop affordance, which used to be opt-in via `hover`. Pass **`nohover`** (`<Menu nohover>` / the `nohover` attribute) to make a submenu click-only. **Migration:** drop `hover` from any submenu that had it (now the default); add `nohover` to any submenu you want to keep click-only. As before, the flag is submenu-only — it's a no-op on a root menu. Hover-intent remains mouse-only (see Fixed).
+- **`Menu`: opening dismisses a tooltip on its trigger.** If the trigger has an `<a-tooltip>`, opening the menu now hides it so it doesn't linger over the just-opened surface (the tooltip's own `hide()`, mutating only its shadow internals).
+
+### Fixed
+- **`Menu`: opening no longer closes the menu instantly, and dismiss-on-scroll is now anchor-aware.** A raw page-scroll listener used to dismiss the menu, so the page nudge that opening can cause — the browser scrolling the just-focused first item (keyboard) or the just-clicked trigger (mouse) into view, amplified into a burst of events under `scroll-behavior: smooth` — tripped it the moment the menu opened. Dismiss-on-scroll is now driven by an `IntersectionObserver` on the trigger: the menu closes once the trigger has scrolled more than ~half of its own size out of the spot it held at open. That reacts to the anchor moving for any reason (page scroll, a scroll container, a layout shift), is proportional to the trigger rather than a fixed pixel amount, and never self-dismisses from the open nudge. The first item is also focused with `preventScroll`.
+- **`Menu`: hover submenus no longer close immediately on touch.** A hover submenu opened by tap would close right after opening — the synthetic `mouseleave` a tap emits fired the hover-close timer. Hover-intent is now mouse-only (the open/close listeners gate on `pointerType === 'mouse'`); on touch and pen the submenu opens on tap and stays open until dismissed or a sibling opens.
+
 ## 0.3.0 — June 25, 2026
 
 ### Added

@@ -85,6 +85,7 @@ export const ICON_SHAPES = [
   'search-check',
   'search',
   'send',
+  'share',
   'sparkles',
   'square-check-big',
   'square-menu',
@@ -281,6 +282,7 @@ declare module '@antadesign/anta' {
     'search-check': true
     'search': true
     'send': true
+    'share': true
     'sparkles': true
     'square-check-big': true
     'square-menu': true

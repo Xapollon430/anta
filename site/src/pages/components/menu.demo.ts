@@ -7,12 +7,22 @@ export default `import { Menu, MenuItem, MenuSeparator, Button } from '@antadesi
 
 <Button>Actions</Button>
 <Menu>
-  <MenuItem icon="edit" label="Edit" kbd="⌘E" />
-  <MenuItem icon="copy" label="Duplicate" kbd="⌘D" />
-  <MenuItem label="Share" submenu>
-    <Menu submenu hover>
+  <MenuItem icon="share" label="Share" submenu>
+    <Menu>
       <MenuItem icon="link" label="Copy link" />
       <MenuItem icon="send" label="Email" />
+    </Menu>
+  </MenuItem>
+  <MenuItem icon="copy" label="Duplicate" submenu>
+    <Menu>
+      <MenuItem label="Duplicate here" />
+      <MenuItem label="Duplicate to…" />
+    </Menu>
+  </MenuItem>
+  <MenuItem icon="edit" label="Edit" submenu>
+    <Menu>
+      <MenuItem label="Rename" />
+      <MenuItem label="Edit metadata" />
     </Menu>
   </MenuItem>
   <MenuSeparator />
