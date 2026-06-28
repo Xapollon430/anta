@@ -22,14 +22,19 @@ function useElements() {
 
 const col = { display: 'flex', flexDirection: 'column' as const, gap: '20px', alignItems: 'flex-start' as const }
 
-// Fixed panel box so switching tabs doesn't reflow the preview (panels differ in length).
-const panel = { margin: 0, paddingTop: '4px', minHeight: '40px' }
+// Fixed panel box so switching tabs doesn't reflow the preview (panels differ in length):
+// a stable min-height, and width:100% so the panel fills the strip's width every time.
+const panel = { margin: 0, paddingTop: '4px', minHeight: '48px', width: '100%', boxSizing: 'border-box' as const }
+// `fill` makes the Tabs container span the preview so the panel region has a stable width
+// (otherwise it hugs the active panel's content and the layout jumps on switch).
+const fill = { width: '100%' }
 
-/** Core API: a strip with panels that switch. */
+/** Core API: a strip with panels that switch. The strip is centred (`.panels-demo a-tabs`)
+ *  and the panels fill the full width, so switching tabs never reflows the preview. */
 export function Basic() {
   useElements()
   return (
-    <Tabs defaultValue="account" label="Settings">
+    <Tabs className="panels-demo" style={fill} defaultValue="account" label="Settings">
       <Tab value="account" label="Account" icon="home" />
       <Tab value="security" label="Security" />
       <Tab value="billing" label="Billing" />
@@ -97,7 +102,7 @@ export function Sizes() {
 export function Vertical() {
   useElements()
   return (
-    <Tabs defaultValue="general" orientation="vertical" priority="tertiary" label="Workspace">
+    <Tabs style={fill} defaultValue="general" orientation="vertical" priority="tertiary" label="Workspace">
       <Tab value="general" label="General" />
       <Tab value="members" label="Members" />
       <Tab value="integrations" label="Integrations" />
@@ -129,7 +134,7 @@ export function Overflow() {
         {OVERFLOW_TABS.map(({ value, label }) => (
           <Tab key={value} value={value}>
             {label}
-            <Tooltip truncatedOnly>{label}</Tooltip>
+            <Tooltip truncatedOnly delay={0}>{label}</Tooltip>
           </Tab>
         ))}
       </Tabs>

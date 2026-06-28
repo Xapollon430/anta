@@ -31,18 +31,23 @@
     --tab-divider: var(--border-5);
 
     /* Primary track (recessed well) — a faint 6% overlay (Button's neutral tertiary
-       hue; dark value below). Secondary's selected tab reuses it as its fill. The
-       raised pill is --bg-1 (theme-aware), like the docs segmented control. */
+       hue; dark value below). The raised pill is --bg-1 (theme-aware), like the docs
+       segmented control. */
     --tabs-track-bg: color-mix(in oklch, #44374b 6%, transparent);
     --tabs-track-border: var(--border-4);
     --tab-pill-bg: var(--bg-1);
-    /* Primary pill: a soft 2px-blur shadow (no spread) for a subtle raised feel.
+    /* Primary pill: a soft 3px-blur shadow (no spread) for a subtle raised feel.
        `--border-3` is theme-aware, so this works in dark too. */
-    --tab-pill-shadow: 0 0 2px 0 var(--border-3);
-    /* Secondary's selected ring is a crisp 1px INSET outline in the PRIMARY track-border
-       colour (--tabs-track-border) — drawn inside the tab box (no outward bleed / clipping)
-       so a toned secondary tab is outlined the same hue as a primary track at that tone. */
-    --tab-secondary-shadow: inset 0 0 0px 1px var(--tabs-track-border);
+    --tab-pill-shadow: 0 0 3px 0 var(--border-3);
+
+    /* Secondary's selected fill + ring. The fill is a fainter overlay than the primary
+       track (3% light / 6% dark; toned + dark values below). The ring is a 1px INSET
+       outline one border-step DARKER than the primary track border — `--border-3` vs the
+       track's `--border-4`; both theme-aware, so it reads darker in light and lighter in
+       dark. Drawn inside the tab box (no outward bleed / clipping). */
+    --tab-secondary-bg: color-mix(in oklch, #44374b 3%, transparent);
+    --tab-secondary-border: var(--border-3);
+    --tab-secondary-shadow: inset 0 0 0px 1px var(--tab-secondary-border);
 
     display: flex;
     flex-direction: row;
@@ -90,38 +95,40 @@
     --tabs-tone-source: #5f4bc3;
     --tab-selected-text: var(--text-1-brand); --tab-text-2: var(--text-2-brand);
     --tab-rest-tone: var(--text-3-brand); --tab-divider: var(--border-5-brand);
-    --tabs-track-border: var(--border-4-brand);
+    --tabs-track-border: var(--border-4-brand); --tab-secondary-border: var(--border-3-brand);
   }
   a-tabs[tone="info"] {
     --tabs-tone-source: #1f6eb2;
     --tab-selected-text: var(--text-1-info); --tab-text-2: var(--text-2-info);
     --tab-rest-tone: var(--text-3-info); --tab-divider: var(--border-5-info);
-    --tabs-track-border: var(--border-4-info);
+    --tabs-track-border: var(--border-4-info); --tab-secondary-border: var(--border-3-info);
   }
   a-tabs[tone="success"] {
     --tabs-tone-source: #2a7e43;
     --tab-selected-text: var(--text-1-success); --tab-text-2: var(--text-2-success);
     --tab-rest-tone: var(--text-3-success); --tab-divider: var(--border-5-success);
-    --tabs-track-border: var(--border-4-success);
+    --tabs-track-border: var(--border-4-success); --tab-secondary-border: var(--border-3-success);
   }
   a-tabs[tone="warning"] {
     --tabs-tone-source: #c37416;
     --tab-selected-text: var(--text-1-warning); --tab-text-2: var(--text-2-warning);
     --tab-rest-tone: var(--text-3-warning); --tab-divider: var(--border-5-warning);
-    --tabs-track-border: var(--border-4-warning);
+    --tabs-track-border: var(--border-4-warning); --tab-secondary-border: var(--border-3-warning);
   }
   a-tabs[tone="critical"] {
     --tabs-tone-source: #c9302c;
     --tab-selected-text: var(--text-1-critical); --tab-text-2: var(--text-2-critical);
     --tab-rest-tone: var(--text-3-critical); --tab-divider: var(--border-5-critical);
-    --tabs-track-border: var(--border-4-critical);
+    --tabs-track-border: var(--border-4-critical); --tab-secondary-border: var(--border-3-critical);
   }
 
   a-tabs[tone]:not([tone=""], [tone="neutral"]) {
     /* Track tint + ring derived from the tone (mid lightness on white), so a toned
-       strip's well/fill and pill ring carry the tone instead of staying neutral. */
+       strip's well/fill and pill ring carry the tone instead of staying neutral. The
+       secondary fill is the same hue at a fainter 3% (6% dark, below). */
     --tabs-track-bg: oklch(from var(--tabs-tone-source) 0.55 0.14 h / 0.08);
-    --tab-pill-shadow: 0 0 2px 0 oklch(from var(--tabs-tone-source) 0.62 0.12 h / 0.5);
+    --tab-secondary-bg: oklch(from var(--tabs-tone-source) 0.55 0.14 h / 0.03);
+    --tab-pill-shadow: 0 0 3px 0 oklch(from var(--tabs-tone-source) 0.62 0.12 h / 0.5);
   }
   /* Custom literal-colour tone (anything not a named tone): derive the source from the
      attribute via typed attr(), and the selected label by oklch (no --text-1-<tone>). */
@@ -134,13 +141,17 @@
       [tone="warning"],
       [tone="critical"]
     ) {
+    /* No --*-<tone> tokens to lean on, so derive each from the literal colour's HUE at the
+       fixed L/C the named tone tokens use at that step (measured average across the five
+       named tones in oklch) — so a custom colour gets the same treatment a named tone would.
+       text-3 (rest) == text-2, matching the named token scale. */
     --tabs-tone-source: attr(tone type(<color>), #635b65);
-    --tab-selected-text: oklch(from var(--tabs-tone-source) 0.5 0.16 h);
-    --tab-text-2: oklch(from var(--tabs-tone-source) 0.55 0.14 h);
-    --tab-rest-tone: oklch(from var(--tabs-tone-source) 0.5 0.06 h);
-    --tab-divider: color-mix(in oklch, var(--tabs-tone-source) 14%, transparent);
-    /* Light tinted track border in the tone's hue (no --border-4-<tone> token to lean on). */
-    --tabs-track-border: oklch(from var(--tabs-tone-source) 0.9 0.05 h);
+    --tab-selected-text: oklch(from var(--tabs-tone-source) 0.38 0.13 h);
+    --tab-text-2: oklch(from var(--tabs-tone-source) 0.45 0.13 h);
+    --tab-rest-tone: oklch(from var(--tabs-tone-source) 0.45 0.13 h);
+    --tab-divider: oklch(from var(--tabs-tone-source) 0.94 0.03 h);
+    --tabs-track-border: oklch(from var(--tabs-tone-source) 0.9 0.047 h);
+    --tab-secondary-border: oklch(from var(--tabs-tone-source) 0.87 0.065 h);
   }
 
   /* ── Tab base state (all priorities) ─────────────────────────────────────── */
@@ -204,10 +215,10 @@
   }
   a-tabs[priority="secondary"] a-tab:state(selected) {
     --tab-fg: var(--tab-selected-text);
-    /* Neutral fill = primary's track colour; the tone shows on the label. */
-    --tab-bg: var(--tabs-track-bg);
+    /* Faint active fill (3% light / 6% dark); the tone shows on the label + border. */
+    --tab-bg: var(--tab-secondary-bg);
 
-    /* Ring in the primary track-border colour (not the toned pill ring). */
+    /* 1px inset ring, one border-step darker than the primary track border. */
     box-shadow: var(--tab-secondary-shadow);
   }
 
@@ -254,6 +265,9 @@
   }
   a-tabs[orientation="vertical"] a-tab {
     justify-content: flex-start;
+    /* Vertical main axis is the block axis — don't let tabs compress their height; a tall
+       strip scrolls (overflow-y:auto above) instead. */
+    flex-shrink: 0;
   }
   /* A vertical tertiary strip carries its rule on each tab's inline-end edge instead
      of the bottom — same per-tab model, rotated. */
@@ -326,9 +340,9 @@
       border-radius: var(--tab-radius);
       box-shadow: var(--tab-pill-shadow);
     }
-    /* Secondary: the active fill (track colour) + a ring in the track-border colour. */
+    /* Secondary: the faint active fill + the 1px inset ring (one step darker border). */
     a-tabs:not([noslide])[priority="secondary"]::before {
-      background: var(--tabs-track-bg);
+      background: var(--tab-secondary-bg);
       border-radius: var(--tab-radius);
       box-shadow: var(--tab-secondary-shadow);
     }
@@ -362,13 +376,15 @@
      label gets a lift; pill / border ride theme-aware tokens already. ────────── */
   .dark a-tabs {
     --tabs-track-bg: color-mix(in oklch, #e4d1ef 10%, transparent);
+    --tab-secondary-bg: color-mix(in oklch, #e4d1ef 6%, transparent);
   }
   .dark a-tabs[tone]:not([tone=""], [tone="neutral"]) {
     /* Lighter tone (higher L) so the tint/ring lighten the dark surface like the
        neutral dark overlay does. (Named tones' --text-1-<tone> labels are theme-aware,
        so only the custom tone needs a dark selected-label lift, below.) */
     --tabs-track-bg: oklch(from var(--tabs-tone-source) 0.8 0.12 h / 0.12);
-    --tab-pill-shadow: 0 0 2px 0 oklch(from var(--tabs-tone-source) 0.8 0.1 h / 0.45);
+    --tab-secondary-bg: oklch(from var(--tabs-tone-source) 0.8 0.12 h / 0.06);
+    --tab-pill-shadow: 0 0 3px 0 oklch(from var(--tabs-tone-source) 0.8 0.1 h / 0.45);
   }
   /* Custom literal tone has no theme-aware --text-*-<tone> tokens, so lift its derived
      label colours for dark (named tones' tokens already carry their dark values). */
@@ -381,10 +397,12 @@
       [tone="warning"],
       [tone="critical"]
     ) {
-    --tab-selected-text: oklch(from var(--tabs-tone-source) 0.8 0.12 h);
-    --tab-text-2: oklch(from var(--tabs-tone-source) 0.78 0.11 h);
-    --tab-rest-tone: oklch(from var(--tabs-tone-source) 0.72 0.06 h);
-    --tab-divider: color-mix(in oklch, var(--tabs-tone-source) 25%, transparent);
-    --tabs-track-border: oklch(from var(--tabs-tone-source) 0.3 0.08 h);
+    /* Same step L/C as the named -<tone> tokens' dark values (measured average). */
+    --tab-selected-text: oklch(from var(--tabs-tone-source) 0.83 0.1 h);
+    --tab-text-2: oklch(from var(--tabs-tone-source) 0.76 0.11 h);
+    --tab-rest-tone: oklch(from var(--tabs-tone-source) 0.76 0.11 h);
+    --tab-divider: oklch(from var(--tabs-tone-source) 0.21 0.045 h);
+    --tabs-track-border: oklch(from var(--tabs-tone-source) 0.25 0.057 h);
+    --tab-secondary-border: oklch(from var(--tabs-tone-source) 0.33 0.087 h);
   }
 }

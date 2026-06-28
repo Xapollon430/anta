@@ -187,6 +187,9 @@ tabs above to see it.
 
 <Preview>
   <Basic client:only="preact" />
+  <style is:inline>{`
+    .panels-demo > a-tabs { align-self: center; }
+  `}</style>
 </Preview>
 
 ```tsx folded
@@ -214,6 +217,33 @@ Panels are **optional**. With none, `Tabs` is just the strip: listen to
 
 </Col>
 </Columns>
+
+<Disclosure title="What it renders (JSX vs. DOM)">
+
+`<Tab>` and `<TabPanel>` are **config-only** components — they render nothing
+themselves; `Tabs` reads their props. The flat, interleaved JSX above splits into a
+strip element with the panels as its **siblings** (not children), inside a layout
+wrapper:
+
+```html
+<div>                              <!-- layout wrapper, only when panels exist -->
+  <a-tabs role="tablist">
+    <a-tab role="tab" id="…-tab-account" aria-controls="…-panel-account" tabindex="0">
+      <a-tab-label>Account</a-tab-label>
+    </a-tab>
+    …
+  </a-tabs>
+  <a-tabpanel role="tabpanel" id="…-panel-account" aria-labelledby="…-tab-account">…</a-tabpanel>
+  <a-tabpanel … hidden inert>…</a-tabpanel>   <!-- inactive: hidden/unmounted per `mounting` -->
+</div>
+```
+
+Each `<TabPanel>` becomes an `<a-tabpanel>` **beside** `<a-tabs>`, never inside it — so
+a panel never sits in the primary track (the track background lives on `<a-tabs>`
+itself). The tab↔panel link is by `id` (`aria-controls` / `aria-labelledby`), so their
+adjacency isn't required for correctness.
+
+</Disclosure>
 
 ### Mounting
 
