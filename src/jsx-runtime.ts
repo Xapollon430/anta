@@ -124,5 +124,6 @@ export interface AntaIntrinsicElements {
   'a-menu-group-label': BaseAttributes
   'a-tabs': ATabsAttributes
   'a-tab': ATabAttributes
+  'a-tab-label': BaseAttributes
   'a-tabpanel': ATabpanelAttributes
 }

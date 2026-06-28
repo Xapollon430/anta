@@ -14,13 +14,13 @@ import "./a-tabs.css";
 //   • Selection — it sets each tab's `selected` *property* (not attribute). The tab
 //     reflects that into `:state(selected)` + `aria-selected` via its OWN
 //     ElementInternals (see a-tab.ts). No attribute is written to any tab.
-//   • Roving focus — `internals.ariaActiveDescendantElement` points at the selected
-//     tab, honored by AT only while the tablist itself holds focus (the raw
-//     hand-assembled path, `<a-tabs tabindex="0">`). In the `Tabs` wrapper path the
-//     tabs carry a roving `tabindex` (rendered declaratively by the wrapper) and real
-//     focus lands on them, so this reference is simply inert. `.focus()` is a no-op on
-//     a tab with no tabindex (raw mode) and a real move on one that has it (wrapper
-//     mode) — neither writes the DOM.
+//   • Focus — `internals.ariaActiveDescendantElement` points at the selected tab,
+//     honored by AT only while the tablist itself holds focus (the raw hand-assembled
+//     path, `<a-tabs tabindex="0">`). In the `Tabs` wrapper path every tab carries its
+//     own `tabindex="0"` (rendered declaratively by the wrapper) and real focus lands
+//     on them, so this reference is simply inert. `.focus()` is a no-op on a tab with
+//     no tabindex (raw mode) and a real move on one that has it (wrapper mode) —
+//     neither writes the DOM.
 //   • Scroll — the selected tab is scrolled into view (`block/inline: nearest`), like
 //     `.focus()`: it moves the viewport, not the DOM.
 //
@@ -138,7 +138,7 @@ export class ATabsElement extends HTMLElementBase {
     for (const t of tabs) t.selected = t === selectedEl;
 
     // Roving focus, off-DOM: point aria-activedescendant at the selected tab (see the
-    // header note). Feature-guarded — absent it, the wrapper's roving `tabindex` is
+    // header note). Feature-guarded — absent it, the wrapper's per-tab `tabindex` is
     // what carries focus.
     if (this.internals && "ariaActiveDescendantElement" in this.internals) {
       this.internals.ariaActiveDescendantElement = selectedEl;
@@ -189,7 +189,7 @@ export class ATabsElement extends HTMLElementBase {
     const tab = (e.target as HTMLElement | null)?.closest("a-tab") as ATabElement | null;
     if (!tab || tab.hasAttribute("disabled")) return;
     // Move real focus to the clicked tab. A no-op in raw/aria-activedescendant mode
-    // (the tab has no tabindex); a real move in the wrapper's roving mode.
+    // (the tab has no tabindex); a real move in the wrapper's focusable-tabs mode.
     tab.focus();
     this.requestSelect(tab.value);
   };
@@ -230,7 +230,7 @@ export class ATabsElement extends HTMLElementBase {
 
     const next = enabled[(i + (forward ? 1 : -1) + enabled.length) % enabled.length];
     // Selection follows focus (automatic activation): move focus, then request the
-    // pick. `.focus()` moves real focus in roving mode; in raw mode it no-ops and the
+    // pick. `.focus()` moves real focus when tabs are focusable; in raw mode it no-ops and the
     // sync()'d aria-activedescendant is what advances for AT.
     next.focus();
     this.requestSelect(next.value);

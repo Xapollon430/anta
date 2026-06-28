@@ -49,23 +49,28 @@ export function Priorities() {
   useElements()
   return (
     <div style={col}>
-      <Tabs defaultValue="a" tone="brand" priority="secondary" label="Secondary">{triad}</Tabs>
-      <Tabs defaultValue="a" tone="brand" priority="primary" label="Primary">{triad}</Tabs>
-      <Tabs defaultValue="a" tone="brand" priority="tertiary" label="Tertiary">{triad}</Tabs>
+      <Tabs defaultValue="a" priority="primary">{triad}</Tabs>
+      <Tabs defaultValue="a" priority="secondary">{triad}</Tabs>
+      <Tabs defaultValue="a" priority="tertiary">{triad}</Tabs>
     </div>
   )
 }
 
-export function Tones() {
+// All named tones except neutral, plus a one-off custom colour as the last row.
+const TONE_ROWS = ['brand', 'info', 'success', 'warning', 'critical', '#0d9488'] as const
+
+/** One column of the Tones matrix: every tone at a single priority (2 tabs each). */
+export function TonesColumn({ priority }: { priority?: 'primary' | 'secondary' | 'tertiary' }) {
   useElements()
   return (
-    <div style={col}>
-      <Tabs defaultValue="info" priority="tertiary" tone="info" label="Info tone">
-        <Tab value="info" label="Info" /><Tab value="b" label="Second" /><Tab value="c" label="Third" />
-      </Tabs>
-      <Tabs defaultValue="ok" priority="primary" tone="success" label="Success tone">
-        <Tab value="ok" label="Success" /><Tab value="b" label="Second" /><Tab value="c" label="Third" />
-      </Tabs>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', alignItems: 'flex-start' }}>
+      {TONE_ROWS.map((tone) => (
+        <Tabs key={tone} defaultValue="a" priority={priority} tone={tone}>
+          <Tab value="a" label="One" />
+          <Tab value="b" label="Two" />
+          <Tab value="c" label="Three" />
+        </Tabs>
+      ))}
     </div>
   )
 }
@@ -79,9 +84,9 @@ export function Sizes() {
   )
   return (
     <div style={col}>
-      <Tabs defaultValue="a" size="small" label="Small">{row}</Tabs>
-      <Tabs defaultValue="a" size="medium" label="Medium">{row}</Tabs>
-      <Tabs defaultValue="a" size="large" label="Large">{row}</Tabs>
+      <Tabs defaultValue="a" size="small">{row}</Tabs>
+      <Tabs defaultValue="a" size="medium">{row}</Tabs>
+      <Tabs defaultValue="a" size="large">{row}</Tabs>
     </div>
   )
 }
@@ -104,7 +109,7 @@ export function Scrolling() {
   useElements()
   return (
     <div style={{ maxWidth: '320px' }}>
-      <Tabs defaultValue="overview" label="Many sections">
+      <Tabs defaultValue="overview">
         <Tab value="overview" label="Overview" />
         <Tab value="activity" label="Activity" />
         <Tab value="settings" label="Settings" />
@@ -119,7 +124,7 @@ export function Scrolling() {
 export function CustomStyling() {
   useElements()
   return (
-    <Tabs className="custom-tabs" defaultValue="a" label="Custom">
+    <Tabs className="custom-tabs" defaultValue="a">
       <Tab value="a" label="One" />
       <Tab value="b" label="Two" />
       <Tab value="c" label="Three" />

@@ -1,7 +1,7 @@
 import type { IconShape } from "../elements/a-icon.shapes"
 
 /** One tab in a `<Tabs>` strip. A **config component**: `Tabs` reads these props to
- *  render the underlying `<a-tab>` (roving `tabindex`, `role`, `aria-controls`, and
+ *  render the underlying `<a-tab>` (`tabindex`, `role`, `aria-controls`, and
  *  selection are all `Tabs`' job), so `<Tab>` renders nothing on its own. */
 export interface TabProps {
   /** This tab's identity — pairs it with the `<TabPanel value="…">` of the same

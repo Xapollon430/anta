@@ -9,13 +9,15 @@ import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import tabsDemoCode from './tabs.demo.ts'
-import { Basic, Priorities, Tones, Sizes, Vertical, Scrolling, CustomStyling } from '../../components/TabsDemo'
+import { Basic, Priorities, TonesColumn, Sizes, Vertical, Scrolling, CustomStyling } from '../../components/TabsDemo'
 
 # Tabs
 
-A tablist for switching between views. Compose it from `<Tab>` children — that
-alone is a selectable strip that emits the chosen value — and add matching
-`<TabPanel>`s when you want `Tabs` to show and hide the content too.
+A tablist for switching between views. Compose it from `<Tab>` children — each
+takes a unique `value` and a `label` (or `children`), plus optional `icon` /
+`iconTrailing`. That alone is a selectable strip that emits the chosen value; add
+matching `<TabPanel>`s (see [Panels](#panels)) when you want `Tabs` to show and
+hide the content too.
 
 <Disclosure title="Playground" anchor={false} brand>
 
@@ -29,44 +31,6 @@ alone is a selectable strip that emits the chosen value — and add matching
 
 </Disclosure>
 
-## Tabs & panels
-
-<Columns>
-<Col>
-
-<Preview>
-  <Basic client:only="preact" />
-</Preview>
-
-```tsx folded
-<Tabs defaultValue="account" label="Settings">
-  <Tab value="account" label="Account" icon="home" />
-  <Tab value="security" label="Security" />
-  <Tab value="billing" label="Billing" />
-
-  {/* optional — Tabs shows the one matching the active tab */}
-  <TabPanel value="account"><AccountForm /></TabPanel>
-  <TabPanel value="security"><SecurityForm /></TabPanel>
-  <TabPanel value="billing"><BillingForm /></TabPanel>
-</Tabs>
-```
-
-</Col>
-<Col>
-
-Each `<Tab>` needs a unique `value` (its identity and the value reported on
-change) and a `label` — or pass `children` for richer content. Add `icon` /
-`iconTrailing` for a [shape](/components/icon/) beside the label.
-
-Pair a `<TabPanel value="…">` to a tab of the same value and `Tabs` wires up the
-`aria-controls` / `aria-labelledby` link and shows the active panel. Panels are
-optional: with none, `Tabs` is just the strip — render whatever you like from
-`onStateChange`. Panel content is arbitrary React, so it renders normally (see
-[Mounting](#mounting) for when inactive panels mount).
-
-</Col>
-</Columns>
-
 ## Priority
 
 <Columns>
@@ -77,8 +41,8 @@ optional: with none, `Tabs` is just the strip — render whatever you like from
 </Preview>
 
 ```tsx folded
-<Tabs priority="secondary" defaultValue="a">…</Tabs>  {/* default */}
-<Tabs priority="primary"   defaultValue="a">…</Tabs>
+<Tabs priority="primary"   defaultValue="a">…</Tabs>  {/* default */}
+<Tabs priority="secondary" defaultValue="a">…</Tabs>
 <Tabs priority="tertiary"  defaultValue="a">…</Tabs>
 ```
 
@@ -87,38 +51,56 @@ optional: with none, `Tabs` is just the strip — render whatever you like from
 
 `priority` sets how the strip and its selected tab are painted:
 
-- **`secondary`** (default) — a raised pill on a recessed track, the segmented-control look.
-- **`primary`** — the selected tab is a solid `tone`-filled pill.
-- **`tertiary`** — no track; the selected tab gets a `tone`-coloured border-bottom underline.
+- **`primary`** (default) — a raised pill on a recessed track, the segmented-control look.
+- **`secondary`** — same sizing, but no track; the selected tab gets a subtle active background fill (no border).
+- **`tertiary`** — flush tabs under a thin rule; the selected tab gets a `tone`-coloured border-bottom underline.
 
 </Col>
 </Columns>
 
 ## Tones
 
-<Columns>
-<Col>
+Six named tones — `neutral` (default), `brand`, `info`, `success`, `warning`,
+`critical` — plus any literal CSS colour for a one-off custom tone (derived in oklch;
+named tones track light/dark automatically). Tone colours the `secondary` active fill
++ label and the `tertiary` underline + label. **`primary` stays neutral** — the
+segmented pill ignores tone, which the primary column below makes plain. Rows are
+tones (the last is a custom colour); columns are priorities.
+
+<Columns colGap="16px" rowGap="16px">
+<Col min={0}>
+
+**Primary**
 
 <Preview>
-  <Tones client:only="preact" />
+  <TonesColumn client:only="preact" priority="primary" />
 </Preview>
 
-```tsx folded
-<Tabs tone="info" defaultValue="a">…</Tabs>
-<Tabs tone="#e0457b" defaultValue="a">…</Tabs>  {/* any CSS colour */}
-```
+</Col>
+<Col min={0}>
+
+**Secondary**
+
+<Preview>
+  <TonesColumn client:only="preact" priority="secondary" />
+</Preview>
 
 </Col>
-<Col>
+<Col min={0}>
 
-Six named tones — `neutral` (default), `brand`, `info`, `success`, `warning`,
-`critical` — colour the selected indicator: the label (non-neutral tones), the
-`primary` fill, and the `tertiary` underline. `neutral` keeps a plain dark
-selected label. Any literal CSS colour works too, for a one-off custom tone
-(derived in oklch); named tones track light/dark automatically.
+**Tertiary**
+
+<Preview>
+  <TonesColumn client:only="preact" priority="tertiary" />
+</Preview>
 
 </Col>
 </Columns>
+
+```tsx folded
+<Tabs tone="brand" priority="secondary" defaultValue="a">…</Tabs>
+<Tabs tone="#e0457b" priority="tertiary" defaultValue="a">…</Tabs>  {/* any CSS colour */}
+```
 
 ## Size
 
@@ -193,7 +175,42 @@ rest.
 </Col>
 </Columns>
 
-## Mounting
+## Panels
+
+<Columns>
+<Col>
+
+<Preview>
+  <Basic client:only="preact" />
+</Preview>
+
+```tsx folded
+<Tabs defaultValue="account" label="Settings">
+  <Tab value="account" label="Account" icon="home" />
+  <Tab value="security" label="Security" />
+  <Tab value="billing" label="Billing" />
+
+  <TabPanel value="account"><AccountForm /></TabPanel>
+  <TabPanel value="security"><SecurityForm /></TabPanel>
+  <TabPanel value="billing"><BillingForm /></TabPanel>
+</Tabs>
+```
+
+</Col>
+<Col>
+
+Pair a `<TabPanel value="…">` to the `<Tab>` of the same value and `Tabs` shows
+the active panel, wiring up the `aria-controls` / `aria-labelledby` link between
+them. Panel content is arbitrary React — forms, charts, whatever — so it renders
+normally.
+
+Panels are **optional**. With none, `Tabs` is just the strip: listen to
+`onStateChange` / `onAnyChange` and render whatever you like yourself.
+
+</Col>
+</Columns>
+
+### Mounting
 
 <Columns>
 <Col>
@@ -233,11 +250,11 @@ panels, or on a single `<TabPanel>` to override one.
 
 ## Keyboard & accessibility
 
-The strip is one Tab stop: `Tab` moves into the selected tab (or the first enabled
-one), the arrow keys move the selection between enabled tabs (wrapping at the
-ends), `Home` / `End` jump to the first / last, and `Space` / `Enter` activate the
-focused tab. Selection follows focus. Follows the
-[WAI-ARIA tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/).
+Every enabled tab is in the tab order — `Tab` / `Shift`+`Tab` step through them.
+The arrow keys also move between enabled tabs (wrapping at the ends), `Home` /
+`End` jump to the first / last, and `Space` / `Enter` activate the focused tab;
+arrow / `Home` / `End` navigation activates as it moves (selection follows focus).
+Disabled tabs are skipped and dropped from the tab order.
 
 Pass `label` for the tablist's accessible name. Each `<TabPanel>` is labelled by
 its tab (`aria-labelledby`) and pointed at from it (`aria-controls`).
@@ -246,10 +263,11 @@ Under the hood the split mirrors [`RadioGroup`](/components/radio/): the
 `<a-tabs>` web component **never mutates the DOM** — it sets the `selected`
 property on each `<a-tab>` (which reflects it into `:state(selected)` +
 `aria-selected` via its own `ElementInternals`) and scrolls the selection into
-view. The **roving `tabindex`**, the ARIA wiring, and which panel shows are the
+view. Each tab's **`tabindex`**, the ARIA wiring, and which panel shows are the
 declarative pieces, rendered by the `Tabs` wrapper from the current value — which
 is why the wrapper holds the value. (Raw `<a-tabs>` / `<a-tab>` work hand-assembled
-too; make the strip the tab stop with `tabindex="0"`.)
+too; give the tabs `tabindex="0"`, or make the strip itself the tab stop with
+`tabindex="0"` and it falls back to `aria-activedescendant`.)
 
 ## Controlled vs. uncontrolled
 
@@ -333,9 +351,10 @@ the track-vs-fill-vs-underline look. The focus ring is the global
 ```
 
 For anything else, the strip is light-DOM: `<a-tabs>` is the tablist, each
-`<a-tab>` a tab, `<a-tabpanel>` a panel. Target them with ordinary CSS, **per
-state** — an un-layered rule beats `@layer anta` without `!important`. The example
-below makes the selected tab bold and tints the resting track:
+`<a-tab>` a tab (its text wrapped in `<a-tab-label>`, like `<a-button-label>`), and
+`<a-tabpanel>` a panel. Target them with ordinary CSS, **per state** — an un-layered
+rule beats `@layer anta` without `!important`. The example below makes the selected
+tab bold and tints the resting track:
 
 <Preview>
   <CustomStyling client:only="preact" />

@@ -7,14 +7,16 @@
     --_lh: 20px;
     --_pb: 1px;
     --tabs-padding-x: 9px;
-    --tabs-padding-y: calc((8px - var(--_pb)) / 2);
+    --tab-padding-y: calc((8px - var(--_pb)) / 2);
     --tabs-radius: 4px;
     --tabs-gap: 3px;
     --tabs-timing: 150ms ease-out;
 
-    /* Tone (neutral default). Named tones re-point --tabs-tone-source; the selected
-       label/indicator/fill derive from it. Neutral keeps a plain dark selected label
-       (the tone-source only colours the primary fill + tertiary underline). */
+    /* Tone (neutral default). Named tones re-point --tabs-tone-source; the primary
+       fill (--tabs-accent), the tertiary underline, and the tertiary selected label
+       (--tabs-selected-text) derive from it. SECONDARY is deliberately tone-free —
+       its selected label is always neutral --text-1 (the docs segmented-control look),
+       so a tone only shows on primary / tertiary. */
     --tabs-tone-source: #635b65;
     --tabs-accent: var(--tabs-tone-source);
     --tabs-accent-fg: #ffffff;
@@ -22,13 +24,14 @@
     --tabs-fg-hover: var(--text-1);
     --tabs-selected-text: var(--text-1);
 
-    /* Secondary track (the recessed well + raised pill — the docs-page look). */
+    /* Primary track (the recessed well + raised pill — the docs-page look). Secondary's
+       selected tab reuses --tabs-track-bg as its fill; secondary hover has no fill. */
     --tabs-track-bg: color-mix(in oklch, var(--text-3) 9%, transparent);
     --tabs-track-border: var(--border-4);
     --tabs-pill-bg: var(--bg-1);
-    --tabs-pill-shadow:
-      0 1px 2px color-mix(in oklch, var(--text-1) 14%, transparent),
-      inset 0 0 0 0.5px var(--border-4);
+    /* A single soft shadow standing in for a border — the docs accessibility-page
+       pill. `--border-2` is theme-aware, so this works in dark too. */
+    --tabs-pill-shadow: 0 0 1px var(--border-2);
 
     display: flex;
     flex-direction: row;
@@ -98,55 +101,91 @@
     --tabs-bg: transparent;
   }
   @media (hover: hover) and (pointer: fine) {
-    a-tabs a-tab:hover {
+    /* `:not(:active)` so pressing a tab snaps the text back to the rest colour — the
+       "active = normal state" feedback (and the recolour is instant; see a-tab.css). */
+    a-tabs a-tab:hover:not(:active) {
       --tabs-fg: var(--tabs-fg-hover);
     }
   }
 
-  /* ── Secondary (default): recessed track + raised selected pill ──────────── */
-  a-tabs:not([priority="primary"], [priority="tertiary"]) {
+  /* ── Primary (default): recessed track + raised selected pill ────────────── */
+  a-tabs:not([priority="secondary"], [priority="tertiary"]) {
     background: var(--tabs-track-bg);
     border: 0.5px solid var(--tabs-track-border);
     border-radius: 6px;
-    padding: 3px;
+    /* 1px track inset — tertiary adds the same 1px onto its tabs to match height. */
+    padding: 1px;
   }
-  a-tabs:not([priority="primary"], [priority="tertiary"]) a-tab:state(selected) {
-    --tabs-fg: var(--tabs-selected-text);
+  a-tabs:not([priority="secondary"], [priority="tertiary"]) a-tab:state(selected) {
+    /* Neutral dark label on the raised pill — the docs segmented-control look. `tone`
+       deliberately does NOT tint primary; it surfaces on secondary + tertiary. */
+    --tabs-fg: var(--text-1);
     --tabs-bg: var(--tabs-pill-bg);
 
     box-shadow: var(--tabs-pill-shadow);
   }
 
-  /* ── Primary: solid tone-filled selected tab ─────────────────────────────── */
-  a-tabs[priority="primary"] {
-    --tabs-gap: 4px;
+  /* ── Secondary: primary's sizing but no visible track; the selected tab gets the
+     track-colour fill plus the same soft pill shadow as primary. ─────────────── */
+  a-tabs[priority="secondary"] {
+    /* Transparent 0.5px border matches primary's track border width, so the box is the
+       same size as a primary strip even though there's no visible track. */
+    border: 0.5px solid transparent;
+    padding: 1px;
   }
   @media (hover: hover) and (pointer: fine) {
-    a-tabs[priority="primary"] a-tab:hover {
-      --tabs-bg: color-mix(in oklch, var(--tabs-accent) 10%, transparent);
+    a-tabs[priority="secondary"] a-tab:hover:not(:active) {
+      /* Hover only shifts the text colour — no background fill (only the selected tab
+         gets the track-colour fill). `:not(:active)` snaps it back to rest on press. */
+      --tabs-fg: var(--tabs-selected-text);
     }
   }
-  a-tabs[priority="primary"] a-tab:state(selected) {
-    --tabs-fg: var(--tabs-accent-fg);
-    --tabs-bg: var(--tabs-accent);
+  a-tabs[priority="secondary"] a-tab:state(selected) {
+    --tabs-fg: var(--tabs-selected-text);
+    /* Neutral fill = primary's track colour; the tone shows on the label. */
+    --tabs-bg: var(--tabs-track-bg);
+
+    box-shadow: var(--tabs-pill-shadow);
   }
 
-  /* ── Tertiary: no track, a shared bottom rule + per-tab underline indicator ─ */
+  /* ── Tertiary: flush tabs (no track padding/gap) under a shared bottom rule.
+     Selected gets the underline; hover only shifts the text to the selected colour
+     (no underline). ─────────────────────────────────────────────────────────── */
   a-tabs[priority="tertiary"] {
-    --tabs-gap: 4px;
+    --tabs-gap: 0;
+    padding: 0;
 
+    /* Just a 1px bottom rule the underline sits on — no side/top border. (Its 1px
+       still matches primary/secondary's 0.5+0.5px top+bottom borders, so the strip
+       height stays the same.) */
     border-bottom: 1px solid var(--border-4);
   }
   a-tabs[priority="tertiary"] a-tab {
     border-radius: 0;
-    /* 2px indicator that overlaps the strip's 1px rule so selected reads as a clean
-       underline rather than a double line. */
+    /* Top adds back the 1px the track would inset (height parity with the others);
+       bottom adds that 1px plus 1px more breathing room so the label clears the
+       underline. Side padding stays at the base, so a tertiary tab is the same width
+       as a secondary one — never wider. (The optical --_pb lives on <a-tab-label>.) */
+    padding-top: calc(var(--tab-padding-y) + 1px);
+    padding-bottom: calc(var(--tab-padding-y) + 2px);
+    /* 2px indicator that overlaps the strip's bottom rule so selected reads as a clean
+       underline rather than a double line. The negative margin equals the strip's 1px
+       bottom-border width, so the tab's border-bottom lands exactly on the rule
+       (bottoms flush) rather than hanging below it. */
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
   }
+  /* Tabs are flush (no gap); only the first/last tab absorbs the 1px the track would
+     inset, so the leading/trailing label edge-aligns with primary/secondary. */
+  a-tabs[priority="tertiary"]:not([orientation="vertical"]) a-tab:first-child {
+    padding-inline-start: calc(var(--tabs-padding-x) + 1px);
+  }
+  a-tabs[priority="tertiary"]:not([orientation="vertical"]) a-tab:last-child {
+    padding-inline-end: calc(var(--tabs-padding-x) + 1px);
+  }
   @media (hover: hover) and (pointer: fine) {
-    a-tabs[priority="tertiary"] a-tab:hover {
-      border-bottom-color: color-mix(in oklch, var(--tabs-accent) 35%, transparent);
+    a-tabs[priority="tertiary"] a-tab:hover:not(:active) {
+      --tabs-fg: var(--tabs-selected-text);
     }
   }
   a-tabs[priority="tertiary"] a-tab:state(selected) {
@@ -178,11 +217,6 @@
     margin-bottom: 0;
     margin-inline-end: -1px;
   }
-  @media (hover: hover) and (pointer: fine) {
-    a-tabs[orientation="vertical"][priority="tertiary"] a-tab:hover {
-      border-inline-end-color: color-mix(in oklch, var(--tabs-accent) 35%, transparent);
-    }
-  }
   a-tabs[orientation="vertical"][priority="tertiary"] a-tab:state(selected) {
     border-inline-end-color: var(--tabs-accent);
   }
@@ -195,8 +229,5 @@
   .dark a-tabs {
     --tabs-track-bg: color-mix(in oklch, var(--text-3) 12%, transparent);
     --tabs-pill-bg: #211d23;
-    --tabs-pill-shadow:
-      0 1px 2px color-mix(in oklch, #000000 40%, transparent),
-      inset 0 0 0 0.5px color-mix(in oklch, var(--text-3) 25%, transparent);
   }
 }

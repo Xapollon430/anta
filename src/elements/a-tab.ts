@@ -13,7 +13,7 @@ import "./a-tab.css";
 // to a tab — which is what keeps the whole control free of DOM mutation.
 //
 // Focus/`tabindex`, `role`, and `aria-controls` are NOT this element's concern: the
-// `Tabs` wrapper renders the roving `tabindex` + the ARIA wiring declaratively. In
+// `Tabs` wrapper renders each tab's `tabindex` + the ARIA wiring declaratively. In
 // raw hand-assembly the author supplies them. See a-tabs.ts.
 // ─────────────────────────────────────────────────────────────────────────────
 export class ATabElement extends HTMLElementBase {

@@ -58,10 +58,12 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
   onBlur?: (event: FocusEvent) => void
   /** Accessible name for the tablist (`aria-label`). */
   label?: string
-  /** Visual priority. `secondary` (default) is the raised pill on a recessed track;
-   *  `primary` fills the selected tab solid with the tone colour; `tertiary` drops the
-   *  track for a border-bottom underline indicator.
-   *  @defaultValue 'secondary' */
+  /** Visual priority. `primary` (default) is the raised pill on a recessed track (the
+   *  segmented-control look); `secondary` keeps that sizing but drops the track, marking
+   *  the selected tab with a subtle active background fill; `tertiary` is an underline
+   *  indicator with flush tabs. `tone` colours `secondary` + `tertiary`; `primary`
+   *  stays neutral.
+   *  @defaultValue 'primary' */
   priority?: "primary" | "secondary" | "tertiary"
   /** Tone applied to the selected indicator/label, or any literal CSS color for a
    *  one-off custom tone (derived in oklch). Named tones track light/dark.
@@ -100,16 +102,34 @@ const flattenChildren = (nodes: React.ReactNode): any[] => {
   return out
 }
 
+/** Wrap a tab's label content so it aligns + truncates like a button's. A string /
+ *  number becomes an `<a-tab-label>` (which carries the optical `--_pb` and is
+ *  ellipsis-capable); an element is the consumer's own structure, passed through;
+ *  empty / whitespace strings and `NaN` carry no content and are dropped. Mirrors
+ *  `Button`'s `wrapChildren`. */
+const wrapLabel = (kids: React.ReactNode): React.ReactNode => {
+  if (kids == null) return kids
+  const arr = Array.isArray(kids) ? kids : [kids]
+  return arr.map((child, i) => {
+    if (typeof child === "string")
+      return child.trim() === "" ? null : <a-tab-label key={i}>{child}</a-tab-label>
+    if (typeof child === "number")
+      return Number.isNaN(child) ? null : <a-tab-label key={i}>{child}</a-tab-label>
+    if (child == null || typeof child === "boolean") return null
+    return child
+  })
+}
+
 /**
  * `<Tabs>` — a tablist with optional panels, rendered from `<Tab>` / `<TabPanel>`
  * children.
  *
  * Like `RadioGroup`, this wrapper owns the **declarative** DOM concerns the elements
- * deliberately don't touch — each tab's roving **`tabindex`**, `role`, the
- * `aria-controls`/`aria-labelledby` wiring, and which panel shows (per `mounting`).
- * Selection itself lives in `<a-tabs>` off-DOM (it sets each tab's `selected`
- * property), so the elements never mutate the DOM; this wrapper reflects the current
- * value into `tabindex` + panel visibility on re-render.
+ * deliberately don't touch — each tab's **`tabindex`** (every enabled tab is its own
+ * tab stop), `role`, the `aria-controls`/`aria-labelledby` wiring, and which panel
+ * shows (per `mounting`). Selection itself lives in `<a-tabs>` off-DOM (it sets each
+ * tab's `selected` property), so the elements never mutate the DOM; this wrapper
+ * reflects the current value into panel visibility on re-render.
  *
  * Controlled (`value` + `onStateChange`) or uncontrolled (`defaultValue`). Drop the
  * `<TabPanel>`s and it's just a selectable strip emitting `statechange` / `change`.
@@ -149,7 +169,7 @@ export const Tabs = ({
 }: TabsProps) => {
   const controlled = value !== undefined
   // Uncontrolled selection lives here (re-renders declaratively) — the wrapper needs
-  // the value to compute the roving tabindex + which panel shows.
+  // the value to decide which panel shows.
   const [internalValue, setInternalValue] = useState<string | undefined>(defaultValue)
   const currentValue = controlled ? value : internalValue
 
@@ -176,14 +196,6 @@ export const Tabs = ({
     seen.add(t.props.value)
   }
 
-  // The single roving tab stop. Prefer the *selected* tab — even when disabled
-  // (focusable-disabled is ARIA-allowed, so Tab always reaches the visible selection)
-  // — else the first enabled tab. None when the whole strip is disabled.
-  const tabStopValue = disabled
-    ? undefined
-    : (tabs.find((t) => t.props.value === currentValue)?.props.value ??
-       tabs.find((t) => !t.props.disabled)?.props.value)
-
   const onstatechange = (e: StateChangeEvent) => {
     const { event, detail } = nativeStateChange<StateDetail>(e)
     if (!detail) return
@@ -202,17 +214,14 @@ export const Tabs = ({
         }
       : undefined
 
-  const containerStyle = style
   const vertical = orientation === "vertical"
+  // The strip is the root unless there's something to lay out around it — panels (the
+  // panel stacks under, or beside when vertical) or a vertical strip. Otherwise a
+  // wrapper `<div>` would just be a redundant box around a single `<a-tabs>`, so the
+  // bare strip is returned and takes the consumer's className / style / id / rest.
+  const needsContainer = panels.length > 0 || vertical
 
-  return (
-    <div
-      className={className ? `${styles.container} ${className}` : styles.container}
-      data-orientation={vertical ? "vertical" : undefined}
-      style={containerStyle}
-      id={id}
-      {...rest}
-    >
+  const strip = (
       <a-tabs
         role="tablist"
         aria-label={label}
@@ -222,10 +231,10 @@ export const Tabs = ({
         // and let the ELEMENT own selection (off-DOM via each tab's `selected`
         // property) — so the strip works even unhydrated (static docs preview) or
         // hand-assembled. Either way the wrapper's mirror (kept current via
-        // `onstatechange`) feeds the roving `tabindex` + panel visibility.
+        // `onstatechange`) feeds panel visibility.
         state={controlled ? value : undefined}
         default-state={!controlled ? defaultValue : undefined}
-        priority={priority && priority !== "secondary" ? priority : undefined}
+        priority={priority && priority !== "primary" ? priority : undefined}
         tone={tone && tone !== "neutral" ? tone : undefined}
         size={size && size !== "medium" ? size : undefined}
         orientation={vertical ? "vertical" : undefined}
@@ -235,7 +244,11 @@ export const Tabs = ({
         // Focus lands on a tab, not the tablist — report via bubbling focusin/focusout.
         onfocusin={onFocus}
         onfocusout={onBlur}
-        style={toneStyle(tone, "--tabs-tone-source")}
+        // No container → the strip is the root and carries the consumer's class/id/rest.
+        class={needsContainer ? undefined : className}
+        id={needsContainer ? undefined : id}
+        style={toneStyle(tone, "--tabs-tone-source", needsContainer ? undefined : style)}
+        {...(needsContainer ? {} : rest)}
       >
         {tabs.map((t) => {
           const p = t.props
@@ -249,19 +262,33 @@ export const Tabs = ({
               id={tabId(p.value)}
               aria-controls={hasPanel ? panelId(p.value) : undefined}
               aria-disabled={tabDisabled ? "true" : undefined}
-              // Roving tabindex — the wrapper's job. Exactly one tab is 0, the rest -1.
+              // Every enabled tab is its own tab stop (not a roving single stop) — Tab
+              // / Shift+Tab step through them; arrows still move + select via the element.
               // `aria-selected` is NOT set here — the element publishes it off-DOM.
-              tabIndex={p.value === tabStopValue ? 0 : -1}
+              tabIndex={tabDisabled ? -1 : 0}
               disabled={tabDisabled ? "" : undefined}
             >
               {p.icon && <a-icon shape={p.icon} aria-hidden="true" />}
-              {p.label != null ? p.label : p.children}
+              {wrapLabel(p.label != null ? p.label : p.children)}
               {p.iconTrailing && <a-icon shape={p.iconTrailing} aria-hidden="true" />}
             </a-tab>
           )
         })}
       </a-tabs>
+  )
 
+  // No panels, horizontal → the strip is the whole component; skip the wrapper div.
+  if (!needsContainer) return strip
+
+  return (
+    <div
+      className={className ? `${styles.container} ${className}` : styles.container}
+      data-orientation={vertical ? "vertical" : undefined}
+      style={style}
+      id={id}
+      {...rest}
+    >
+      {strip}
       {panels.map((pan) => {
         const p = pan.props
         const active = p.value === currentValue

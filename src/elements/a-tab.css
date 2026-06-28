@@ -29,22 +29,40 @@
     white-space: nowrap;
     text-wrap: nowrap;
 
-    /* Height = line-height + 8 (matching the same-size Button / Input). The bottom
-       gets an extra optical --_pb because Anta's glyphs sit slightly low in the
-       line-box; the top/bottom base padding already absorbs that so the box height
-       stays constant across sizes. */
-    padding-top: var(--tabs-padding-y, 4px);
-    padding-bottom: calc(var(--tabs-padding-y, 4px) + var(--_pb, 1px));
+    /* Height = line-height + 8 (matching the same-size Button / Input). Block padding
+       is SYMMETRIC; the optical --_pb nudge for Anta's low-sitting glyphs lives on
+       <a-tab-label> (below), not the tab box — so a sibling <a-icon> stays centered
+       instead of riding high. (The label's --_pb + the symmetric padding still sum to
+       line-height + 8, so the height is unchanged. Mirrors <a-button-label>.) */
+    padding-block: var(--tab-padding-y, 4px);
     padding-inline: var(--tabs-padding-x, 9px);
 
+    /* Text/icon colour changes are INSTANT (no `color` here) — hover recolours
+       immediately and pressing snaps it back. The fill / underline / shadow still
+       ease in/out on select. */
     transition:
-      color var(--tabs-timing, 150ms ease-out),
       background-color var(--tabs-timing, 150ms ease-out),
       border-color var(--tabs-timing, 150ms ease-out),
       box-shadow var(--tabs-timing, 150ms ease-out);
 
-    & a-icon {
-      transition: color var(--tabs-timing, 150ms ease-out);
+    /* The label box — the `Tabs` wrapper wraps a string label in <a-tab-label>. It
+       carries the optical --_pb and is ellipsis-/wrap-capable, exactly like
+       <a-button-label>, so a constrained tab truncates cleanly and icons align. */
+    & > a-tab-label {
+      display: inline-block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-wrap: nowrap;
+      white-space: nowrap;
+
+      line-height: var(--_lh, 20px);
+      padding-bottom: var(--_pb, 1px);
+
+      &:has(> *) {
+        display: inline-flex;
+        gap: 0.25ch;
+      }
     }
 
     & > * {

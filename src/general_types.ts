@@ -699,7 +699,10 @@ export interface ARadioGroupAttributes extends BaseAttributes {
  * scrolling. The selected look comes from the element's `:state(selected)` (set by the
  * tablist via the `selected` property), not a host attribute. There is no `Tab` web
  * component to render directly — `Tabs` renders these from its `<Tab>` children, and
- * hand-authors write `<a-tab>` directly inside an `<a-tabs>`.
+ * hand-authors write `<a-tab>` directly inside an `<a-tabs>`. Wrap the visible label in
+ * `<a-tab-label>` (as `Tabs` does) so it carries the optical baseline nudge, truncates
+ * with an ellipsis when constrained, and keeps a sibling `<a-icon>` centered — exactly
+ * like `<a-button-label>`.
  */
 export interface ATabAttributes extends BaseAttributes {
   /** This tab's identity / the value reported when it's selected. */
@@ -713,8 +716,9 @@ export interface ATabAttributes extends BaseAttributes {
   /** ARIA — `role="tab"` is set by the consumer (`Tabs` on each tab, or a hand-author),
    *  and `aria-controls` points at the paired panel. `aria-selected` is published by
    *  the element through `ElementInternals` (off the DOM), driven by the `selected`
-   *  property the tablist sets — not a DOM attribute. Roving `tabindex` (inherited from
-   *  `BaseAttributes`) is likewise set by `Tabs`, not the element. */
+   *  property the tablist sets — not a DOM attribute. `tabindex` (inherited from
+   *  `BaseAttributes`) is set by `Tabs` — every enabled tab is its own tab stop
+   *  (`tabindex="0"`) — not by the element. */
   role?: 'tab'
   'aria-controls'?: string
   'aria-disabled'?: 'true' | 'false'
@@ -738,9 +742,10 @@ export interface ATabsAttributes extends BaseAttributes {
   state?: string
   /** Uncontrolled initial selected value — read once on connect. */
   'default-state'?: string
-  /** Visual priority. `secondary` (default) is the raised pill on a recessed track;
-   *  `primary` fills the selected tab solid with the tone colour; `tertiary` drops the
-   *  track for a border-bottom underline indicator. */
+  /** Visual priority. `primary` (default) is the raised pill on a recessed track; `secondary`
+   *  keeps that sizing but drops the track (selected = subtle active background fill, no
+   *  border); `tertiary` is a flush border-bottom underline. `tone` tints secondary +
+   *  tertiary; primary stays neutral. */
   priority?: 'primary' | 'secondary' | 'tertiary'
   /** Tone applied to the selected indicator/label, or any literal CSS color for a
    *  one-off custom tone (derived in oklch). `'neutral'` is the default. */
