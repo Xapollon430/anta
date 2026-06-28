@@ -6,6 +6,17 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
+## Unreleased
+
+### Added
+- **New `Tabs` component** (`<Tabs>` / `<a-tabs>` + `<Tab>` / `<a-tab>` + `<TabPanel>` / `<a-tabpanel>`) — a tablist for switching views, composed from `<Tab>` children (a selectable strip on its own) with optional paired `<TabPanel>`s that `Tabs` shows/hides. Registered via the `@antadesign/anta/elements` barrel.
+  - **State** — controlled (`value` + `onStateChange`) or uncontrolled (`defaultValue`), following the shared `state` contract: a **cancelable `statechange`** (`detail: { next, prev }`) fired *before* applying (`event.preventDefault()` vetoes in uncontrolled mode). Post-apply, the strip fires a native **`change`** and exposes a `.value` getter; the wrapper surfaces **`onChange(e)`** / **`onAnyChange(e, { value })`**, plus **`onFocus` / `onBlur`** (wired to `focusin` / `focusout`). `<a-tabs>` is the coordinator; `<a-tab>` is presentational; `<a-tabpanel>` is a CSS-only styled tag.
+  - **No DOM mutation** — the web components never write the DOM. `<a-tabs>` sets each tab's `selected` *property* (the tab reflects it into `:state(selected)` + `aria-selected` via its own `ElementInternals`) and scrolls the selection into view; the **roving `tabindex`**, the `aria-controls` / `aria-labelledby` wiring, and which panel shows are rendered declaratively by the `Tabs` wrapper from the current value. Hand-assembled `<a-tabs>` / `<a-tab>` works too (make the strip the tab stop with `tabindex="0"`).
+  - **`priority`** — `secondary` (default) is a raised pill on a recessed track (segmented-control look); `primary` fills the selected tab solid with the tone colour; `tertiary` drops the track for a tone-coloured border-bottom underline.
+  - **`tone`** (six named, default `neutral`, or any literal CSS colour, derived in oklch), **`size`** (`small` / `medium` default / `large`, reusing Button's 24/28/32px type scale), and **`orientation`** (`horizontal` default, scrolls when tabs overflow / `vertical`).
+  - **`mounting`** controls inactive `<TabPanel>`s (set on `Tabs` or per-panel): `display` (default, mounted + `display:none`), `visibility` (mounted, keeps layout box), `active` (only the active panel rendered), `lazy` (mount on first activation, then keep). Each `<Tab>` takes `value` / `label` / `icon` / `iconTrailing` / `disabled`.
+  - **Keyboard** — one Tab stop; arrow keys (axis-aware) move selection (wrapping), `Home` / `End` jump to ends, `Space` / `Enter` activate. Selection follows focus, per the WAI-ARIA tabs pattern.
+
 ## 0.3.1 — June 26, 2026
 
 ### Added

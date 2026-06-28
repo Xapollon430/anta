@@ -1,0 +1,202 @@
+@layer anta {
+  a-tabs {
+    /* Type scale by size — shared with Button/Input (small 13/16 · medium 15/20 ·
+       large 17/24). --_pb is the optical bottom nudge for Anta's low-sitting glyphs;
+       a-tab.css consumes it. Block padding holds each tab at line-height + 8. */
+    --_fs: 15px;
+    --_lh: 20px;
+    --_pb: 1px;
+    --tabs-padding-x: 9px;
+    --tabs-padding-y: calc((8px - var(--_pb)) / 2);
+    --tabs-radius: 4px;
+    --tabs-gap: 3px;
+    --tabs-timing: 150ms ease-out;
+
+    /* Tone (neutral default). Named tones re-point --tabs-tone-source; the selected
+       label/indicator/fill derive from it. Neutral keeps a plain dark selected label
+       (the tone-source only colours the primary fill + tertiary underline). */
+    --tabs-tone-source: #635b65;
+    --tabs-accent: var(--tabs-tone-source);
+    --tabs-accent-fg: #ffffff;
+    --tabs-fg-rest: var(--text-3);
+    --tabs-fg-hover: var(--text-1);
+    --tabs-selected-text: var(--text-1);
+
+    /* Secondary track (the recessed well + raised pill — the docs-page look). */
+    --tabs-track-bg: color-mix(in oklch, var(--text-3) 9%, transparent);
+    --tabs-track-border: var(--border-4);
+    --tabs-pill-bg: var(--bg-1);
+    --tabs-pill-shadow:
+      0 1px 2px color-mix(in oklch, var(--text-1) 14%, transparent),
+      inset 0 0 0 0.5px var(--border-4);
+
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--tabs-gap);
+
+    /* Hug content inside a flex parent (the Tabs wrapper) so the secondary track and
+       tertiary rule don't stretch the full container width. Harmless outside flex. */
+    align-self: flex-start;
+
+    /* Overflow → horizontal scroll, capped at the parent width so a long strip
+       scrolls instead of widening its container. min-width:0 lets it shrink in a
+       flex parent (the Tabs wrapper's layout row). */
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scroll-behavior: smooth;
+  }
+
+  /* ── Sizes ───────────────────────────────────────────────────────────────── */
+  a-tabs[size="small"] {
+    --_fs: 13px;
+    --_lh: 16px;
+    --_pb: 0.5px;
+    --tabs-padding-x: 7px;
+  }
+  a-tabs[size="large"] {
+    --_fs: 17px;
+    --_lh: 24px;
+    --_pb: 1.5px;
+    --tabs-padding-x: 13px;
+  }
+  /* Icons track the tab size (medium = a-icon's 16px default). */
+  a-tabs a-tab a-icon { --icon-size: 16px; }
+  a-tabs[size="small"] a-tab a-icon { --icon-size: 14px; }
+  a-tabs[size="large"] a-tab a-icon { --icon-size: 18px; }
+
+  /* ── Tones — re-point the source; colour the selected label for non-neutral ── */
+  a-tabs[tone="brand"]    { --tabs-tone-source: #5f4bc3; }
+  a-tabs[tone="info"]     { --tabs-tone-source: #1f6eb2; }
+  a-tabs[tone="success"]  { --tabs-tone-source: #2a7e43; }
+  a-tabs[tone="warning"]  { --tabs-tone-source: #c37416; }
+  a-tabs[tone="critical"] { --tabs-tone-source: #c9302c; }
+
+  a-tabs[tone]:not([tone=""], [tone="neutral"]) {
+    --tabs-selected-text: oklch(from var(--tabs-tone-source) 0.5 0.16 h);
+  }
+  /* Custom literal-colour tone (anything not a named tone): derive the source from
+     the attribute via typed attr(), same machinery as Button. */
+  a-tabs[tone]:not(
+      [tone=""],
+      [tone="neutral"],
+      [tone="brand"],
+      [tone="info"],
+      [tone="success"],
+      [tone="warning"],
+      [tone="critical"]
+    ) {
+    --tabs-tone-source: attr(tone type(<color>), #635b65);
+  }
+
+  /* ── Tab base state (all priorities) ─────────────────────────────────────── */
+  a-tabs a-tab {
+    --tabs-fg: var(--tabs-fg-rest);
+    --tabs-bg: transparent;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    a-tabs a-tab:hover {
+      --tabs-fg: var(--tabs-fg-hover);
+    }
+  }
+
+  /* ── Secondary (default): recessed track + raised selected pill ──────────── */
+  a-tabs:not([priority="primary"], [priority="tertiary"]) {
+    background: var(--tabs-track-bg);
+    border: 0.5px solid var(--tabs-track-border);
+    border-radius: 6px;
+    padding: 3px;
+  }
+  a-tabs:not([priority="primary"], [priority="tertiary"]) a-tab:state(selected) {
+    --tabs-fg: var(--tabs-selected-text);
+    --tabs-bg: var(--tabs-pill-bg);
+
+    box-shadow: var(--tabs-pill-shadow);
+  }
+
+  /* ── Primary: solid tone-filled selected tab ─────────────────────────────── */
+  a-tabs[priority="primary"] {
+    --tabs-gap: 4px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    a-tabs[priority="primary"] a-tab:hover {
+      --tabs-bg: color-mix(in oklch, var(--tabs-accent) 10%, transparent);
+    }
+  }
+  a-tabs[priority="primary"] a-tab:state(selected) {
+    --tabs-fg: var(--tabs-accent-fg);
+    --tabs-bg: var(--tabs-accent);
+  }
+
+  /* ── Tertiary: no track, a shared bottom rule + per-tab underline indicator ─ */
+  a-tabs[priority="tertiary"] {
+    --tabs-gap: 4px;
+
+    border-bottom: 1px solid var(--border-4);
+  }
+  a-tabs[priority="tertiary"] a-tab {
+    border-radius: 0;
+    /* 2px indicator that overlaps the strip's 1px rule so selected reads as a clean
+       underline rather than a double line. */
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    a-tabs[priority="tertiary"] a-tab:hover {
+      border-bottom-color: color-mix(in oklch, var(--tabs-accent) 35%, transparent);
+    }
+  }
+  a-tabs[priority="tertiary"] a-tab:state(selected) {
+    --tabs-fg: var(--tabs-selected-text);
+
+    border-bottom-color: var(--tabs-accent);
+  }
+
+  /* ── Vertical orientation ────────────────────────────────────────────────── */
+  a-tabs[orientation="vertical"] {
+    flex-direction: column;
+    align-items: stretch;
+
+    max-width: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  a-tabs[orientation="vertical"] a-tab {
+    justify-content: flex-start;
+  }
+  /* A vertical tertiary strip rules + underlines on the inline-end edge instead. */
+  a-tabs[orientation="vertical"][priority="tertiary"] {
+    border-bottom: none;
+    border-inline-end: 1px solid var(--border-4);
+  }
+  a-tabs[orientation="vertical"][priority="tertiary"] a-tab {
+    border-bottom: none;
+    border-inline-end: 2px solid transparent;
+    margin-bottom: 0;
+    margin-inline-end: -1px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    a-tabs[orientation="vertical"][priority="tertiary"] a-tab:hover {
+      border-inline-end-color: color-mix(in oklch, var(--tabs-accent) 35%, transparent);
+    }
+  }
+  a-tabs[orientation="vertical"][priority="tertiary"] a-tab:state(selected) {
+    border-inline-end-color: var(--tabs-accent);
+  }
+
+  /* ── Dark mode — only the oklch-derived coloured label needs a lift; the rest
+     rides theme-aware --text/--bg/--border tokens. ─────────────────────────── */
+  .dark a-tabs[tone]:not([tone=""], [tone="neutral"]) {
+    --tabs-selected-text: oklch(from var(--tabs-tone-source) 0.8 0.12 h);
+  }
+  .dark a-tabs {
+    --tabs-track-bg: color-mix(in oklch, var(--text-3) 12%, transparent);
+    --tabs-pill-bg: #211d23;
+    --tabs-pill-shadow:
+      0 1px 2px color-mix(in oklch, #000000 40%, transparent),
+      inset 0 0 0 0.5px color-mix(in oklch, var(--text-3) 25%, transparent);
+  }
+}

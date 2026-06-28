@@ -1,0 +1,354 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Tabs
+---
+import Playground from '../../components/Playground'
+import Preview from '../../components/Preview.astro'
+import PropsTable from '../../components/PropsTable.astro'
+import Disclosure from '../../components/Disclosure.astro'
+import Columns from '../../components/Columns.astro'
+import Col from '../../components/Col.astro'
+import tabsDemoCode from './tabs.demo.ts'
+import { Basic, Priorities, Tones, Sizes, Vertical, Scrolling, CustomStyling } from '../../components/TabsDemo'
+
+# Tabs
+
+A tablist for switching between views. Compose it from `<Tab>` children — that
+alone is a selectable strip that emits the chosen value — and add matching
+`<TabPanel>`s when you want `Tabs` to show and hide the content too.
+
+<Disclosure title="Playground" anchor={false} brand>
+
+<Playground
+  client:visible
+  component="Tabs"
+  layout="side"
+  panelHeight={420}
+  initialCode={tabsDemoCode}
+/>
+
+</Disclosure>
+
+## Tabs & panels
+
+<Columns>
+<Col>
+
+<Preview>
+  <Basic client:only="preact" />
+</Preview>
+
+```tsx folded
+<Tabs defaultValue="account" label="Settings">
+  <Tab value="account" label="Account" icon="home" />
+  <Tab value="security" label="Security" />
+  <Tab value="billing" label="Billing" />
+
+  {/* optional — Tabs shows the one matching the active tab */}
+  <TabPanel value="account"><AccountForm /></TabPanel>
+  <TabPanel value="security"><SecurityForm /></TabPanel>
+  <TabPanel value="billing"><BillingForm /></TabPanel>
+</Tabs>
+```
+
+</Col>
+<Col>
+
+Each `<Tab>` needs a unique `value` (its identity and the value reported on
+change) and a `label` — or pass `children` for richer content. Add `icon` /
+`iconTrailing` for a [shape](/components/icon/) beside the label.
+
+Pair a `<TabPanel value="…">` to a tab of the same value and `Tabs` wires up the
+`aria-controls` / `aria-labelledby` link and shows the active panel. Panels are
+optional: with none, `Tabs` is just the strip — render whatever you like from
+`onStateChange`. Panel content is arbitrary React, so it renders normally (see
+[Mounting](#mounting) for when inactive panels mount).
+
+</Col>
+</Columns>
+
+## Priority
+
+<Columns>
+<Col>
+
+<Preview>
+  <Priorities client:only="preact" />
+</Preview>
+
+```tsx folded
+<Tabs priority="secondary" defaultValue="a">…</Tabs>  {/* default */}
+<Tabs priority="primary"   defaultValue="a">…</Tabs>
+<Tabs priority="tertiary"  defaultValue="a">…</Tabs>
+```
+
+</Col>
+<Col>
+
+`priority` sets how the strip and its selected tab are painted:
+
+- **`secondary`** (default) — a raised pill on a recessed track, the segmented-control look.
+- **`primary`** — the selected tab is a solid `tone`-filled pill.
+- **`tertiary`** — no track; the selected tab gets a `tone`-coloured border-bottom underline.
+
+</Col>
+</Columns>
+
+## Tones
+
+<Columns>
+<Col>
+
+<Preview>
+  <Tones client:only="preact" />
+</Preview>
+
+```tsx folded
+<Tabs tone="info" defaultValue="a">…</Tabs>
+<Tabs tone="#e0457b" defaultValue="a">…</Tabs>  {/* any CSS colour */}
+```
+
+</Col>
+<Col>
+
+Six named tones — `neutral` (default), `brand`, `info`, `success`, `warning`,
+`critical` — colour the selected indicator: the label (non-neutral tones), the
+`primary` fill, and the `tertiary` underline. `neutral` keeps a plain dark
+selected label. Any literal CSS colour works too, for a one-off custom tone
+(derived in oklch); named tones track light/dark automatically.
+
+</Col>
+</Columns>
+
+## Size
+
+<Columns>
+<Col>
+
+<Preview>
+  <Sizes client:only="preact" />
+</Preview>
+
+```tsx folded
+<Tabs size="small" defaultValue="a">…</Tabs>
+```
+
+</Col>
+<Col>
+
+Three sizes reuse [`Button`](/components/button/)'s type scale, so a strip lines
+up with same-size buttons and inputs: `small` (24px tall, 13px label), `medium`
+(28px / 15px, the default), and `large` (32px / 17px). Icons scale with the tab.
+
+</Col>
+</Columns>
+
+## Orientation
+
+<Columns>
+<Col>
+
+<Preview>
+  <Vertical client:only="preact" />
+</Preview>
+
+```tsx folded
+<Tabs orientation="vertical" defaultValue="a">…</Tabs>
+```
+
+</Col>
+<Col>
+
+`horizontal` (default) lays the tabs in a row; `vertical` stacks them, and a
+paired panel sits beside the strip. The arrow keys follow the axis —
+`←`/`→` when horizontal, `↑`/`↓` when vertical.
+
+</Col>
+</Columns>
+
+## Scrolling
+
+<Columns>
+<Col>
+
+<Preview>
+  <Scrolling client:only="preact" />
+</Preview>
+
+```tsx folded
+{/* The strip caps at its container width and scrolls horizontally. */}
+<div style={{ maxWidth: 320 }}>
+  <Tabs defaultValue="overview">…six tabs…</Tabs>
+</div>
+```
+
+</Col>
+<Col>
+
+When the tabs don't fit, the strip caps at its container's width and scrolls
+horizontally (a thin scrollbar) instead of widening the page. Selecting a tab —
+by click or keyboard — scrolls it into view. Drag, swipe, or wheel to scroll the
+rest.
+
+</Col>
+</Columns>
+
+## Mounting
+
+<Columns>
+<Col>
+
+```tsx folded
+{/* default — every panel mounted, inactive ones display:none */}
+<Tabs defaultValue="a">
+  <Tab value="a" label="A" /><Tab value="b" label="B" />
+  <TabPanel value="a"><Expensive /></TabPanel>
+  <TabPanel value="b"><Form /></TabPanel>
+</Tabs>
+
+{/* render only the active panel; React unmounts the rest */}
+<Tabs mounting="active" defaultValue="a">…</Tabs>
+
+{/* per-panel override */}
+<TabPanel value="b" mounting="lazy"><Heavy /></TabPanel>
+```
+
+</Col>
+<Col>
+
+`mounting` controls what happens to **inactive** panels. Set it on `Tabs` for all
+panels, or on a single `<TabPanel>` to override one.
+
+- **`display`** (default) — every panel is mounted; inactive ones hide via
+  `display:none`. Preserves their DOM/form state, and a hidden panel correctly
+  leaves the tab order + a11y tree.
+- **`visibility`** — same, but hidden via `visibility:hidden`, so each panel keeps
+  its layout box (useful to avoid reflow or to measure).
+- **`active`** — only the active panel is rendered; React unmounts the others
+  (resets their state on switch; defers expensive subtrees).
+- **`lazy`** — a panel mounts on first activation, then stays mounted+hidden.
+
+</Col>
+</Columns>
+
+## Keyboard & accessibility
+
+The strip is one Tab stop: `Tab` moves into the selected tab (or the first enabled
+one), the arrow keys move the selection between enabled tabs (wrapping at the
+ends), `Home` / `End` jump to the first / last, and `Space` / `Enter` activate the
+focused tab. Selection follows focus. Follows the
+[WAI-ARIA tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/).
+
+Pass `label` for the tablist's accessible name. Each `<TabPanel>` is labelled by
+its tab (`aria-labelledby`) and pointed at from it (`aria-controls`).
+
+Under the hood the split mirrors [`RadioGroup`](/components/radio/): the
+`<a-tabs>` web component **never mutates the DOM** — it sets the `selected`
+property on each `<a-tab>` (which reflects it into `:state(selected)` +
+`aria-selected` via its own `ElementInternals`) and scrolls the selection into
+view. The **roving `tabindex`**, the ARIA wiring, and which panel shows are the
+declarative pieces, rendered by the `Tabs` wrapper from the current value — which
+is why the wrapper holds the value. (Raw `<a-tabs>` / `<a-tab>` work hand-assembled
+too; make the strip the tab stop with `tabindex="0"`.)
+
+## Controlled vs. uncontrolled
+
+<Columns>
+<Col>
+
+**Uncontrolled** — pass `defaultValue` and let `Tabs` own the active tab:
+
+```tsx folded
+<Tabs defaultValue="overview">
+  <Tab value="overview" label="Overview" />
+  <Tab value="activity" label="Activity" />
+</Tabs>
+```
+
+</Col>
+<Col>
+
+**Controlled** — pass `value` + `onStateChange` and own it yourself. The strip
+fires *before* applying, so accept by updating `value` and reject by doing nothing
+(or `event.preventDefault()` to veto in uncontrolled mode):
+
+```tsx folded
+const [tab, setTab] = useState('overview')
+
+<Tabs value={tab} onStateChange={(e, { next }) => setTab(next)}>
+  <Tab value="overview" label="Overview" />
+  <Tab value="activity" label="Activity" />
+</Tabs>
+```
+
+</Col>
+</Columns>
+
+## Events
+
+Three callbacks, in firing order:
+
+| Callback | When | Cancelable | Payload |
+|---|---|---|---|
+| `onStateChange(e, { next, prev })` | **before** a pick applies | ✅ | next / prev value |
+| `onChange(e)` | **after** selection applies | — | native `change` event |
+| `onAnyChange(e, { value })` | **after** selection applies | — | `{ value }` |
+
+Reach for **`onStateChange`** to intercept or veto a pick; for the everyday "react
+to the new value", use **`onAnyChange`**. **`onFocus` / `onBlur`** report focus
+entering and leaving the *strip* (wired to `focusin` / `focusout`, since focus
+lands on an individual tab).
+
+```tsx folded
+<Tabs onAnyChange={(_e, { value }) => route(value)}>…</Tabs>
+```
+
+<Disclosure title="Tabs props" open>
+
+<PropsTable component="Tabs" />
+
+</Disclosure>
+
+<Disclosure title="Tab props">
+
+<PropsTable component="Tab" />
+
+</Disclosure>
+
+<Disclosure title="TabPanel props">
+
+<PropsTable component="TabPanel" />
+
+</Disclosure>
+
+<Disclosure title="Styling">
+
+Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
+tone — derives the curve in oklch), **`size`** the dimensions + type, **`priority`**
+the track-vs-fill-vs-underline look. The focus ring is the global
+[`--focus-ring`](/colors/#focus-ring).
+
+```tsx folded
+<Tabs tone="#e0457b" priority="tertiary" defaultValue="a">…</Tabs>
+```
+
+For anything else, the strip is light-DOM: `<a-tabs>` is the tablist, each
+`<a-tab>` a tab, `<a-tabpanel>` a panel. Target them with ordinary CSS, **per
+state** — an un-layered rule beats `@layer anta` without `!important`. The example
+below makes the selected tab bold and tints the resting track:
+
+<Preview>
+  <CustomStyling client:only="preact" />
+  <style is:inline>{`
+    .custom-tabs a-tabs { --tabs-track-bg: color-mix(in oklch, #e0457b 12%, transparent); }
+    .custom-tabs a-tab:state(selected) { font-weight: 650; }
+  `}</style>
+</Preview>
+
+```css folded
+/* .custom-tabs is just for the demo — swap your own selector */
+.custom-tabs a-tabs { --tabs-track-bg: color-mix(in oklch, #e0457b 12%, transparent); }
+.custom-tabs a-tab:state(selected) { font-weight: 650; }
+```
+
+</Disclosure>

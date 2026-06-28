@@ -1,0 +1,65 @@
+@layer anta {
+  /* Intrinsic, priority-independent tab chrome. The per-priority / per-tone / per-
+     state values of --tabs-fg / --tabs-bg, the type-scale vars (--_fs/--_lh/--_pb),
+     padding, and the track live on the parent <a-tabs> (a-tabs.css) and inherit /
+     cascade down — this file is just the box that consumes them, so a-tab stays the
+     button-like item regardless of which tablist style wraps it. */
+  a-tab {
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5ch;
+    flex-shrink: 0;
+    cursor: pointer;
+
+    color: var(--tabs-fg, var(--text-3));
+    background-color: var(--tabs-bg, transparent);
+    border: none;
+    border-radius: var(--tabs-radius, 4px);
+
+    font-size: var(--_fs, 15px);
+    font-family: var(--sans-serif);
+    font-weight: 450;
+    font-variation-settings: "wdth" 88, "slnt" 0, "ital" 0;
+    font-feature-settings: "ss02", "ss05";
+    line-height: var(--_lh, 20px);
+    letter-spacing: 0.05ch;
+
+    white-space: nowrap;
+    text-wrap: nowrap;
+
+    /* Height = line-height + 8 (matching the same-size Button / Input). The bottom
+       gets an extra optical --_pb because Anta's glyphs sit slightly low in the
+       line-box; the top/bottom base padding already absorbs that so the box height
+       stays constant across sizes. */
+    padding-top: var(--tabs-padding-y, 4px);
+    padding-bottom: calc(var(--tabs-padding-y, 4px) + var(--_pb, 1px));
+    padding-inline: var(--tabs-padding-x, 9px);
+
+    transition:
+      color var(--tabs-timing, 150ms ease-out),
+      background-color var(--tabs-timing, 150ms ease-out),
+      border-color var(--tabs-timing, 150ms ease-out),
+      box-shadow var(--tabs-timing, 150ms ease-out);
+
+    & a-icon {
+      transition: color var(--tabs-timing, 150ms ease-out);
+    }
+
+    & > * {
+      pointer-events: none;
+    }
+  }
+
+  a-tab:focus-visible {
+    outline: 1px solid var(--focus-ring);
+    outline-offset: -1px;
+  }
+
+  a-tab[disabled] {
+    pointer-events: none;
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+}
