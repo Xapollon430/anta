@@ -1,5 +1,5 @@
 import { useEffect } from 'preact/hooks'
-import { Tabs, Tab, TabPanel } from '@antadesign/anta'
+import { Tabs, Tab, TabPanel, Tooltip } from '@antadesign/anta'
 
 /**
  * Live demo islands for the Tabs docs page.
@@ -108,20 +108,30 @@ export function Vertical() {
   )
 }
 
+const OVERFLOW_TABS = [
+  { value: 'overview', label: 'Overview' },
+  { value: 'activity', label: 'Activity' },
+  { value: 'repositories', label: 'Repositories' },
+  { value: 'pulls', label: 'Pull requests' },
+  { value: 'discussions', label: 'Discussions' },
+  { value: 'members', label: 'Members' },
+  { value: 'integrations', label: 'Integrations' },
+] as const
+
 /** Default overflow: a strip wider than its container ellipsizes the labels. Fills the
- *  preview width (small side margins) with enough tabs to overflow it. */
+ *  preview width (small side margins) with enough tabs to overflow it. Each tab carries a
+ *  `truncatedOnly` tooltip, so hovering a clipped tab reveals its full label. */
 export function Overflow() {
   useElements()
   return (
     <div style={{ width: '100%', padding: '0 6px', boxSizing: 'border-box' }}>
       <Tabs defaultValue="overview" label="Sections">
-        <Tab value="overview" label="Overview" />
-        <Tab value="activity" label="Activity" />
-        <Tab value="repositories" label="Repositories" />
-        <Tab value="pulls" label="Pull requests" />
-        <Tab value="discussions" label="Discussions" />
-        <Tab value="members" label="Members" />
-        <Tab value="integrations" label="Integrations" />
+        {OVERFLOW_TABS.map(({ value, label }) => (
+          <Tab key={value} value={value}>
+            {label}
+            <Tooltip truncatedOnly>{label}</Tooltip>
+          </Tab>
+        ))}
       </Tabs>
     </div>
   )

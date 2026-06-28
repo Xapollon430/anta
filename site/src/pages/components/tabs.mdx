@@ -162,6 +162,21 @@ When the tabs don't fit, their labels truncate with an ellipsis — the strip ne
 widens the page. To scroll the strip or let labels wrap instead, see
 [Styling](#styling).
 
+Drop a [`<Tooltip truncatedOnly>`](/components/tooltip/#show-only-when-truncated) in a
+`<Tab>` and a clipped tab reveals its full label on hover — while tabs that fit show
+nothing. The tooltip finds the tab's `a-tab-label` automatically. Hover the truncated
+tabs above to see it.
+
+```tsx folded
+<Tabs defaultValue="overview" label="Sections">
+  <Tab value="overview">
+    Overview
+    <Tooltip truncatedOnly>Overview</Tooltip>
+  </Tab>
+  {/* …more tabs… */}
+</Tabs>
+```
+
 </Col>
 </Columns>
 

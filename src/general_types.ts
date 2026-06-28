@@ -342,6 +342,14 @@ export interface ATooltipAttributes extends BaseAttributes {
   /** Make the bubble hoverable/clickable (pointer events on, stays open while
    *  hovered). Always pinned. Presence-based (`''` on, omit off). */
   interactive?: boolean | ''
+  /** Only show when the measured target is actually truncated/clipped (its text
+   *  overflows). UI-thread layout read, re-measured per show. Defaults to the
+   *  nearest Anta ellipsizing label part (`a-tab-label` / `a-button-label`) in the
+   *  anchor, then the anchor itself. Presence-based (`''` on, omit off). */
+  'truncated-only'?: boolean | ''
+  /** CSS selector (resolved within the anchor) for the element whose overflow a
+   *  `truncated-only` tooltip measures. */
+  'truncated-selector'?: string
   /** HTML `id`. */
   id?: string
 }
