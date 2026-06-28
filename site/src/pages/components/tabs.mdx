@@ -62,10 +62,11 @@ hide the content too.
 
 Six named tones — `neutral` (default), `brand`, `info`, `success`, `warning`,
 `critical` — plus any literal CSS colour for a one-off custom tone (derived in oklch;
-named tones track light/dark automatically). Tone colours the `secondary` active fill
-+ label and the `tertiary` underline + label. **`primary` stays neutral** — the
-segmented pill ignores tone, which the primary column below makes plain. Rows are
-tones (the last is a custom colour); columns are priorities.
+named tones track light/dark automatically). A tone runs through the whole strip — the
+labels (muted `--text-3` tone at rest, `--text-1`/`--text-2` selected), the track well,
+the active fill, the pill ring, and the tertiary divider + underline. **Only the primary
+pill's fill stays neutral** (a white raised pill); its label still carries the tone.
+Rows are tones (the last is a custom colour); columns are priorities.
 
 <Columns colGap="16px" rowGap="16px">
 <Col min={0}>

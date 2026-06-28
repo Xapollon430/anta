@@ -1,6 +1,6 @@
 @layer anta {
   /* Intrinsic, priority-independent tab chrome. The per-priority / per-tone / per-
-     state values of --tabs-fg / --tabs-bg, the type-scale vars (--_fs/--_lh/--_pb),
+     state values of --tab-fg / --tab-bg, the type-scale vars (--_fs/--_lh/--_pb),
      padding, and the track live on the parent <a-tabs> (a-tabs.css) and inherit /
      cascade down — this file is just the box that consumes them, so a-tab stays the
      button-like item regardless of which tablist style wraps it. */
@@ -13,10 +13,13 @@
     flex-shrink: 0;
     cursor: pointer;
 
-    color: var(--tabs-fg, var(--text-3));
-    background-color: var(--tabs-bg, transparent);
+    color: var(--tab-fg, var(--text-3));
+    background-color: var(--tab-bg, transparent);
     border: none;
-    border-radius: var(--tabs-radius, 4px);
+    border-radius: var(--tab-radius, 4px);
+    /* Zero-spread transparent baseline so the selected pill's ring (--tab-pill-shadow)
+       animates in (spread 0→0.5px, transparent→colour) instead of popping from `none`. */
+    box-shadow: 0 0 0 0 transparent;
 
     font-size: var(--_fs, 15px);
     font-family: var(--sans-serif);
@@ -35,15 +38,15 @@
        instead of riding high. (The label's --_pb + the symmetric padding still sum to
        line-height + 8, so the height is unchanged. Mirrors <a-button-label>.) */
     padding-block: var(--tab-padding-y, 4px);
-    padding-inline: var(--tabs-padding-x, 9px);
+    padding-inline: var(--tab-padding-x, 9px);
 
-    /* Text/icon colour changes are INSTANT (no `color` here) — hover recolours
-       immediately and pressing snaps it back. The fill / underline / shadow still
-       ease in/out on select. */
+    /* The text/icon `color` is INSTANT (not transitioned) — hover/select recolour the
+       label immediately. Background, border-colour (the tertiary underline), and shadow
+       still ease in/out, so the active fill + underline animate while the text snaps. */
     transition:
-      background-color var(--tabs-timing, 150ms ease-out),
-      border-color var(--tabs-timing, 150ms ease-out),
-      box-shadow var(--tabs-timing, 150ms ease-out);
+      background-color var(--tab-timing, 150ms ease-out),
+      border-color var(--tab-timing, 150ms ease-out),
+      box-shadow var(--tab-timing, 150ms ease-out);
 
     /* The label box — the `Tabs` wrapper wraps a string label in <a-tab-label>. It
        carries the optical --_pb and is ellipsis-/wrap-capable, exactly like
@@ -67,6 +70,16 @@
 
     & > * {
       pointer-events: none;
+    }
+
+    /* Trim the edge padding by 2px when an <a-icon> (not the label) sits at that edge —
+       an icon looks balanced with a little less inset than text. Only when the tab also
+       has a label, so an icon-only tab keeps its symmetric padding. Mirrors <a-button>. */
+    &:has(> a-icon:first-child):has(> a-tab-label) {
+      padding-inline-start: max(0px, var(--tab-padding-x, 9px) - 2px);
+    }
+    &:has(> a-icon:last-child):has(> a-tab-label) {
+      padding-inline-end: max(0px, var(--tab-padding-x, 9px) - 2px);
     }
   }
 
