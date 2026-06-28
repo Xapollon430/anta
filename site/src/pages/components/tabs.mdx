@@ -9,7 +9,7 @@ import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import tabsDemoCode from './tabs.demo.ts'
-import { Basic, Priorities, TonesColumn, Sizes, Vertical, Overflow, ScrollTabs, WrapTabs, EqualWidth, CustomStyling, NoSlide } from '../../components/TabsDemo'
+import { Basic, Priorities, TonesColumn, Sizes, VerticalStrip, IconsContent, Overflow, ScrollTabs, WrapTabs, EqualWidth, SquareTabs, TertiaryGlow, NoSlide } from '../../components/TabsDemo'
 
 # Tabs
 
@@ -125,23 +125,71 @@ buttons and inputs. Icons scale with the tab.
 
 ## Orientation
 
+`horizontal` (default) lays the tabs in a row; `vertical` stacks them, and a paired
+panel sits beside the strip. The arrow keys follow the axis — `←`/`→` when horizontal,
+`↑`/`↓` when vertical. Vertical works at every priority:
+
+<Columns colGap="16px" rowGap="16px">
+<Col min={0}>
+
+**Primary**
+
+<Preview>
+  <VerticalStrip client:only="preact" priority="primary" />
+</Preview>
+
+</Col>
+<Col min={0}>
+
+**Secondary**
+
+<Preview>
+  <VerticalStrip client:only="preact" priority="secondary" />
+</Preview>
+
+</Col>
+<Col min={0}>
+
+**Tertiary**
+
+<Preview>
+  <VerticalStrip client:only="preact" priority="tertiary" />
+</Preview>
+
+</Col>
+</Columns>
+
+```tsx folded
+<Tabs orientation="vertical" priority="tertiary" defaultValue="general">
+  <Tab value="general" label="General" />
+  <Tab value="members" label="Members" />
+  <Tab value="integrations" label="Integrations" />
+</Tabs>
+```
+
+## Icons & content
+
+A `<Tab>` takes a leading **`icon`** and a trailing **`iconTrailing`**. Its content is
+otherwise arbitrary — pass **children** instead of `label` to add more than text, like a
+[`<Tag>`](/components/tag/) counter:
+
 <Columns>
 <Col>
 
 <Preview>
-  <Vertical client:only="preact" />
+  <IconsContent client:only="preact" />
 </Preview>
-
-```tsx folded
-<Tabs orientation="vertical" defaultValue="a">…</Tabs>
-```
 
 </Col>
 <Col>
 
-`horizontal` (default) lays the tabs in a row; `vertical` stacks them, and a
-paired panel sits beside the strip. The arrow keys follow the axis —
-`←`/`→` when horizontal, `↑`/`↓` when vertical.
+```tsx folded
+<Tabs defaultValue="inbox" label="Mailbox">
+  <Tab value="inbox" icon="chat">Inbox <Tag size="small" value="12" /></Tab>
+  <Tab value="drafts" label="Drafts" icon="file" />
+  <Tab value="docs" label="Docs" iconTrailing="external-link" />
+</Tabs>
+```
 
 </Col>
 </Columns>
@@ -218,7 +266,7 @@ Panels are **optional**. With none, `Tabs` is just the strip: listen to
 </Col>
 </Columns>
 
-<Disclosure title="What it renders (JSX vs. DOM)">
+<Disclosure title="JSX vs DOM" level={3}>
 
 `<Tab>` and `<TabPanel>` are **config-only** components — they render nothing
 themselves; `Tabs` reads their props. The flat, interleaved JSX above splits into a
@@ -370,24 +418,60 @@ Reach for the props first: **`tone`**, **`size`**, **`priority`**. The focus rin
 the global [`--focus-ring`](/colors/#focus-ring).
 
 For anything else the strip is light-DOM — `<a-tabs>` the tablist, each `<a-tab>` a
-tab (its text wrapped in `<a-tab-label>`), `<a-tabpanel>` a panel. Target them with
-ordinary CSS; an un-layered rule beats `@layer anta` without `!important`. The
-`.custom-tabs` / `.scroll-tabs` / `.wrap-tabs` classes below are just demo hooks —
-swap your own selector.
+tab (its text wrapped in `<a-tab-label>`), `<a-tabpanel>` a panel, and the moving
+indicator is `<a-tabs>`'s `::before`. Target them with ordinary CSS — an un-layered rule
+beats `@layer anta` without `!important` — and reach for real properties
+(`border-radius`, `padding`, `background`, …), **not** the internal `--*` output tokens.
+The demo classes below (`.square-tabs`, `.glow-tabs`, …) are just hooks; swap your own.
 
-**Restyle a tab** — selected tab bold, resting track tinted:
+**Squarer primary** — square corners, heavier labels, a roomier track, and one
+`--edge` colour (via `light-dark()`) shared by the track's 1px border and the pill's
+crisp 1px ring (spread, no blur). The track is `<a-tabs>` and the sliding pill its
+`::before`:
 
 <Preview>
-  <CustomStyling client:only="preact" />
+  <SquareTabs client:only="preact" />
   <style is:inline>{`
-    .custom-tabs a-tabs { --tabs-track-bg: color-mix(in oklch, #e0457b 12%, transparent); }
-    .custom-tabs a-tab:state(selected) { font-weight: 650; }
+    a-tabs.square-tabs { --edge: light-dark(#cfcfd6, #46464e); border: 1px solid var(--edge); border-radius: 0; padding: 4px; }
+    .square-tabs a-tab { border-radius: 0; font-weight: 600; }
+    a-tabs.square-tabs::before { border-radius: 0; box-shadow: 0 0 0 1px var(--edge); }
   `}</style>
 </Preview>
 
 ```css folded
-.custom-tabs a-tabs { --tabs-track-bg: color-mix(in oklch, #e0457b 12%, transparent); }
-.custom-tabs a-tab:state(selected) { font-weight: 650; }
+/* one --edge colour drives the track border AND the pill's 1px ring */
+a-tabs.square-tabs         { --edge: light-dark(#cfcfd6, #46464e); border: 1px solid var(--edge); border-radius: 0; padding: 4px; }
+.square-tabs a-tab         { border-radius: 0; font-weight: 600; }
+a-tabs.square-tabs::before { border-radius: 0; box-shadow: 0 0 0 1px var(--edge); }  /* 1px spread, no blur */
+```
+
+**Tertiary accent + highlight** — a thicker, recoloured underline on the selected tab
+(1px at rest → 2px active) plus a faint radial highlight in the same accent rising from
+the bottom. One `--accent` (`light-dark()`) drives both the border and the gradient. The
+active tab trims 1px of bottom padding to offset the 2px border so labels stay aligned:
+
+<Preview>
+  <TertiaryGlow client:only="preact" />
+  <style is:inline>{`
+    .glow-tabs a-tab { border-bottom-width: 1px; }
+    .glow-tabs a-tab:state(selected) {
+      --accent: light-dark(#5f4bc3, #a78bfa);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 5px;
+      background: radial-gradient(80% 100% at 50% 100%, color-mix(in oklch, var(--accent) 10%, transparent), transparent 70%);
+    }
+  `}</style>
+</Preview>
+
+```css folded
+.glow-tabs a-tab { border-bottom-width: 1px; }              /* rest: 1px rule */
+.glow-tabs a-tab:state(selected) {
+  --accent: light-dark(#5f4bc3, #a78bfa);                   /* accent colour, per theme */
+  border-bottom: 2px solid var(--accent);                   /* active: 2px accent underline */
+  padding-bottom: 5px;                                      /* −1px, offsets the +1px border */
+  background: radial-gradient(80% 100% at 50% 100%,         /* highlight rising from the bottom */
+              color-mix(in oklch, var(--accent) 10%, transparent), transparent 70%);
+}
 ```
 
 **Scroll instead of ellipsizing** — keep full labels and let the strip scroll

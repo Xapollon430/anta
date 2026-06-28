@@ -1,5 +1,5 @@
 import { useEffect } from 'preact/hooks'
-import { Tabs, Tab, TabPanel, Tooltip } from '@antadesign/anta'
+import { Tabs, Tab, TabPanel, Tooltip, Tag } from '@antadesign/anta'
 
 /**
  * Live demo islands for the Tabs docs page.
@@ -99,16 +99,26 @@ export function Sizes() {
   )
 }
 
-export function Vertical() {
+/** One vertical strip at a given priority (Orientation matrix column). */
+export function VerticalStrip({ priority }: { priority?: 'primary' | 'secondary' | 'tertiary' }) {
   useElements()
   return (
-    <Tabs style={fill} defaultValue="general" orientation="vertical" priority="tertiary" label="Workspace">
+    <Tabs defaultValue="general" orientation="vertical" priority={priority} label="Workspace">
       <Tab value="general" label="General" />
       <Tab value="members" label="Members" />
       <Tab value="integrations" label="Integrations" />
-      <TabPanel value="general" style={panel}><p style={{ margin: 0 }}>Workspace name and defaults.</p></TabPanel>
-      <TabPanel value="members" style={panel}><p style={{ margin: 0 }}>People and their roles.</p></TabPanel>
-      <TabPanel value="integrations" style={panel}><p style={{ margin: 0 }}>Connected apps and webhooks.</p></TabPanel>
+    </Tabs>
+  )
+}
+
+/** Tab content: leading icon, trailing icon, and an arbitrary child (a counter Tag). */
+export function IconsContent() {
+  useElements()
+  return (
+    <Tabs defaultValue="inbox" label="Mailbox">
+      <Tab value="inbox" icon="chat">Inbox <Tag size="small" value="12" /></Tab>
+      <Tab value="drafts" label="Drafts" icon="file" />
+      <Tab value="docs" label="Docs" iconTrailing="external-link" />
     </Tabs>
   )
 }
@@ -191,10 +201,24 @@ export function WrapTabs() {
   )
 }
 
-export function CustomStyling() {
+/** Styling: squarer primary track + pill, heavier label, roomier track. */
+export function SquareTabs() {
   useElements()
   return (
-    <Tabs className="custom-tabs" defaultValue="a">
+    <Tabs className="square-tabs" defaultValue="a" label="Sections">
+      <Tab value="a" label="Overview" />
+      <Tab value="b" label="Activity" />
+      <Tab value="c" label="Settings" />
+    </Tabs>
+  )
+}
+
+/** Styling: a tertiary strip whose selected tab gets a thicker accent underline + a
+ *  radial highlight rising from the bottom. noslide so the per-tab CSS is the indicator. */
+export function TertiaryGlow() {
+  useElements()
+  return (
+    <Tabs className="glow-tabs" priority="tertiary" noslide defaultValue="a" label="Sections">
       <Tab value="a" label="Overview" />
       <Tab value="b" label="Activity" />
       <Tab value="c" label="Settings" />

@@ -262,6 +262,9 @@
     max-width: none;
     overflow-x: hidden;
     overflow-y: auto;
+    /* Beside a panel (the wrapper lays the strip + panel in a row), the strip keeps its
+       content width — the panel gives way — so vertical tab labels never ellipsize. */
+    flex-shrink: 0;
   }
   a-tabs[orientation="vertical"] a-tab {
     justify-content: flex-start;
