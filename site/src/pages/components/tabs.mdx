@@ -9,7 +9,7 @@ import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import tabsDemoCode from './tabs.demo.ts'
-import { Basic, Priorities, TonesColumn, Sizes, Vertical, Scrolling, CustomStyling } from '../../components/TabsDemo'
+import { Basic, Priorities, TonesColumn, Sizes, Vertical, Overflow, ScrollTabs, WrapTabs, EqualWidth, CustomStyling, NoSlide } from '../../components/TabsDemo'
 
 # Tabs
 
@@ -49,11 +49,11 @@ hide the content too.
 </Col>
 <Col>
 
-`priority` sets how the strip and its selected tab are painted:
+`priority` sets the selected-tab indicator:
 
-- **`primary`** (default) — a raised pill on a recessed track, the segmented-control look.
-- **`secondary`** — same sizing, but no track; the selected tab gets a subtle active background fill (no border).
-- **`tertiary`** — flush tabs under a thin rule; the selected tab gets a `tone`-coloured border-bottom underline.
+- **`primary`** (default) — a pill on a track.
+- **`secondary`** — a filled tab, no track.
+- **`tertiary`** — an underline.
 
 </Col>
 </Columns>
@@ -61,12 +61,9 @@ hide the content too.
 ## Tones
 
 Six named tones — `neutral` (default), `brand`, `info`, `success`, `warning`,
-`critical` — plus any literal CSS colour for a one-off custom tone (derived in oklch;
-named tones track light/dark automatically). A tone runs through the whole strip — the
-labels (muted `--text-3` tone at rest, `--text-1`/`--text-2` selected), the track well,
-the active fill, the pill ring, and the tertiary divider + underline. **Only the primary
-pill's fill stays neutral** (a white raised pill); its label still carries the tone.
-Rows are tones (the last is a custom colour); columns are priorities.
+`critical` — plus any CSS colour for a one-off custom tone. The tone runs through the
+strip's labels, indicator, and track at every priority. Rows are tones (the last is a
+custom colour); columns are priorities.
 
 <Columns colGap="16px" rowGap="16px">
 <Col min={0}>
@@ -119,9 +116,9 @@ Rows are tones (the last is a custom colour); columns are priorities.
 </Col>
 <Col>
 
-Three sizes reuse [`Button`](/components/button/)'s type scale, so a strip lines
-up with same-size buttons and inputs: `small` (24px tall, 13px label), `medium`
-(28px / 15px, the default), and `large` (32px / 17px). Icons scale with the tab.
+Three sizes — `small`, `medium` (default), `large` — reuse
+[`Button`](/components/button/)'s type scale, so a strip lines up with same-size
+buttons and inputs. Icons scale with the tab.
 
 </Col>
 </Columns>
@@ -149,29 +146,21 @@ paired panel sits beside the strip. The arrow keys follow the axis —
 </Col>
 </Columns>
 
-## Scrolling
+## Overflow
 
 <Columns>
 <Col>
 
 <Preview>
-  <Scrolling client:only="preact" />
+  <Overflow client:only="preact" />
 </Preview>
-
-```tsx folded
-{/* The strip caps at its container width and scrolls horizontally. */}
-<div style={{ maxWidth: 320 }}>
-  <Tabs defaultValue="overview">…six tabs…</Tabs>
-</div>
-```
 
 </Col>
 <Col>
 
-When the tabs don't fit, the strip caps at its container's width and scrolls
-horizontally (a thin scrollbar) instead of widening the page. Selecting a tab —
-by click or keyboard — scrolls it into view. Drag, swipe, or wheel to scroll the
-rest.
+When the tabs don't fit, their labels truncate with an ellipsis — the strip never
+widens the page. To scroll the strip or let labels wrap instead, see
+[Styling](#styling).
 
 </Col>
 </Columns>
@@ -260,16 +249,6 @@ Disabled tabs are skipped and dropped from the tab order.
 Pass `label` for the tablist's accessible name. Each `<TabPanel>` is labelled by
 its tab (`aria-labelledby`) and pointed at from it (`aria-controls`).
 
-Under the hood the split mirrors [`RadioGroup`](/components/radio/): the
-`<a-tabs>` web component **never mutates the DOM** — it sets the `selected`
-property on each `<a-tab>` (which reflects it into `:state(selected)` +
-`aria-selected` via its own `ElementInternals`) and scrolls the selection into
-view. Each tab's **`tabindex`**, the ARIA wiring, and which panel shows are the
-declarative pieces, rendered by the `Tabs` wrapper from the current value — which
-is why the wrapper holds the value. (Raw `<a-tabs>` / `<a-tab>` work hand-assembled
-too; give the tabs `tabindex="0"`, or make the strip itself the tab stop with
-`tabindex="0"` and it falls back to `aria-activedescendant`.)
-
 ## Controlled vs. uncontrolled
 
 <Columns>
@@ -342,20 +321,16 @@ lands on an individual tab).
 
 <Disclosure title="Styling">
 
-Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
-tone — derives the curve in oklch), **`size`** the dimensions + type, **`priority`**
-the track-vs-fill-vs-underline look. The focus ring is the global
-[`--focus-ring`](/colors/#focus-ring).
+Reach for the props first: **`tone`**, **`size`**, **`priority`**. The focus ring is
+the global [`--focus-ring`](/colors/#focus-ring).
 
-```tsx folded
-<Tabs tone="#e0457b" priority="tertiary" defaultValue="a">…</Tabs>
-```
+For anything else the strip is light-DOM — `<a-tabs>` the tablist, each `<a-tab>` a
+tab (its text wrapped in `<a-tab-label>`), `<a-tabpanel>` a panel. Target them with
+ordinary CSS; an un-layered rule beats `@layer anta` without `!important`. The
+`.custom-tabs` / `.scroll-tabs` / `.wrap-tabs` classes below are just demo hooks —
+swap your own selector.
 
-For anything else, the strip is light-DOM: `<a-tabs>` is the tablist, each
-`<a-tab>` a tab (its text wrapped in `<a-tab-label>`, like `<a-button-label>`), and
-`<a-tabpanel>` a panel. Target them with ordinary CSS, **per state** — an un-layered
-rule beats `@layer anta` without `!important`. The example below makes the selected
-tab bold and tints the resting track:
+**Restyle a tab** — selected tab bold, resting track tinted:
 
 <Preview>
   <CustomStyling client:only="preact" />
@@ -366,9 +341,70 @@ tab bold and tints the resting track:
 </Preview>
 
 ```css folded
-/* .custom-tabs is just for the demo — swap your own selector */
 .custom-tabs a-tabs { --tabs-track-bg: color-mix(in oklch, #e0457b 12%, transparent); }
 .custom-tabs a-tab:state(selected) { font-weight: 650; }
+```
+
+**Scroll instead of ellipsizing** — keep full labels and let the strip scroll
+horizontally: pin each tab to its content width (`flex: none`) and make the strip
+scrollable.
+
+<Preview>
+  <ScrollTabs client:only="preact" />
+  <style is:inline>{`
+    .scroll-tabs a-tabs { overflow-x: auto; scrollbar-width: thin; }
+    .scroll-tabs a-tab { flex: none; }
+  `}</style>
+</Preview>
+
+```css folded
+.scroll-tabs a-tabs { overflow-x: auto; scrollbar-width: thin; }
+.scroll-tabs a-tab  { flex: none; }
+```
+
+**Equal-width tabs** — by default tabs are sized to their labels (and only compress
+when the strip overflows). For a segmented-control look where every tab is the same
+width regardless of label, let them fill the strip from a zero basis:
+
+<Preview>
+  <EqualWidth client:only="preact" />
+  <style is:inline>{`
+    .equal-tabs a-tabs { width: 100%; }
+    .equal-tabs a-tab { flex: 1 1 0; max-width: none; }
+  `}</style>
+</Preview>
+
+```css folded
+.equal-tabs a-tabs { width: 100%; }
+.equal-tabs a-tab  { flex: 1 1 0; max-width: none; }
+```
+
+**Wrap labels** — let long labels wrap so the tabs grow taller instead of truncating:
+
+<Preview>
+  <WrapTabs client:only="preact" />
+  <style is:inline>{`
+    .wrap-tabs a-tab,
+    .wrap-tabs a-tab-label { white-space: normal; text-overflow: clip; overflow: visible; text-align: center; }
+  `}</style>
+</Preview>
+
+```css folded
+.wrap-tabs a-tab,
+.wrap-tabs a-tab-label { white-space: normal; text-overflow: clip; overflow: visible; text-align: center; }
+```
+
+**Disable the slide** — by default the selected-tab indicator slides between tabs (a
+single rectangle, via CSS anchor positioning). Pass `noslide` to paint it on each tab
+instead, so the highlight snaps with no movement. This is also the automatic fallback
+where anchor positioning isn't supported.
+
+<Preview>
+  <NoSlide client:only="preact" />
+</Preview>
+
+```tsx folded
+<Tabs noslide defaultValue="a">…</Tabs>
 ```
 
 </Disclosure>

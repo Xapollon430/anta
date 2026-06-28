@@ -78,12 +78,22 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
   /** How inactive panels are mounted/hidden. Per-panel `<TabPanel mounting>` overrides.
    *  @defaultValue 'display' */
   mounting?: TabsMounting
+  /** Disable the sliding indicator. By default the selected-tab indicator animates
+   *  between tabs (a single rectangle, via CSS anchor positioning); `noslide` paints it
+   *  per tab so it snaps with no movement (also the automatic fallback where anchor
+   *  positioning isn't supported). */
+  noslide?: boolean
   /** Disable the whole strip. */
   disabled?: boolean
 }
 
 /** Flatten children one fragment/array level deep into a plain list, dropping nullish
  *  / boolean nodes — portable across React & Preact (no `Children` helpers). */
+/** The custom property the indicator CSS reads for this strip's unique anchor-name.
+ *  Typed `string` (not the literal) so the computed key bypasses TS's excess-property
+ *  check on `React.CSSProperties` — the same trick `toneStyle`'s `varName` param uses. */
+const ANCHOR_VAR: string = "--tabs-anchor"
+
 const flattenChildren = (nodes: React.ReactNode): any[] => {
   const out: any[] = []
   const visit = (n: any) => {
@@ -161,6 +171,7 @@ export const Tabs = ({
   size,
   orientation,
   mounting = "display",
+  noslide,
   disabled,
   className,
   style,
@@ -182,6 +193,11 @@ export const Tabs = ({
   const baseId = useId()
   const tabId = (v: string) => `${baseId}-tab-${v}`
   const panelId = (v: string) => `${baseId}-panel-${v}`
+  // Per-strip unique anchor-name for the sliding indicator (CSS anchor positioning).
+  // Without this, multiple strips on a page share one anchor-name and the spec's
+  // "last anchor in source order wins" rule cross-wires their indicators. useId() can
+  // contain colons (`:r0:`) — invalid in a CSS dashed-ident — so strip non-ident chars.
+  const anchorName = `--tabs-${baseId.replace(/[^\w-]/g, "")}`
 
   const items = flattenChildren(children)
   const tabs = items.filter((c) => c?.type === Tab) as { props: TabProps }[]
@@ -238,6 +254,7 @@ export const Tabs = ({
         tone={tone && tone !== "neutral" ? tone : undefined}
         size={size && size !== "medium" ? size : undefined}
         orientation={vertical ? "vertical" : undefined}
+        noslide={noslide ? "" : undefined}
         disabled={disabled ? "" : undefined}
         onstatechange={onstatechange}
         onchange={onchange}
@@ -247,7 +264,9 @@ export const Tabs = ({
         // No container → the strip is the root and carries the consumer's class/id/rest.
         class={needsContainer ? undefined : className}
         id={needsContainer ? undefined : id}
-        style={toneStyle(tone, "--tabs-tone-source", needsContainer ? undefined : style)}
+        // --tabs-anchor is the per-strip unique anchor-name the indicator CSS reads.
+        // Computed string key (like toneStyle's) so TS doesn't excess-check the custom prop.
+        style={{ ...toneStyle(tone, "--tabs-tone-source", needsContainer ? undefined : style), [ANCHOR_VAR]: anchorName }}
         {...(needsContainer ? {} : rest)}
       >
         {tabs.map((t) => {

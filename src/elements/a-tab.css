@@ -10,7 +10,12 @@
     align-items: center;
     justify-content: center;
     gap: 0.5ch;
-    flex-shrink: 0;
+    /* min-width:0 lets the label ellipsize when the strip overflows (the default;
+       horizontal sizing itself is set on the parent — see a-tabs.css). flex-shrink:1 is
+       the base used by a vertical strip. Opt back into scrolling with `flex: none` on the
+       tab + `overflow-x: auto` on the strip (see the Tabs docs Styling section). */
+    flex-shrink: 1;
+    min-width: 0;
     cursor: pointer;
 
     color: var(--tab-fg, var(--text-3));

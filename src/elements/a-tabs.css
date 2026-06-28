@@ -38,6 +38,10 @@
     /* A crisp 0.5px spread shadow standing in for a border. `--border-4` is
        theme-aware, so this works in dark too. */
     --tab-pill-shadow: 0 0 0px 0.5px var(--border-4);
+    /* Secondary's selected ring matches the PRIMARY track border (--tabs-track-border)
+       rather than the toned pill ring — so a toned secondary tab is outlined the same as
+       a primary track. Identical to --tab-pill-shadow when neutral; stays neutral when toned. */
+    --tab-secondary-shadow: 0 0 0px 0.5px var(--tabs-track-border);
 
     display: flex;
     flex-direction: row;
@@ -48,14 +52,14 @@
        tertiary rule don't stretch the full container width. Harmless outside flex. */
     align-self: flex-start;
 
-    /* Overflow → horizontal scroll, capped at the parent width so a long strip
-       scrolls instead of widening its container. min-width:0 lets it shrink in a
-       flex parent (the Tabs wrapper's layout row). */
+    /* Capped at the parent width; the tabs shrink (a-tab is flex-shrink:1) so an
+       overflowing strip ELLIPSIZES its labels rather than widening or scrolling.
+       overflow:hidden clips any residual overflow instead of pushing the page wider.
+       To scroll instead, opt in per the docs Styling section. min-width:0 lets the
+       strip shrink in a flex parent (the Tabs wrapper's layout row). */
     min-width: 0;
     max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: thin;
+    overflow: hidden;
     scroll-behavior: smooth;
   }
 
@@ -136,6 +140,16 @@
     --tab-fg: var(--tab-fg-rest);
     --tab-bg: transparent;
   }
+  /* Horizontal sizing — content-sized until the strip overflows, then compress.
+     `flex: 1 1 0` grows each tab from a 0 basis (so an overflowing row distributes the
+     squeeze evenly), while `max-width: max-content` caps each at its natural width when
+     there's room — so a roomy strip stays content-sized, and only an overflowing one
+     squeezes: short labels keep their width, the long ones share the pressure and
+     ellipsize. (Vertical keeps the base content sizing — it scrolls instead.) */
+  a-tabs:not([orientation="vertical"]) a-tab {
+    flex: 1 1 0;
+    max-width: max-content;
+  }
   @media (hover: hover) and (pointer: fine) {
     /* Instant recolour (no `color` transition; see a-tab.css). */
     a-tabs a-tab:hover {
@@ -166,7 +180,7 @@
   }
 
   /* ── Secondary: primary's sizing but no visible track; the selected tab gets the
-     track-colour fill plus the same soft pill shadow as primary. ─────────────── */
+     track-colour fill plus a ring in the primary track-border colour. ──────────── */
   a-tabs[priority="secondary"] {
     /* Transparent 0.5px border matches primary's track border width, so the box is the
        same size as a primary strip even though there's no visible track. */
@@ -185,28 +199,30 @@
     /* Neutral fill = primary's track colour; the tone shows on the label. */
     --tab-bg: var(--tabs-track-bg);
 
-    /* Same ring as the primary pill. */
-    box-shadow: var(--tab-pill-shadow);
+    /* Ring in the primary track-border colour (not the toned pill ring). */
+    box-shadow: var(--tab-secondary-shadow);
   }
 
   /* ── Tertiary: flush tabs (no gap) each carrying its OWN bottom-border rule — the
      --tab-divider (border-5 / border-5-<tone>) at rest, and `currentColor` (the label
-     colour) only when selected, so just the active segment is tinted. The label uses
-     the softer --tab-text-2 step (selected + hover). Flush so the per-tab borders join
-     into one continuous rule; no border on the track, so there's nothing to overlap. */
+     colour) only when selected, so just the active segment is tinted. The SELECTED label
+     uses the high-contrast --tab-selected-text (text-1 tone — darker in light, lighter in
+     dark); hover is the softer --tab-text-2 step. Flush so the per-tab borders join into
+     one continuous rule; no border on the track, so there's nothing to overlap. */
   a-tabs[priority="tertiary"] {
     --tabs-gap: 0;
   }
   a-tabs[priority="tertiary"] a-tab {
     border-radius: 0;
-    /* +0.5px top and +1.5px bottom (medium: 4 / 5) so the strip is 32px — same as
-       primary/secondary — with the label sitting higher, leaving room above the
-       underline, which is flush at the strip's bottom edge (no margin). +1.5px side
-       padding since there's no track inset around these flush tabs. */
+    /* +0.5px top and +2.5px bottom (medium: 4 / 6) so the strip is 32px — same as
+       primary/secondary — with the label sitting higher, leaving room above the 1px
+       underline, which is flush at the strip's bottom edge (no margin). The bottom
+       padding absorbs the 1px border so 2×padding + border still lands on 32. +1.5px
+       side padding since there's no track inset around these flush tabs. */
     padding-top: calc(var(--tab-padding-y) + 0.5px);
-    padding-bottom: calc(var(--tab-padding-y) + 1.5px);
+    padding-bottom: calc(var(--tab-padding-y) + 2.5px);
     padding-inline: calc(var(--tab-padding-x) + 1.5px);
-    border-bottom: 2px solid var(--tab-divider);
+    border-bottom: 1px solid var(--tab-divider);
   }
   @media (hover: hover) and (pointer: fine) {
     a-tabs[priority="tertiary"] a-tab:hover {
@@ -214,7 +230,7 @@
     }
   }
   a-tabs[priority="tertiary"] a-tab:state(selected) {
-    --tab-fg: var(--tab-text-2);
+    --tab-fg: var(--tab-selected-text);
 
     border-bottom-color: currentColor;
   }
@@ -235,10 +251,103 @@
      of the bottom — same per-tab model, rotated. */
   a-tabs[orientation="vertical"][priority="tertiary"] a-tab {
     border-bottom: none;
-    border-inline-end: 2px solid var(--tab-divider);
+    border-inline-end: 1px solid var(--tab-divider);
   }
   a-tabs[orientation="vertical"][priority="tertiary"] a-tab:state(selected) {
     border-inline-end-color: currentColor;
+  }
+
+  /* ── Sliding indicator (CSS anchor positioning) ─────────────────────────────────
+     Default behaviour. A single rectangle pinned to the selected tab with anchor(),
+     which the browser slides + resizes between tabs as :state(selected) moves — no JS,
+     no DOM mutation. Each strip's anchor-name is unique (--tabs-anchor, set per instance
+     by the Tabs wrapper) so multiple strips on one page don't cross-wire via the spec's
+     "last anchor in source order wins" rule. Opt out with the `noslide` attribute. The whole
+     block is gated on @supports, so browsers without anchor positioning fall back to the
+     per-tab :state(selected) highlight defined above. ──────────────────────────────── */
+  @supports (anchor-name: --x) {
+    a-tabs:not([noslide]) {
+      position: relative;
+    }
+    /* Tabs sit above the indicator (labels read over the pill); the selected tab is the
+       anchor the indicator pins to. */
+    a-tabs:not([noslide]) a-tab {
+      position: relative;
+      z-index: 1;
+    }
+    a-tabs:not([noslide]) a-tab:state(selected) {
+      anchor-name: var(--tabs-anchor, --tabs-active);
+    }
+
+    a-tabs:not([noslide])::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      position-anchor: var(--tabs-anchor, --tabs-active);
+      top: anchor(top);
+      right: anchor(right);
+      bottom: anchor(bottom);
+      left: anchor(left);
+      transition:
+        top var(--tab-timing),
+        right var(--tab-timing),
+        bottom var(--tab-timing),
+        left var(--tab-timing);
+    }
+    /* Nothing selected → no anchor → keep the indicator out of view. */
+    a-tabs:not([noslide]):not(:has(a-tab:state(selected)))::before {
+      display: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      a-tabs:not([noslide])::before {
+        transition: none;
+      }
+    }
+
+    /* The selected tab no longer paints its own fill / ring / underline — the moving
+       indicator does. Only the label colour (--tab-fg, set above) stays on the tab. */
+    a-tabs:not([noslide]) a-tab:state(selected) {
+      --tab-bg: transparent;
+
+      box-shadow: none;
+    }
+
+    /* Primary: the raised pill. */
+    a-tabs:not([noslide], [priority="secondary"], [priority="tertiary"])::before {
+      background: var(--tab-pill-bg);
+      border-radius: var(--tab-radius);
+      box-shadow: var(--tab-pill-shadow);
+    }
+    /* Secondary: the active fill (track colour) + a ring in the track-border colour. */
+    a-tabs:not([noslide])[priority="secondary"]::before {
+      background: var(--tabs-track-bg);
+      border-radius: var(--tab-radius);
+      box-shadow: var(--tab-secondary-shadow);
+    }
+    /* Tertiary: a 2px underline that slides along the bottom rule. It sits ABOVE the
+       tabs (z-index 2) so it tracks visibly over their own divider borders as it moves;
+       the selected tab's border reverts to the rest divider (the indicator is the line). */
+    a-tabs:not([noslide])[priority="tertiary"] a-tab:state(selected) {
+      border-bottom-color: var(--tab-divider);
+    }
+    a-tabs:not([noslide])[priority="tertiary"]::before {
+      z-index: 2;
+      top: auto;
+      height: 1px;
+      background: var(--tab-selected-text);
+    }
+    /* Vertical tertiary: the rule is on the inline-end edge — a 2px vertical bar. */
+    a-tabs[orientation="vertical"]:not([noslide])[priority="tertiary"] a-tab:state(selected) {
+      border-inline-end-color: var(--tab-divider);
+    }
+    a-tabs[orientation="vertical"]:not([noslide])[priority="tertiary"]::before {
+      top: anchor(top);
+      right: anchor(right);
+      bottom: anchor(bottom);
+      left: auto;
+      width: 1px;
+      height: auto;
+    }
   }
 
   /* ── Dark mode — the track tint is the dark tertiary-hover overlay; the coloured

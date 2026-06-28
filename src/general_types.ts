@@ -752,8 +752,14 @@ export interface ATabsAttributes extends BaseAttributes {
   tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size variant. small=24px, medium (default)=28px, large=32px tall (Button's scale). */
   size?: 'small' | 'medium' | 'large'
-  /** Layout + arrow-key axis. `'horizontal'` (default) scrolls when tabs overflow. */
+  /** Layout + arrow-key axis. `'horizontal'` (default) ellipsizes labels when tabs
+   *  overflow (scrolling is opt-in via CSS); `'vertical'` stacks them. */
   orientation?: 'horizontal' | 'vertical'
+  /** Disable the sliding indicator. By default the selected-tab indicator is a single
+   *  rectangle that animates between tabs via CSS anchor positioning; with `noslide` the
+   *  highlight is painted on each tab and snaps with no movement (also the automatic
+   *  fallback where anchor positioning isn't supported). Presence-based (`''` on, omit off). */
+  noslide?: boolean | ''
   /** Disable the whole strip. Presence-based (`''` on, omit off). */
   disabled?: boolean | ''
   /** Fires whenever the active tab changes. `detail` carries `{ next, prev }` (values;
