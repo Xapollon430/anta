@@ -293,6 +293,12 @@
   @supports (anchor-name: --x) {
     a-tabs:not([noslide]) {
       position: relative;
+      /* Scope this strip's anchor-name to its own subtree. The Tabs wrapper gives each
+         strip a unique --tabs-anchor, but raw hand-authored strips share the --tabs-active
+         fallback; without scoping, multiple raw strips would all resolve to the last one
+         ("last anchor in source order wins"). Harmless where unsupported (no regression)
+         and for the wrapper path (names are already unique). */
+      anchor-scope: all;
     }
     /* Tabs sit above the indicator (labels read over the pill); the selected tab is the
        anchor the indicator pins to. */

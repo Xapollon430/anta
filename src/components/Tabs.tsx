@@ -4,7 +4,7 @@
 // (stateless-wrapper exception — Tabs holds the active value to render the roving
 // tabindex + decide which panel shows, exactly like RadioGroup).
 import { useId, useState, Fragment } from "../jsx-runtime"
-import { nativeStateChange, toneStyle } from "../anta_helpers"
+import { nativeStateChange, toneStyle, wrapLabel } from "../anta_helpers"
 import type { BaseProps } from "../general_types"
 import { Tab } from "./Tab"
 import type { TabProps } from "./Tab"
@@ -58,7 +58,7 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
   onBlur?: (event: FocusEvent) => void
   /** Accessible name for the tablist (`aria-label`). */
   label?: string
-  /** Visual priority. `primary` (default) is the raised pill on a recessed track (the
+  /** Visual priority. `primary` is the raised pill on a recessed track (the
    *  segmented-control look); `secondary` keeps that sizing but drops the track, marking
    *  the selected tab with a subtle active background fill; `tertiary` is an underline
    *  indicator with flush tabs. `tone` colours `secondary` + `tertiary`; `primary`
@@ -72,7 +72,8 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
   /** Size — reuses Button's type scale (small 24px · medium 28px · large 32px tall).
    *  @defaultValue 'medium' */
   size?: "small" | "medium" | "large"
-  /** Layout + arrow-key axis. Horizontal scrolls when tabs overflow.
+  /** Layout + arrow-key axis. Horizontal ellipsizes labels when tabs overflow (scroll
+   *  is opt-in via CSS); vertical stacks them.
    *  @defaultValue 'horizontal' */
   orientation?: "horizontal" | "vertical"
   /** How inactive panels are mounted/hidden. Per-panel `<TabPanel mounting>` overrides.
@@ -80,20 +81,20 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
   mounting?: TabsMounting
   /** Disable the sliding indicator. By default the selected-tab indicator animates
    *  between tabs (a single rectangle, via CSS anchor positioning); `noslide` paints it
-   *  per tab so it snaps with no movement (also the automatic fallback where anchor
-   *  positioning isn't supported). */
+   *  per tab so it snaps with no movement. (Browsers without anchor positioning get that
+   *  per-tab paint automatically — `noslide` is the explicit opt-out.) */
   noslide?: boolean
   /** Disable the whole strip. */
   disabled?: boolean
 }
 
-/** Flatten children one fragment/array level deep into a plain list, dropping nullish
- *  / boolean nodes — portable across React & Preact (no `Children` helpers). */
 /** The custom property the indicator CSS reads for this strip's unique anchor-name.
  *  Typed `string` (not the literal) so the computed key bypasses TS's excess-property
  *  check on `React.CSSProperties` — the same trick `toneStyle`'s `varName` param uses. */
 const ANCHOR_VAR: string = "--tabs-anchor"
 
+/** Flatten children one fragment/array level deep into a plain list, dropping nullish
+ *  / boolean nodes — portable across React & Preact (no `Children` helpers). */
 const flattenChildren = (nodes: React.ReactNode): any[] => {
   const out: any[] = []
   const visit = (n: any) => {
@@ -110,24 +111,6 @@ const flattenChildren = (nodes: React.ReactNode): any[] => {
   }
   visit(nodes)
   return out
-}
-
-/** Wrap a tab's label content so it aligns + truncates like a button's. A string /
- *  number becomes an `<a-tab-label>` (which carries the optical `--_pb` and is
- *  ellipsis-capable); an element is the consumer's own structure, passed through;
- *  empty / whitespace strings and `NaN` carry no content and are dropped. Mirrors
- *  `Button`'s `wrapChildren`. */
-const wrapLabel = (kids: React.ReactNode): React.ReactNode => {
-  if (kids == null) return kids
-  const arr = Array.isArray(kids) ? kids : [kids]
-  return arr.map((child, i) => {
-    if (typeof child === "string")
-      return child.trim() === "" ? null : <a-tab-label key={i}>{child}</a-tab-label>
-    if (typeof child === "number")
-      return Number.isNaN(child) ? null : <a-tab-label key={i}>{child}</a-tab-label>
-    if (child == null || typeof child === "boolean") return null
-    return child
-  })
 }
 
 /**
@@ -185,10 +168,18 @@ export const Tabs = ({
   const currentValue = controlled ? value : internalValue
 
   // Lazy mounting: remember every value that has ever been active so its panel stays
-  // mounted after the first visit. Seeded with the initial active value.
+  // mounted after the first visit. Seeded with the initial active value, then topped up
+  // below for *any* later active value — including a programmatic/controlled `value`
+  // change, which fires no statechange (so updating it in `onstatechange` alone would
+  // miss it and the panel would unmount on switch-away).
   const [mounted, setMounted] = useState<Set<string>>(
     () => new Set(currentValue != null ? [currentValue] : []),
   )
+  // "Adjust state during render" (no effect, no DOM): converges in one extra render and
+  // is the renderer-agnostic way to derive accumulated state from the current value.
+  if (currentValue != null && !mounted.has(currentValue)) {
+    setMounted((m) => (m.has(currentValue) ? m : new Set(m).add(currentValue)))
+  }
 
   const baseId = useId()
   const tabId = (v: string) => `${baseId}-tab-${v}`
@@ -202,6 +193,8 @@ export const Tabs = ({
   const items = flattenChildren(children)
   const tabs = items.filter((c) => c?.type === Tab) as { props: TabProps }[]
   const panels = items.filter((c) => c?.type === TabPanel) as { props: TabPanelProps }[]
+  // Set once so each tab's `aria-controls` lookup is O(1), not an O(panels) scan per tab.
+  const panelValues = new Set(panels.map((pan) => pan.props.value))
 
   // Values are a tab's identity — duplicates make selection ambiguous. Warn (only ever
   // fires on the bug itself), matching RadioGroup / a-input's bare console.warn.
@@ -216,7 +209,6 @@ export const Tabs = ({
     const { event, detail } = nativeStateChange<StateDetail>(e)
     if (!detail) return
     onStateChange?.(event, detail)
-    if (detail.next != null) setMounted((m) => (m.has(detail.next!) ? m : new Set(m).add(detail.next!)))
     if (controlled) return
     if (event.defaultPrevented) return
     setInternalValue(detail.next ?? undefined)
@@ -272,7 +264,8 @@ export const Tabs = ({
         {tabs.map((t) => {
           const p = t.props
           const tabDisabled = disabled || p.disabled
-          const hasPanel = panels.some((pan) => pan.props.value === p.value)
+          const isSelected = p.value === currentValue
+          const hasPanel = panelValues.has(p.value)
           return (
             <a-tab
               key={p.value}
@@ -283,12 +276,14 @@ export const Tabs = ({
               aria-disabled={tabDisabled ? "true" : undefined}
               // Every enabled tab is its own tab stop (not a roving single stop) — Tab
               // / Shift+Tab step through them; arrows still move + select via the element.
+              // A disabled tab leaves the tab order (-1) UNLESS it's the selected one,
+              // which stays focusable so AT can still reach the active tab (WAI-ARIA).
               // `aria-selected` is NOT set here — the element publishes it off-DOM.
-              tabIndex={tabDisabled ? -1 : 0}
+              tabIndex={tabDisabled && !isSelected ? -1 : 0}
               disabled={tabDisabled ? "" : undefined}
             >
               {p.icon && <a-icon shape={p.icon} aria-hidden="true" />}
-              {wrapLabel(p.label != null ? p.label : p.children)}
+              {wrapLabel(p.label != null ? p.label : p.children, "a-tab-label")}
               {p.iconTrailing && <a-icon shape={p.iconTrailing} aria-hidden="true" />}
             </a-tab>
           )

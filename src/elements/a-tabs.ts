@@ -42,6 +42,9 @@ export class ATabsElement extends HTMLElementBase {
   private uncontrolledValue: string | null = null;
   private seeded = false;
   private observer?: MutationObserver;
+  // The tab last scrolled into view — so scroll-into-view fires only when the SELECTION
+  // changes, not on every sync() (orientation / disabled changes call sync() too).
+  private lastSelected: ATabElement | null = null;
   // True after the first connect — gates the native `change` event so it never fires
   // for the initial seed, and gates scroll-into-view so mounting doesn't jump the page.
   private alive = false;
@@ -144,11 +147,14 @@ export class ATabsElement extends HTMLElementBase {
       this.internals.ariaActiveDescendantElement = selectedEl;
     }
 
-    // Keep the selected tab visible in the scrolling strip. Guarded by `alive` so the
-    // initial seed never scrolls the page; `nearest` moves the viewport minimally.
-    if (this.alive && selectedEl) {
+    // Keep the selected tab visible in the scrolling strip — but only when the SELECTION
+    // actually changed, so an orientation / disabled toggle (which also runs sync())
+    // never yanks the viewport. Guarded by `alive` so the initial seed never scrolls;
+    // `nearest` moves the viewport minimally.
+    if (this.alive && selectedEl && selectedEl !== this.lastSelected) {
       selectedEl.scrollIntoView({ block: "nearest", inline: "nearest" });
     }
+    this.lastSelected = selectedEl;
   };
 
   // The shared state algorithm: fire the cancelable `statechange` *before* applying.

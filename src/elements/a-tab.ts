@@ -40,7 +40,11 @@ export class ATabElement extends HTMLElementBase {
   }
 
   get selected(): boolean {
-    return this.internals?.states.has("selected") ?? this.hasAttribute("selected");
+    // Selection lives in ElementInternals (set via the `selected` property by the
+    // tablist). The `selected` attribute only SEEDS initial state on connect — the
+    // element never writes it back (no host mutation), so it can't reflect later
+    // changes; reading it here would go stale, so don't.
+    return this.internals?.states.has("selected") ?? false;
   }
   set selected(on: boolean) {
     this.applyState(!!on);
