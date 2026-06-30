@@ -16,7 +16,7 @@ import styles from "./Tabs.module.css"
 type StateDetail = { next: string | null; prev: string | null }
 type StateChangeEvent = CustomEvent<StateDetail>
 
-/** Snapshot passed as the 2nd argument to `onAnyChange`. */
+/** Snapshot passed as the 2nd argument to `onValueChange`. */
 export interface TabsChangeAttrs {
   value: string | null
 }
@@ -35,13 +35,20 @@ export type TabsMounting = "display" | "visibility" | "active" | "lazy"
 
 /** Public props for `<Tabs>`. */
 export interface TabsProps extends Omit<BaseProps, "onChange"> {
-  /** `<Tab>` and `<TabPanel>` children (panels optional). */
+  /** The strip's contents, as config-only elements `Tabs` reads (they render
+   *  nothing themselves): one `<Tab value="…" label="…">` per tab, and optionally a
+   *  `<TabPanel value="…">` whose `value` matches a tab — `Tabs` then shows that
+   *  panel's body when its tab is active. Omit the panels to use `Tabs` as a bare
+   *  selectable strip. Order is free; tabs and panels can interleave. */
   children?: React.ReactNode
-  /** Controlled active value. When set, the consumer owns selection: the strip follows
-   *  this and a pick only *requests* a change via `onStateChange` (reject by not
-   *  updating). Leave undefined for uncontrolled. */
+  /** Controlled active value — the `value` of the `<Tab>` to mark selected (and, when a
+   *  `<TabPanel value="…">` shares it, the panel to reveal). When set, you own selection:
+   *  the strip renders exactly what this says, and a user pick only *requests* a change
+   *  via `onStateChange` — apply it by updating this prop, reject it by leaving it
+   *  unchanged. Leave undefined (and use `defaultValue`) for uncontrolled. */
   value?: string
-  /** Initial active value for the uncontrolled case. */
+  /** Initial active value for the uncontrolled case — the `value` of the `<Tab>` selected
+   *  on first render. After that `Tabs` owns selection itself. */
   defaultValue?: string
   /** Fired whenever the active tab changes — event-first. `detail` is
    *  `{ next, prev }` (values; `null` = none). Cancelable: `event.preventDefault()`
@@ -50,7 +57,7 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
   /** Fired *after* the active tab changes — a native `change` event. */
   onChange?: (event: Event) => void
   /** Like `onChange`, but with a `{ value }` snapshot as the 2nd argument. */
-  onAnyChange?: (event: Event, attrs: TabsChangeAttrs) => void
+  onValueChange?: (event: Event, attrs: TabsChangeAttrs) => void
   /** Focus entered the strip (any tab) — wired to `focusin` (focus lands on a tab,
    *  not the tablist). */
   onFocus?: (event: FocusEvent) => void
@@ -87,11 +94,6 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
   /** Disable the whole strip. */
   disabled?: boolean
 }
-
-/** The custom property the indicator CSS reads for this strip's unique anchor-name.
- *  Typed `string` (not the literal) so the computed key bypasses TS's excess-property
- *  check on `React.CSSProperties` — the same trick `toneStyle`'s `varName` param uses. */
-const ANCHOR_VAR: string = "--tabs-anchor"
 
 /** Flatten children one fragment/array level deep into a plain list, dropping nullish
  *  / boolean nodes — portable across React & Preact (no `Children` helpers). */
@@ -145,7 +147,7 @@ export const Tabs = ({
   defaultValue,
   onStateChange,
   onChange,
-  onAnyChange,
+  onValueChange,
   onFocus,
   onBlur,
   label,
@@ -184,11 +186,6 @@ export const Tabs = ({
   const baseId = useId()
   const tabId = (v: string) => `${baseId}-tab-${v}`
   const panelId = (v: string) => `${baseId}-panel-${v}`
-  // Per-strip unique anchor-name for the sliding indicator (CSS anchor positioning).
-  // Without this, multiple strips on a page share one anchor-name and the spec's
-  // "last anchor in source order wins" rule cross-wires their indicators. useId() can
-  // contain colons (`:r0:`) — invalid in a CSS dashed-ident — so strip non-ident chars.
-  const anchorName = `--tabs-${baseId.replace(/[^\w-]/g, "")}`
 
   const items = flattenChildren(children)
   const tabs = items.filter((c) => c?.type === Tab) as { props: TabProps }[]
@@ -215,10 +212,10 @@ export const Tabs = ({
   }
 
   const onchange =
-    onChange || onAnyChange
+    onChange || onValueChange
       ? (e: Event) => {
           onChange?.(e)
-          onAnyChange?.(e, { value: (e.currentTarget as any)?.value ?? null })
+          onValueChange?.(e, { value: (e.currentTarget as any)?.value ?? null })
         }
       : undefined
 
@@ -256,9 +253,9 @@ export const Tabs = ({
         // No container → the strip is the root and carries the consumer's class/id/rest.
         class={needsContainer ? undefined : className}
         id={needsContainer ? undefined : id}
-        // --tabs-anchor is the per-strip unique anchor-name the indicator CSS reads.
-        // Computed string key (like toneStyle's) so TS doesn't excess-check the custom prop.
-        style={{ ...toneStyle(tone, "--tabs-tone-source", needsContainer ? undefined : style), [ANCHOR_VAR]: anchorName }}
+        // The sliding indicator's anchor-name is a fixed `--tabs-active`, isolated per strip
+        // by `anchor-scope: all` (a-tabs.css) — so no per-strip unique name is needed here.
+        style={toneStyle(tone, "--tabs-tone-source", needsContainer ? undefined : style)}
         {...(needsContainer ? {} : rest)}
       >
         {tabs.map((t) => {

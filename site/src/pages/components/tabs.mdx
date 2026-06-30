@@ -27,6 +27,12 @@ hide the content too.
   layout="side"
   panelHeight={420}
   initialCode={tabsDemoCode}
+  initialCss={`a-tabpanel {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--border-4);
+  border-radius: 8px;
+}`}
 />
 
 </Disclosure>
@@ -169,9 +175,9 @@ panel sits beside the strip. The arrow keys follow the axis — `←`/`→` when
 
 ## Icons & content
 
-A `<Tab>` takes a leading **`icon`** and a trailing **`iconTrailing`**. Its content is
-otherwise arbitrary — pass **children** instead of `label` to add more than text, like a
-[`<Tag>`](/components/tag/) counter:
+A `<Tab>` takes a leading **`icon`** and a trailing **`iconTrailing`** — here the trailing
+dot flags an unsaved file. Its content is otherwise arbitrary: pass **children** instead of
+`label` to add more than text, like a [`<Tag>`](/components/tag/) counter.
 
 <Columns>
 <Col>
@@ -184,10 +190,10 @@ otherwise arbitrary — pass **children** instead of `label` to add more than te
 <Col>
 
 ```tsx folded
-<Tabs defaultValue="inbox" label="Mailbox">
-  <Tab value="inbox" icon="chat">Inbox <Tag size="small" value="12" /></Tab>
-  <Tab value="drafts" label="Drafts" icon="file" />
-  <Tab value="docs" label="Docs" iconTrailing="external-link" />
+<Tabs defaultValue="app" label="Open files">
+  <Tab value="app" icon="braces">app.tsx <Tag size="small" nocaps value="2" /></Tab>
+  <Tab value="readme" label="README.md" icon="file" />
+  <Tab value="styles" icon="file" iconTrailing="circle-small-solid">styles.css</Tab>
 </Tabs>
 ```
 
@@ -261,7 +267,7 @@ them. Panel content is arbitrary React — forms, charts, whatever — so it ren
 normally.
 
 Panels are **optional**. With none, `Tabs` is just the strip: listen to
-`onStateChange` / `onAnyChange` and render whatever you like yourself.
+`onStateChange` / `onValueChange` and render whatever you like yourself.
 
 </Col>
 </Columns>
@@ -295,8 +301,17 @@ adjacency isn't required for correctness.
 
 ### Mounting
 
-<Columns>
-<Col>
+`mounting` controls what happens to **inactive** panels. Set it on `Tabs` for all
+panels, or on a single `<TabPanel>` to override one.
+
+- **`display`** (default) — every panel is mounted; inactive ones hide via
+  `display:none`. Preserves their DOM/form state, and a hidden panel correctly
+  leaves the tab order + a11y tree.
+- **`visibility`** — same, but hidden via `visibility:hidden`, so each panel keeps
+  its layout box (useful to avoid reflow or to measure).
+- **`active`** — only the active panel is rendered; React unmounts the others
+  (resets their state on switch; defers expensive subtrees).
+- **`lazy`** — a panel mounts on first activation, then stays mounted+hidden.
 
 ```tsx folded
 {/* default — every panel mounted, inactive ones display:none */}
@@ -313,24 +328,6 @@ adjacency isn't required for correctness.
 <TabPanel value="b" mounting="lazy"><Heavy /></TabPanel>
 ```
 
-</Col>
-<Col>
-
-`mounting` controls what happens to **inactive** panels. Set it on `Tabs` for all
-panels, or on a single `<TabPanel>` to override one.
-
-- **`display`** (default) — every panel is mounted; inactive ones hide via
-  `display:none`. Preserves their DOM/form state, and a hidden panel correctly
-  leaves the tab order + a11y tree.
-- **`visibility`** — same, but hidden via `visibility:hidden`, so each panel keeps
-  its layout box (useful to avoid reflow or to measure).
-- **`active`** — only the active panel is rendered; React unmounts the others
-  (resets their state on switch; defers expensive subtrees).
-- **`lazy`** — a panel mounts on first activation, then stays mounted+hidden.
-
-</Col>
-</Columns>
-
 ## Keyboard & accessibility
 
 Every enabled tab is in the tab order — `Tab` / `Shift`+`Tab` step through them.
@@ -344,10 +341,15 @@ its tab (`aria-labelledby`) and pointed at from it (`aria-controls`).
 
 ## Controlled vs. uncontrolled
 
+The active tab is named by a single **value string** — the `value` of one of your
+`<Tab>`s. Whatever value is active, `Tabs` marks that `<Tab>` selected and reveals the
+`<TabPanel value="…">` that shares it (if any). You choose who owns that value:
+
 <Columns>
 <Col>
 
-**Uncontrolled** — pass `defaultValue` and let `Tabs` own the active tab:
+**Uncontrolled** — pass `defaultValue` (a `<Tab>`'s `value`) and let `Tabs` own the
+active tab from there:
 
 ```tsx folded
 <Tabs defaultValue="overview">
@@ -359,9 +361,10 @@ its tab (`aria-labelledby`) and pointed at from it (`aria-controls`).
 </Col>
 <Col>
 
-**Controlled** — pass `value` + `onStateChange` and own it yourself. The strip
-fires *before* applying, so accept by updating `value` and reject by doing nothing
-(or `event.preventDefault()` to veto in uncontrolled mode):
+**Controlled** — pass `value` (a `<Tab>`'s `value`) + `onStateChange` and own it
+yourself. `onStateChange` fires *before* the pick applies, so accept it by setting
+`value` to the new tab and reject it by doing nothing (or `event.preventDefault()` to
+veto in uncontrolled mode):
 
 ```tsx folded
 const [tab, setTab] = useState('overview')
@@ -383,15 +386,15 @@ Three callbacks, in firing order:
 |---|---|---|---|
 | `onStateChange(e, { next, prev })` | **before** a pick applies | ✅ | next / prev value |
 | `onChange(e)` | **after** selection applies | — | native `change` event |
-| `onAnyChange(e, { value })` | **after** selection applies | — | `{ value }` |
+| `onValueChange(e, { value })` | **after** selection applies | — | `{ value }` |
 
 Reach for **`onStateChange`** to intercept or veto a pick; for the everyday "react
-to the new value", use **`onAnyChange`**. **`onFocus` / `onBlur`** report focus
+to the new value", use **`onValueChange`**. **`onFocus` / `onBlur`** report focus
 entering and leaving the *strip* (wired to `focusin` / `focusout`, since focus
 lands on an individual tab).
 
 ```tsx folded
-<Tabs onAnyChange={(_e, { value }) => route(value)}>…</Tabs>
+<Tabs onValueChange={(_e, { value }) => route(value)}>…</Tabs>
 ```
 
 <Disclosure title="Tabs props" open>
@@ -424,53 +427,51 @@ beats `@layer anta` without `!important` — and reach for real properties
 (`border-radius`, `padding`, `background`, …), **not** the internal `--*` output tokens.
 The demo classes below (`.square-tabs`, `.glow-tabs`, …) are just hooks; swap your own.
 
-**Squarer primary** — square corners, heavier labels, a roomier track, and one
-`--edge` colour (via `light-dark()`) shared by the track's 1px border and the pill's
-crisp 1px ring (spread, no blur). The track is `<a-tabs>` and the sliding pill its
-`::before`:
+**Squarer primary** — square corners, heavier labels, a roomier track, and a single
+`light-dark()` colour on both the track's 1px border and the pill's crisp 1px ring
+(spread, no blur). The track is `<a-tabs>` and the sliding pill its `::before`:
 
 <Preview>
   <SquareTabs client:only="preact" />
   <style is:inline>{`
-    a-tabs.square-tabs { --edge: light-dark(#cfcfd6, #46464e); border: 1px solid var(--edge); border-radius: 0; padding: 4px; }
+    a-tabs.square-tabs { border: 1px solid light-dark(#cfcfd6, #46464e); border-radius: 0; padding: 4px; }
     .square-tabs a-tab { border-radius: 0; font-weight: 600; }
-    a-tabs.square-tabs::before { border-radius: 0; box-shadow: 0 0 0 1px var(--edge); }
+    a-tabs.square-tabs::before { border-radius: 0; box-shadow: 0 0 0 1px light-dark(#cfcfd6, #46464e); }
   `}</style>
 </Preview>
 
 ```css folded
-/* one --edge colour drives the track border AND the pill's 1px ring */
-a-tabs.square-tabs         { --edge: light-dark(#cfcfd6, #46464e); border: 1px solid var(--edge); border-radius: 0; padding: 4px; }
+a-tabs.square-tabs         { border: 1px solid light-dark(#cfcfd6, #46464e); border-radius: 0; padding: 4px; }
 .square-tabs a-tab         { border-radius: 0; font-weight: 600; }
-a-tabs.square-tabs::before { border-radius: 0; box-shadow: 0 0 0 1px var(--edge); }  /* 1px spread, no blur */
+a-tabs.square-tabs::before { border-radius: 0; box-shadow: 0 0 0 1px light-dark(#cfcfd6, #46464e); }  /* 1px spread, no blur */
 ```
 
-**Tertiary accent + highlight** — a thicker, recoloured underline on the selected tab
-(1px at rest → 2px active) plus a faint radial highlight in the same accent rising from
-the bottom. One `--accent` (`light-dark()`) drives both the border and the gradient. The
-active tab trims 1px of bottom padding to offset the 2px border so labels stay aligned:
+**Tertiary glowing underline** — recolour the sliding underline and add a radial highlight
+rising from it. The slider is a full-cover box whose `border-bottom` is the line, so a
+`background` gradient on it fills the tab behind the label — and because it's all one
+element, the glow **slides with the line** between tabs. No `noslide`, no separate per-tab
+background.
 
 <Preview>
   <TertiaryGlow client:only="preact" />
   <style is:inline>{`
-    .glow-tabs a-tab { border-bottom-width: 1px; }
-    .glow-tabs a-tab:state(selected) {
-      --accent: light-dark(#5f4bc3, #a78bfa);
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: 5px;
-      background: radial-gradient(80% 100% at 50% 100%, color-mix(in oklch, var(--accent) 10%, transparent), transparent 70%);
+    a-tabs.glow-tabs::before {
+      border-bottom-color: light-dark(#8067ff, #907aff);
+      background: radial-gradient(80% 100% at 50% 100%, color-mix(in oklch, light-dark(#8067ff, #907aff) 30%, transparent), transparent 70%);
     }
   `}</style>
 </Preview>
 
 ```css folded
-.glow-tabs a-tab { border-bottom-width: 1px; }              /* rest: 1px rule */
-.glow-tabs a-tab:state(selected) {
-  --accent: light-dark(#5f4bc3, #a78bfa);                   /* accent colour, per theme */
-  border-bottom: 2px solid var(--accent);                   /* active: 2px accent underline */
-  padding-bottom: 5px;                                      /* −1px, offsets the +1px border */
-  background: radial-gradient(80% 100% at 50% 100%,         /* highlight rising from the bottom */
-              color-mix(in oklch, var(--accent) 10%, transparent), transparent 70%);
+/* The class is on the <a-tabs> element itself, so target a-tabs.glow-tabs (not a descendant).
+   The tertiary slider is a full-cover box with a border-bottom line — recolour the border and
+   fill it with a gradient; both slide together. Where CSS anchor positioning isn't supported
+   there's no slider — tertiary falls back to the per-tab ::after underline (a plain line). */
+a-tabs.glow-tabs::before {
+  border-bottom-color: light-dark(#8067ff, #907aff);   /* recolour the sliding line */
+  background:                                          /* highlight rising from the line, slides with it */
+    radial-gradient(80% 100% at 50% 100%,
+      color-mix(in oklch, light-dark(#8067ff, #907aff) 30%, transparent), transparent 70%);
 }
 ```
 

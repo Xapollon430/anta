@@ -111,14 +111,15 @@ export function VerticalStrip({ priority }: { priority?: 'primary' | 'secondary'
   )
 }
 
-/** Tab content: leading icon, trailing icon, and an arbitrary child (a counter Tag). */
+/** Tab content: a leading icon, an arbitrary child (a counter Tag), and a trailing
+ *  icon used as a status dot — the editor "unsaved changes" pattern. */
 export function IconsContent() {
   useElements()
   return (
-    <Tabs defaultValue="inbox" label="Mailbox">
-      <Tab value="inbox" icon="chat">Inbox <Tag size="small" value="12" /></Tab>
-      <Tab value="drafts" label="Drafts" icon="file" />
-      <Tab value="docs" label="Docs" iconTrailing="external-link" />
+    <Tabs defaultValue="app" label="Open files">
+      <Tab value="app" icon="braces">app.tsx <Tag size="small" nocaps value="2" /></Tab>
+      <Tab value="readme" label="README.md" icon="file" />
+      <Tab value="styles" icon="file" iconTrailing="circle-small-solid">styles.css</Tab>
     </Tabs>
   )
 }
@@ -213,12 +214,13 @@ export function SquareTabs() {
   )
 }
 
-/** Styling: a tertiary strip whose selected tab gets a thicker accent underline + a
- *  radial highlight rising from the bottom. noslide so the per-tab CSS is the indicator. */
+/** Styling: a tertiary strip whose sliding underline is recoloured, thinned to 1px, and
+ *  given a glowing box-shadow — the glow rides the `::before` slider, so it slides with the
+ *  line (no noslide). */
 export function TertiaryGlow() {
   useElements()
   return (
-    <Tabs className="glow-tabs" priority="tertiary" noslide defaultValue="a" label="Sections">
+    <Tabs className="glow-tabs" priority="tertiary" defaultValue="a" label="Sections">
       <Tab value="a" label="Overview" />
       <Tab value="b" label="Activity" />
       <Tab value="c" label="Settings" />

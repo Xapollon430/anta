@@ -39,6 +39,11 @@ const PROP_ORDER: Record<string, string[]> = {
     'loading', 'disabled', 'selected',
     'href', 'target', 'children', 'className', 'style',
   ],
+  Tabs: [
+    'priority', 'tone', 'size', 'orientation', 'mounting', 'noslide', 'disabled',
+    'label', 'value', 'defaultValue',
+    'children', 'className', 'style',
+  ],
 }
 
 /** Props whose validity depends on another prop's value — the discriminated
@@ -458,23 +463,32 @@ function controlFor(p: any, root?: any): PropEntry | null {
     )
   }
 
-  // A reference to a local type alias whose definition is a boolean-ish
-  // union (e.g. `CheckboxValue = boolean | 'indeterminate'`, the type of
-  // `checked` / `defaultChecked`) — surface as a boolean toggle. The
-  // non-boolean members aren't reachable from the simple checkbox control,
-  // by design: the panel drives the binary axis.
+  // A reference to a local type alias (e.g. `TabsMounting`, `CheckboxValue`).
+  // Resolve the alias and treat it like the inline shape would have been:
+  // - a boolean-ish union (`boolean | 'indeterminate'`) → a boolean toggle (the
+  //   non-boolean members aren't reachable from the binary control, by design);
+  // - a pure string-literal union (`'display' | 'visibility' | …`) → segmented
+  //   buttons, exactly as an inline literal union written on the prop would get.
   if (t.type === 'reference' && root) {
     const target = root.children?.find((c: any) => c.name === t.name)
     const resolved = target?.type
-    if (
-      resolved?.type === 'union' &&
-      Array.isArray(resolved.types) &&
-      resolved.types.some((x: any) => x.type === 'intrinsic' && x.name === 'boolean')
-    ) {
-      return wrap(
-        { kind: 'boolean', name, description },
-        { name, kind: 'boolean' },
-      )
+    if (resolved?.type === 'union' && Array.isArray(resolved.types)) {
+      if (resolved.types.some((x: any) => x.type === 'intrinsic' && x.name === 'boolean')) {
+        return wrap(
+          { kind: 'boolean', name, description },
+          { name, kind: 'boolean' },
+        )
+      }
+      const lits = resolved.types.filter((x: any) => x.type === 'literal' && typeof x.value === 'string')
+      if (lits.length === resolved.types.length && lits.length > 0) {
+        const options = lits.map((x: any) => String(x.value))
+        const defaultValue = readDefaultValueTag(p.comment)
+        const clearable = optional && defaultValue === undefined
+        return wrap(
+          { kind: 'segmented', name, options, defaultValue, clearable, description },
+          { name, kind: 'literal-union' },
+        )
+      }
     }
   }
 
@@ -521,6 +535,12 @@ function renderComment(comment: any): string | undefined {
   const text = comment.summary
     .map((part: any) => (part.kind === 'code' ? part.text : part.text))
     .join('')
+    // TSDoc source wraps prose across lines with a `*  ` continuation indent;
+    // typedoc keeps those newlines + leading spaces in the summary. Collapse all
+    // whitespace runs to single spaces so the description reads as flowing prose —
+    // otherwise the tooltip bubble (`white-space: break-spaces`) renders the source
+    // line-breaks and indent verbatim.
+    .replace(/\s+/g, ' ')
     .trim()
   return text || undefined
 }

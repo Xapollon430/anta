@@ -1,7 +1,8 @@
 /**
  * Demo source for the Tabs playground. Kept in a sibling .ts file (not inlined in
  * the .mdx) so Astro's MDX pipeline doesn't mangle the template literal's
- * indentation — see button.demo.ts.
+ * indentation — see button.demo.ts. The panel framing lives in the playground's
+ * CSS tab (see `initialCss` in tabs.mdx).
  */
 export default `import { Tabs, Tab, TabPanel } from '@antadesign/anta'
 
