@@ -228,6 +228,19 @@ export function TertiaryGlow() {
   )
 }
 
+/** Styling: a fully-rounded "pill" primary strip — track, tabs, and the sliding pill all
+ *  at radius 999, with 4px of extra block padding on every tab for a taller capsule. */
+export function PillTabs() {
+  useElements()
+  return (
+    <Tabs className="pill-tabs" defaultValue="a" label="Sections">
+      <Tab value="a" label="Overview" />
+      <Tab value="b" label="Activity" />
+      <Tab value="c" label="Settings" />
+    </Tabs>
+  )
+}
+
 /** Styling: noslide — the highlight snaps between tabs instead of sliding. */
 export function NoSlide() {
   useElements()

@@ -17,7 +17,7 @@
  * See site/lib/sandbox/* for the moving parts.
  */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
-import { Input, Tooltip, Text, Checkbox } from '@antadesign/anta'
+import { Input, Tooltip, Text, Checkbox, Tabs, Tab as TabItem } from '@antadesign/anta'
 import { marked } from 'marked'
 import s from './Playground.module.css'
 // Monaco ships its structural CSS as ~110 separate `import './x.css'`
@@ -578,34 +578,23 @@ export default function Playground({ component, initialCode, initialCss = '', la
         )}
 
         <div class={s.panel} style={{ '--demo-panel-h': `${widgetHeight}px` } as any}>
-          <div class={s.tabs} role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'props'}
-              class={tab === 'props' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
-              onClick={() => setTab('props')}
+          <div class={s.tabs}>
+            {/* Dogfood Anta's <Tabs> as a bare selectable strip (no
+                <TabPanel>s) — the playground keeps its own panel
+                management below (the `.tabStack` grid: Props/Code share
+                a cell sized to the taller, CSS stays mounted so Monaco
+                never inits mid-typing). Controlled via `tab`. */}
+            <Tabs
+              priority="tertiary"
+              size="small"
+              label="Playground panel"
+              value={tab}
+              onStateChange={(_e, { next }) => next && setTab(next as Tab)}
             >
-              <span class={s.tabLabel}>Props</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'code'}
-              class={tab === 'code' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
-              onClick={() => setTab('code')}
-            >
-              <span class={s.tabLabel}>Code</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'css'}
-              class={tab === 'css' ? `${s.tabBtn} ${s.tabBtnActive}` : s.tabBtn}
-              onClick={() => setTab('css')}
-            >
-              <span class={s.tabLabel}>CSS</span>
-            </button>
+              <TabItem value="props" label="Props" />
+              <TabItem value="code" label="Code" />
+              <TabItem value="css" label="CSS" />
+            </Tabs>
             {/* Reset edits to props / code. CSS is intentionally
                 preserved — the user owns it independently. */}
             <a-button

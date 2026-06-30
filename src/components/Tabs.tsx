@@ -76,7 +76,9 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
    *  one-off custom tone (derived in oklch). Named tones track light/dark.
    *  @defaultValue 'neutral' */
   tone?: "neutral" | "brand" | "info" | "success" | "warning" | "critical" | (string & {})
-  /** Size — reuses Button's type scale (small 24px · medium 28px · large 32px tall).
+  /** Size — small 22px · medium 26px · large 30px tall. The font scale tracks Button's
+   *  (13/15/17), but the label leading runs 2px tighter, so a tab sits 2px shorter than
+   *  the same-size button.
    *  @defaultValue 'medium' */
   size?: "small" | "medium" | "large"
   /** Layout + arrow-key axis. Horizontal ellipsizes labels when tabs overflow (scroll

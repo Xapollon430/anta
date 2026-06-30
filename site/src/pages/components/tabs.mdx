@@ -9,7 +9,7 @@ import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import tabsDemoCode from './tabs.demo.ts'
-import { Basic, Priorities, TonesColumn, Sizes, VerticalStrip, IconsContent, Overflow, ScrollTabs, WrapTabs, EqualWidth, SquareTabs, TertiaryGlow, NoSlide } from '../../components/TabsDemo'
+import { Basic, Priorities, TonesColumn, Sizes, VerticalStrip, IconsContent, Overflow, ScrollTabs, WrapTabs, EqualWidth, SquareTabs, TertiaryGlow, PillTabs, NoSlide } from '../../components/TabsDemo'
 
 # Tabs
 
@@ -535,6 +535,27 @@ where anchor positioning isn't supported.
 
 ```tsx folded
 <Tabs noslide defaultValue="a">…</Tabs>
+```
+
+**Fully-rounded pill** — round the track, every tab, and the sliding pill to `999px`, and
+give each tab a taller block padding for a capsule shape. The track is `<a-tabs>`, the
+tabs `<a-tab>`, and the moving pill its `::before` — round all three so the selection
+reads as a pill at every position (the `::before` is the visible pill; rounding only the
+tabs would leave it square):
+
+<Preview>
+  <PillTabs client:only="preact" />
+  <style is:inline>{`
+    a-tabs.pill-tabs { border-radius: 999px; }
+    .pill-tabs a-tab { border-radius: 999px; padding-block: 8px; }
+    a-tabs.pill-tabs::before { border-radius: 999px; }
+  `}</style>
+</Preview>
+
+```css folded
+a-tabs.pill-tabs         { border-radius: 999px; }
+.pill-tabs a-tab         { border-radius: 999px; padding-block: 8px; }
+a-tabs.pill-tabs::before { border-radius: 999px; }  /* the sliding pill — round it too */
 ```
 
 </Disclosure>

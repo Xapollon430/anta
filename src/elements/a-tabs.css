@@ -2,14 +2,17 @@
   a-tabs {
     /* Type scale by size — shared with Button/Input (small 13/16 · medium 15/20 ·
        large 17/24). --_pb is the optical bottom nudge for Anta's low-sitting glyphs;
-       a-tab.css consumes it. Block padding holds each tab at line-height + 8. */
+       a-tab.css consumes it. The block padding nets +8 around a full-leading label, but
+       <a-tab-label> trims its leading 2px (a-tab.css), so a tab sits at --_lh + 6 —
+       2px shorter than the same-size Button (heights 22/26/30). */
     --_fs: 15px;
     --_lh: 20px;
     --_pb: 1px;
     --tab-padding-x: 9px;
-    /* (8 − --_pb)/2 so that 2×padding + the label's --_pb = 8 exactly — the tab box
-       lands on line-height + 8 (an integer at every size). Height comes out 32 at
-       medium because the track adds 4 (2px padding + 2×1px border); see below. */
+    /* (8 − --_pb)/2 so that 2×padding + the label's --_pb = 8 exactly — i.e. the padding
+       nets +8 around a full-leading label. <a-tab-label> trims its leading 2px (a-tab.css),
+       so the tab box lands on --_lh + 6 (an integer at every size: 22/26/30). The primary
+       strip comes out 30 at medium because the track adds 4 (2px padding + 2×1px border). */
     --tab-padding-y: calc((8px - var(--_pb)) / 2);
     --tab-radius: 4px;
     --tabs-gap: 3px;

@@ -758,7 +758,9 @@ export interface ATabsAttributes extends BaseAttributes {
   /** Tone applied to the selected indicator/label, or any literal CSS color for a
    *  one-off custom tone (derived in oklch). `'neutral'` is the default. */
   tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
-  /** Size variant. small=24px, medium (default)=28px, large=32px tall (Button's scale). */
+  /** Size variant. small=22px, medium (default)=26px, large=30px tall — the font scale
+   *  tracks Button's (13/15/17), but the label leading runs 2px tighter so each tab
+   *  sits 2px shorter than the same-size button. */
   size?: 'small' | 'medium' | 'large'
   /** Layout + arrow-key axis. `'horizontal'` (default) ellipsizes labels when tabs
    *  overflow (scrolling is opt-in via CSS); `'vertical'` stacks them. */
