@@ -247,14 +247,18 @@
 
     position: relative;
     border-radius: 0;
-    /* +0.5px top / +3.5px bottom (medium: 4 / 7) so the strip is 32px — same as
-       primary/secondary — with the label sitting higher, leaving room above the underline.
-       The old 1px bottom-border is gone, so its +1px folds into the bottom padding here and
-       the label position is unchanged. +1.5px side padding since there's no track inset
-       around these flush tabs. */
+    /* +1.5px side padding since there's no track inset around these flush tabs. */
+    padding-inline: calc(var(--tab-padding-x) + 1.5px);
+  }
+  /* Horizontal only: the underline is at the bottom edge, so nudge the label up — +0.5px
+     top / +3.5px bottom (medium: 4 / 7) keeps the strip at 32px (same as primary/secondary)
+     with room above the underline. The old 1px bottom-border is gone, so its +1px folds into
+     the bottom padding and the label position is unchanged. Vertical tabs carry the underline
+     on the inline-end edge instead, so they keep the base symmetric block padding (no bottom
+     correction). */
+  a-tabs[priority="tertiary"]:not([orientation="vertical"]) a-tab {
     padding-top: calc(var(--tab-padding-y) + 0.5px);
     padding-bottom: calc(var(--tab-padding-y) + 3.5px);
-    padding-inline: calc(var(--tab-padding-x) + 1.5px);
   }
   /* A full-cover overlay (inset:0, pointer-events:none) whose only paint is its edge
      border: a bottom border when horizontal, swapped to the inline-end edge when vertical
