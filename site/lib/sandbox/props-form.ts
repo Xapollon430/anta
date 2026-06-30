@@ -463,32 +463,29 @@ function controlFor(p: any, root?: any): PropEntry | null {
     )
   }
 
-  // A reference to a local type alias (e.g. `TabsMounting`, `CheckboxValue`).
-  // Resolve the alias and treat it like the inline shape would have been:
-  // - a boolean-ish union (`boolean | 'indeterminate'`) → a boolean toggle (the
-  //   non-boolean members aren't reachable from the binary control, by design);
-  // - a pure string-literal union (`'display' | 'visibility' | …`) → segmented
-  //   buttons, exactly as an inline literal union written on the prop would get.
+  // A reference to a local type alias (e.g. `TabsMounting`, `CheckboxValue`). Resolve it
+  // and treat it like the inline shape would have been:
   if (t.type === 'reference' && root) {
     const target = root.children?.find((c: any) => c.name === t.name)
     const resolved = target?.type
-    if (resolved?.type === 'union' && Array.isArray(resolved.types)) {
-      if (resolved.types.some((x: any) => x.type === 'intrinsic' && x.name === 'boolean')) {
-        return wrap(
-          { kind: 'boolean', name, description },
-          { name, kind: 'boolean' },
-        )
-      }
-      const lits = resolved.types.filter((x: any) => x.type === 'literal' && typeof x.value === 'string')
-      if (lits.length === resolved.types.length && lits.length > 0) {
-        const options = lits.map((x: any) => String(x.value))
-        const defaultValue = readDefaultValueTag(p.comment)
-        const clearable = optional && defaultValue === undefined
-        return wrap(
-          { kind: 'segmented', name, options, defaultValue, clearable, description },
-          { name, kind: 'literal-union' },
-        )
-      }
+    // Boolean-ish union (`boolean | 'indeterminate'`) → a boolean toggle. Handled here, not
+    // by recursion, because the inline union path only maps `true | false` to a toggle — the
+    // non-boolean members aren't reachable from the binary control, by design.
+    if (
+      resolved?.type === 'union' &&
+      Array.isArray(resolved.types) &&
+      resolved.types.some((x: any) => x.type === 'intrinsic' && x.name === 'boolean')
+    ) {
+      return wrap({ kind: 'boolean', name, description }, { name, kind: 'boolean' })
+    }
+    // Any other alias → run its underlying type back through controlFor, so an aliased
+    // union behaves EXACTLY like the same union written inline (segmented buttons for string
+    // literals, a number input for number literals, a text input for an open-string union,
+    // …) rather than re-implementing a subset of the arms here and silently dropping the
+    // rest. Recursion terminates: an alias-of-alias re-enters this branch and resolves again.
+    if (resolved) {
+      const viaAlias = controlFor({ ...p, type: resolved }, root)
+      if (viaAlias) return viaAlias
     }
   }
 
@@ -533,7 +530,7 @@ function renderType(type: any): string {
 function renderComment(comment: any): string | undefined {
   if (!comment?.summary) return undefined
   const text = comment.summary
-    .map((part: any) => (part.kind === 'code' ? part.text : part.text))
+    .map((part: any) => part.text)
     .join('')
     // TSDoc source wraps prose across lines with a `*  ` continuation indent;
     // typedoc keeps those newlines + leading spaces in the summary. Collapse all

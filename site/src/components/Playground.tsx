@@ -811,6 +811,20 @@ function visibleControls(
   })
 }
 
+/** Inline-markdown → HTML, cached by source string. Prop descriptions come from
+ *  build-time api.json (constant for the page's life) and FieldName renders on every
+ *  editor keystroke (FormField isn't memoized, `code` is a dep), so without this every
+ *  visible control re-parses its static description through `marked` on each keypress. */
+const mdInlineCache = new Map<string, string>()
+function parseInlineCached(md: string): string {
+  let html = mdInlineCache.get(md)
+  if (html === undefined) {
+    html = marked.parseInline(md) as string
+    mdInlineCache.set(md, html)
+  }
+  return html
+}
+
 /** A prop-control label: the prop name plus, when it has TSDoc, a hover
  *  `<Tooltip>` rendering the description (inline markdown — our own build-time
  *  api.json, so the HTML is trusted). Shared by every control kind so the
@@ -828,7 +842,7 @@ function FieldName({ name, description, suffix }: {
       {description ? (
         <Tooltip>
           <Text size="small">
-            <span dangerouslySetInnerHTML={{ __html: marked.parseInline(description) as string }} />
+            <span dangerouslySetInnerHTML={{ __html: parseInlineCached(description) }} />
           </Text>
         </Tooltip>
       ) : null}

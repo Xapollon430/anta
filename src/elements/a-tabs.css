@@ -317,17 +317,20 @@
      which the browser slides + resizes between tabs as :state(selected) moves — no JS,
      no DOM mutation. Every strip uses the SAME anchor-name (`--tabs-active`); they don't
      cross-wire because `anchor-scope: all` (below) scopes the name to each strip's own
-     subtree. Opt out with the `noslide` attribute. The whole block is gated on @supports,
-     so browsers without anchor positioning fall back to the per-tab :state(selected)
-     highlight defined above. ──────────────────────────────────────────────────────── */
-  @supports (anchor-name: --x) {
+     subtree. Opt out with the `noslide` attribute.
+
+     The block is gated on @supports (anchor-scope) — NOT just (anchor-name) — on purpose:
+     `anchor-scope` is what isolates strips that share `--tabs-active`. An engine with
+     anchor positioning but no anchor-scope (the narrow Chrome ~125-130 window) would let
+     the shared name cross-wire every strip's indicator to the last strip's selected tab,
+     so we keep the slider off there and fall back to the per-tab :state(selected) paint
+     above (correct selection, just no slide) — the same fallback as no-anchor browsers. */
+  @supports (anchor-scope: all) {
     a-tabs:not([noslide]) {
       position: relative;
       /* Scope the anchor-name to this strip's own subtree, so multiple strips on a page
          can all use `--tabs-active` without the spec's "last anchor in source order wins"
-         rule cross-wiring their indicators. Where `anchor-scope` isn't supported yet (the
-         narrow window of anchor positioning without it), strips would share the name — only
-         the slide animation mis-tracks, never correctness. */
+         rule cross-wiring their indicators. */
       anchor-scope: all;
     }
     /* Tabs sit above the indicator (labels read over the pill); the selected tab is the
