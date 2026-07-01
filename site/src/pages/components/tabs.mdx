@@ -32,6 +32,11 @@ hide the content too.
   padding: 16px;
   border: 1px solid var(--border-4);
   border-radius: 8px;
+}
+
+/* When the strip is tertiary, pull the panel up 1px so it meets the underline. */
+a-tabs[priority="tertiary"] ~ a-tabpanel {
+  margin-top: -1px;
 }`}
 />
 
@@ -242,6 +247,7 @@ tabs above to see it.
 <Preview>
   <Basic client:only="preact" />
   <style is:inline>{`
+    .panels-demo { width: 100%; }
     .panels-demo > a-tabs { align-self: center; }
   `}</style>
 </Preview>

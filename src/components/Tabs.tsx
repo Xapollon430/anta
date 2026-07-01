@@ -67,9 +67,9 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
   label?: string
   /** Visual priority. `primary` is the raised pill on a recessed track (the
    *  segmented-control look); `secondary` keeps that sizing but drops the track, marking
-   *  the selected tab with a subtle active background fill; `tertiary` is an underline
-   *  indicator with flush tabs. `tone` colours `secondary` + `tertiary`; `primary`
-   *  stays neutral.
+   *  the selected tab with a subtle active background fill; `tertiary` is a bottom-underline
+   *  indicator under the selected tab (no track, no rest line). `tone` colours `secondary` +
+   *  `tertiary`; `primary` stays neutral.
    *  @defaultValue 'primary' */
   priority?: "primary" | "secondary" | "tertiary"
   /** Tone applied to the selected indicator/label, or any literal CSS color for a
@@ -257,7 +257,9 @@ export const Tabs = ({
         id={needsContainer ? undefined : id}
         // The sliding indicator's anchor-name is a fixed `--tabs-active`, isolated per strip
         // by `anchor-scope: all` (a-tabs.css) — so no per-strip unique name is needed here.
-        style={toneStyle(tone, "--tabs-tone-source", needsContainer ? undefined : style)}
+        // `style` always lands on <a-tabs> — you style the strip, even when a container wraps
+        // the panels; `class` / `id` / `rest` go on that container root instead (below).
+        style={toneStyle(tone, "--tabs-tone-source", style)}
         {...(needsContainer ? {} : rest)}
       >
         {tabs.map((t) => {
@@ -297,7 +299,6 @@ export const Tabs = ({
     <div
       className={className ? `${styles.container} ${className}` : styles.container}
       data-orientation={vertical ? "vertical" : undefined}
-      style={style}
       id={id}
       {...rest}
     >

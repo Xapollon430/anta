@@ -25,16 +25,14 @@ const col = { display: 'flex', flexDirection: 'column' as const, gap: '20px', al
 // Fixed panel box so switching tabs doesn't reflow the preview (panels differ in length):
 // a stable min-height, and width:100% so the panel fills the strip's width every time.
 const panel = { margin: 0, paddingTop: '4px', minHeight: '48px', width: '100%', boxSizing: 'border-box' as const }
-// `fill` makes the Tabs container span the preview so the panel region has a stable width
-// (otherwise it hugs the active panel's content and the layout jumps on switch).
-const fill = { width: '100%' }
-
-/** Core API: a strip with panels that switch. The strip is centred (`.panels-demo a-tabs`)
- *  and the panels fill the full width, so switching tabs never reflows the preview. */
+/** Core API: a strip with panels that switch. The `.panels-demo` container spans the preview
+ *  (`width:100%` in the mdx style block — `style` now lands on `<a-tabs>`, so container sizing
+ *  goes through the class) so the panel region has a stable width, the strip is centred
+ *  (`.panels-demo > a-tabs`), and the panels fill the full width — switching tabs never reflows. */
 export function Basic() {
   useElements()
   return (
-    <Tabs className="panels-demo" style={fill} defaultValue="account" label="Settings">
+    <Tabs className="panels-demo" defaultValue="account" label="Settings">
       <Tab value="account" label="Account" icon="home" />
       <Tab value="security" label="Security" />
       <Tab value="billing" label="Billing" />

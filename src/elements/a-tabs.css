@@ -28,10 +28,8 @@
     --tab-fg-rest: var(--text-3);
     --tab-fg-hover: var(--text-1);
     --tab-selected-text: var(--text-1);
-    /* Tertiary uses softer steps: --text-2 selected label, --border-5 rest divider
-       (toned variants set per tone below). */
+    /* Tertiary's hover label uses a softer --text-2 step (toned variants set per tone below). */
     --tab-text-2: var(--text-2);
-    --tab-divider: var(--border-5);
 
     /* Primary track (recessed well) — a faint 6% overlay (Button's neutral tertiary
        hue; dark value below). The raised pill is --bg-1 (theme-aware), like the docs
@@ -44,13 +42,13 @@
     --tab-pill-shadow: 0 0 3px 0 var(--border-3);
 
     /* Secondary's selected fill + ring. The fill is a fainter overlay than the primary
-       track (3% light / 6% dark; toned + dark values below). The ring is a 1px INSET
-       outline one border-step DARKER than the primary track border — `--border-3` vs the
-       track's `--border-4`; both theme-aware, so it reads darker in light and lighter in
-       dark. Drawn inside the tab box (no outward bleed / clipping). */
+       track (3% light / 6% dark; toned + dark values below). The ring is a 1px outline one
+       border-step DARKER than the primary track border — `--border-3` vs the track's
+       `--border-4`; both theme-aware, so it reads darker in light and lighter in dark. A
+       non-inset shadow (spread 1px, no blur), so it sits just outside the tab box. */
     --tab-secondary-bg: color-mix(in oklch, #44374b 3%, transparent);
     --tab-secondary-border: var(--border-3);
-    --tab-secondary-shadow: inset 0 0 0px 1px var(--tab-secondary-border);
+    --tab-secondary-shadow: 0 0 0px 1px var(--tab-secondary-border);
 
     display: flex;
     flex-direction: row;
@@ -103,31 +101,31 @@
   a-tabs[tone="brand"] {
     --tabs-tone-source: #5f4bc3;
     --tab-selected-text: var(--text-1-brand); --tab-text-2: var(--text-2-brand);
-    --tab-rest-tone: var(--text-3-brand); --tab-divider: var(--border-5-brand);
+    --tab-rest-tone: var(--text-3-brand);
     --tabs-track-border: var(--border-4-brand); --tab-secondary-border: var(--border-3-brand);
   }
   a-tabs[tone="info"] {
     --tabs-tone-source: #1f6eb2;
     --tab-selected-text: var(--text-1-info); --tab-text-2: var(--text-2-info);
-    --tab-rest-tone: var(--text-3-info); --tab-divider: var(--border-5-info);
+    --tab-rest-tone: var(--text-3-info);
     --tabs-track-border: var(--border-4-info); --tab-secondary-border: var(--border-3-info);
   }
   a-tabs[tone="success"] {
     --tabs-tone-source: #2a7e43;
     --tab-selected-text: var(--text-1-success); --tab-text-2: var(--text-2-success);
-    --tab-rest-tone: var(--text-3-success); --tab-divider: var(--border-5-success);
+    --tab-rest-tone: var(--text-3-success);
     --tabs-track-border: var(--border-4-success); --tab-secondary-border: var(--border-3-success);
   }
   a-tabs[tone="warning"] {
     --tabs-tone-source: #c37416;
     --tab-selected-text: var(--text-1-warning); --tab-text-2: var(--text-2-warning);
-    --tab-rest-tone: var(--text-3-warning); --tab-divider: var(--border-5-warning);
+    --tab-rest-tone: var(--text-3-warning);
     --tabs-track-border: var(--border-4-warning); --tab-secondary-border: var(--border-3-warning);
   }
   a-tabs[tone="critical"] {
     --tabs-tone-source: #c9302c;
     --tab-selected-text: var(--text-1-critical); --tab-text-2: var(--text-2-critical);
-    --tab-rest-tone: var(--text-3-critical); --tab-divider: var(--border-5-critical);
+    --tab-rest-tone: var(--text-3-critical);
     --tabs-track-border: var(--border-4-critical); --tab-secondary-border: var(--border-3-critical);
   }
 
@@ -158,7 +156,6 @@
     --tab-selected-text: oklch(from var(--tabs-tone-source) 0.38 0.13 h);
     --tab-text-2: oklch(from var(--tabs-tone-source) 0.45 0.13 h);
     --tab-rest-tone: oklch(from var(--tabs-tone-source) 0.45 0.13 h);
-    --tab-divider: oklch(from var(--tabs-tone-source) 0.94 0.03 h);
     --tabs-track-border: oklch(from var(--tabs-tone-source) 0.9 0.047 h);
     --tab-secondary-border: oklch(from var(--tabs-tone-source) 0.87 0.065 h);
   }
@@ -231,37 +228,37 @@
     box-shadow: var(--tab-secondary-shadow);
   }
 
-  /* ── Tertiary: flush tabs (no gap) each carrying its OWN underline — the --tab-divider
-     (border-5 / border-5-<tone>) at 1px when at rest, thickening to a 2px --tab-selected-text
-     accent on the selected tab. The underline is an absolutely-positioned ::after OVERLAY
+  /* ── Tertiary: no track and NO rest underline — only the SELECTED tab is marked, with a 1px
+     --tab-selected-text underline. The underline is an absolutely-positioned ::after OVERLAY
      pinned to the edge (bottom when horizontal, inline-end when vertical) — NOT an in-flow
-     border — so the rest→active weight change costs no layout (no border-width / padding
-     juggling to keep labels aligned). Its size + colour ride --tab-underline-size /
-     --tab-underline-color so one ::after rule serves rest, active, both orientations, and the
-     slide-mode revert below. The SELECTED label uses the high-contrast --tab-selected-text
-     (text-1 tone); hover is the softer --tab-text-2 step. Flush so the per-tab underlines join
-     into one continuous line; no track, so there's nothing to overlap. */
+     border — so it overlays the tab edge without affecting layout. --tab-underline-color is
+     transparent at rest and the --tab-selected-text accent when selected; one ::after rule
+     (sized by --tab-underline-size) serves rest, active, both orientations, and the slide-mode
+     revert below. The SELECTED label uses the high-contrast --tab-selected-text (text-1 tone);
+     hover is the softer --tab-text-2 step. Tertiary keeps the base 3px gap, a 2px inline inset
+     on the strip, and (horizontal) +2px block padding per tab, so its labels line up 1:1 with
+     the boxed priorities and a horizontal strip matches their 30px height. */
   a-tabs[priority="tertiary"] {
-    --tabs-gap: 0;
+    /* 2px inline inset mirrors the horizontal half of the track primary/secondary get (0.5px
+       border + 1.5px padding), so a label sits at the same horizontal position across
+       priorities. No block padding on the strip, so the tertiary underline sits at its bottom
+       edge; the per-tab +2px block padding below brings a horizontal strip to the boxed 30px. */
+    padding-inline: 2px;
   }
   a-tabs[priority="tertiary"] a-tab {
     --tab-underline-size: 1px;
-    --tab-underline-color: var(--tab-divider);
+    --tab-underline-color: transparent;
 
     position: relative;
     border-radius: 0;
-    /* +1.5px side padding since there's no track inset around these flush tabs. */
-    padding-inline: calc(var(--tab-padding-x) + 1.5px);
   }
-  /* Horizontal only: the underline is at the bottom edge, so nudge the label up — +0.5px
-     top / +3.5px bottom (medium: 4 / 7) keeps the strip at 32px (same as primary/secondary)
-     with room above the underline. The old 1px bottom-border is gone, so its +1px folds into
-     the bottom padding and the label position is unchanged. Vertical tabs carry the underline
-     on the inline-end edge instead, so they keep the base symmetric block padding (no bottom
-     correction). */
+  /* Horizontal only: +2px block padding per tab so the single-row strip is 30px tall — matching
+     primary/secondary (which gain 4px from their track) — with the label centred at the same
+     height (15px). The strip itself has no block padding, so the underline still sits at its
+     bottom edge. (Vertical stacks tabs, so per-tab block padding would over-inflate it; it keeps
+     the base symmetric padding and reads a touch shorter than the boxed priorities.) */
   a-tabs[priority="tertiary"]:not([orientation="vertical"]) a-tab {
-    padding-top: calc(var(--tab-padding-y) + 0.5px);
-    padding-bottom: calc(var(--tab-padding-y) + 3.5px);
+    padding-block: calc(var(--tab-padding-y) + 2px);
   }
   /* A full-cover overlay (inset:0, pointer-events:none) whose only paint is its edge
      border: a bottom border when horizontal, swapped to the inline-end edge when vertical
@@ -290,7 +287,7 @@
   }
   a-tabs[priority="tertiary"] a-tab:state(selected) {
     --tab-fg: var(--tab-selected-text);
-    --tab-underline-size: 2px;
+    --tab-underline-size: 1px;
     --tab-underline-color: var(--tab-selected-text);
   }
 
@@ -393,25 +390,23 @@
       box-shadow: var(--tab-secondary-shadow);
     }
     /* Tertiary: the slider is the same full-cover box as primary/secondary (it inherits the
-       anchor edges above), but its only paint is a 2px bottom border — so it reads as a
+       anchor edges above), but its only paint is a 1px bottom border — so it reads as a
        sliding underline, consistent with the per-tab ::after, while the full-cover box can
        also carry a sliding background glow (see the docs Styling example). z-index 2 so the
-       line tracks visibly over the per-tab rest dividers as it moves; the selected tab's own
-       ::after reverts to the 1px rest divider (resetting the shared vars, both orientations)
-       so the destination tab doesn't pre-paint its accent and the slider stays the sole
-       indicator. */
+       line sits above the tabs as it moves; the selected tab's own ::after stays transparent
+       (both orientations) so only the slider paints the accent. */
     a-tabs:not([noslide])[priority="tertiary"] a-tab:state(selected) {
       --tab-underline-size: 1px;
-      --tab-underline-color: var(--tab-divider);
+      --tab-underline-color: transparent;
     }
     a-tabs:not([noslide])[priority="tertiary"]::before {
       z-index: 2;
-      border-bottom: 2px solid var(--tab-selected-text);
+      border-bottom: 1px solid var(--tab-selected-text);
     }
-    /* Vertical tertiary: the border moves to the inline-end edge — a 2px vertical bar. */
+    /* Vertical tertiary: the border moves to the inline-end edge — a 1px vertical bar. */
     a-tabs[orientation="vertical"]:not([noslide])[priority="tertiary"]::before {
       border-bottom: 0;
-      border-inline-end: 2px solid var(--tab-selected-text);
+      border-inline-end: 1px solid var(--tab-selected-text);
     }
   }
 
@@ -444,7 +439,6 @@
     --tab-selected-text: oklch(from var(--tabs-tone-source) 0.83 0.1 h);
     --tab-text-2: oklch(from var(--tabs-tone-source) 0.76 0.11 h);
     --tab-rest-tone: oklch(from var(--tabs-tone-source) 0.76 0.11 h);
-    --tab-divider: oklch(from var(--tabs-tone-source) 0.21 0.045 h);
     --tabs-track-border: oklch(from var(--tabs-tone-source) 0.25 0.057 h);
     --tab-secondary-border: oklch(from var(--tabs-tone-source) 0.33 0.087 h);
   }

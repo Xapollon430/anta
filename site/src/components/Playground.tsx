@@ -586,7 +586,6 @@ export default function Playground({ component, initialCode, initialCss = '', la
                 never inits mid-typing). Controlled via `tab`. */}
             <Tabs
               priority="tertiary"
-              size="small"
               label="Playground panel"
               value={tab}
               onStateChange={(_e, { next }) => next && setTab(next as Tab)}
@@ -854,17 +853,13 @@ function FormField({
   onChange: (v: string | number | boolean | null) => void
 }) {
   const c = entry.control
-  // `children` doesn't live in the attribute list — read the JSX
-  // element's body content instead. `style-css` stores a JSX object
-  // literal in source, so we can't recover the original CSS string
-  // without a back-parser; leave the input empty in that case (the
-  // user always sees a blank field, edits flow forward only).
+  // `children` doesn't live in the attribute list — read the JSX element's body
+  // content instead. Everything else (including `style`, whose JSX object literal
+  // `readProp` parses back into a CSS-declarations string) reads from the tag.
   let read: ReturnType<typeof readProp>
   if (entry.prop.kind === 'children') {
     const body = readChildren(code, componentName, range)
     read = body !== undefined ? { kind: 'literal', value: body } : undefined
-  } else if (entry.prop.kind === 'style-css') {
-    read = undefined
   } else {
     read = readProp(code, componentName, entry.prop, range)
   }
@@ -880,8 +875,16 @@ function FormField({
   // changes externally — a Monaco edit, a Reset, or the throttled flush
   // landing the value we just set (a same-value set, so Preact skips
   // the re-render and there's no feedback loop).
+  //
+  // …except while the field is focused: the `style` control's CSS-string ↔
+  // object-literal round-trip re-formats (so the flushed value differs from the
+  // keystrokes, and a partial declaration parses to nothing), which would clobber
+  // in-flight typing. `focusedRef` (set by the text field's focusin/focusout, below)
+  // suppresses the sync while typing; on blur the next parse re-syncs the canonical
+  // value. Other controls round-trip identically, so the guard is a no-op there.
   const [value, setValue] = useState<string | number | boolean | undefined>(current)
-  useEffect(() => { setValue(current) }, [current])
+  const focusedRef = useRef(false)
+  useEffect(() => { if (!focusedRef.current) setValue(current) }, [current])
   const handle = (v: string | number | boolean | null) => {
     setValue(v == null ? undefined : v)
     onChange(v)
@@ -922,8 +925,14 @@ function FormField({
     // `children` and ReactNode (`expression`) props hold JSX/markup, not a short
     // value — give them an auto-growing, monospace, code-style field.
     const code = entry.prop.kind === 'children' || entry.prop.kind === 'expression'
+    // focusin/focusout bubble from the inner <input>, so we can track focus on the
+    // wrapper without threading handlers through <Input>. See `focusedRef` above.
     return (
-      <div class={s.field}>
+      <div
+        class={s.field}
+        onfocusin={() => { focusedRef.current = true }}
+        onfocusout={() => { focusedRef.current = false }}
+      >
         <FieldControl
           control={c}
           value={value}

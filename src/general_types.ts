@@ -752,8 +752,8 @@ export interface ATabsAttributes extends BaseAttributes {
   'default-state'?: string
   /** Visual priority. `primary` (default) is the raised pill on a recessed track; `secondary`
    *  keeps that sizing but drops the track (selected = subtle active background fill, no
-   *  border); `tertiary` is a flush border-bottom underline. `tone` tints secondary +
-   *  tertiary; primary stays neutral. */
+   *  border); `tertiary` is a bottom-underline under the selected tab only (no track, no rest
+   *  line). `tone` tints secondary + tertiary; primary stays neutral. */
   priority?: 'primary' | 'secondary' | 'tertiary'
   /** Tone applied to the selected indicator/label, or any literal CSS color for a
    *  one-off custom tone (derived in oklch). `'neutral'` is the default. */

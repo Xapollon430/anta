@@ -212,11 +212,9 @@
 /* Header row holding the Anta <Tabs> control (Props / Code / CSS) on
    the left and the reset button on the right. The bottom border
    matches `.previewHeader` so the two halves of the playground align.
-   No padding of its own — the tertiary strip is bottom-aligned and
-   carries its own inset, so its per-tab underline lands directly on
-   the row border, the active tab's accent reading as a thickening of
-   that line (the way the old hand-rolled strip drew its underline over
-   the strip border). */
+   The strip is bottom-aligned and pulled down 1px (see below) so its
+   per-tab underline overlaps the row border — the active tab's accent
+   reads as a thickening of that line. */
 .tabs {
   display: flex;
   align-items: flex-end;
@@ -233,6 +231,9 @@
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  /* Full-width axis (a-tab defaults to the condensed "wdth" 88) so the labels
+     match the PREVIEW header's normal-width type. */
+  font-variation-settings: "wdth" 100, "slnt" 0, "ital" 0;
 }
 
 /* Roomier tabs — wider inline padding than the small default so the
@@ -240,6 +241,15 @@
    generous strip. */
 .tabs a-tab {
   padding-inline: 12px;
+}
+
+/* Flush tabs (no gap). 1px top padding plus a -1px bottom margin shift the
+   strip down so its per-tab underline sits over the row's bottom border
+   rather than just above it. */
+.tabs a-tabs {
+  gap: 0;
+  padding-top: 1px;
+  margin-bottom: -1px;
 }
 
 /* Reset control — a quaternary <a-button> (no bg/border) holding the
