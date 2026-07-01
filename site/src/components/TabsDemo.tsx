@@ -81,6 +81,20 @@ export function TonesColumn({ priority }: { priority?: 'primary' | 'secondary' |
   )
 }
 
+/** Per-tab tone: a neutral strip where individual tabs override the tone (success /
+ *  warning / critical), colouring their label + icon and — when active — their indicator. */
+export function PerTabTone() {
+  useElements()
+  return (
+    <Tabs defaultValue="overview" label="Review queue">
+      <Tab value="overview" label="Overview" />
+      <Tab value="approved" label="Approved" icon="circle-check" tone="success" />
+      <Tab value="flagged" label="Flagged" tone="warning" />
+      <Tab value="rejected" label="Rejected" tone="critical" />
+    </Tabs>
+  )
+}
+
 export function Sizes() {
   useElements()
   const row = (

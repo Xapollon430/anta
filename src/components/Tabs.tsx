@@ -76,9 +76,8 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
    *  one-off custom tone (derived in oklch). Named tones track light/dark.
    *  @defaultValue 'neutral' */
   tone?: "neutral" | "brand" | "info" | "success" | "warning" | "critical" | (string & {})
-  /** Size — small 22px · medium 26px · large 30px tall. The font scale tracks Button's
-   *  (13/15/17), but the label leading runs 2px tighter, so a tab sits 2px shorter than
-   *  the same-size button.
+  /** Size — small 24px · medium 28px · large 32px tall, matching Button's scale (the tab's
+   *  label leading runs a touch tighter, offset by 1px more block padding per side).
    *  @defaultValue 'medium' */
   size?: "small" | "medium" | "large"
   /** Layout + arrow-key axis. Horizontal ellipsizes labels when tabs overflow (scroll
@@ -273,6 +272,11 @@ export const Tabs = ({
               role="tab"
               value={p.value}
               id={tabId(p.value)}
+              // Per-tab tone override: named/custom pass the attribute (CSS keys off it),
+              // and a custom literal colour also needs --tabs-tone-source on the tab (toneStyle
+              // sets it for non-named values, returns undefined otherwise).
+              tone={p.tone && p.tone !== "neutral" ? p.tone : undefined}
+              style={toneStyle(p.tone, "--tabs-tone-source", undefined)}
               aria-controls={hasPanel ? panelId(p.value) : undefined}
               aria-disabled={tabDisabled ? "true" : undefined}
               // Every enabled tab is its own tab stop (not a roving single stop) — Tab

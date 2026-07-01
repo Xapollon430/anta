@@ -108,6 +108,11 @@ export default function Playground({ component, initialCode, initialCss = '', la
   const [monoFontFamily, setMonoFontFamily] = useState<string>('')
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const iframeReadyRef = useRef(false)
+  // True once a render has thrown (runtime error). A thrown render can leave
+  // Preact's bookkeeping on `#root` half-committed, so the *next* successful
+  // bundle re-mounts into a fresh root (see `pushBundleToIframe`'s `resetRoot`)
+  // — that's how a fixed edit fully recovers instead of diffing broken state.
+  const renderErroredRef = useRef(false)
   const monacoRef = useRef<any>(null)
   const editorRef = useRef<any>(null)
   const cssEditorRef = useRef<any>(null)
@@ -264,7 +269,11 @@ export default function Playground({ component, initialCode, initialCss = '', la
       if (cancelled) return
       setBundleState(result)
       if (result.ok && iframeRef.current && iframeReadyRef.current) {
-        pushBundleToIframe(iframeRef.current, result.code)
+        // If the previous render threw, re-mount into a fresh root so a fixed
+        // edit recovers cleanly rather than diffing against half-committed state.
+        const resetRoot = renderErroredRef.current
+        renderErroredRef.current = false
+        pushBundleToIframe(iframeRef.current, result.code, resetRoot)
         setRuntimeError(null)
       }
     }, 200)
@@ -280,6 +289,8 @@ export default function Playground({ component, initialCode, initialCss = '', la
       if (!e.data || typeof e.data !== 'object') return
       if (e.data.__demo === 'runtime-error') {
         setRuntimeError(String(e.data.message ?? 'Unknown runtime error'))
+        // Flag so the next successful bundle re-mounts into a fresh root.
+        renderErroredRef.current = true
       } else if (e.data.__demo === 'runtime-clear') {
         setRuntimeError(null)
       } else if (e.data.__demo === 'content-height') {
@@ -1042,84 +1053,58 @@ function FieldControl({
         </label>
       )
     case 'segmented': {
-      // When no literal is set in code, fall back to the control's
-      // default so the "implicit" choice still reads as active —
-      // unlike text/number inputs, segmented buttons need a visible
-      // selection to convey state.
+      // Dogfood Anta <Tabs> (primary = segmented-control look, small) as the enum
+      // picker. Controlled via `value`; a pick requests the change through
+      // `onStateChange`, which we forward to the form. When no literal is set in
+      // code we fall back to the control's default so the implicit choice still
+      // reads as active. `clearable` adds a leading "none" tab that omits the attr.
       const selected = value !== undefined ? value : control.defaultValue
+      const active = selected === undefined ? '__none' : String(selected)
       return (
-        <div class={`${s.segment} ${cls}`} role="radiogroup" aria-label={control.name}>
-          {control.clearable && (
-            // Optional prop with no default — "none" clears the attribute
-            // so the omitted state is selectable, and stays lit while
-            // nothing else is chosen.
-            <button
-              key="__none"
-              type="button"
-              role="radio"
-              aria-checked={selected === undefined}
-              class={selected === undefined ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
-              onClick={() => onChange(null)}
-              disabled={disabled}
-            >
-              none
-            </button>
-          )}
+        <Tabs
+          className={s.segTabs}
+          priority="primary"
+          size="small"
+          label={control.name}
+          value={active}
+          disabled={disabled}
+          onStateChange={(_e, { next }) => onChange(next === '__none' ? null : next)}
+        >
+          {control.clearable && <TabItem value="__none" label="none" />}
           {control.options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              role="radio"
-              aria-checked={selected === opt}
-              class={selected === opt ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
-              onClick={() => onChange(opt)}
-              disabled={disabled}
-            >
-              {opt}
-            </button>
+            <TabItem key={opt} value={opt} label={opt} />
           ))}
-        </div>
+        </Tabs>
       )
     }
     case 'tone': {
-      // Named-tone tabs + a "Custom" tab. Mode is derived from the value:
-      // a value outside `options` (a color literal) means custom. The color
-      // picker only reflects valid hex; a hand-typed `oklch(…)` stays in the
-      // code and shows beside the picker without being overwritten.
+      // Named-tone tabs + a "custom" tab, as Anta <Tabs> (small). A value outside
+      // `options` (a colour literal) means custom → reveal the colour picker. The
+      // picker only reflects valid hex; a hand-typed `oklch(…)` stays in the code
+      // and shows beside the picker without being overwritten.
       const v = typeof value === 'string' ? value : undefined
       const selected = v ?? control.defaultValue
       const isCustom = v !== undefined && !control.options.includes(v)
       const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v ?? '') ? (v as string) : '#ff1493'
+      const active = isCustom ? 'custom' : String(selected)
       return (
         <div class={`${s.toneControl} ${cls}`}>
-          <div class={s.segment} role="radiogroup" aria-label={control.name}>
-            {control.options.map((opt) => {
-              const active = !isCustom && selected === opt
-              return (
-                <button
-                  key={opt}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  class={active ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
-                  onClick={() => onChange(opt)}
-                  disabled={disabled}
-                >
-                  {opt}
-                </button>
-              )
-            })}
-            <button
-              type="button"
-              role="radio"
-              aria-checked={isCustom}
-              class={isCustom ? `${s.segBtn} ${s.segBtnActive}` : s.segBtn}
-              onClick={() => onChange(isCustom ? (v as string) : '#ff1493')}
-              disabled={disabled}
-            >
-              custom
-            </button>
-          </div>
+          <Tabs
+            className={s.segTabs}
+            priority="primary"
+            size="small"
+            label={control.name}
+            value={active}
+            disabled={disabled}
+            onStateChange={(_e, { next }) =>
+              onChange(next === 'custom' ? (isCustom ? (v as string) : '#ff1493') : next)
+            }
+          >
+            {control.options.map((opt) => (
+              <TabItem key={opt} value={opt} label={opt} />
+            ))}
+            <TabItem value="custom" label="custom" />
+          </Tabs>
           {isCustom && (
             <div class={s.toneCustomRow}>
               <input
@@ -1357,18 +1342,33 @@ function setupIframe(iframe: HTMLIFrameElement) {
   setTimeout(report, 0)
 }
 
-function pushBundleToIframe(iframe: HTMLIFrameElement, code: string) {
+function pushBundleToIframe(iframe: HTMLIFrameElement, code: string, resetRoot = false) {
   const doc = iframe.contentDocument
   if (!doc) return
   // Remove previous user bundle.
   const prev = doc.getElementById('user-bundle')
   if (prev) prev.remove()
-  // Do NOT clear `#root` here. Preact tracks its previous render via a
-  // `_children` property on the parent DOM node; clearing innerHTML
-  // removes the visible nodes but leaves preact's bookkeeping pointing
-  // at stale references, so the next `render()` call silently does
-  // nothing. Letting preact diff in place is also the right behaviour
-  // — typical "re-render with new props" patches the existing tree.
+  // Normally we do NOT clear `#root`. Preact tracks its previous render via a
+  // `_children` property on the parent DOM node; clearing innerHTML removes the
+  // visible nodes but leaves preact's bookkeeping pointing at stale references,
+  // so the next `render()` call silently does nothing. Letting preact diff in
+  // place is also the right behaviour — typical "re-render with new props"
+  // patches the existing tree (and preserves focus / DOM state across edits).
+  //
+  // The exception is recovering from a thrown render (`resetRoot`): a render
+  // that errored can leave `_children` half-committed, so diffing against it
+  // may throw again or no-op. Swapping `#root` for a fresh, identical-but-empty
+  // node (no `_children`) makes the next `render()` a clean initial mount — so
+  // a corrected edit fully restores instead of staying broken.
+  if (resetRoot) {
+    const oldRoot = doc.getElementById('root')
+    if (oldRoot) {
+      const fresh = doc.createElement('div')
+      fresh.id = 'root'
+      fresh.className = oldRoot.className
+      oldRoot.replaceWith(fresh)
+    }
+  }
   // Clear last runtime error.
   window.postMessage({ __demo: 'runtime-clear' }, '*')
   // Append new script as a module so user-code imports resolve.

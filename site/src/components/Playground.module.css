@@ -463,20 +463,16 @@
   pointer-events: none;
 }
 
-.segment {
-  display: inline-flex;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  gap: 2px;
-  padding: 3px;
-  background: var(--bg-spot);
-  border-radius: 6px;
-  align-self: flex-start;
-  /* Tabs that don't fit the panel scroll horizontally rather than wrap or
-     push the panel wider. */
+/* Enum / tone pickers are Anta <Tabs> (primary, small). Opt into horizontal
+   scrolling so a long option set (e.g. tone) scrolls rather than ellipsizing
+   its labels or widening the panel. */
+.segTabs {
   max-width: 100%;
   overflow-x: auto;
   scrollbar-width: thin;
+}
+.segTabs a-tab {
+  flex: none;
 }
 
 /* Prop name — plain monospace value, not a copyable code pill. Inherits its
@@ -494,34 +490,6 @@
   font-family: var(--monospace);
   letter-spacing: 0;
   font-size: 12px;
-}
-
-.segBtn {
-  appearance: none;
-  border: none;
-  background: transparent;
-  font: inherit;
-  font-size: 12px;
-  color: var(--text-3);
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 150ms ease-out, color 150ms ease-out;
-}
-
-/* Hover renders the same pill affordance as the active state so the
-   tab-like control previews on hover and commits on click. The
-   default rest state stays "no selection rendered" when the prop
-   isn't yet set in code, matching the form contract. */
-.segBtn:hover,
-.segBtn:focus-visible,
-.segBtnActive,
-.segBtnActive:hover,
-.segBtnActive:focus-visible {
-  background: var(--bg-canvas);
-  color: var(--text-1);
-  box-shadow: 0 0 2px var(--border-3);
-  outline: none;
 }
 
 /* Tone control: the named/Custom tab row plus, when Custom is active, a
