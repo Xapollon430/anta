@@ -9,7 +9,7 @@ import Disclosure from '../../components/Disclosure.astro'
 import Columns from '../../components/Columns.astro'
 import Col from '../../components/Col.astro'
 import tabsDemoCode from './tabs.demo.ts'
-import { Basic, Priorities, TonesColumn, Sizes, VerticalStrip, IconsContent, Overflow, ScrollTabs, WrapTabs, EqualWidth, SquareTabs, TertiaryGlow, NoSlide } from '../../components/TabsDemo'
+import { Basic, Priorities, TonesColumn, PerTabTone, Sizes, VerticalStrip, IconsContent, Overflow, ScrollTabs, WrapTabs, EqualWidth, SquareTabs, TertiaryGlow, PillTabs, NoSlide } from '../../components/TabsDemo'
 
 # Tabs
 
@@ -32,6 +32,11 @@ hide the content too.
   padding: 16px;
   border: 1px solid var(--border-4);
   border-radius: 8px;
+}
+
+/* When the strip is tertiary, pull the panel up 1px so it meets the underline. */
+a-tabs[priority="tertiary"] ~ a-tabpanel {
+  margin-top: -1px;
 }`}
 />
 
@@ -104,6 +109,25 @@ custom colour); columns are priorities.
 ```tsx folded
 <Tabs tone="brand" priority="secondary" defaultValue="a">…</Tabs>
 <Tabs tone="#e0457b" priority="tertiary" defaultValue="a">…</Tabs>  {/* any CSS colour */}
+```
+
+**Per-tab tone.** A `tone` on an individual `<Tab>` overrides the strip's tone for that one
+tab — colouring its label + icons in every mode, and its indicator when it's the active tab.
+The six named tones colour the sliding indicator too; a custom literal colour tones the label
+everywhere and the indicator only under `noslide` (the single shared sliding element can't
+read a descendant's colour).
+
+<Preview>
+  <PerTabTone client:only="preact" />
+</Preview>
+
+```tsx folded
+<Tabs defaultValue="overview" label="Review queue">
+  <Tab value="overview" label="Overview" />
+  <Tab value="approved" label="Approved" icon="circle-check" tone="success" />
+  <Tab value="flagged" label="Flagged" tone="warning" />
+  <Tab value="rejected" label="Rejected" tone="critical" />
+</Tabs>
 ```
 
 ## Size
@@ -242,6 +266,7 @@ tabs above to see it.
 <Preview>
   <Basic client:only="preact" />
   <style is:inline>{`
+    .panels-demo { width: 100%; }
     .panels-demo > a-tabs { align-self: center; }
   `}</style>
 </Preview>
@@ -535,6 +560,27 @@ where anchor positioning isn't supported.
 
 ```tsx folded
 <Tabs noslide defaultValue="a">…</Tabs>
+```
+
+**Fully-rounded pill** — round the track, every tab, and the sliding pill to `999px`, and
+give each tab a taller block padding for a capsule shape. The track is `<a-tabs>`, the
+tabs `<a-tab>`, and the moving pill its `::before` — round all three so the selection
+reads as a pill at every position (the `::before` is the visible pill; rounding only the
+tabs would leave it square):
+
+<Preview>
+  <PillTabs client:only="preact" />
+  <style is:inline>{`
+    a-tabs.pill-tabs { border-radius: 999px; }
+    .pill-tabs a-tab { border-radius: 999px; padding-block: 8px; }
+    a-tabs.pill-tabs::before { border-radius: 999px; }
+  `}</style>
+</Preview>
+
+```css folded
+a-tabs.pill-tabs         { border-radius: 999px; }
+.pill-tabs a-tab         { border-radius: 999px; padding-block: 8px; }
+a-tabs.pill-tabs::before { border-radius: 999px; }  /* the sliding pill — round it too */
 ```
 
 </Disclosure>

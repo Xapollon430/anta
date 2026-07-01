@@ -715,6 +715,11 @@ export interface ARadioGroupAttributes extends BaseAttributes {
 export interface ATabAttributes extends BaseAttributes {
   /** This tab's identity / the value reported when it's selected. */
   value?: string
+  /** Per-tab tone override (same vocabulary as `<a-tabs tone>`): colours this tab's
+   *  label + icons and, when selected, its indicator. Named tones tone the sliding
+   *  indicator too; a custom literal colour tones the indicator only in `noslide`.
+   *  Custom tones also set `--tabs-tone-source` on the tab (via the wrapper's style). */
+  tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Selected state — connect-time seed for the standalone render path (no tablist).
    *  In an `<a-tabs>`, the tablist drives `:state(selected)` directly and this
    *  attribute is ignored. Presence-based (`''` on, omit off). */
@@ -752,13 +757,14 @@ export interface ATabsAttributes extends BaseAttributes {
   'default-state'?: string
   /** Visual priority. `primary` (default) is the raised pill on a recessed track; `secondary`
    *  keeps that sizing but drops the track (selected = subtle active background fill, no
-   *  border); `tertiary` is a flush border-bottom underline. `tone` tints secondary +
-   *  tertiary; primary stays neutral. */
+   *  border); `tertiary` is a bottom-underline under the selected tab only (no track, no rest
+   *  line). `tone` tints secondary + tertiary; primary stays neutral. */
   priority?: 'primary' | 'secondary' | 'tertiary'
   /** Tone applied to the selected indicator/label, or any literal CSS color for a
    *  one-off custom tone (derived in oklch). `'neutral'` is the default. */
   tone?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
-  /** Size variant. small=24px, medium (default)=28px, large=32px tall (Button's scale). */
+  /** Size variant. small=24px, medium (default)=28px, large=32px tall — matching Button's
+   *  scale (the label leading runs a touch tighter, offset by 1px more block padding per side). */
   size?: 'small' | 'medium' | 'large'
   /** Layout + arrow-key axis. `'horizontal'` (default) ellipsizes labels when tabs
    *  overflow (scrolling is opt-in via CSS); `'vertical'` stacks them. */
