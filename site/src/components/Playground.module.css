@@ -243,12 +243,10 @@
   padding-inline: 12px;
 }
 
-/* Flush tabs (no gap). 1px top padding plus a -1px bottom margin shift the
-   strip down so its per-tab underline sits over the row's bottom border
-   rather than just above it. */
+/* Flush tabs (no gap). A -1px bottom margin pulls the strip down so its
+   per-tab underline sits over the row's bottom border rather than just above it. */
 .tabs a-tabs {
   gap: 0;
-  padding-top: 1px;
   margin-bottom: -1px;
 }
 
