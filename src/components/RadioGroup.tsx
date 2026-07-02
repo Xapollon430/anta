@@ -38,8 +38,6 @@ export interface RadioOption {
   tone?: "brand" | "neutral" | "info" | "success" | "warning" | "critical" | (string & {})
   /** Override this one option's size (defaults to the group's `size`). */
   size?: "small" | "medium" | "large"
-  /** Override this one option's priority (defaults to the group's `priority`). */
-  priority?: "primary" | "secondary"
 }
 
 /** Public props for `<RadioGroup>` — the single-select container. */
@@ -96,12 +94,6 @@ export interface RadioGroupProps extends Omit<BaseProps, "children" | "onChange"
   /** Size applied to every option (an option's own `size` wins).
    *  @defaultValue 'medium' */
   size?: "small" | "medium" | "large"
-  /** Visual priority applied to every option (an option's own `priority` wins).
-   *  `primary` fills the selected ring with the tone colour and draws a white dot;
-   *  `secondary` keeps the ring unfilled and draws the border + dot in the tone
-   *  colour (an outlined look).
-   *  @defaultValue 'primary' */
-  priority?: "primary" | "secondary"
   /** Disable the whole group. */
   disabled?: boolean
   /** Layout + arrow-key axis.
@@ -141,7 +133,6 @@ export const RadioGroup = ({
   status,
   tone,
   size,
-  priority,
   disabled,
   orientation,
   className,
@@ -217,7 +208,6 @@ export const RadioGroup = ({
       status={status && status !== "neutral" ? status : undefined}
       tone={tone && tone !== "neutral" ? tone : undefined}
       size={size && size !== "medium" ? size : undefined}
-      priority={priority && priority !== "primary" ? priority : undefined}
       disabled={disabled ? "" : undefined}
       orientation={orientation && orientation !== "vertical" ? orientation : undefined}
       onstatechange={onstatechange}
@@ -249,7 +239,6 @@ export const RadioGroup = ({
               tabIndex={o.value === tabStopValue ? 0 : -1}
               tone={o.tone && o.tone !== "neutral" ? o.tone : undefined}
               size={o.size && o.size !== "medium" ? o.size : undefined}
-              priority={o.priority && o.priority !== "primary" ? o.priority : undefined}
               disabled={o.disabled ? "" : undefined}
               style={toneStyle(o.tone, "--radio-tone-source")}
             >

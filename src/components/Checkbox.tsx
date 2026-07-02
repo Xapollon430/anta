@@ -74,11 +74,6 @@ export interface CheckboxProps extends BaseProps {
   /** Size variant. small=14px, medium=16px, large=18px box.
    *  @defaultValue 'medium' */
   size?: 'small' | 'medium' | 'large'
-  /** Visual priority. `primary` fills the checked box with the tone colour and
-   *  draws a white checkmark; `secondary` keeps the box unfilled and draws the
-   *  border + checkmark in the tone colour (an outlined look).
-   *  @defaultValue 'primary' */
-  priority?: 'primary' | 'secondary'
   /** Fired on click / Space *before* the element applies any change. Event-first
    *  so `event.preventDefault()` is the synchronous veto (uncontrolled mode);
    *  `detail` carries `{ next, prev }`. In controlled mode the element never
@@ -116,7 +111,6 @@ export const Checkbox = ({
   disabled,
   tone,
   size,
-  priority,
   onStateChange,
   onChange,
   onValueChange,
@@ -190,7 +184,6 @@ export const Checkbox = ({
       disabled={disabled ? '' : undefined}
       tone={tone && tone !== 'neutral' ? tone : undefined}
       size={size && size !== 'medium' ? size : undefined}
-      priority={priority && priority !== 'primary' ? priority : undefined}
       tabIndex={disabled ? -1 : (tabIndex ?? 0)}
       // All-lowercase `onstatechange` is the one event-prop spelling both
       // renderers bind to our custom `statechange` event: React 19 keeps the

@@ -371,10 +371,6 @@ export interface ACheckboxAttributes extends BaseAttributes {
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size variant. `small` = 14px, `medium` (default) = 16px, `large` = 18px box. */
   size?: 'small' | 'medium' | 'large'
-  /** Visual priority. `primary` (default) fills the checked box with the tone
-   *  colour and draws a white checkmark; `secondary` keeps the box unfilled and
-   *  draws the border + checkmark in the tone colour (an outlined look). */
-  priority?: 'primary' | 'secondary'
   /** Controlled state — the element reflects changes to this attribute. Use this
    *  (driven from your store) for a controlled checkbox; use `default-state` for
    *  an uncontrolled one. */
@@ -612,10 +608,6 @@ export interface ARadioAttributes extends BaseAttributes {
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size variant. small=14px, medium=16px, large=18px control. */
   size?: 'small' | 'medium' | 'large'
-  /** Visual priority. `primary` (default) fills the selected ring with the tone
-   *  colour and draws a white dot; `secondary` keeps the ring unfilled and draws
-   *  the border + dot in the tone colour (an outlined look). */
-  priority?: 'primary' | 'secondary'
   /** Disabled state. Presence-based (`''` on, omit off). */
   disabled?: boolean | ''
   /** Selected state — connect-time seed for the standalone render path (no
@@ -662,10 +654,6 @@ export interface ARadioGroupAttributes extends BaseAttributes {
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size cascaded to children that don't set their own. */
   size?: 'small' | 'medium' | 'large'
-  /** Visual priority cascaded to children that don't set their own. `primary`
-   *  (default) fills the selected ring with the tone colour; `secondary` keeps it
-   *  unfilled and draws the border + dot in the tone colour (an outlined look). */
-  priority?: 'primary' | 'secondary'
   /** Validation/feedback tone for the group hint — same set as `<a-input>`'s
    *  `status`. Recolours `<a-radio-group-hint>`; omit for the neutral default. */
   status?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'

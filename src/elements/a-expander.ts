@@ -249,11 +249,16 @@ const SHADOW_STYLE = `
     cursor: pointer;
     user-select: none;
     border-radius: 2px;
-    outline-offset: 4px;
+    outline: none;
     font-size: ${SUMMARY_TYPE_SCALE['5'][0]}px;
     line-height: ${SUMMARY_TYPE_SCALE['5'][1]}px;
     font-weight: ${SUMMARY_FONT_WEIGHT};
     letter-spacing: 0;
+  }
+
+  button:focus-visible {
+    outline: 1px solid var(--focus-ring);
+    outline-offset: 1px;
   }
 
   ${SUMMARY_LEVEL_RULES}

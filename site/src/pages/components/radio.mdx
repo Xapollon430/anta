@@ -123,45 +123,6 @@ override just that one. Any literal CSS colour works too, for a one-off custom t
 </Col>
 </Columns>
 
-## Priority
-
-<Columns>
-<Col>
-
-<Preview>
-  <RadioGroup
-    name="prio"
-    tone="brand"
-    defaultValue="secondary"
-    options={[
-      { value: 'primary', label: 'Primary (default)' },
-      { value: 'secondary', label: 'Secondary', priority: 'secondary' },
-    ]}
-  />
-</Preview>
-
-```tsx folded
-<RadioGroup
-  tone="brand"
-  defaultValue="secondary"
-  options={[
-    { value: 'primary', label: 'Primary (default)' },
-    { value: 'secondary', label: 'Secondary', priority: 'secondary' },
-  ]}
-/>
-```
-
-</Col>
-<Col>
-
-`priority` sets how the selected ring is painted. `primary` (the default) fills
-the ring with the tone colour and centres a white dot. `secondary` leaves the ring
-unfilled and draws the border + dot in the tone colour — an outlined look. Set it
-on the `RadioGroup` for the whole set, or on a single option to override one.
-
-</Col>
-</Columns>
-
 ## Size
 
 <Columns>
@@ -438,8 +399,8 @@ individual option).
 
 Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
 tone, set on the group or a single option — derives the full curve in oklch),
-**`size`** the dimensions + type, **`priority`** the fill-vs-outline look. The focus
-ring is the global [`--focus-ring`](/colors/#focus-ring).
+**`size`** the dimensions + type. The focus ring is the global
+[`--focus-ring`](/colors/#focus-ring).
 
 ```tsx folded
 <RadioGroup tone="#e0457b" defaultValue="a" options={[{ value: 'a', label: 'A' }]} />
@@ -448,15 +409,21 @@ ring is the global [`--focus-ring`](/colors/#focus-ring).
 For anything else, `<a-radio>` is light-DOM — the **ring is `::before`**, the **dot
 is `::after`**, the label/hint are the `a-radio-label` / `a-radio-hint` children.
 Target them with ordinary CSS, **per state** (an un-layered rule beats `@layer anta`
-without `!important`). The two groups below push it — square black/white marks, and a
-bigger ring with a heart-shaped mark (the dot, masked — same heart as the checkbox):
+without `!important`). The groups below push it — an outlined (unfilled) selected
+ring, square black/white marks, and a bigger ring with a heart-shaped mark (the dot,
+masked — same heart as the checkbox):
 
 <Preview gap="32px">
+  <RadioGroup className="outlined" name="sty-ol" tone="brand" defaultValue="a"
+    options={[{ value: 'a', label: 'One' }, { value: 'b', label: 'Two' }]} />
   <RadioGroup className="square" name="sty-sq" defaultValue="a"
     options={[{ value: 'a', label: 'One' }, { value: 'b', label: 'Two' }]} />
   <RadioGroup className="heart" name="sty-ht" defaultValue="a"
     options={[{ value: 'a', label: 'One' }, { value: 'b', label: 'Two' }]} />
   <style is:inline>{`
+    a-radio-group.outlined a-radio:state(selected)::before { background: var(--radio-bg); border-color: light-dark(#5f4bc3, #7460d7); }
+    a-radio-group.outlined a-radio:state(selected)::after { background: light-dark(#5f4bc3, #7460d7); }
+
     a-radio-group.square a-radio::before,
     a-radio-group.square a-radio::after { border-radius: 0; }
     a-radio-group.square a-radio:state(selected)::before { background: light-dark(#000, #fff); border-color: light-dark(#000, #fff); }
@@ -477,6 +444,14 @@ bigger ring with a heart-shaped mark (the dot, masked — same heart as the chec
 </Preview>
 
 ```css folded
+/* Outlined — an unfilled selected ring: keep the ring background and paint the
+   border + dot in the tone colour (light-dark() tunes both themes at once). */
+a-radio-group.outlined a-radio:state(selected)::before {
+  background: var(--radio-bg);
+  border-color: light-dark(#5f4bc3, #7460d7);
+}
+a-radio-group.outlined a-radio:state(selected)::after { background: light-dark(#5f4bc3, #7460d7); }
+
 /* Square — square ring + square dot, black/white per theme via light-dark() */
 a-radio-group.square a-radio::before,
 a-radio-group.square a-radio::after { border-radius: 0; }

@@ -67,7 +67,7 @@
     font-family: var(--sans-serif);
     font-size: var(--checkbox-label-fs);
     line-height: var(--checkbox-label-lh);
-    font-feature-settings: "ss02", "ss05";
+    font-feature-settings: "ss02", "ss05", "tnum";
 
     &::before {
       content: "";
@@ -184,65 +184,12 @@
     }
   }
 
-  /* Secondary priority — outlined: the checked/indeterminate box stays unfilled
-     (keeps --checkbox-bg) and the border + glyph take the fill colour instead, so
-     a checked secondary box reads as a tinted outline with a tinted check rather
-     than a solid fill with a white check. Border + glyph follow the same
-     rest/hover/active fill curve. Disabled is left to the shared :disabled rule
-     (hence :not(:disabled) here), so a disabled secondary looks like primary. */
-  a-checkbox[priority="secondary"] {
-    &:not(:disabled):is(:state(checked), :state(indeterminate)) {
-      &::before { background: var(--checkbox-bg); border-color: var(--checkbox-fill); }
-      &::after  { background-color: var(--checkbox-fill); }
-    }
-    @media (hover: hover) and (pointer: fine) {
-      &:not(:disabled):hover:is(:state(checked), :state(indeterminate)) {
-        &::before { background: var(--checkbox-bg); border-color: var(--checkbox-fill-hover); }
-        &::after  { background-color: var(--checkbox-fill-hover); }
-      }
-    }
-    &:not(:disabled):active:is(:state(checked), :state(indeterminate)) {
-      &::before { background: var(--checkbox-bg); border-color: var(--checkbox-fill-active); }
-      &::after  { background-color: var(--checkbox-fill-active); }
-    }
-  }
-
   /* Dark: the check / minus glyph reads a touch thin on the solid fill, so nudge the
      mask up 1px across sizes (12 / 10 / 14 → 13 / 11 / 15) via the token (so a
-     consumer's --checkbox-mask-size override still wins). Secondary bumps further
-     (+2) in its own rule below. */
+     consumer's --checkbox-mask-size override still wins). */
   .dark a-checkbox { --checkbox-mask-size: 13px; }
   .dark a-checkbox[size="small"] { --checkbox-mask-size: 11px; }
   .dark a-checkbox[size="large"] { --checkbox-mask-size: 15px; }
-
-  /* Dark: an outlined box in the resting fill (the darkest shade in dark) barely
-     reads against the dark page, so anchor the secondary border + checkmark to the
-     brightest shade (--checkbox-fill-active) — keeping the checked look as legible
-     in dark as it is in light. Hover/active still respond (brightening further, the
-     dark-mode direction) so a checked secondary isn't inert. Mirrors a-radio. */
-  .dark a-checkbox[priority="secondary"] {
-    /* The outlined checkmark is a thin tone-coloured stroke (not a white glyph on a
-       solid fill), so give the glyph +2px of mask in dark for a touch more presence
-       (13 / 11 / 15 → 14 / 12 / 16), via the token. */
-    --checkbox-mask-size: 14px;
-    &[size="small"] { --checkbox-mask-size: 12px; }
-    &[size="large"] { --checkbox-mask-size: 16px; }
-
-    &:not(:disabled):is(:state(checked), :state(indeterminate)) {
-      &::before { border-color: var(--checkbox-fill-active); }
-      &::after  { background-color: var(--checkbox-fill-active); }
-    }
-    @media (hover: hover) and (pointer: fine) {
-      &:not(:disabled):hover:is(:state(checked), :state(indeterminate)) {
-        &::before { border-color: oklch(from var(--checkbox-fill-active) calc(l + 0.07) c h); }
-        &::after  { background-color: oklch(from var(--checkbox-fill-active) calc(l + 0.07) c h); }
-      }
-    }
-    &:not(:disabled):active:is(:state(checked), :state(indeterminate)) {
-      &::before { border-color: oklch(from var(--checkbox-fill-active) calc(l + 0.12) c h); }
-      &::after  { background-color: oklch(from var(--checkbox-fill-active) calc(l + 0.12) c h); }
-    }
-  }
 
   /* Label column — light-DOM styled tags. Both `display: block` so they stack in
      column 2; `min-width: 0` lets a consumer ellipsis either line. */

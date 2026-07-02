@@ -69,7 +69,7 @@
     font-family: var(--sans-serif);
     font-size: var(--radio-label-fs);
     line-height: var(--radio-label-lh);
-    font-feature-settings: "ss02", "ss05";
+    font-feature-settings: "ss02", "ss05", "tnum";
 
     &::before {
       content: "";
@@ -197,56 +197,6 @@
   a-radio-group:focus-visible a-radio:state(selected)::before {
     outline: 1px solid var(--focus-ring);
     outline-offset: 1px;
-  }
-
-  /* Secondary priority — outlined: the selected ring stays unfilled (keeps
-     --radio-bg) and the border + dot take the fill colour instead, so a selected
-     secondary radio reads as a tinted ring with a tinted dot rather than a solid
-     fill with a white dot. Border + dot follow the same rest/hover/active fill
-     curve. Disabled is left to the shared [disabled] rule (hence :not([disabled])).
-     Covers standalone radios and group-cascaded children (group sets priority; a
-     child without its own inherits it). Tracks light/dark via --radio-fill. */
-  a-radio[priority="secondary"],
-  a-radio-group[priority="secondary"] a-radio:not([priority]) {
-    &:not([disabled]):state(selected) {
-      &::before { background: var(--radio-bg); border-color: var(--radio-fill); }
-      &::after  { background: var(--radio-fill); }
-    }
-    @media (hover: hover) and (pointer: fine) {
-      &:not([disabled]):hover:state(selected) {
-        &::before { background: var(--radio-bg); border-color: var(--radio-fill-hover); }
-        &::after  { background: var(--radio-fill-hover); }
-      }
-    }
-    &:not([disabled]):active:state(selected) {
-      &::before { background: var(--radio-bg); border-color: var(--radio-fill-active); }
-      &::after  { background: var(--radio-fill-active); }
-    }
-  }
-
-  /* Dark: an outlined ring in the resting fill (the darkest shade in dark) barely
-     reads against the dark page, so anchor the secondary border + dot to the
-     brightest shade (--radio-fill-active) — keeping the selected look as legible in
-     dark as it is in light. Hover/active still respond (brightening further, the
-     dark-mode direction) so a selected secondary isn't inert. The rest rule's
-     :state(selected) also matches under hover/active and ties the light hover/active
-     rules on specificity, but the hover/active rules below (one class more) win. */
-  .dark a-radio[priority="secondary"],
-  .dark a-radio-group[priority="secondary"] a-radio:not([priority]) {
-    &:not([disabled]):state(selected) {
-      &::before { border-color: var(--radio-fill-active); }
-      &::after  { background: var(--radio-fill-active); }
-    }
-    @media (hover: hover) and (pointer: fine) {
-      &:not([disabled]):hover:state(selected) {
-        &::before { border-color: oklch(from var(--radio-fill-active) calc(l + 0.07) c h); }
-        &::after  { background: oklch(from var(--radio-fill-active) calc(l + 0.07) c h); }
-      }
-    }
-    &:not([disabled]):active:state(selected) {
-      &::before { border-color: oklch(from var(--radio-fill-active) calc(l + 0.12) c h); }
-      &::after  { background: oklch(from var(--radio-fill-active) calc(l + 0.12) c h); }
-    }
   }
 
   /* Each tone is shared by a standalone <a-radio tone> and a group-cascaded child

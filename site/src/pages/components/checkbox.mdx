@@ -56,23 +56,6 @@ tones (`neutral` default), or pass any CSS color for a custom tone.
 <Checkbox defaultChecked tone="mediumaquamarine">Custom color</Checkbox>
 ```
 
-## Priority
-
-`priority` sets how a checked box is painted. `primary` (the default) fills the
-box with the tone colour and draws a white checkmark. `secondary` leaves the box
-unfilled and draws the border + checkmark in the tone colour — an outlined look
-that sits lighter in dense lists.
-
-<Preview gap="16px">
-  <Checkbox defaultChecked tone="brand">Primary (default)</Checkbox>
-  <Checkbox defaultChecked tone="brand" priority="secondary">Secondary</Checkbox>
-</Preview>
-
-```tsx folded
-<Checkbox defaultChecked tone="brand">Primary (default)</Checkbox>
-<Checkbox defaultChecked tone="brand" priority="secondary">Secondary</Checkbox>
-```
-
 ## Size
 
 Three sizes scale the box **and** the label + hint type together: `small`
@@ -225,8 +208,7 @@ Space toggles the checkbox. Follows the [WAI-ARIA checkbox pattern](https://www.
 
 Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
 tone — it derives the full rest/hover/active curve in oklch), **`size`** the
-dimensions + type, **`priority`** the fill-vs-outline look. The focus ring is the
-global [`--focus-ring`](/colors/#focus-ring).
+dimensions + type. The focus ring is the global [`--focus-ring`](/colors/#focus-ring).
 
 ```tsx folded
 <Checkbox tone="#e0457b" defaultChecked>Custom colour</Checkbox>
@@ -239,9 +221,13 @@ Target them with plain CSS, **per state** (an un-layered rule beats `@layer anta
 without `!important`). The classes below are just for the demos:
 
 <Preview gap="20px">
+  <Checkbox className="outlined" defaultChecked>Outlined</Checkbox>
   <Checkbox className="customized" defaultChecked>Customized</Checkbox>
   <Checkbox className="beautified" defaultChecked>Beautified</Checkbox>
   <style is:inline>{`
+    a-checkbox.outlined:state(checked)::before { background: var(--checkbox-bg); border-color: light-dark(#5f4bc3, #7460d7); }
+    a-checkbox.outlined:state(checked)::after { background-color: light-dark(#5f4bc3, #7460d7); }
+
     a-checkbox.customized { font-weight: 700; }
     a-checkbox.customized::before,
     a-checkbox.customized::after { inline-size: 24px; block-size: 24px; }
@@ -257,6 +243,16 @@ without `!important`). The classes below are just for the demos:
 </Preview>
 
 ```css folded
+/* Outlined — an unfilled box: the checked box keeps its background and paints the
+   border + checkmark in the tone colour (light-dark() tunes both themes at once). */
+a-checkbox.outlined:state(checked)::before {
+  background: var(--checkbox-bg);
+  border-color: light-dark(#5f4bc3, #7460d7);
+}
+a-checkbox.outlined:state(checked)::after {
+  background-color: light-dark(#5f4bc3, #7460d7);
+}
+
 /* Customized — bold label, bigger circular box, bigger checkmark.
    Colours use light-dark() so they're tuned for both themes at once. */
 a-checkbox.customized { font-weight: 700; }
