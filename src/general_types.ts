@@ -365,16 +365,17 @@ export interface ATooltipAttributes extends BaseAttributes {
  * `@antadesign/anta`.
  */
 export interface ACheckboxAttributes extends BaseAttributes {
-  /** Colour variant, or any literal CSS color for a one-off custom tone.
-   *  Named tones track light/dark mode automatically via the theme-aware role
-   *  tokens. `'neutral'` is the default (same as omitting it). */
+  /** Mark colour (checked fill + unselected box border), or any literal CSS color
+   *  for a one-off custom tone. Named tones track light/dark mode automatically via
+   *  the theme-aware role tokens. `'neutral'` is the default (same as omitting it).
+   *  The label + hint stay neutral — use `tone-text` for those. */
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Text colour (label + hint), independent of `tone`. A named tone or any literal
+   *  CSS color; named tones track light/dark via the `--text-*` role tokens. Omit
+   *  (or `'neutral'`) to leave the text neutral. */
+  'tone-text'?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size variant. `small` = 14px, `medium` (default) = 16px, `large` = 18px box. */
   size?: 'small' | 'medium' | 'large'
-  /** Visual priority. `primary` (default) fills the checked box with the tone
-   *  colour and draws a white checkmark; `secondary` keeps the box unfilled and
-   *  draws the border + checkmark in the tone colour (an outlined look). */
-  priority?: 'primary' | 'secondary'
   /** Controlled state — the element reflects changes to this attribute. Use this
    *  (driven from your store) for a controlled checkbox; use `default-state` for
    *  an uncontrolled one. */
@@ -606,16 +607,17 @@ export interface AButtonAttributes extends BaseAttributes {
 export interface ARadioAttributes extends BaseAttributes {
   /** This option's identity / submitted value. */
   value?: string
-  /** Colour variant, or any literal CSS color for a one-off custom tone.
-   *  Named tones track light/dark mode automatically via the theme-aware role
-   *  tokens. `'neutral'` is the default (same as omitting it). */
+  /** Mark colour (selected ring fill + dot, unselected ring border), or any literal
+   *  CSS color for a one-off custom tone. Named tones track light/dark mode via the
+   *  theme-aware role tokens. `'neutral'` is the default. The label + hint stay
+   *  neutral — use `tone-text` for those. */
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Text colour (label + hint), independent of `tone`. A named tone or any literal
+   *  CSS color; named tones track light/dark via the `--text-*` role tokens. Omit
+   *  (or `'neutral'`) to leave the text neutral. */
+  'tone-text'?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size variant. small=14px, medium=16px, large=18px control. */
   size?: 'small' | 'medium' | 'large'
-  /** Visual priority. `primary` (default) fills the selected ring with the tone
-   *  colour and draws a white dot; `secondary` keeps the ring unfilled and draws
-   *  the border + dot in the tone colour (an outlined look). */
-  priority?: 'primary' | 'secondary'
   /** Disabled state. Presence-based (`''` on, omit off). */
   disabled?: boolean | ''
   /** Selected state — connect-time seed for the standalone render path (no
@@ -656,16 +658,16 @@ export interface ARadioGroupAttributes extends BaseAttributes {
   'default-state'?: string
   /** Form field name — the group submits `name=value`. */
   name?: string
-  /** Tone cascaded to children that don't set their own, or any literal CSS
+  /** Mark tone cascaded to children that don't set their own, or any literal CSS
    *  color for a one-off custom tone. Inherits through CSS so every child
-   *  `<a-radio>` picks up the same fill curve. */
+   *  `<a-radio>` picks up the same fill curve. The option text stays neutral —
+   *  use `tone-text`. */
   tone?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
+  /** Text tone cascaded to children's label + hint, independent of `tone`. A named
+   *  tone or any literal CSS color. Omit (or `'neutral'`) to leave the text neutral. */
+  'tone-text'?: 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'critical' | (string & {})
   /** Size cascaded to children that don't set their own. */
   size?: 'small' | 'medium' | 'large'
-  /** Visual priority cascaded to children that don't set their own. `primary`
-   *  (default) fills the selected ring with the tone colour; `secondary` keeps it
-   *  unfilled and draws the border + dot in the tone colour (an outlined look). */
-  priority?: 'primary' | 'secondary'
   /** Validation/feedback tone for the group hint — same set as `<a-input>`'s
    *  `status`. Recolours `<a-radio-group-hint>`; omit for the neutral default. */
   status?: 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'critical'

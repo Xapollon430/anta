@@ -188,7 +188,7 @@ const SHADOW_STYLE = `
     outline: none;
     color: var(--input-text);
     font-family: var(--sans-serif);
-    font-feature-settings: 'ss02', 'ss05';
+    font-feature-settings: 'ss02', 'ss05', 'tnum';
     font-size: var(--_fs);
     line-height: var(--_lh);
     font-weight: 400;

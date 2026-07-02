@@ -197,6 +197,14 @@ default it measures the nearest Anta ellipsizing label (`a-tab-label` /
 </span>
 ```
 
+### Empty tooltips
+
+A tooltip with nothing to show — no element children and no non-whitespace text —
+doesn't open, so `<Tooltip>{maybeEmpty}</Tooltip>` never flashes a blank bubble. This
+is automatic (no prop) and re-checked on each hover, so a tooltip whose content
+arrives later works normally. Content that's a single icon or image (an element, no
+text) still shows.
+
 <Disclosure title="Component props" open>
 
 <PropsTable component="Tooltip" />

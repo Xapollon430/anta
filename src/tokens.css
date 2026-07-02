@@ -25,7 +25,7 @@
 
   font-size: 15px;
   font-weight: 400;
-  font-feature-settings: 'ss02' on, 'ss05' on;
+  font-feature-settings: 'ss02' on, 'ss05' on, 'tnum' on;
 
   /* Colors imported from Figma library "Anta 0.2" → "Dynamic colors" collection.
      See FIGMA.md for the full extraction procedure (figma.variables Plugin

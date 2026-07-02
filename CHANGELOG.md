@@ -6,7 +6,7 @@ This file only tracks what ships to npm consumers — anything under `src/`, `di
 
 Versions ending in `-dev.N` are pre-release builds published under the npm `dev` dist-tag; main releases drop the suffix. Always pin a specific version in your `package.json` (`"@antadesign/anta": "0.1.1-dev.1"`) rather than the floating `"dev"` tag — the floating tag tracks the latest dev build and will silently change between installs.
 
-## Unreleased
+## 0.3.2 — July 2, 2026
 
 ### Added
 - **New `Tabs` component** (`<Tabs>` / `<a-tabs>` + `<Tab>` / `<a-tab>` + `<TabPanel>` / `<a-tabpanel>`) — a tablist for switching views, composed from `<Tab>` children (a selectable strip on its own) with optional paired `<TabPanel>`s that `Tabs` shows/hides. Registered via the `@antadesign/anta/elements` barrel.
@@ -19,8 +19,18 @@ Versions ending in `-dev.N` are pre-release builds published under the npm `dev`
   - **Keyboard** — every enabled tab is its own tab stop (`Tab` / `Shift`+`Tab` through them); arrow keys (axis-aware) also move between tabs (wrapping), `Home` / `End` jump to ends, `Space` / `Enter` activate. Arrow/Home/End navigation follows focus; disabled tabs are skipped.
 - **`Tooltip`: show-only-when-truncated.** New **`truncatedOnly`** prop (`truncated-only` attribute) shows the tooltip only when its target's text is actually ellipsized — a label that fits gets no tooltip. The truncation check is a UI-thread layout read (`scrollWidth`/`clientWidth`), re-measured on each show (so resizes / late fonts self-correct, no observer). By default it measures the nearest Anta ellipsizing label part (`<a-tab-label>` / `<a-button-label>`) inside the anchor, then the anchor itself; **`truncatedSelector`** (`truncated-selector`) overrides which element is measured. Pairs naturally with overflowing `Tabs` / `Button` labels.
 
+### Removed
+- **Dropped the `priority` prop from `Checkbox` and `RadioGroup`** (and the `priority` attribute from `<a-checkbox>` / `<a-radio>` / `<a-radio-group>`, plus the per-option `priority` on `RadioGroup`'s `options`). The `secondary` (outlined, unfilled) look is no longer a built-in variant — every checkbox / radio is the filled `primary` look. To reproduce the outlined look, use plain CSS on the light-DOM `::before` (box/ring) + `::after` (glyph/dot) per `:state(...)` — see the "Styling" section of the checkbox / radio docs for a copy-paste recipe.
+
 ### Changed
+- **`Checkbox` / `RadioGroup`: `tone` colours only the mark, not the text.** `tone` (and the `<a-checkbox>` / `<a-radio>` / `<a-radio-group>` `tone` attribute) tints the checked fill / selected ring + dot and the unselected box/ring border — the label and hint stay neutral. A new **`toneText`** prop (`tone-text` attribute) colours the label + hint independently (same named-tone set, or any CSS colour), so you can tint the mark, the text, or both. Custom colours flow through the existing `--{checkbox,radio}-tone-source` for the mark and a new `--{checkbox,radio}-tone-text-source` for the text.
 - **Renamed `onAnyChange` → `onValueChange`** on **`Input`**, **`Checkbox`**, and **`RadioGroup`** (and `Tabs` ships with the new name). The unified, settled-value callback now follows the Radix / Base UI **`onValueChange`** convention — the old `onAnyChange` name read as "any *event*" and was mistaken for including focus/blur, which it never did. The signature is unchanged (`(event, attrs)` with the same `attrs` snapshot per component); focus/blur remain the separate `onFocus` / `onBlur` props. **Breaking, no alias:** rename every `onAnyChange` to `onValueChange`.
+- **Tabular figures by default.** Anta text surfaces now render numbers as tabular (fixed-width) figures so digits align in columns. `tnum` is added to the global `--sans-serif` default (`tokens.css`) and to every component that re-declares `font-feature-settings` (`Button`, `Input`, `Checkbox`, `RadioGroup`, `Tabs`, `Text`, `Title`; `Tag` and `Progress` were already tabular) — a re-declaration *replaces* the property rather than merging, so the default has to be restated wherever a component sets its own stylistic sets. Existing `ss02` / `ss05` are preserved.
+- **`Button` now publishes `role="button"`.** The `<a-button>` element is a custom element with no implicit ARIA role, so assistive tech announced it as a generic clickable and its `aria-pressed` (on `selected`) was technically invalid. The wrapper now sets `role="button"` on both the element and the `<a href>` link variant (a consumer's own `role` still wins). No visual change.
+
+### Fixed
+- **`Tooltip`: an empty tooltip no longer opens a blank bubble.** If there's nothing to show — no element children and no non-whitespace text — the tooltip doesn't open. Checked on every show, so a tooltip whose content is populated later works normally. An icon/image-only bubble (element child, no text) still shows.
+- **`Expander` header uses Anta's focus ring.** The summary `<button>` showed the browser's default focus outline; it now uses the standard Anta keyboard focus ring (`1px solid var(--focus-ring)`, flush at `0` offset so it sits on the full-bleed header edge rather than bleeding past it).
 
 ## 0.3.1 — June 26, 2026
 

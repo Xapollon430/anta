@@ -164,6 +164,12 @@ export const Button = ({
     icon != null && label == null && children == null && iconTrailing == null
 
   const sharedAttrs = {
+    // `<a-button>` is a custom element with no implicit ARIA role, so AT would
+    // announce it as a generic clickable — and `aria-pressed` below is only
+    // valid on a button/switch role. Publish `role="button"` from the wrapper
+    // (ARIA lives in the wrapper) for both the element and the `<a href>` path;
+    // a consumer's own `role` in `...rest` still wins by spread order.
+    role: 'button',
     priority,
     tone: toneAttr,
     underline,
@@ -206,7 +212,6 @@ export const Button = ({
     return (
       <a
         href={href}
-        role="button"
         {...sharedAttrs as any}
         {...rest}
       >
