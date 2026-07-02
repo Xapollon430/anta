@@ -67,16 +67,17 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
   label?: string
   /** Visual priority. `primary` is the raised pill on a recessed track (the
    *  segmented-control look); `secondary` keeps that sizing but drops the track, marking
-   *  the selected tab with a subtle active background fill; `tertiary` is an underline
-   *  indicator with flush tabs. `tone` colours `secondary` + `tertiary`; `primary`
-   *  stays neutral.
+   *  the selected tab with a subtle active background fill; `tertiary` is a bottom-underline
+   *  indicator under the selected tab (no track, no rest line). `tone` colours `secondary` +
+   *  `tertiary`; `primary` stays neutral.
    *  @defaultValue 'primary' */
   priority?: "primary" | "secondary" | "tertiary"
   /** Tone applied to the selected indicator/label, or any literal CSS color for a
    *  one-off custom tone (derived in oklch). Named tones track light/dark.
    *  @defaultValue 'neutral' */
   tone?: "neutral" | "brand" | "info" | "success" | "warning" | "critical" | (string & {})
-  /** Size — reuses Button's type scale (small 24px · medium 28px · large 32px tall).
+  /** Size — small 24px · medium 28px · large 32px tall, matching Button's scale (the tab's
+   *  label leading runs a touch tighter, offset by 1px more block padding per side).
    *  @defaultValue 'medium' */
   size?: "small" | "medium" | "large"
   /** Layout + arrow-key axis. Horizontal ellipsizes labels when tabs overflow (scroll
@@ -255,7 +256,9 @@ export const Tabs = ({
         id={needsContainer ? undefined : id}
         // The sliding indicator's anchor-name is a fixed `--tabs-active`, isolated per strip
         // by `anchor-scope: all` (a-tabs.css) — so no per-strip unique name is needed here.
-        style={toneStyle(tone, "--tabs-tone-source", needsContainer ? undefined : style)}
+        // `style` always lands on <a-tabs> — you style the strip, even when a container wraps
+        // the panels; `class` / `id` / `rest` go on that container root instead (below).
+        style={toneStyle(tone, "--tabs-tone-source", style)}
         {...(needsContainer ? {} : rest)}
       >
         {tabs.map((t) => {
@@ -269,6 +272,11 @@ export const Tabs = ({
               role="tab"
               value={p.value}
               id={tabId(p.value)}
+              // Per-tab tone override: named/custom pass the attribute (CSS keys off it),
+              // and a custom literal colour also needs --tabs-tone-source on the tab (toneStyle
+              // sets it for non-named values, returns undefined otherwise).
+              tone={p.tone && p.tone !== "neutral" ? p.tone : undefined}
+              style={toneStyle(p.tone, "--tabs-tone-source", undefined)}
               aria-controls={hasPanel ? panelId(p.value) : undefined}
               aria-disabled={tabDisabled ? "true" : undefined}
               // Every enabled tab is its own tab stop (not a roving single stop) — Tab
@@ -295,7 +303,6 @@ export const Tabs = ({
     <div
       className={className ? `${styles.container} ${className}` : styles.container}
       data-orientation={vertical ? "vertical" : undefined}
-      style={style}
       id={id}
       {...rest}
     >
