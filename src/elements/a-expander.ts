@@ -258,7 +258,7 @@ const SHADOW_STYLE = `
 
   button:focus-visible {
     outline: 1px solid var(--focus-ring);
-    outline-offset: 1px;
+    outline-offset: 0px;
   }
 
   ${SUMMARY_LEVEL_RULES}
