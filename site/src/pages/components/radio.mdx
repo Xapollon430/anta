@@ -114,11 +114,51 @@ The group's own `label` and `hint` form a header **above** the options: the
 <Col>
 
 Six named tones — `neutral` (default), `brand`, `info`, `success`, `warning`,
-`critical`. `tone` tints the **whole option** — the fill, the label, the hint, and
-(for a tinted tone) the unselected ring border (a light shade of the fill that
-darkens on hover and active, like the neutral ring; `neutral` keeps a grey ring).
-Set it on the `RadioGroup` to colour every option, or on a single option to
-override just that one. Any literal CSS colour works too, for a one-off custom tone.
+`critical`. `tone` colours the **mark** — the selected-ring fill + dot and (for a
+tinted tone) the unselected ring border (a light shade of the fill that darkens on
+hover and active, like the neutral ring; `neutral` keeps a grey ring). The label and
+hint stay neutral — use `toneText` for those. Set `tone` on the `RadioGroup` to
+colour every option, or on a single option to override just that one. Any literal
+CSS colour works too, for a one-off custom tone.
+
+</Col>
+</Columns>
+
+## Text tone
+
+<Columns>
+<Col>
+
+<Preview>
+  <RadioGroup
+    name="tone-text"
+    defaultValue="a"
+    toneText="info"
+    options={[
+      { value: 'a', label: 'Option A', hint: 'With a hint' },
+      { value: 'b', label: 'Option B' },
+    ]}
+  />
+</Preview>
+
+```tsx folded
+<RadioGroup
+  toneText="info"
+  defaultValue="a"
+  options={[
+    { value: 'a', label: 'Option A', hint: 'With a hint' },
+    { value: 'b', label: 'Option B' },
+  ]}
+/>
+```
+
+</Col>
+<Col>
+
+`toneText` colours the **label and hint**, independent of `tone` — colour the mark,
+the text, or both. Same tone set (named or any CSS colour); set it on the group to
+colour every option's text, or on a single option to override one. Omit to leave the
+text neutral.
 
 </Col>
 </Columns>
@@ -397,10 +437,10 @@ individual option).
 
 <Disclosure title="Styling">
 
-Reach for the props first: **`tone`** sets the colour (any CSS colour for a custom
+Reach for the props first: **`tone`** colours the mark (any CSS colour for a custom
 tone, set on the group or a single option — derives the full curve in oklch),
-**`size`** the dimensions + type. The focus ring is the global
-[`--focus-ring`](/colors/#focus-ring).
+**`toneText`** the label + hint, **`size`** the dimensions + type. The focus ring is
+the global [`--focus-ring`](/colors/#focus-ring).
 
 ```tsx folded
 <RadioGroup tone="#e0457b" defaultValue="a" options={[{ value: 'a', label: 'A' }]} />
