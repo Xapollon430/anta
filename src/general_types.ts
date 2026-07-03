@@ -154,6 +154,8 @@ export interface BaseAttributes extends DOMEventHandlers {
  * typed props and computed labels, use `Progress` from `@antadesign/anta`.
  */
 export interface AProgressAttributes extends BaseAttributes {
+  /** Fully-round track (`border-radius: 999px`). Presence-based (`''` on, omit off). */
+  round?: boolean | number | string
   /** Current progress value. */
   value?: number | string
   /** Maximum value. Defaults to 100. */
@@ -243,9 +245,9 @@ export interface ATagAttributes extends BaseAttributes {
   /** Size variant. `small` = 16px tall, `medium` (default) = 20px,
    *  `large` = 24px. */
   size?: 'small' | 'medium' | 'large'
-  /** Render in normal case instead of the default uppercase.
+  /** Render in all-caps instead of the default normal (mixed) case.
    *  Presence-based (`''` on, omit off). */
-  nocaps?: boolean | ''
+  allcaps?: boolean | ''
 }
 
 /**
@@ -259,6 +261,10 @@ export interface ATagAttributes extends BaseAttributes {
  * use `Expander` from `@antadesign/anta`.
  */
 export interface AExpanderAttributes extends BaseAttributes {
+  /** Round corners sized to half the folded (header) height — a pill when folded,
+   *  the same radius when expanded (the element measures the header and publishes
+   *  `--_expander-round-radius`). Presence-based (`''` on, omit off). */
+  round?: boolean | number | string
   /** Controlled open state (`'open'` / `'closed'`). Present → controlled: the
    *  attribute is the source of truth, clicks only dispatch the cancelable
    *  `statechange` event, and the consumer answers by updating it. Absent →
@@ -332,6 +338,8 @@ export interface AIconAttributes extends BaseAttributes {
  * `Tooltip` from `@antadesign/anta`.
  */
 export interface ATooltipAttributes extends BaseAttributes {
+  /** Round the bubble (20px radius). Presence-based (`''` on, omit off). */
+  round?: boolean | number | string
   /** Show delay in milliseconds. Never use `0` — use ~`50`. Defaults to 250. */
   delay?: number | string
   /** Preferred side; auto-flips when there's no room. Defaults to `'bottom'`. */
@@ -365,6 +373,9 @@ export interface ATooltipAttributes extends BaseAttributes {
  * `@antadesign/anta`.
  */
 export interface ACheckboxAttributes extends BaseAttributes {
+  /** Round the checkbox mark to a circle (`::before` `border-radius: 999px`).
+   *  Presence-based (`''` on, omit off). */
+  round?: boolean | number | string
   /** Mark colour (checked fill + unselected box border), or any literal CSS color
    *  for a one-off custom tone. Named tones track light/dark mode automatically via
    *  the theme-aware role tokens. `'neutral'` is the default (same as omitting it).
@@ -418,6 +429,8 @@ export interface ACheckboxAttributes extends BaseAttributes {
  * for styling, and `:state(filled)` / `:state(invalid)` as CSS hooks.
  */
 export interface AInputAttributes extends BaseAttributes {
+  /** Fully-round field (`border-radius: 999px`). Presence-based (`''` on, omit off). */
+  round?: boolean | number | string
   /** Controlled value (string). Reflected to the shadow control only when it
    *  differs, so the caret survives re-renders. */
   value?: string
@@ -485,6 +498,9 @@ export interface AInputAttributes extends BaseAttributes {
  * (submenu). For the typed JSX wrapper use `Menu` from `@antadesign/anta`.
  */
 export interface AMenuAttributes extends BaseAttributes {
+  /** Round: container softens to a 20px radius and its items go fully round.
+   *  Presence-based (`''` on, omit off). */
+  round?: boolean | number | string
   /** Preferred placement relative to the trigger; auto-flips / clamps.
    *  Defaults to `'bottom-start'`. */
   placement?: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'bottom' | 'top'
@@ -562,6 +578,8 @@ export interface AMenuGroupAttributes extends BaseAttributes {
  * wrapper use `Button` from `@antadesign/anta`.
  */
 export interface AButtonAttributes extends BaseAttributes {
+  /** Fully-round (pill / circle) — `border-radius: 999px`. Presence-based (`''` on, omit off). */
+  round?: boolean | number | string
   /** Visual emphasis. */
   priority?: 'primary' | 'secondary' | 'tertiary' | 'quaternary'
   /** Semantic tone, or any literal CSS color for a one-off custom tone. */
@@ -715,6 +733,9 @@ export interface ARadioGroupAttributes extends BaseAttributes {
  * like `<a-button-label>`.
  */
 export interface ATabAttributes extends BaseAttributes {
+  /** Fully-round this tab's box (`--tab-radius: 999px`). `<a-tabs round>` sets it
+   *  strip-wide instead. Presence-based (`''` on, omit off) — no custom value. */
+  round?: boolean | ''
   /** This tab's identity / the value reported when it's selected. */
   value?: string
   /** Per-tab tone override (same vocabulary as `<a-tabs tone>`): colours this tab's
@@ -751,6 +772,9 @@ export interface ATabAttributes extends BaseAttributes {
  * typed JSX wrapper use `Tabs` from `@antadesign/anta`.
  */
 export interface ATabsAttributes extends BaseAttributes {
+  /** Fully-round tabs + sliding indicator (via `--tab-radius: 999px`), and the
+   *  primary track well. Presence-based (`''` on, omit off). */
+  round?: boolean | number | string
   /** Controlled selected value (the active tab's `value`). Present → controlled: the
    *  element reflects changes to this attribute and a pick only dispatches
    *  `statechange`. Absent → uncontrolled (seed with `default-state`). */

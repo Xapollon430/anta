@@ -38,6 +38,13 @@
     outline: none;
   }
 
+  /* Items go fully round when their menu is `round` (the container itself only
+     softens to 20px — see a-menu.css). Driven off the ancestor attribute so a
+     consumer sets `round` once on the menu. */
+  a-menu[round] a-menu-item {
+    border-radius: 999px;
+  }
+
   a-menu-item:hover,
   a-menu-item:focus-visible {
     background: color-mix(in oklch, currentColor var(--menu-item-hover), transparent);

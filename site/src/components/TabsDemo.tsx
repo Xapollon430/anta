@@ -129,7 +129,7 @@ export function IconsContent() {
   useElements()
   return (
     <Tabs defaultValue="app" label="Open files">
-      <Tab value="app" icon="braces">app.tsx <Tag size="small" nocaps value="2" /></Tab>
+      <Tab value="app" icon="braces">app.tsx <Tag size="small" value="2" /></Tab>
       <Tab value="readme" label="README.md" icon="file" />
       <Tab value="styles" icon="file" iconTrailing="circle-small-solid">styles.css</Tab>
     </Tabs>
@@ -240,16 +240,34 @@ export function TertiaryGlow() {
   )
 }
 
-/** Styling: a fully-rounded "pill" primary strip — track, tabs, and the sliding pill all
- *  at radius 999, with 4px of extra block padding on every tab for a taller capsule. */
+/** A fully-rounded "pill" primary strip via the built-in `round` attribute (track, tabs,
+ *  and the sliding pill all go to 999px in one flag); `.pill-tabs a-tab` adds extra block
+ *  padding for a taller capsule. */
 export function PillTabs() {
   useElements()
   return (
-    <Tabs className="pill-tabs" defaultValue="a" label="Sections">
+    <Tabs className="pill-tabs" round defaultValue="a" label="Sections">
       <Tab value="a" label="Overview" />
       <Tab value="b" label="Activity" />
       <Tab value="c" label="Settings" />
     </Tabs>
+  )
+}
+
+/** The `options` prop — tabs from a data array instead of `<Tab>` children (round, with icons). */
+export function OptionsTabs() {
+  useElements()
+  return (
+    <Tabs
+      round
+      defaultValue="overview"
+      label="Sections"
+      options={[
+        { value: 'overview', label: 'Overview', icon: 'home' },
+        { value: 'activity', label: 'Activity', icon: 'history' },
+        { value: 'settings', label: 'Settings', icon: 'list' },
+      ]}
+    />
   )
 }
 

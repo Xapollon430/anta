@@ -165,6 +165,7 @@ const SHADOW_STYLE = `
   :host([size="large"]) { --_fs: 17px; --_lh: 24px; }
   :host([size="small"]) .field { min-height: 24px; }
   :host([size="large"]) .field { min-height: 32px; }
+  :host([round]) .field { border-radius: var(--input-round, 999px); }
 
   @media (hover: hover) and (pointer: fine) {
     :host(:not(:disabled)) .field:hover { --_bc: var(--input-border-hover); }

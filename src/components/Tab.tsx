@@ -15,6 +15,9 @@ export interface TabProps {
   icon?: IconShape
   /** Trailing icon shape, rendered after the label. */
   iconTrailing?: IconShape
+  /** Fully-round just this tab's box. `<Tabs round>` rounds the whole strip
+   *  (tabs + sliding indicator) instead. */
+  round?: boolean
   /** Per-tab tone override, same vocabulary as `<Tabs tone>` — colours this one tab's
    *  label + icons (all priorities/modes, named or custom colour) and, when it's the
    *  active tab, its indicator. For a **custom literal colour** the sliding indicator can't

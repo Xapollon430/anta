@@ -1,4 +1,4 @@
-import { nativeStateChange, toneStyle } from "../anta_helpers"
+import { nativeStateChange, toneStyle, roundStyle } from "../anta_helpers"
 import type { BaseProps } from "../general_types"
 
 /** The wrapper-level checked value: a boolean for the binary axis, the string
@@ -80,6 +80,9 @@ export interface CheckboxProps extends BaseProps {
   /** Size variant. small=14px, medium=16px, large=18px box.
    *  @defaultValue 'medium' */
   size?: 'small' | 'medium' | 'large'
+  /** Round the checkbox mark to a circle (`border-radius: 999px` on the box). Pass
+   *  a `number` (px) or a CSS length string for a rounded-square mark instead. */
+  round?: boolean | number | string
   /** Fired on click / Space *before* the element applies any change. Event-first
    *  so `event.preventDefault()` is the synchronous veto (uncontrolled mode);
    *  `detail` carries `{ next, prev }`. In controlled mode the element never
@@ -118,6 +121,7 @@ export const Checkbox = ({
   tone,
   toneText,
   size,
+  round,
   onStateChange,
   onChange,
   onValueChange,
@@ -137,10 +141,14 @@ export const Checkbox = ({
   // A non-named tone/toneText is a custom CSS color — `toneStyle` hands each to the
   // element via its `--checkbox-tone-source` / `--checkbox-tone-text-source` var; the
   // element's CSS derives the fill / text curve. Chained so both can be custom.
-  const computedStyle = toneStyle(
-    toneText,
-    '--checkbox-tone-text-source',
-    toneStyle(tone, '--checkbox-tone-source', style),
+  const computedStyle = roundStyle(
+    round,
+    '--checkbox-round',
+    toneStyle(
+      toneText,
+      '--checkbox-tone-text-source',
+      toneStyle(tone, '--checkbox-tone-source', style),
+    ),
   )
 
   // The accessible name is wrapper-derived (matches `Input` and the "ARIA lives
@@ -197,6 +205,7 @@ export const Checkbox = ({
       tone={tone && tone !== 'neutral' ? tone : undefined}
       tone-text={toneText && toneText !== 'neutral' ? toneText : undefined}
       size={size && size !== 'medium' ? size : undefined}
+      round={round ? '' : undefined}
       tabIndex={disabled ? -1 : (tabIndex ?? 0)}
       // All-lowercase `onstatechange` is the one event-prop spelling both
       // renderers bind to our custom `statechange` event: React 19 keeps the

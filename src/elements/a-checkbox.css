@@ -85,6 +85,16 @@
         border-color 150ms ease-out;
     }
 
+    /* `round` → circular mark. 999px on the 16px box is clamped to a circle; a
+       value (`round="6px"`, or the wrapper's `round={6}` → inline `--checkbox-round`)
+       gives a rounded-square mark instead. */
+    &[round] {
+      --checkbox-round: attr(round type(<length>), 999px);
+    }
+    &[round]::before {
+      border-radius: var(--checkbox-round, 999px);
+    }
+
     /* Glyph, stacked on the box (same cell, source order = paint order).
        Transparent until a filled state masks + colours it — an unmasked
        ::after would paint a solid square. */

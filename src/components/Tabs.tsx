@@ -4,7 +4,7 @@
 // (stateless-wrapper exception — Tabs holds the active value to render the roving
 // tabindex + decide which panel shows, exactly like RadioGroup).
 import { useId, useState, Fragment } from "../jsx-runtime"
-import { nativeStateChange, toneStyle, wrapLabel } from "../anta_helpers"
+import { nativeStateChange, toneStyle, roundStyle, wrapLabel } from "../anta_helpers"
 import type { BaseProps } from "../general_types"
 import { Tab } from "./Tab"
 import type { TabProps } from "./Tab"
@@ -20,6 +20,12 @@ type StateChangeEvent = CustomEvent<StateDetail>
 export interface TabsChangeAttrs {
   value: string | null
 }
+
+/** One tab as a plain data object for the `options` prop — the array-driven
+ *  alternative to `<Tab>` children (mirrors `RadioGroup`'s `options`). Same
+ *  fields as `<Tab>` minus `children` (use `label`); `icon` / `iconTrailing`
+ *  are icon-shape strings. */
+export type TabOption = Omit<TabProps, "children">
 
 /**
  * How `<TabPanel>`s that aren't the active one are handled.
@@ -41,6 +47,12 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
    *  panel's body when its tab is active. Omit the panels to use `Tabs` as a bare
    *  selectable strip. Order is free; tabs and panels can interleave. */
   children?: React.ReactNode
+  /** Tabs as a data array instead of `<Tab>` children (like `RadioGroup`'s
+   *  `options`). When set, the strip renders from these and `<Tab>` children are
+   *  ignored; `<TabPanel>` children still supply panel bodies (matched by `value`).
+   *  Each entry is a `TabOption` (`value`, `label`, `icon`, `iconTrailing`,
+   *  `tone`, `disabled`, `round`). */
+  options?: TabOption[]
   /** Controlled active value — the `value` of the `<Tab>` to mark selected (and, when a
    *  `<TabPanel value="…">` shares it, the panel to reveal). When set, you own selection:
    *  the strip renders exactly what this says, and a user pick only *requests* a change
@@ -92,6 +104,11 @@ export interface TabsProps extends Omit<BaseProps, "onChange"> {
    *  per tab so it snaps with no movement. (Browsers without anchor positioning get that
    *  per-tab paint automatically — `noslide` is the explicit opt-out.) */
   noslide?: boolean
+  /** Fully-round the tabs and the sliding indicator (and the primary track
+   *  well). Applies strip-wide; a single `<Tab round>` rounds just that tab. A
+   *  `number` (px) or CSS length string sets a custom radius on the top-level
+   *  track well only — the tab pills + indicator stay fully round. */
+  round?: boolean | number | string
   /** Disable the whole strip. */
   disabled?: boolean
 }
@@ -144,6 +161,7 @@ const flattenChildren = (nodes: React.ReactNode): any[] => {
  */
 export const Tabs = ({
   children,
+  options,
   value,
   defaultValue,
   onStateChange,
@@ -158,6 +176,7 @@ export const Tabs = ({
   orientation,
   mounting = "display",
   noslide,
+  round,
   disabled,
   className,
   style,
@@ -189,7 +208,12 @@ export const Tabs = ({
   const panelId = (v: string) => `${baseId}-panel-${v}`
 
   const items = flattenChildren(children)
-  const tabs = items.filter((c) => c?.type === Tab) as { props: TabProps }[]
+  // Tabs come from `options` (data-driven, like RadioGroup) when provided,
+  // otherwise from `<Tab>` children. Panels always come from `<TabPanel>`
+  // children — so `options` + child panels compose.
+  const tabs = options
+    ? options.map((o) => ({ props: o as TabProps }))
+    : (items.filter((c) => c?.type === Tab) as { props: TabProps }[])
   const panels = items.filter((c) => c?.type === TabPanel) as { props: TabPanelProps }[]
   // Set once so each tab's `aria-controls` lookup is O(1), not an O(panels) scan per tab.
   const panelValues = new Set(panels.map((pan) => pan.props.value))
@@ -245,6 +269,7 @@ export const Tabs = ({
         size={size && size !== "medium" ? size : undefined}
         orientation={vertical ? "vertical" : undefined}
         noslide={noslide ? "" : undefined}
+        round={round ? "" : undefined}
         disabled={disabled ? "" : undefined}
         onstatechange={onstatechange}
         onchange={onchange}
@@ -258,7 +283,7 @@ export const Tabs = ({
         // by `anchor-scope: all` (a-tabs.css) — so no per-strip unique name is needed here.
         // `style` always lands on <a-tabs> — you style the strip, even when a container wraps
         // the panels; `class` / `id` / `rest` go on that container root instead (below).
-        style={toneStyle(tone, "--tabs-tone-source", style)}
+        style={roundStyle(round, "--tabs-round", toneStyle(tone, "--tabs-tone-source", style))}
         {...(needsContainer ? {} : rest)}
       >
         {tabs.map((t) => {
@@ -286,6 +311,10 @@ export const Tabs = ({
               // `aria-selected` is NOT set here — the element publishes it off-DOM.
               tabIndex={tabDisabled && !isSelected ? -1 : 0}
               disabled={tabDisabled ? "" : undefined}
+              // Strip-level `round` (or a per-tab `round`) → round this tab. The
+              // strip-wide radius (incl. the sliding indicator) also comes from
+              // `round` on <a-tabs> above; this stamps each tab for parity.
+              round={round || p.round ? "" : undefined}
             >
               {p.icon && <a-icon shape={p.icon} aria-hidden="true" />}
               {wrapLabel(p.label != null ? p.label : p.children, "a-tab-label")}

@@ -1,6 +1,6 @@
 import type { BaseProps, DOMEventHandlers } from '../general_types'
 import type { IconShape } from '../elements/a-icon.shapes'
-import { nativeStateChange, toneStyle } from '../anta_helpers'
+import { nativeStateChange, toneStyle, roundStyle } from '../anta_helpers'
 import { Button } from './Button'
 import { Icon } from './Icon'
 
@@ -55,6 +55,10 @@ export interface InputProps extends BaseProps, DOMEventHandlers {
    *  large 17/24 + 18px).
    *  @defaultValue medium */
   size?: 'small' | 'medium' | 'large'
+  /** Fully-round the field (`border-radius: 999px`). Pass a `number` (px) or a CSS
+   *  length string for a custom radius. The `clearable` × button always rounds to
+   *  a circle to match (it isn't sized by a custom field value). */
+  round?: boolean | number | string
   /** Controlled value. Pair with `onChange` / `onInput`. */
   value?: string
   /** Initial value for the uncontrolled case. */
@@ -219,6 +223,7 @@ export const Input = ({
   statusIcon,
   tone,
   size,
+  round,
   value,
   defaultValue,
   multiline,
@@ -261,6 +266,7 @@ export const Input = ({
   return (
     <a-input
       size={size && size !== 'medium' ? size : undefined}
+      round={round ? '' : undefined}
       value={value}
       // Pass `defaultvalue` even when controlled, so a <form> reset has a target
       // (the element resets to it and fires change → controlled state re-syncs).
@@ -293,7 +299,7 @@ export const Input = ({
       onclearclick={onClearClick ? (e: any) => onClearClick(nativeStateChange(e).event) : undefined}
       onclearinput={onClearInput ? (e: any) => onClearInput(nativeStateChange(e).event) : undefined}
       class={className}
-      style={toneStyle(tone, '--input-tone-source', style)}
+      style={roundStyle(round, '--input-round', toneStyle(tone, '--input-tone-source', style))}
       {...rest}
     >
       {label != null &&
@@ -325,6 +331,7 @@ export const Input = ({
           <Button
             priority="tertiary"
             size={size}
+            round={!!round}
             icon="x"
             aria-label="Clear"
             data-custom-event="clearrequest"
