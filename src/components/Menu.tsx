@@ -31,6 +31,10 @@ export interface MenuProps extends BaseProps {
    *  in response. Submenus are always uncontrolled regardless of this. See
    *  STATEFUL-COMPONENTS.md. */
   open?: boolean
+  /** Round the menu: the container softens to a 20px radius and its items go
+   *  fully round. A `number` (px) or CSS length string tunes the container radius
+   *  only — items stay full pills. */
+  round?: boolean | number | string
   /** Fired before the open state changes — on open, and on every dismiss (Esc,
    *  outside-click, scroll, selecting an item). `event` is the cancelable
    *  `statechange`; `detail.next`/`detail.prev` are the requested/previous open
@@ -42,10 +46,6 @@ export interface MenuProps extends BaseProps {
     event: CustomEvent,
     detail: { next: boolean; prev: boolean },
   ) => void
-  /** Round the menu: the container softens to a 20px radius and its items go
-   *  fully round. A `number` (px) or CSS length string tunes the container radius
-   *  only — items stay full pills. */
-  round?: boolean | number | string
   /** The menu's contents: `MenuItem`, `MenuSeparator`, `MenuGroup`, or any
    *  custom element. */
   children?: React.ReactNode

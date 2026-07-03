@@ -58,6 +58,9 @@ export interface CheckboxProps extends BaseProps {
   defaultChecked?: CheckboxValue
   /** Disable the checkbox (no interaction, dropped from the tab order). */
   disabled?: boolean
+  /** Round the checkbox mark to a circle (`border-radius: 999px` on the box). Pass
+   *  a `number` (px) or a CSS length string for a rounded-square mark instead. */
+  round?: boolean | number | string
   /** Form field name. Inside a `<form>` the checkbox submits under this name,
    *  contributing `value` when checked — like a native checkbox. */
   name?: string
@@ -80,9 +83,6 @@ export interface CheckboxProps extends BaseProps {
   /** Size variant. small=14px, medium=16px, large=18px box.
    *  @defaultValue 'medium' */
   size?: 'small' | 'medium' | 'large'
-  /** Round the checkbox mark to a circle (`border-radius: 999px` on the box). Pass
-   *  a `number` (px) or a CSS length string for a rounded-square mark instead. */
-  round?: boolean | number | string
   /** Fired on click / Space *before* the element applies any change. Event-first
    *  so `event.preventDefault()` is the synchronous veto (uncontrolled mode);
    *  `detail` carries `{ next, prev }`. In controlled mode the element never

@@ -55,10 +55,6 @@ export interface InputProps extends BaseProps, DOMEventHandlers {
    *  large 17/24 + 18px).
    *  @defaultValue medium */
   size?: 'small' | 'medium' | 'large'
-  /** Fully-round the field (`border-radius: 999px`). Pass a `number` (px) or a CSS
-   *  length string for a custom radius. The `clearable` × button always rounds to
-   *  a circle to match (it isn't sized by a custom field value). */
-  round?: boolean | number | string
   /** Controlled value. Pair with `onChange` / `onInput`. */
   value?: string
   /** Initial value for the uncontrolled case. */
@@ -111,6 +107,10 @@ export interface InputProps extends BaseProps, DOMEventHandlers {
    *  when the field is hovered or focused (a quiet-until-engaged affordance for
    *  trailing actions). */
   dimActions?: boolean
+  /** Fully-round the field (`border-radius: 999px`). Pass a `number` (px) or a CSS
+   *  length string for a custom radius. The `clearable` × button always rounds to
+   *  a circle to match (it isn't sized by a custom field value). */
+  round?: boolean | number | string
   /** Toggle native spell-checking. */
   spellCheck?: boolean
   /** Max input length. */
