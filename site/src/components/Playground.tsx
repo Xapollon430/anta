@@ -33,7 +33,7 @@ import 'monaco-editor/min/vs/editor/editor.main.css'
 
 import { controlsFor, controlsForExample, CONDITIONAL_PROPS, type Control, type PropEntry } from '../../lib/sandbox/props-form.ts'
 import { bundle, type BundleResult } from '../../lib/sandbox/bundler.ts'
-import { getDemoModules } from '../../lib/sandbox/modules.ts'
+import { getDemoModules, moduleManifest } from '../../lib/sandbox/modules.ts'
 import { replaceProp, readChildren } from '../../lib/sandbox/prop-patch.ts'
 import { readProp } from '../../lib/sandbox/prop-read.ts'
 import { parseExamples, type Example } from '../../lib/sandbox/parse-examples.ts'
@@ -1627,6 +1627,20 @@ function onMonacoMount(_editor: unknown, monaco: any) {
   for (const [absPath, contents] of Object.entries(antaTypeDefs)) {
     ts.typescriptDefaults.addExtraLib(contents, 'file://' + absPath)
   }
+  // The bundler auto-imports every anta export into the compiled output
+  // (see bundler.ts `buildAntaAutoImport`), so demo code can drop any
+  // component into the JSX without an explicit import. Mirror that in the
+  // editor: declare each anta export as an ambient global so Monaco's TS
+  // service resolves a bare `<Button>` (with full hover/autocomplete types)
+  // instead of squiggling "Cannot find name". Kept in lockstep with the
+  // runtime list via the same `moduleManifest` the bundler resolves against.
+  const antaGlobals = (moduleManifest['@antadesign/anta'] ?? [])
+    .map((n) => `  const ${n}: typeof import('@antadesign/anta').${n}`)
+    .join('\n')
+  ts.typescriptDefaults.addExtraLib(
+    `export {}\ndeclare global {\n${antaGlobals}\n}\n`,
+    'file:///anta-auto-imports.d.ts',
+  )
   for (const [absPath, contents] of Object.entries(preactTypeDefs)) {
     ts.typescriptDefaults.addExtraLib(contents, 'file://' + absPath)
   }

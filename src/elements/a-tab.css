@@ -22,6 +22,9 @@
     background-color: var(--tab-bg, transparent);
     border: none;
     border-radius: var(--tab-radius);
+    /* `round` on a lone tab rounds just this tab's box; `<Tabs round>` sets it
+       strip-wide (incl. the sliding indicator) via a-tabs.css. */
+    &[round] { --tab-radius: 999px; }
     /* Zero-spread transparent baseline so the selected pill's ring (--tab-pill-shadow)
        animates in (spread 0→0.5px, transparent→colour) instead of popping from `none`. */
     box-shadow: 0 0 0 0 transparent;
